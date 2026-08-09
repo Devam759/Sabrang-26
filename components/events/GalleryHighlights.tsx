@@ -92,7 +92,7 @@ function ArchiveHeading({ className = '' }: { className?: string }) {
         id="gallery-highlights-heading"
         className="mt-5 text-5xl font-black uppercase leading-[0.92] tracking-tighter md:text-7xl"
       >
-        Highlights
+        Events
       </h2>
       <p className="mt-5 max-w-md text-lg font-medium leading-relaxed text-slate-400">
         Moments that made the fest.
