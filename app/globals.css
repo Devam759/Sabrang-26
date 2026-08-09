@@ -45,6 +45,10 @@
 @layer base {
   body {
     @apply bg-background text-on-background font-body;
+    /* Full-bleed sections break out with 100vw; keep that off the h-scrollbar.
+       `clip` rather than `hidden` — `hidden` would make body a scroll container
+       and break `position: sticky` inside it. */
+    overflow-x: clip;
   }
 }
 

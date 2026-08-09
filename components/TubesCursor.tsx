@@ -45,23 +45,29 @@ export default function TubesCursor() {
     const FIXED_LIGHT_COLORS = ['#83f36e', '#fe8a2e', '#ff008a', '#60aed5'];
 
     // @ts-ignore
-    import('threejs-components/build/cursors/tubes1.min.js').then((module) => {
-      if (!isMounted || !canvas) return;
-      const TubesCursor = module.default ?? module;
-      app = TubesCursor(canvas, {
-        tubes: {
-          colors: FIXED_TUBE_COLORS,
-          count: 16,
-          minRadius: 0.005,
-          maxRadius: 0.02,
-          noise: 0.03,
-          lights: {
-            intensity: 120,
-            colors: FIXED_LIGHT_COLORS,
+    import('threejs-components/build/cursors/tubes1.min.js')
+      .then((module) => {
+        if (!isMounted || !canvas) return;
+        const TubesCursor = module.default ?? module;
+        app = TubesCursor(canvas, {
+          tubes: {
+            colors: FIXED_TUBE_COLORS,
+            count: 16,
+            minRadius: 0.005,
+            maxRadius: 0.02,
+            noise: 0.03,
+            lights: {
+              intensity: 120,
+              colors: FIXED_LIGHT_COLORS,
+            },
           },
-        },
+        });
+      })
+      // Without WebGL this throws inside the promise and takes the whole client
+      // tree down with it. The cursor is decoration — let the page live.
+      .catch(() => {
+        app = null;
       });
-    });
 
     return () => {
       isMounted = false;
