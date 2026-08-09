@@ -341,6 +341,13 @@ export default function GalleryClient() {
   const dragPointerId = useRef<number | null>(null);
   const dragLastY = useRef(0);
 
+  useEffect(() => {
+    return () => {
+      const styleEl = document.getElementById('gallery-global-cursor-override');
+      if (styleEl) styleEl.remove();
+    };
+  }, []);
+
   // Tooltip + cursor are animated outside React, so hovering never re-renders.
   useEffect(() => {
     let raf = 0;
@@ -420,6 +427,14 @@ export default function GalleryClient() {
     cursorTarget.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     cursorCurrent.current = { ...cursorTarget.current };
     cursorActive.current = true;
+
+    let styleEl = document.getElementById('gallery-global-cursor-override');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'gallery-global-cursor-override';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.innerHTML = '.custom-cursor-circle { opacity: 0 !important; }';
   }, []);
 
   const onPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
@@ -460,6 +475,11 @@ export default function GalleryClient() {
     cursorActive.current = false;
     endDrag();
     onImageHoverEnd();
+
+    const styleEl = document.getElementById('gallery-global-cursor-override');
+    if (styleEl) {
+      styleEl.innerHTML = '';
+    }
   }, [endDrag, onImageHoverEnd]);
 
   return (
