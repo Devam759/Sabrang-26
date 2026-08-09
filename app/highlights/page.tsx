@@ -1,4 +1,4 @@
-import GalleryHighlights from '@/components/gallery/GalleryHighlights';
+import GalleryHighlights from '@/components/highlights/GalleryHighlights';
 
 export const metadata = {
   title: 'Highlights - Sabrang 2025',

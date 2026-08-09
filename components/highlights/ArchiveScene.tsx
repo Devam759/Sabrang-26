@@ -22,7 +22,7 @@
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import type { GalleryItem } from '@/lib/gallery-data';
+import type { GalleryItem } from '@/lib/highlights-data';
 
 const TWO_PI = Math.PI * 2;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));

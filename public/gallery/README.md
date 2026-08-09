@@ -4,9 +4,9 @@ Drop the festival photographs here using the filenames below. Any file that is
 missing renders as a neutral archive placeholder, so the section never breaks
 while photos are still being collected.
 
-Filenames, captions and ordering all come from `lib/gallery-data.ts` — edit that
-file to add, remove or rename photographs. Nothing in the gallery's logic needs
-to change.
+Filenames, captions and ordering all come from `lib/highlights-data.ts` — edit
+that file to add, remove or rename photographs. Nothing in the highlights logic
+needs to change.
 
 | File | Shown as |
 | --- | --- |

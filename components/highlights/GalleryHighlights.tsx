@@ -14,7 +14,7 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { galleryItems, type GalleryItem } from '@/lib/gallery-data';
+import { galleryItems, type GalleryItem } from '@/lib/highlights-data';
 
 const ArchiveScene = dynamic(() => import('./ArchiveScene'), { ssr: false });
 
