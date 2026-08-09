@@ -108,4 +108,4 @@ pids
 .temp/
 
 # Excluded folders
-helmet-main/
+AGENTS.md
