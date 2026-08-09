@@ -3,9 +3,20 @@
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import ThreeBackground from '@/components/ThreeBackground';
+import { LiquidMetalButton } from '@/components/ui/liquid-metal';
+import SplineScene from '@/components/SplineScene';
 
 export default function Home() {
   const { user } = useAuth();
+
+  const heroMetalConfig = {
+    colorBack: '#4c1d95',
+    colorTint: '#a78bfa',
+    speed: 0.5,
+    repetition: 4,
+    distortion: 0.15,
+    scale: 1,
+  };
 
   return (
     <div className="space-y-0">
@@ -33,26 +44,63 @@ export default function Home() {
             across 50+ high-octane events.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link 
-              href="/events" 
-              className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all hover:scale-105 shadow-xl shadow-indigo-200"
-            >
-              Explore Events
-            </Link>
-            {!user ? (
-              <Link 
-                href="/register" 
-                className="px-10 py-4 bg-white text-slate-900 border-2 border-slate-200 rounded-2xl font-bold text-lg hover:border-indigo-600 transition-all"
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-2">
+            <Link href="/events">
+              <LiquidMetalButton
+                size="lg"
+                borderWidth={4}
+                metalConfig={heroMetalConfig}
+                icon={
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                }
               >
-                Sign Up Now
+                Explore Events
+              </LiquidMetalButton>
+            </Link>
+
+            {!user ? (
+              <Link href="/register">
+                <LiquidMetalButton
+                  size="lg"
+                  borderWidth={4}
+                  metalConfig={{
+                    colorBack: '#3b82f6',
+                    colorTint: '#93c5fd',
+                    speed: 0.5,
+                    repetition: 4,
+                    distortion: 0.15,
+                  }}
+                  icon={
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                  }
+                >
+                  Register Now
+                </LiquidMetalButton>
               </Link>
             ) : (
-              <Link 
-                href="/dashboard" 
-                className="px-10 py-4 bg-white text-slate-900 border-2 border-slate-200 rounded-2xl font-bold text-lg hover:border-indigo-600 transition-all"
-              >
-                My Dashboard
+              <Link href="/dashboard">
+                <LiquidMetalButton
+                  size="lg"
+                  borderWidth={4}
+                  metalConfig={{
+                    colorBack: '#3b82f6',
+                    colorTint: '#93c5fd',
+                    speed: 0.5,
+                    repetition: 4,
+                    distortion: 0.15,
+                  }}
+                  icon={
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  }
+                >
+                  My Dashboard
+                </LiquidMetalButton>
               </Link>
             )}
           </div>

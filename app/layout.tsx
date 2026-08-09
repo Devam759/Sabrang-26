@@ -25,12 +25,12 @@ export default function RootLayout({
           <TubesCursor />
           <CursorFollower />
           <InitialLoader />
-          <div className="min-h-screen flex flex-col bg-slate-50">
+          <div className="min-h-screen flex flex-col bg-black text-white">
             <Navbar />
             <main className="flex-grow container mx-auto px-4 py-8">
               {children}
             </main>
-            <footer className="py-6 border-t bg-white text-center text-slate-500 text-sm">
+            <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm">
               &copy; {new Date().getFullYear()} Sabrang Festival. All rights reserved.
             </footer>
           </div>

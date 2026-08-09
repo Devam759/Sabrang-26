@@ -39,8 +39,16 @@ export const LiquidMetal = memo(function LiquidMetal({
 }: LiquidMetalProps) {
     return (
         <div
-            className={cn("absolute inset-0 z-0 overflow-hidden", className)}
-            style={style}
+            className={cn(
+                "absolute inset-0 z-0 rounded-full overflow-hidden isolate transform-gpu",
+                className
+            )}
+            style={{
+                borderRadius: "9999px",
+                clipPath: "inset(0 round 9999px)",
+                WebkitClipPath: "inset(0 round 9999px)",
+                ...style,
+            }}
         >
             <LiquidMetalShader
                 colorBack={colorBack}
@@ -55,7 +63,13 @@ export const LiquidMetal = memo(function LiquidMetal({
                 shape="none"
                 scale={scale}
                 fit="cover"
-                style={{ width: "100%", height: "100%" }}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "9999px",
+                    clipPath: "inset(0 round 9999px)",
+                    WebkitClipPath: "inset(0 round 9999px)",
+                }}
             />
         </div>
     );
@@ -115,14 +129,24 @@ export const LiquidMetalButton = forwardRef<
                 ref={ref}
                 disabled={disabled}
                 className={cn(
-                    "relative group cursor-pointer border-none bg-transparent p-0 outline-none transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
+                    "relative group cursor-pointer border-none bg-transparent p-0 outline-none transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none rounded-full inline-block",
                     className
                 )}
+                style={{
+                    borderRadius: "9999px",
+                    clipPath: "inset(0 round 9999px)",
+                    WebkitClipPath: "inset(0 round 9999px)",
+                }}
                 {...props}
             >
                 <div
-                    className="relative rounded-full overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]"
-                    style={{ padding: borderWidth }}
+                    className="relative rounded-full overflow-hidden isolate transform-gpu shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]"
+                    style={{
+                        padding: borderWidth,
+                        borderRadius: "9999px",
+                        clipPath: "inset(0 round 9999px)",
+                        WebkitClipPath: "inset(0 round 9999px)",
+                    }}
                 >
                     {/* Liquid Metal Border Layer */}
                     <LiquidMetal
@@ -138,28 +162,34 @@ export const LiquidMetalButton = forwardRef<
                     {/* Inner Button Body */}
                     <div
                         className={cn(
-                            "relative z-10 rounded-full flex items-center",
-                            "bg-white dark:bg-black",
+                            "relative z-10 rounded-full flex items-center shrink-0",
+                            "bg-black text-white",
                             "transition-colors duration-200",
-                            "group-hover:bg-neutral-50 dark:group-hover:bg-neutral-900",
+                            "group-hover:bg-neutral-900",
                             sizeStyles[size]
                         )}
+                        style={{
+                            borderRadius: "9999px",
+                            clipPath: "inset(0 round 9999px)",
+                            WebkitClipPath: "inset(0 round 9999px)",
+                        }}
                     >
                         {icon && (
                             <div
                                 className={cn(
-                                    "rounded-full flex items-center justify-center",
-                                    "bg-neutral-100 dark:bg-neutral-800",
-                                    "shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]",
+                                    "rounded-full flex items-center justify-center shrink-0",
+                                    "bg-neutral-800 text-white",
+                                    "shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]",
                                     iconSizes[size]
                                 )}
+                                style={{ borderRadius: "9999px" }}
                             >
-                                <span className="text-neutral-700 dark:text-neutral-300">
+                                <span className="text-white">
                                     {icon}
                                 </span>
                             </div>
                         )}
-                        <span className="font-medium tracking-tight text-neutral-900 dark:text-white">
+                        <span className="font-medium tracking-tight text-white whitespace-nowrap">
                             {children}
                         </span>
                     </div>

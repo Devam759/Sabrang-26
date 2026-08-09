@@ -7,7 +7,6 @@ import { useAuth } from './AuthProvider';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { LiquidMetalButton } from '@/components/ui/liquid-metal';
-import { X, ArrowRight, LogOut, User as UserIcon, Shield } from 'lucide-react';
 
 export default function Navbar() {
   const { user, role, loading } = useAuth();
@@ -68,23 +67,16 @@ export default function Navbar() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About' },
-    { href: '/events', label: 'Events' },
-    { href: '/highlights', label: 'Highlights' },
-    { href: '/schedule', label: 'Schedule' },
+    { href: '/gallery', label: 'Gallery' },
     { href: '/team', label: 'Our Team' },
+    { href: '/sponsors', label: 'Sponsors' },
+    { href: '/events', label: 'Events' },
+    { href: '/schedule', label: 'Schedule' },
+    { href: '/register', label: 'Registration' },
     { href: '/faq', label: 'FAQ' },
-    { href: '/sponsor', label: 'Why Sponsor Us?' },
     { href: '/contact', label: 'Contact Us' },
+    { href: '/credits', label: 'Tech Team Credits' },
   ];
-
-  const chromeMetalConfig = {
-    colorBack: '#444446',
-    colorTint: '#ffffff',
-    speed: 0.4,
-    repetition: 4,
-    distortion: 0.15,
-    scale: 1,
-  };
 
   return (
     <>
@@ -96,37 +88,41 @@ export default function Navbar() {
             : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        {/* Top Left: Sabrang Logo Liquid Metal Pill */}
-        <div className="pointer-events-auto">
-          <Link href="/">
-            <LiquidMetalButton
-              borderWidth={4}
-              size="md"
-              metalConfig={chromeMetalConfig}
-              icon={
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <div className="w-3.5 h-3.5 border-2 border-white/90 rounded-[4px]" />
-                </div>
-              }
-            >
-              <span className="text-base font-semibold tracking-tight text-white">
-                Sabrang 2026
-              </span>
-            </LiquidMetalButton>
-          </Link>
-        </div>
+        {/* Top Left: Standalone Big Sabrang Logo (Hidden on /team) */}
+        {pathname !== '/team' ? (
+          <div className="pointer-events-auto">
+            <Link href="/" className="block outline-none transition-transform hover:scale-105 active:scale-95">
+              <img
+                src="/sabrang logo.png"
+                alt="Sabrang Logo"
+                className="h-16 md:h-24 w-auto object-contain drop-shadow-2xl"
+              />
+            </Link>
+          </div>
+        ) : (
+          <div />
+        )}
 
-        {/* Top Right: Cylindrical Menu Liquid Metal Pill */}
+        {/* Top Right: Pill-Shaped Liquid Metal Menu Button */}
         <div className="pointer-events-auto">
           <LiquidMetalButton
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation menu"
+            metalConfig={{
+              colorBack: '#aaaaac',
+              colorTint: '#ffffff',
+              speed: 0.4,
+              repetition: 4,
+              distortion: 0.15,
+              scale: 1,
+            }}
             borderWidth={4}
             size="md"
-            metalConfig={chromeMetalConfig}
             icon={
               isOpen ? (
-                <X className="w-5 h-5 text-white" />
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               ) : (
                 <div className="flex flex-col gap-1 w-4 items-center justify-center">
                   <span className="w-4 h-[2px] bg-white rounded-full"></span>
@@ -136,9 +132,7 @@ export default function Navbar() {
               )
             }
           >
-            <span className="text-base font-semibold tracking-tight text-white">
-              Menu
-            </span>
+            Menu
           </LiquidMetalButton>
         </div>
       </header>
@@ -153,7 +147,7 @@ export default function Navbar() {
       >
         <div className="max-w-4xl mx-auto w-full pt-24 pb-8 flex flex-col justify-center min-h-[80vh]">
           {/* Navigation Links */}
-          <nav className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12">
+          <nav className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-10">
             {role !== 'admin' &&
               navLinks.map((link, idx) => {
                 const isActive = pathname === link.href;
@@ -176,21 +170,25 @@ export default function Navbar() {
                         {link.label}
                       </span>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
                   </Link>
                 );
               })}
           </nav>
 
-          {/* User Auth Section */}
-          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* User Auth / Register Section Inside NavMenu */}
+          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
             {!loading && (
               <>
                 {user ? (
                   <div className="flex flex-wrap items-center justify-between w-full gap-4">
                     <div className="flex items-center gap-3 text-sm text-white/80">
                       <div className="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white">
-                        <UserIcon className="w-5 h-5" />
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
                       </div>
                       <div>
                         <p className="font-bold text-white">{user.displayName || 'User'}</p>
@@ -203,7 +201,7 @@ export default function Navbar() {
                         <Link
                           href="/dashboard"
                           onClick={() => setIsOpen(false)}
-                          className="px-5 py-2.5 rounded-full bg-neutral-800 border border-neutral-700 text-white hover:bg-neutral-700 font-semibold text-sm transition-all"
+                          className="px-6 py-3 rounded-full bg-neutral-800 border border-neutral-700 text-white hover:bg-neutral-700 font-semibold text-sm transition-all"
                         >
                           Dashboard
                         </Link>
@@ -212,26 +210,35 @@ export default function Navbar() {
                         <Link
                           href="/admin"
                           onClick={() => setIsOpen(false)}
-                          className="px-5 py-2.5 rounded-full bg-red-950/50 border border-red-700 text-red-200 hover:bg-red-900/50 font-semibold text-sm transition-all flex items-center gap-2"
+                          className="px-6 py-3 rounded-full bg-red-950/50 border border-red-700 text-red-200 hover:bg-red-900/50 font-semibold text-sm transition-all flex items-center gap-2"
                         >
-                          <Shield className="w-4 h-4" /> Entry Portal
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          Entry Portal
                         </Link>
                       )}
                       <button
                         onClick={handleSignOut}
-                        className="px-5 py-2.5 rounded-full bg-white/10 border border-white/15 text-white/80 hover:bg-white/20 font-semibold text-sm transition-all flex items-center gap-2"
+                        className="px-6 py-3 rounded-full bg-white/10 border border-white/15 text-white/80 hover:bg-white/20 font-semibold text-sm transition-all flex items-center gap-2"
                       >
-                        <LogOut className="w-4 h-4" /> Logout
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Logout
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between w-full">
-                    <p className="text-sm text-white/50">Ready to join Sabrang 2026?</p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
+                    <div>
+                      <p className="text-base font-bold text-white">Join Sabrang 2026</p>
+                      <p className="text-xs text-white/50">Register now to participate in all festival events</p>
+                    </div>
                     <Link
                       href="/register"
                       onClick={() => setIsOpen(false)}
-                      className="relative group px-6 py-3 rounded-full bg-white text-black font-bold text-sm tracking-wide shadow-lg hover:bg-neutral-200 active:scale-95 transition-all"
+                      className="px-8 py-3.5 rounded-full bg-white text-black font-bold text-sm tracking-wide shadow-xl hover:bg-neutral-200 active:scale-95 transition-all text-center w-full sm:w-auto"
                     >
                       Register Now
                     </Link>
