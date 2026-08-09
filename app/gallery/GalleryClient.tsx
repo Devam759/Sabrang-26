@@ -1,7 +1,7 @@
 'use client';
 
 import { Environment, Loader, useGLTF, useTexture } from '@react-three/drei';
-import { Canvas, type ThreeEvent, useFrame } from '@react-three/fiber';
+import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DoubleSide,
@@ -12,7 +12,10 @@ import {
   SRGBColorSpace,
   Texture,
   Vector2,
+  Vector3,
 } from 'three';
+
+import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
 
 const IMAGES: Array<{ src: string; title: string }> = [
   { src: '/team-carousel/1.jpg', title: 'Bandjam' },
@@ -31,6 +34,13 @@ const IMAGES: Array<{ src: string; title: string }> = [
 
 const ROWS = 5;
 const COLS = 10;
+
+const TILE_CORNERS: ReadonlyArray<readonly [number, number]> = [
+  [-0.5, -0.5],
+  [0.5, -0.5],
+  [0.5, 0.5],
+  [-0.5, 0.5],
+];
 
 /* ---------------------------------------------------------------- grid plane */
 
@@ -185,6 +195,7 @@ function ImageTube({
   onHoverStart,
   onHoverMove,
   onHoverEnd,
+  onImageSelect,
 }: {
   scrollTargetRef: React.RefObject<number>;
   spinVelocityRef: React.RefObject<number>;
@@ -194,6 +205,12 @@ function ImageTube({
   onHoverStart: (projectName: string, event: ThreeEvent<PointerEvent>) => void;
   onHoverMove: (event: ThreeEvent<PointerEvent>) => void;
   onHoverEnd: () => void;
+  onImageSelect: (selection: {
+    index: number;
+    aspect: number;
+    rect: OriginRect;
+    remeasure: () => OriginRect | null;
+  }) => void;
 }) {
   const groupRef = useRef<Object3D>(null);
   const rowGroupRefs = useRef<Array<Object3D | null>>([]);
@@ -210,6 +227,8 @@ function ImageTube({
       });
     },
   ) as Texture[];
+
+  const { camera, size } = useThree();
 
   const radius = 4;
   const tileW = 0.95;
@@ -237,6 +256,46 @@ function ImageTube({
         };
       }),
     [totalRows, ySpacing],
+  );
+
+  // Screen-space box of a tile, so the DOM viewer can expand out of it.
+  const measureTile = useCallback(
+    (mesh: Mesh): OriginRect => {
+      mesh.updateWorldMatrix(true, false);
+      const point = new Vector3();
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      for (const [cx, cy] of TILE_CORNERS) {
+        point.set(cx * tileW, cy * tileH, 0).applyMatrix4(mesh.matrixWorld).project(camera);
+        const x = (point.x * 0.5 + 0.5) * size.width;
+        const y = (-point.y * 0.5 + 0.5) * size.height;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+
+      return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    },
+    [camera, size.width, size.height, tileW, tileH],
+  );
+
+  const onTileClick = useCallback(
+    (texIndex: number, event: ThreeEvent<MouseEvent>) => {
+      const mesh = event.object as Mesh;
+      const image = textures[texIndex]?.image as { width?: number; height?: number } | undefined;
+      const aspect = image?.width && image?.height ? image.width / image.height : 1;
+      onImageSelect({
+        index: texIndex,
+        aspect,
+        rect: measureTile(mesh),
+        remeasure: () => measureTile(mesh),
+      });
+    },
+    [measureTile, onImageSelect, textures],
   );
 
   useFrame((_state, dt) => {
@@ -303,6 +362,10 @@ function ImageTube({
                   e.stopPropagation();
                   onHoverEnd();
                 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTileClick(texIndex, e);
+                }}
               >
                 <planeGeometry args={[tileW, tileH]} />
                 <meshBasicMaterial map={textures[texIndex]} toneMapped={false} side={DoubleSide} />
@@ -329,6 +392,17 @@ export default function GalleryClient() {
 
   const [hoveredProject, setHoveredProject] = useState<string | null>(null);
 
+  const [selected, setSelected] = useState<{
+    index: number;
+    aspect: number;
+    rect: OriginRect;
+  } | null>(null);
+  const viewerOpen = selected !== null;
+  const viewerOpenRef = useRef(false);
+  const remeasureOriginRef = useRef<(() => OriginRect | null) | null>(null);
+  // A touch swipe also fires a three.js click; only a near-stationary tap opens the viewer.
+  const pointerMovedRef = useRef(false);
+
   const tooltipElRef = useRef<HTMLDivElement | null>(null);
   const tooltipTarget = useRef({ x: 0, y: 0 });
   const tooltipCurrent = useRef({ x: 0, y: 0 });
@@ -340,6 +414,7 @@ export default function GalleryClient() {
 
   const dragPointerId = useRef<number | null>(null);
   const dragLastY = useRef(0);
+  const dragStart = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     return () => {
@@ -385,6 +460,7 @@ export default function GalleryClient() {
 
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
+      if (viewerOpenRef.current) return;
       tubeScrollTarget.current += event.deltaY * 0.002;
       tubeSpinVelocity.current += event.deltaY * 0.004;
       if (event.deltaY !== 0) tubeNaturalDir.current = event.deltaY < 0 ? -1 : 1;
@@ -419,8 +495,38 @@ export default function GalleryClient() {
 
   const onImageHoverEnd = useCallback(() => {
     setHoveredProject(null);
-    rotationSpeedScaleTarget.current = 1;
+    if (!viewerOpenRef.current) rotationSpeedScaleTarget.current = 1;
   }, []);
+
+  const onImageSelect = useCallback(
+    (selection: {
+      index: number;
+      aspect: number;
+      rect: OriginRect;
+      remeasure: () => OriginRect | null;
+    }) => {
+      if (viewerOpenRef.current || pointerMovedRef.current) return;
+
+      viewerOpenRef.current = true;
+      remeasureOriginRef.current = selection.remeasure;
+      // Ease the tube to a halt so the tile stays put behind the viewer.
+      rotationSpeedScaleTarget.current = 0;
+      tubeSpinVelocity.current = 0;
+      cursorActive.current = false;
+      setHoveredProject(null);
+      setSelected({ index: selection.index, aspect: selection.aspect, rect: selection.rect });
+    },
+    [],
+  );
+
+  const onViewerClose = useCallback(() => {
+    viewerOpenRef.current = false;
+    remeasureOriginRef.current = null;
+    rotationSpeedScaleTarget.current = 1;
+    setSelected(null);
+  }, []);
+
+  const remeasureOrigin = useCallback(() => remeasureOriginRef.current?.() ?? null, []);
 
   const onPointerEnter = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -440,6 +546,14 @@ export default function GalleryClient() {
   const onPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
+    if (viewerOpenRef.current) return;
+
+    if (
+      Math.abs(event.clientX - dragStart.current.x) > 10 ||
+      Math.abs(event.clientY - dragStart.current.y) > 10
+    ) {
+      pointerMovedRef.current = true;
+    }
 
     cursorTarget.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 
@@ -460,7 +574,9 @@ export default function GalleryClient() {
   }, []);
 
   const onPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse') return;
+    pointerMovedRef.current = false;
+    dragStart.current = { x: event.clientX, y: event.clientY };
+    if (event.pointerType === 'mouse' || viewerOpenRef.current) return;
     dragPointerId.current = event.pointerId;
     dragLastY.current = event.clientY;
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -486,7 +602,9 @@ export default function GalleryClient() {
     // Full-bleed: cancels the layout container's padding and horizontal gutter.
     <div
       ref={containerRef}
-      className="relative left-1/2 -my-8 h-[100svh] w-screen -translate-x-1/2 cursor-none touch-none overflow-hidden bg-black"
+      className={`relative left-1/2 -my-8 h-[100svh] w-screen -translate-x-1/2 touch-none overflow-hidden bg-black ${
+        viewerOpen ? 'cursor-auto' : 'cursor-none'
+      }`}
       onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}
       onPointerDown={onPointerDown}
@@ -515,6 +633,7 @@ export default function GalleryClient() {
             onHoverStart={onImageHoverStart}
             onHoverMove={onImageHoverMove}
             onHoverEnd={onImageHoverEnd}
+            onImageSelect={onImageSelect}
           />
 
           <HelmetModel tubeAngleRef={tubeAngle} />
@@ -535,7 +654,7 @@ export default function GalleryClient() {
         </p>
       </div>
 
-      {hoveredProject && (
+      {hoveredProject && !viewerOpen && (
         <div
           ref={tooltipElRef}
           role="status"
@@ -551,6 +670,19 @@ export default function GalleryClient() {
         className="pointer-events-none absolute left-0 top-0 z-30 h-[18px] w-[18px] rounded-full bg-white/90 opacity-0 mix-blend-difference transition-opacity duration-150 will-change-transform"
         ref={cursorElRef}
       />
+
+      {selected && (
+        <GalleryLightbox
+          images={IMAGES}
+          index={selected.index}
+          aspect={selected.aspect}
+          origin={selected.rect}
+          containerRef={containerRef}
+          measureOrigin={remeasureOrigin}
+          onIndexChange={(next) => setSelected((current) => current && { ...current, index: next })}
+          onClose={onViewerClose}
+        />
+      )}
 
       <Loader />
     </div>
