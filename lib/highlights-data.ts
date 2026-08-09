@@ -1,7 +1,7 @@
 /**
  * Gallery Highlights — the festival archive.
  *
- * Presentation lives in components/highlights/. To add or remove a photograph,
+ * Presentation lives in components/events/. To add or remove a photograph,
  * edit this array only: the 3D composition, focus order, metadata HUD and the
  * static fallback all derive from it. Portrait and landscape images are both
  * supported — each plane is sized from its texture's real aspect ratio, so
