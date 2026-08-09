@@ -106,3 +106,6 @@ pids
 *.temp
 .tmp/
 .temp/
+
+# Excluded folders
+helmet-main/
