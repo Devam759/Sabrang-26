@@ -5,14 +5,6 @@ import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Registration, Event } from '@/lib/types';
-import { 
-  TrendingUp, 
-  CheckCircle2, 
-  CalendarDays,
-  ChevronRight,
-  QrCode,
-  Camera
-} from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -207,13 +199,18 @@ export default function AdminDashboard() {
             </div>
             <div className="relative z-10 flex flex-col gap-6">
               <div className="flex justify-center py-8 bg-white/5 border border-white/10 backdrop-blur-sm">
-                <QrCode size={80} className="text-white opacity-40" />
+                <svg className="w-20 h-20 text-white opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
               </div>
               <Link 
                 href="/admin/check-in"
                 className="w-full bg-primary py-4 rounded-lg font-bold text-white transition-all flex items-center justify-center gap-2 hover-scale shadow-lg shadow-primary/20"
               >
-                <Camera size={20} />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
                 Launch Scanner
               </Link>
             </div>
@@ -223,11 +220,15 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 gap-4">
             <Link href="/admin/events" className="bg-surface-container-highest p-4 rounded-lg hover:bg-primary hover:text-white transition-all group flex items-center justify-between hover-scale">
               <span className="font-bold text-sm px-2">Manage Events</span>
-              <ChevronRight size={20} className="text-primary group-hover:text-white transition-colors" />
+              <svg className="w-5 h-5 text-primary group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
             <Link href="/admin/coupons" className="bg-surface-container-highest p-4 rounded-lg hover:bg-primary hover:text-white transition-all group flex items-center justify-between hover-scale">
               <span className="font-bold text-sm px-2">Coupons</span>
-              <ChevronRight size={20} className="text-primary group-hover:text-white transition-colors" />
+              <svg className="w-5 h-5 text-primary group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </section>

@@ -74,10 +74,7 @@
   }
 }
 
-/* Antigravity Rule: No capsule / pill-shaped UI elements */
-.rounded-full {
-  border-radius: 2px !important; 
-}
+
 
 /* Material Inspired Subtle Radii */
 .rounded-xl {
@@ -91,6 +88,18 @@
 /* Hide default browser system cursor globally */
 html, body, body *, a, button, input, select, textarea, [role="button"] {
   cursor: none !important;
+}
+
+/* Hide browser scrollbars globally */
+html, body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .custom-cursor-circle {

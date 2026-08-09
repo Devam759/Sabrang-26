@@ -87,7 +87,8 @@ export default function TubesCursor() {
         height: '100vh',
         overflow: 'hidden',
         pointerEvents: 'none',
-        zIndex: 0,
+        zIndex: 30,
+        mixBlendMode: 'screen',
       }}
     >
       <canvas

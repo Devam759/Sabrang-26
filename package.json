@@ -11,8 +11,11 @@
     "deploy:hosting": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
+    "@paper-design/shaders-react": "^0.0.79",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.12.98",
     "animejs": "^4.5.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
@@ -21,7 +24,6 @@
     "framer-motion": "^13.0.0",
     "gsap": "^3.15.0",
     "html5-qrcode": "^2.3.8",
-    "lucide-react": "^1.30.0",
     "next": "^16.3.0",
     "ogl": "^1.0.11",
     "paper": "^0.12.18",

@@ -80,7 +80,15 @@ export default function InitialLoader() {
 
       {/* 2 Eyes: Wider horizontally & moved up vertically */}
       <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center -translate-y-12 pointer-events-none">
-        <div className="w-full h-[70vh] flex items-center justify-center gap-4 pointer-events-auto overflow-visible px-4">
+        {/*
+          On desktop the row is 70vh tall and each eye box is ~half the viewport width,
+          giving a natural wide-oval shape. On portrait mobile (narrow width, tall height)
+          70vh would make each eye box taller than it is wide, stretching the shader into
+          a vertical slit. We cap the row height so the boxes stay roughly square/landscape:
+            - max-h-[42vw]  on mobile  (each eye ≈ 42vw × 42vw  → square)
+            - md:max-h-none resets the cap on tablet+ so desktop keeps 70vh
+        */}
+        <div className="w-full h-[70vh] max-h-[42vw] md:max-h-none flex items-center justify-center gap-4 pointer-events-auto overflow-visible px-4">
           {/* Left Eye */}
           <div className="w-1/2 h-full relative">
             <EvilEye
