@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Coupon } from '@/lib/types';
-import { formatDate } from '@/utils';
-import { useAuth } from '@/components/AuthProvider';
+import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminCoupons() {
   const { role, loading: authLoading } = useAuth();

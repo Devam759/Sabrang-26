@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { Registration, Event } from '@/lib/types';
-import { formatDate } from '@/utils';
+import { formatDate } from '@/lib/utils';
 import QRCode from 'qrcode';
 
 interface DashboardRegistration extends Registration {

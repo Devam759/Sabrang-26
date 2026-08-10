@@ -33,7 +33,6 @@ function Particles({ count = 100 }) {
       const b = Math.sin(t) + Math.cos(t * 2) / 10;
       const s = Math.cos(t);
       
-      // Add subtle mouse influence
       const mX = mouse.x * 2;
       const mY = mouse.y * 2;
 

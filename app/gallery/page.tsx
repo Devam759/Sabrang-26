@@ -1,6 +1,6 @@
 import { Metadata } from 'next'; 
 import GalleryClient from './GalleryClient';
-import JsonLd from '@/components/JsonLd';
+import JsonLd from '@/components/common/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Gallery | Sabrang 2026',

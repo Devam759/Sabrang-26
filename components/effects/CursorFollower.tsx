@@ -18,7 +18,11 @@ export default function CursorFollower() {
       mouseY = e.clientY;
 
       const target = e.target as HTMLElement | null;
-      if (target && target.closest('a, button, input, select, textarea, [role="button"]')) {
+      if (
+        target &&
+        typeof target.closest === 'function' &&
+        target.closest('a, button, input, select, textarea, [role="button"]')
+      ) {
         setIsHovered(true);
       } else {
         setIsHovered(false);

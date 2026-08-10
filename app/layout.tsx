@@ -1,8 +1,8 @@
-import { AuthProvider } from '@/components/AuthProvider';
-import Navbar from '@/components/Navbar';
-import InitialLoader from '@/components/InitialLoader';
-import TubesCursor from '@/components/TubesCursor';
-import CursorFollower from '@/components/CursorFollower';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import Navbar from '@/components/layout/Navbar';
+import InitialLoader from '@/components/effects/InitialLoader';
+import TubesCursor from '@/components/effects/TubesCursor';
+import CursorFollower from '@/components/effects/CursorFollower';
 import './globals.css';
 import { Inter } from 'next/font/google';
 

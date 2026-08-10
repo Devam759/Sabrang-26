@@ -1,6 +1,6 @@
 import { Metadata } from 'next'; 
 import SponsorsClient from './SponsorsClient';
-import JsonLd from '@/components/JsonLd';
+import JsonLd from '@/components/common/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Sponsors & Partners | Sabrang 2026',
