@@ -48,20 +48,14 @@ void main() {
   vec4 mv      = modelViewMatrix * vec4(position, 1.0);
   vCamDist     = -mv.z;                         // positive when in front of camera
 
-  // Perspective-attenuated point size
-  float rawSize = aSize * (400.0 / vCamDist);
-  gl_PointSize  = clamp(rawSize, 0.5, 64.0);
+  // Perspective-attenuated point size — ultra-dense pin-sharp starfield
+  float rawSize = aSize * (140.0 / vCamDist);
+  gl_PointSize  = clamp(rawSize, 0.8, 7.5);
   gl_Position   = projectionMatrix * mv;
 }
 `;
 
 // ─── GLSL: Fragment shader ──────────────────────────────────────────────────
-//
-//  • Circular soft-disc: discard corners of the gl_PointCoord square,
-//    use pow() for a tighter, glowing core.
-//  • nearFade: smoothstep to fade out particles that are < 1.5 units away
-//    from the camera (prevents jarring pop-through artefacts).
-//  • uOpacity: global multiplier driven by scroll phase.
 const FRAG = /* glsl */ `
 precision mediump float;
 
@@ -71,35 +65,37 @@ varying float vCamDist;
 uniform float uOpacity;
 
 void main() {
-  // Radial distance from point-sprite centre
   vec2  uv = gl_PointCoord - 0.5;
   float d  = length(uv);
   if (d > 0.5) discard;
 
-  // Soft glowing disc: brighter centre, smooth edge
-  float a = pow(1.0 - d * 2.0, 1.5);
+  // Crisp glowing point: bright star core on pitch black space
+  float a = pow(clamp(1.0 - d * 2.0, 0.0, 1.0), 3.0);
 
-  // Fade particles that are very close to the camera lens
-  float nearFade = smoothstep(0.05, 1.5, vCamDist);
+  // Near-camera fade
+  float nearFade = smoothstep(1.5, 4.0, vCamDist);
 
   gl_FragColor = vec4(vColor, a * nearFade * uOpacity);
 }
 `;
 
-// ─── Colour palette ─────────────────────────────────────────────────────────
-// Near-white, cyan, indigo, lavender, warm gold — the same atmospheric hues
-// used in the Shopify reference to create depth and temperature contrast.
-const PALETTE: [number, number, number][] = [
-  [0.96, 0.96, 1.00], // white-blue
-  [0.32, 0.80, 1.00], // cyan
-  [0.55, 0.42, 1.00], // indigo
-  [0.78, 0.68, 1.00], // lavender
-  [1.00, 0.82, 0.58], // warm gold
+// ─── Sabrang Festive Spectrum Palette ─────────────────────────────────────────
+// Multi-colour vibrant festive palette reflecting Sabrang ("All Shades of Creativity"):
+// Electric Cyan, Hot Magenta/Pink, Deep Violet/Purple, Sunburst Yellow/Gold,
+// Emerald Lime Green, Sunset Orange-Coral, Electric Sapphire Blue, Starlight White.
+const SABRANG_PALETTE: [number, number, number][] = [
+  [0.00, 0.90, 1.00], // Neon Electric Cyan
+  [1.00, 0.15, 0.60], // Hot Magenta / Sabrang Pink
+  [0.68, 0.22, 1.00], // Vivid Violet / Purple
+  [1.00, 0.82, 0.05], // Sunburst Yellow / Amber Gold
+  [0.10, 0.92, 0.45], // Emerald Lime Green
+  [1.00, 0.36, 0.10], // Sunset Orange-Coral
+  [0.20, 0.55, 1.00], // Electric Sapphire Blue
+  [1.00, 0.95, 0.85], // Warm Diamond Starlight
+  [0.92, 0.95, 1.00], // Cold Diamond Starlight
 ];
 
 // ─── Geometry builder ────────────────────────────────────────────────────────
-// Returns flat typed arrays ready for THREE.BufferAttribute.
-// Three radial zones create the "tunnel wall + core + outer haze" structure.
 function buildTunnel(n: number): {
   pos: Float32Array;
   col: Float32Array;
@@ -110,22 +106,21 @@ function buildTunnel(n: number): {
   const sz  = new Float32Array(n);
 
   for (let i = 0; i < n; i++) {
-    // Distribute along the full tunnel length (Z: −40 … +40)
-    const z = (Math.random() - 0.5) * 80;
+    const z = (Math.random() - 0.5) * 90;
 
     let x = 0;
     let y = 0;
     const angle = Math.random() * Math.PI * 2;
     const zone  = Math.random();
 
-    if (zone < 0.75) {
-      // ── Main tunnel wall: radius 2.8 – 5.5 (clear hollow center for text)
-      const r = 2.8 + Math.random() * 2.7;
+    if (zone < 0.82) {
+      // Dense inner tunnel wall (radius 2.0 - 5.8)
+      const r = 2.0 + Math.random() * 3.8;
       x = Math.cos(angle) * r;
       y = Math.sin(angle) * r;
     } else {
-      // ── Outer atmospheric haze: radius 5.8 – 10.0
-      const r = 5.8 + Math.random() * 4.2;
+      // Outer starfield haze (radius 6.0 - 11.0)
+      const r = 6.0 + Math.random() * 5.0;
       x = Math.cos(angle) * r;
       y = Math.sin(angle) * r;
     }
@@ -134,15 +129,14 @@ function buildTunnel(n: number): {
     pos[i * 3 + 1] = y;
     pos[i * 3 + 2] = z;
 
-    // Per-particle colour: random palette entry × controlled brightness
-    const p = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-    const b = 0.12 + Math.random() * 0.45;
+    // Per-particle colour: vibrant Sabrang multi-colour spectrum
+    const p = SABRANG_PALETTE[Math.floor(Math.random() * SABRANG_PALETTE.length)];
+    const b = 0.55 + Math.random() * 0.45; // 55% to 100% full vibrant brightness
     col[i * 3    ] = p[0] * b;
     col[i * 3 + 1] = p[1] * b;
     col[i * 3 + 2] = p[2] * b;
 
-    // Per-particle size (smaller to prevent heavy overlapping blobs)
-    sz[i] = 0.3 + Math.random() * 1.6;
+    sz[i] = 0.35 + Math.random() * 1.15;
   }
 
   return { pos, col, sz };
@@ -157,13 +151,13 @@ function TunnelScene({
   const { camera } = useThree();
   const groupRef   = useRef<THREE.Group>(null);
 
-  // Dynamic particle count based on device hardware budget
+  // Ultra-dense particle budget (18,000 desktop / 8,000 mobile)
   const count = useMemo(() => {
-    if (typeof window === 'undefined') return 5000;
+    if (typeof window === 'undefined') return 10000;
     const isMobile = window.innerWidth < 768;
     const cores = navigator.hardwareConcurrency || 4;
-    if (isMobile || cores <= 4) return 3000;
-    return 7500; // 7.5k particles is smooth 60fps while saving 25% GPU vertex operations
+    if (isMobile || cores <= 4) return 8000;
+    return 18000;
   }, []);
 
   // Build geometry + material once
@@ -231,7 +225,7 @@ export default function HeroTunnelScene({
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
     >
       <Canvas
-        dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : [1, 1.5]}
+        dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? [1, 1.5] : [1, 2]}
         performance={{ min: 0.5 }}
         camera={{ position: [0, 0, 18], fov: 60, near: 0.1, far: 300 }}
         gl={{
