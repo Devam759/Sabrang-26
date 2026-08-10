@@ -3,7 +3,6 @@
 import Dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 
-// Dynamically import Spline to disable Server Side Rendering for WebGL
 const Spline = Dynamic(() => import('@splinetool/react-spline'), {
   ssr: false,
   loading: () => (
@@ -23,7 +22,6 @@ export default function SplineScene({
   className = 'w-full h-full',
 }: SplineSceneProps) {
   useEffect(() => {
-    // Mute any HTML5 Audio or WebAudio Contexts created by Spline runtime
     if (typeof window === 'undefined') return;
 
     const muteAllMedia = () => {

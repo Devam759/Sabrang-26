@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, doc, getDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Registration, Event, User } from '@/lib/types';
-import { formatDate } from '@/utils';
-import { useAuth } from '@/components/AuthProvider';
+import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminRegistrations() {
   const { role, loading: authLoading } = useAuth();

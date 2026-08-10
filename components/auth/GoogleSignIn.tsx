@@ -16,10 +16,8 @@ export default function GoogleSignIn() {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Get display name from Google
       const displayName = user.displayName || 'Google User';
 
-      // Check if user exists in Firestore
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -32,7 +30,6 @@ export default function GoogleSignIn() {
           createdAt: serverTimestamp(),
         });
       } else {
-        // Update name if it's missing in Firestore
         const existingData = userSnap.data();
         if (!existingData.name && displayName !== 'Google User') {
           await setDoc(userRef, { name: displayName }, { merge: true });

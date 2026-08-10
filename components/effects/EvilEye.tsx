@@ -1,7 +1,7 @@
 'use client';
 
 import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import './EvilEye.css';
 
 interface EvilEyeProps {
@@ -14,7 +14,6 @@ interface EvilEyeProps {
   noiseScale?: number;
   pupilFollow?: number;
   flameSpeed?: number;
-  backgroundColor?: string;
   manualMouse?: [number, number];
   blink?: number;
 }
@@ -104,7 +103,6 @@ uniform vec2 uMouse;
 uniform float uPupilFollow;
 uniform float uFlameSpeed;
 uniform vec3 uEyeColor;
-uniform vec3 uBgColor;
 uniform float uBlink;
 
 void main() {
@@ -112,7 +110,6 @@ void main() {
   uv /= uScale;
   float ft = uTime * uFlameSpeed;
 
-  // Smooth eyelid blink mask — closes eyelids without division or NaN screen flashing
   float eyelidMask = smoothstep(0.0, 0.08, uBlink * 0.7 - abs(uv.y));
 
   float polarRadius = length(uv) * 2.0;
@@ -125,7 +122,6 @@ void main() {
 
   float distanceMask = 1.0 - length(uv);
 
-  // Inner ring
   float innerRing = clamp(-1.0 * ((distanceMask - 0.7) / uIrisWidth), 0.0, 1.0);
   innerRing = (innerRing * distanceMask - 0.2) / 0.28;
   innerRing += noiseA.r - 0.5;
@@ -140,11 +136,9 @@ void main() {
 
   innerRing += outerRing;
 
-  // Inner eye
   float innerEye = distanceMask - 0.1 * 2.0;
   innerEye *= noiseB.r * 2.0;
 
-  // Pupil with cursor tracking
   vec2 pupilOffset = uMouse * uPupilFollow * 0.12;
   vec2 pupilUv = uv - pupilOffset;
   float pupil = 1.0 - length(pupilUv * vec2(9.0, 2.3));
@@ -152,7 +146,6 @@ void main() {
   pupil = clamp(pupil, 0.0, 1.0);
   pupil /= 0.35;
 
-  // Outer eye
   float outerEyeGlow = 1.0 - length(uv * vec2(0.5, 1.5));
   outerEyeGlow = clamp(outerEyeGlow + 0.5, 0.0, 1.0);
   outerEyeGlow += noiseC.r - 0.5;
@@ -163,30 +156,30 @@ void main() {
   outerEyeGlow = clamp(outerEyeGlow, 0.0, 1.0);
   outerEyeGlow *= pow(max(0.0, 1.0 - distanceMask), 2.0) * 2.5;
 
-  // Outer eye bg glow
   outerBgGlow += distanceMask;
   outerBgGlow = pow(max(0.0, outerBgGlow), 0.5);
   outerBgGlow *= 0.15;
 
   float edgeFade = smoothstep(1.3, 0.3, length(uv));
   vec3 eyeGlow = uEyeColor * uIntensity * clamp(max(innerRing + innerEye, outerEyeGlow + outerBgGlow) - pupil, 0.0, 3.0);
-  vec3 color = eyeGlow * edgeFade * eyelidMask + uBgColor;
 
-  gl_FragColor = vec4(color, 1.0);
+  vec3 rgb = eyeGlow * edgeFade * eyelidMask;
+  float alpha = clamp(length(rgb) * 1.5, 0.0, 1.0);
+
+  gl_FragColor = vec4(rgb, alpha);
 }
 `;
 
 export default function EvilEye({
-  eyeColor = '#FF6F37',
-  intensity = 1.5,
-  pupilSize = 0.6,
-  irisWidth = 0.25,
-  glowIntensity = 0.35,
-  scale = 0.8,
-  noiseScale = 1.0,
-  pupilFollow = 1.0,
+  eyeColor = '#7C3AED',
+  intensity = 1.6,
+  pupilSize = 1.95,
+  irisWidth = 0.8,
+  glowIntensity = 0.45,
+  scale = 1.0,
+  noiseScale = 1.4,
+  pupilFollow = 2,
   flameSpeed = 1.0,
-  backgroundColor = '#000000',
   manualMouse,
   blink = 1.0,
 }: EvilEyeProps) {
@@ -194,7 +187,6 @@ export default function EvilEye({
   const blinkRef = useRef<number>(blink ?? 1.0);
   const manualMouseRef = useRef<[number, number] | undefined>(manualMouse);
 
-  // Keep refs in sync with latest props without triggering effect reruns
   useEffect(() => { blinkRef.current = blink ?? 1.0; }, [blink]);
   useEffect(() => { manualMouseRef.current = manualMouse; }, [manualMouse]);
 
@@ -202,8 +194,6 @@ export default function EvilEye({
     if (!containerRef.current) return;
     const container = containerRef.current;
 
-    // Without WebGL, ogl throws here and takes the whole client tree down.
-    // This is decoration on the loader — skip it rather than break the page.
     let renderer: Renderer;
     try {
       renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
@@ -272,7 +262,6 @@ export default function EvilEye({
         uPupilFollow: { value: pupilFollow },
         uFlameSpeed: { value: flameSpeed },
         uEyeColor: { value: hexToVec3(eyeColor) },
-        uBgColor: { value: hexToVec3(backgroundColor) },
         uBlink: { value: blink !== undefined ? blink : 1.0 },
       },
     });
@@ -318,9 +307,6 @@ export default function EvilEye({
     noiseScale,
     pupilFollow,
     flameSpeed,
-    backgroundColor,
-    // blink and manualMouse are intentionally excluded — they update via refs
-    // to avoid tearing down and recreating the WebGL context on every frame.
   ]);
 
   return <div ref={containerRef} className="evil-eye-container" />;

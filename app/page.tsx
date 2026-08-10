@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/components/AuthProvider';
-import ThreeBackground from '@/components/ThreeBackground';
+import { useAuth } from '@/components/auth/AuthProvider';
+import ThreeBackground from '@/components/effects/ThreeBackground';
 import { LiquidMetalButton } from '@/components/ui/liquid-metal';
-import SplineScene from '@/components/SplineScene';
+import SplineScene from '@/components/effects/SplineScene';
 
 export default function Home() {
   const { user } = useAuth();
@@ -20,9 +20,7 @@ export default function Home() {
 
   return (
     <div className="space-y-0">
-      {/* Hero Section */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
-        {/* Background Decorative Elements */}
         <ThreeBackground />
 
         <div className="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10">
@@ -107,7 +105,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Section */}
       <section id="about" className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
@@ -151,7 +148,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Highlights */}
       <section className="py-24 bg-slate-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">

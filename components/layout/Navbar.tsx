@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from './AuthProvider';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { LiquidMetalButton } from '@/components/ui/liquid-metal';
@@ -16,7 +16,6 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // Scroll direction listener to hide on scroll-down & show instantly on scroll-up
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -24,10 +23,8 @@ export default function Navbar() {
       if (currentScrollY <= 20) {
         setIsVisible(true);
       } else if (currentScrollY > lastScrollY && currentScrollY > 60) {
-        // Scrolling DOWN -> Hide
         setIsVisible(false);
       } else if (currentScrollY < lastScrollY) {
-        // Scrolling UP -> Show instantly
         setIsVisible(true);
       }
 
@@ -38,12 +35,10 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Close menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
-  // Prevent scroll when menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -55,7 +50,6 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  // Hide Navbar for admin and scanner routes
   if (pathname && pathname.startsWith('/admin')) return null;
 
   const handleSignOut = async () => {
@@ -78,25 +72,27 @@ export default function Navbar() {
     { href: '/credits', label: 'Tech Team Credits' },
   ];
 
-
   return (
     <>
-      {/* Top Floating Header */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-between items-center transition-all duration-300 ease-out ${
+        className={`fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-between items-start transition-all duration-300 ease-out ${
           isVisible || isOpen
             ? 'translate-y-0 opacity-100 pointer-events-none'
             : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        {/* Top Left: Standalone Big Sabrang Logo (Hidden on /team) */}
         {pathname !== '/team' ? (
           <div className="pointer-events-auto">
-            <Link href="/" className="block outline-none transition-transform hover:scale-105 active:scale-95">
+            <Link href="/" className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95">
               <img
                 src="/sabrang logo.png"
                 alt="Sabrang Logo"
-                className="h-16 md:h-24 w-auto object-contain drop-shadow-2xl"
+                className="h-14 md:h-20 w-auto object-contain drop-shadow-2xl"
+              />
+              <img
+                src="/past sponsors/JK Tyre.png"
+                alt="JK Tyre Logo"
+                className="h-5 md:h-7 w-auto object-contain mt-1 drop-shadow-lg filter brightness-110"
               />
             </Link>
           </div>
@@ -104,8 +100,19 @@ export default function Navbar() {
           <div />
         )}
 
-        {/* Top Right: Pill-Shaped Liquid Metal Menu Button */}
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto flex items-start gap-3 md:gap-4">
+          <a
+            href="https://jklu.edu.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block outline-none transition-transform hover:scale-105 active:scale-95"
+          >
+            <img
+              src="/white_jklu_logo.png"
+              alt="JKLU Logo"
+              className="h-10 md:h-14 w-auto object-contain drop-shadow-xl"
+            />
+          </a>
           <LiquidMetalButton
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation menu"
@@ -138,7 +145,6 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Full-Screen Navigation Drawer Overlay */}
       <div
         className={`fixed inset-0 z-40 bg-black/95 backdrop-blur-2xl transition-all duration-500 flex flex-col justify-between p-6 md:p-12 overflow-y-auto ${
           isOpen
@@ -147,7 +153,6 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-4xl mx-auto w-full pt-24 pb-8 flex flex-col justify-center min-h-[80vh]">
-          {/* Navigation Links */}
           <nav className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-10">
             {role !== 'admin' &&
               navLinks.map((link, idx) => {
@@ -179,7 +184,6 @@ export default function Navbar() {
               })}
           </nav>
 
-          {/* User Auth / Register Section Inside NavMenu */}
           <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
             {!loading && (
               <>

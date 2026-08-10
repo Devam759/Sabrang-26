@@ -1,6 +1,6 @@
 import { Metadata } from 'next'; 
 import CodePenCredits from './CodePenCredits';
-import JsonLd from '@/components/JsonLd';
+import JsonLd from '@/components/common/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Tech Team Credits | Sabrang 2026',

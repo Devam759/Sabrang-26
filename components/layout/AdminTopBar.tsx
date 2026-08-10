@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from './AuthProvider';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminTopBar() {
   const { user } = useAuth();

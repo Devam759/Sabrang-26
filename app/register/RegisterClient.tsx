@@ -5,8 +5,8 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { useRouter } from 'next/navigation';
-import GoogleSignIn from '@/components/GoogleSignIn';
-import { validateName, validateEmail, sanitizeInput } from '@/utils';
+import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import { validateName, validateEmail, sanitizeInput } from '@/lib/utils';
 
 export default function RegisterClient() {
   const [firstName, setFirstName] = useState('');
@@ -79,13 +79,11 @@ export default function RegisterClient() {
   return (
     <div className="min-h-screen bg-[#0d0b12] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white tracking-tight">Create your account</h1>
           <p className="mt-2 text-sm text-white/50">Register for Sabrang 2026 and access all events.</p>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="mb-5 flex items-start gap-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg">
             <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -95,7 +93,6 @@ export default function RegisterClient() {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
@@ -171,7 +168,6 @@ export default function RegisterClient() {
           </button>
         </form>
 
-        {/* Divider + Google */}
         <div className="mt-6">
           <div className="relative mb-5">
             <div className="absolute inset-0 flex items-center">
