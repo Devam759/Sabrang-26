@@ -33,7 +33,7 @@ if (typeof window !== 'undefined') {
 // ── SSR-safe Three.js canvas ──────────────────────────────────────────────────
 const HeroTunnelScene = dynamic(() => import('./HeroTunnelScene'), {
   ssr: false,
-  loading: () => <div style={{ position: 'absolute', inset: 0, background: '#080809' }} />,
+  loading: () => <div style={{ position: 'absolute', inset: 0, background: '#000000' }} />,
 });
 
 // ── Gallery ────────────────────────────────────────────────────────────────────

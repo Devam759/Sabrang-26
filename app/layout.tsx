@@ -24,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <InteractionProvider>
           <AuthProvider>
+            <TubesCursor />
             <CursorFollower />
             <InitialLoader />
             <div className="min-h-screen flex flex-col bg-black text-white overflow-x-clip">
