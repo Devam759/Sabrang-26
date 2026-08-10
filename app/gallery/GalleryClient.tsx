@@ -1,12 +1,11 @@
 'use client';
 
-import { Environment, Loader, useGLTF, useTexture } from '@react-three/drei';
+import { Loader, useTexture } from '@react-three/drei';
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DoubleSide,
   Mesh,
-  MeshPhysicalMaterial,
   Object3D,
   ShaderMaterial,
   SRGBColorSpace,
@@ -48,7 +47,7 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
   const meshRef = useRef<Mesh>(null);
   const uniforms = useMemo(
     () => ({
-      uGridScale: { value: 28.0 },
+      uGridScale: { value: 50.0 },
       uLineWidth: { value: 0.5 },
       uEdgeWidth: { value: 0.14 },
       uEdgeAmp: { value: 1.35 },
@@ -70,8 +69,8 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 0, -5.2]}>
-      <planeGeometry args={[18, 18, 512, 512]} />
+    <mesh ref={meshRef} position={[0, 0, -6.5]}>
+      <planeGeometry args={[45, 45, 512, 512]} />
       <shaderMaterial
         attach="material"
         args={[
@@ -136,53 +135,6 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
   );
 }
 
-/* -------------------------------------------------------------- glass helmet */
-
-function HelmetModel({ tubeAngleRef }: { tubeAngleRef: React.RefObject<number> }) {
-  const helmet = useGLTF('/models/helmet.glb');
-  const scene = useMemo(() => helmet.scene.clone(true), [helmet.scene]);
-  const modelRef = useRef<Object3D>(null);
-  const baseRotation = useMemo(() => ({ x: Math.PI / 8, y: Math.PI / 2 }), []);
-
-  const glassMaterial = useMemo(
-    () =>
-      new MeshPhysicalMaterial({
-        transmission: 1,
-        thickness: 10,
-        roughness: 0,
-        metalness: 0.1,
-        ior: 1.9,
-        dispersion: 1,
-        clearcoat: 0.1,
-        clearcoatRoughness: 1.1,
-        iridescenceThicknessRange: [100, 400],
-        transparent: true,
-        depthWrite: true,
-      }),
-    [],
-  );
-
-  useEffect(() => {
-    scene.traverse((object) => {
-      if (object instanceof Mesh) {
-        object.scale.set(0.7, 0.7, 0.7);
-        object.material = glassMaterial;
-      }
-    });
-    return () => {
-      glassMaterial.dispose();
-    };
-  }, [scene, glassMaterial]);
-
-  useFrame(() => {
-    const obj = modelRef.current;
-    if (!obj) return;
-    obj.rotation.x = baseRotation.x;
-    obj.rotation.y = baseRotation.y - tubeAngleRef.current;
-  });
-
-  return <primitive ref={modelRef} object={scene} rotation={[baseRotation.x, baseRotation.y, 0]} />;
-}
 
 /* ----------------------------------------------------------------- image tube */
 
@@ -478,6 +430,7 @@ export default function GalleryClient() {
 
   const onImageHoverStart = useCallback(
     (projectName: string, event: ThreeEvent<PointerEvent>) => {
+      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
       setHoveredProject(projectName);
       setTooltipFromClientPoint(event.nativeEvent.clientX, event.nativeEvent.clientY);
       tooltipCurrent.current = { ...tooltipTarget.current };
@@ -488,6 +441,7 @@ export default function GalleryClient() {
 
   const onImageHoverMove = useCallback(
     (event: ThreeEvent<PointerEvent>) => {
+      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
       setTooltipFromClientPoint(event.nativeEvent.clientX, event.nativeEvent.clientY);
     },
     [setTooltipFromClientPoint],
@@ -529,6 +483,7 @@ export default function GalleryClient() {
   const remeasureOrigin = useCallback(() => remeasureOriginRef.current?.() ?? null, []);
 
   const onPointerEnter = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
     const rect = event.currentTarget.getBoundingClientRect();
     cursorTarget.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     cursorCurrent.current = { ...cursorTarget.current };
@@ -544,6 +499,7 @@ export default function GalleryClient() {
   }, []);
 
   const onPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
     const rect = event.currentTarget.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
     if (viewerOpenRef.current) return;
@@ -602,9 +558,8 @@ export default function GalleryClient() {
     // Full-bleed: cancels the layout container's padding and horizontal gutter.
     <div
       ref={containerRef}
-      className={`relative left-1/2 -my-8 h-[100svh] w-screen -translate-x-1/2 touch-none overflow-hidden bg-black ${
-        viewerOpen ? 'cursor-auto' : 'cursor-none'
-      }`}
+      className={`gallery-container relative left-1/2 h-screen min-h-screen w-screen -translate-x-1/2 touch-none overflow-hidden bg-black ${viewerOpen ? 'cursor-auto' : 'cursor-none'
+        }`}
       onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}
       onPointerDown={onPointerDown}
@@ -618,9 +573,10 @@ export default function GalleryClient() {
         onCreated={({ camera }) => camera.lookAt(0, 0, 0)}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[5, 5, 5]} intensity={1} />
-          <Environment preset="studio" blur={10.5} />
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[5, 8, 5]} intensity={1.5} />
+          <directionalLight position={[-5, -5, -5]} intensity={0.5} color="#4f46e5" />
+          <hemisphereLight args={['#ffffff', '#111827', 0.8]} />
 
           <GridPlane targetCenterUv={targetCenterUv} />
 
@@ -635,24 +591,15 @@ export default function GalleryClient() {
             onHoverEnd={onImageHoverEnd}
             onImageSelect={onImageSelect}
           />
-
-          <HelmetModel tubeAngleRef={tubeAngle} />
         </Suspense>
       </Canvas>
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_55%,#000_100%)]"
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_75%,#000_100%)]"
       />
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-8 z-10 text-center">
-        <h1 className="text-3xl font-black uppercase tracking-[0.35em] text-white/90 md:text-5xl">
-          Gallery
-        </h1>
-        <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-white/40">
-          Scroll or drag to travel the archive
-        </p>
-      </div>
+      <h1 className="sr-only">Gallery</h1>
 
       {hoveredProject && !viewerOpen && (
         <div
@@ -688,5 +635,3 @@ export default function GalleryClient() {
     </div>
   );
 }
-
-useGLTF.preload('/models/helmet.glb');

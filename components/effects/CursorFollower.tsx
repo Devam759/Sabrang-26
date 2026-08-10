@@ -14,8 +14,10 @@ export default function CursorFollower() {
     let animId: number;
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+      if (e.isTrusted) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      }
 
       const target = e.target as HTMLElement | null;
       if (
