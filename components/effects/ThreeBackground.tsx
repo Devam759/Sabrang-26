@@ -1,196 +1,215 @@
 'use client';
 
-/**
- * ThreeBackground — Interactive Hero Background for Sabrang Landing Page
- *
- * Features a dynamic magnetic particle field behind "SABRANG 2025" that reacts,
- * repels, scales, and ripples interactively whenever the user moves their cursor!
- */
-
-import React, { useRef, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Stars, Sphere, MeshDistortMaterial } from '@react-three/drei';
+import { useAspect } from '@react-three/drei';
 import * as THREE from 'three';
+import { useInteraction } from '@/components/InteractionContext';
 
-// ─── CURSOR-INTERACTIVE MAGNETIC PARTICLE FIELD ───────────────────────────────
-function InteractiveParticles({ count = 280 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const groupRef = useRef<THREE.Group>(null);
+const videoVertex = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
 
-  // Generate initial 3D positions & velocities for particles behind title
-  const particles = useMemo(() => {
-    const temp = [];
-    const colorChoices = ['#38bdf8', '#6366f1', '#a855f7', '#ec4899', '#818cf8'];
+const videoFragment = `
+uniform sampler2D tVideo;
+uniform float uTintMix;
+uniform vec3 uHoverColor;
+uniform float uTime;
+uniform float uVelocity;
+uniform float uGlitchMultiplier;
+uniform vec2 uMouse;
+uniform vec2 uResolution;
+uniform vec2 uVideoResolution;
+varying vec2 vUv;
 
-    for (let i = 0; i < count; i++) {
-      // Spread across hero backdrop width/height
-      const ox = (Math.random() - 0.5) * 32;
-      const oy = (Math.random() - 0.5) * 20;
-      const oz = (Math.random() - 0.5) * 12 - 2;
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 
-      // Current positions (start at origin positions)
-      const cx = ox;
-      const cy = oy;
-      const cz = oz;
+void main() {
+  vec2 uv = vUv;
+  
+  // Object-fit: cover logic
+  float aspectResolution = uResolution.x / uResolution.y;
+  float aspectVideo = uVideoResolution.x / uVideoResolution.y;
+  
+  if (aspectResolution > aspectVideo) {
+    uv.y = uv.y * (aspectVideo / aspectResolution) + (1.0 - (aspectVideo / aspectResolution)) / 2.0;
+  } else {
+    uv.x = uv.x * (aspectResolution / aspectVideo) + (1.0 - (aspectResolution / aspectVideo)) / 2.0;
+  }
+  
+  // Base Nebula slow distortion
+  uv.x += sin(uv.y * 10.0 + uTime * 0.5) * 0.002;
+  
+  // Liquid Ripple Displacement
+  vec2 mouseUv = uMouse * 0.5 + 0.5;
+  vec2 diff = uv - mouseUv;
+  diff.x *= aspectResolution; 
+  float dist = length(diff);
+  
+  if (dist < 0.3) {
+    float ripple = sin((dist - uTime * 0.2) * 40.0) * (0.3 - dist) * 0.05;
+    uv += diff * ripple;
+  }
 
-      // Floating phase frequency & amplitude
-      const speed = 0.4 + Math.random() * 0.8;
-      const phase = Math.random() * Math.PI * 2;
-      const baseScale = 0.18 + Math.random() * 0.22;
-      const color = colorChoices[i % colorChoices.length];
-
-      temp.push({ ox, oy, oz, cx, cy, cz, speed, phase, baseScale, color });
+  // AGGRESSIVE GLITCH (Velocity + Hover Spikes)
+  float totalGlitch = max(uVelocity, uGlitchMultiplier);
+  if (totalGlitch > 0.05) {
+    float glitchOffset = rand(vec2(floor(uv.y * 15.0), uTime)) * totalGlitch * 0.5;
+    if (rand(vec2(uTime, uv.y)) > 0.6) { // higher probability of glitch when triggered
+      uv.x += glitchOffset;
+      uv.y += glitchOffset * 0.1;
     }
-    return temp;
-  }, [count]);
+  }
+  
+  // Chromatic Aberration
+  float caSpread = totalGlitch * 0.05;
+  float r = texture2D(tVideo, vec2(uv.x + caSpread, uv.y)).r;
+  float g = texture2D(tVideo, uv).g;
+  float b = texture2D(tVideo, vec2(uv.x - caSpread, uv.y)).b;
+  
+  vec3 texColor = vec3(r, g, b);
+  float gray = dot(texColor, vec3(0.299, 0.587, 0.114));
+  
+  vec3 nebulaDark = vec3(0.12, 0.0, 0.25);
+  vec3 nebulaLight = vec3(0.62, 0.0, 1.0);
+  vec3 mappedColor = mix(nebulaDark, nebulaLight, gray * 1.5);
+  
+  // Aggressive Color Mix
+  vec3 finalColor = mix(mappedColor, mappedColor * uHoverColor * 3.0, uTintMix);
+  
+  // Brightness Flash during glitch
+  finalColor += vec3(totalGlitch * 0.6);
+  
+  gl_FragColor = vec4(finalColor, 1.0);
+}
+`;
 
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+function VideoBackground() {
+  const { hoverState } = useInteraction();
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const lastScrollY = useRef(0);
+  const scrollVelocity = useRef(0);
+  const glitchIntensity = useRef(0);
+  const lastHoverState = useRef(hoverState);
+  
+  const scale = useAspect(1920, 1080, 1);
+  
+  useEffect(() => {
+    const video = document.createElement('video');
+    video.src = '/background.mp4';
+    video.crossOrigin = 'Anonymous';
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.autoplay = true;
+    video.style.display = 'none';
+    document.body.appendChild(video);
+    
+    video.play().then(() => {
+      const texture = new THREE.VideoTexture(video);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.format = THREE.RGBAFormat;
+      if (materialRef.current) materialRef.current.uniforms.tVideo.value = texture;
+    }).catch(e => console.warn(e));
 
-  useFrame((state, delta) => {
-    if (!meshRef.current) return;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      scrollVelocity.current = Math.abs(currentScrollY - lastScrollY.current);
+      lastScrollY.current = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll);
 
-    // Convert normalized mouse coords (-1 to 1) into 3D world space units
-    const { mouse } = state;
-    const targetMouseX = mouse.x * 14;
-    const targetMouseY = mouse.y * 8;
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      video.pause();
+      if (video.parentNode) video.parentNode.removeChild(video);
+    };
+  }, []);
 
-    // Subtle group parallax tilt following cursor
-    if (groupRef.current) {
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, mouse.x * 0.12, 0.05);
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -mouse.y * 0.12, 0.05);
-    }
+  const shaderMat = useMemo(() => new THREE.ShaderMaterial({
+    vertexShader: videoVertex,
+    fragmentShader: videoFragment,
+    uniforms: {
+      tVideo: { value: null },
+      uTime: { value: 0 },
+      uTintMix: { value: 0 },
+      uVelocity: { value: 0 },
+      uGlitchMultiplier: { value: 0 },
+      uMouse: { value: new THREE.Vector2(0, 0) },
+      uHoverColor: { value: new THREE.Color('#ff0a54') },
+      uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
+      uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
+    },
+    depthWrite: false,
+  }), []);
 
-    const time = state.clock.getElapsedTime();
+  useEffect(() => {
+    materialRef.current = shaderMat;
+    return () => shaderMat.dispose();
+  }, [shaderMat]);
 
-    particles.forEach((p, i) => {
-      // 1. Organic baseline floating motion
-      const floatX = Math.sin(time * p.speed + p.phase) * 0.35;
-      const floatY = Math.cos(time * p.speed * 0.8 + p.phase) * 0.35;
-
-      const homeX = p.ox + floatX;
-      const homeY = p.oy + floatY;
-      const homeZ = p.oz;
-
-      // 2. Calculate 2D distance to mouse pointer in world space
-      const dx = homeX - targetMouseX;
-      const dy = homeY - targetMouseY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      // Repulsion radius = 6.5 units
-      const maxDist = 6.5;
-      let pushX = 0;
-      let pushY = 0;
-      let pushZ = 0;
-      let activeScale = p.baseScale;
-
-      if (dist < maxDist) {
-        // Stronger force near cursor center
-        const force = (1 - dist / maxDist) ** 1.8;
-        const angle = Math.atan2(dy, dx);
-
-        pushX = Math.cos(angle) * force * 4.2;
-        pushY = Math.sin(angle) * force * 4.2;
-        pushZ = force * 3.5; // push forward toward camera
-
-        // Scale up particles near cursor for glowing constellation effect
-        activeScale = p.baseScale * (1 + force * 1.8);
+  // Trigger glitch spike on hover state change
+  useEffect(() => {
+    if (hoverState !== lastHoverState.current) {
+      if (hoverState !== 'idle') {
+        glitchIntensity.current = 1.0; // Huge glitch spike
       }
+      lastHoverState.current = hoverState;
+    }
+  }, [hoverState]);
 
-      // Smoothly interpolate current particle position to target position
-      p.cx = THREE.MathUtils.lerp(p.cx, homeX + pushX, 0.1);
-      p.cy = THREE.MathUtils.lerp(p.cy, homeY + pushY, 0.1);
-      p.cz = THREE.MathUtils.lerp(p.cz, homeZ + pushZ, 0.1);
+  useFrame((state) => {
+    if (!materialRef.current) return;
+    const mat = materialRef.current;
+    mat.uniforms.uTime.value = state.clock.elapsedTime;
+    
+    mat.uniforms.uResolution.value.set(state.size.width, state.size.height);
+    
+    // Decay velocity
+    scrollVelocity.current = THREE.MathUtils.lerp(scrollVelocity.current, 0, 0.1);
+    mat.uniforms.uVelocity.value = THREE.MathUtils.lerp(mat.uniforms.uVelocity.value, Math.min(scrollVelocity.current * 0.05, 1.0), 0.1);
 
-      // Update dummy transform matrix
-      dummy.position.set(p.cx, p.cy, p.cz);
-      dummy.scale.setScalar(activeScale);
-      dummy.rotation.set(time * 0.5 + i, time * 0.3 + i, 0);
-      dummy.updateMatrix();
+    // Decay hover glitch
+    glitchIntensity.current = THREE.MathUtils.lerp(glitchIntensity.current, 0, 0.05);
+    mat.uniforms.uGlitchMultiplier.value = glitchIntensity.current;
 
-      meshRef.current?.setMatrixAt(i, dummy.matrix);
-    });
+    // Mouse tracking
+    mat.uniforms.uMouse.value.x = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.x, state.mouse.x, 0.1);
+    mat.uniforms.uMouse.value.y = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.y, state.mouse.y, 0.1);
 
-    meshRef.current.instanceMatrix.needsUpdate = true;
+    const isHovered = hoverState !== 'idle';
+    mat.uniforms.uTintMix.value = THREE.MathUtils.lerp(mat.uniforms.uTintMix.value, isHovered ? 0.9 : 0.0, 0.05);
+
+    // Cyan (Panache), Magenta (Bandjam), Electric Yellow (Step-Up)
+    const targetColor = new THREE.Color(
+      hoverState === 'primary' ? '#00FFFF' : 
+      hoverState === 'secondary' ? '#FF00FF' : 
+      hoverState === 'tertiary' ? '#FFFF00' : '#9d4edd'
+    );
+    mat.uniforms.uHoverColor.value.lerp(targetColor, 0.1);
   });
 
   return (
-    <group ref={groupRef}>
-      <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-        <sphereGeometry args={[0.3, 16, 16]} />
-        <meshStandardMaterial
-          color="#6366f1"
-          emissive="#38bdf8"
-          emissiveIntensity={0.6}
-          roughness={0.1}
-          metalness={0.8}
-        />
-      </instancedMesh>
-    </group>
+    <mesh position={[0, 0, 0]} scale={scale}>
+      <planeGeometry args={[1, 1]} />
+      <primitive object={shaderMat} attach="material" />
+    </mesh>
   );
 }
 
-// ─── BACKGROUND AMBIENT DISTORTED SPHERES ─────────────────────────────────────
-function AnimatedShapes() {
-  return (
-    <>
-      <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-        <Sphere args={[1.2, 64, 64]} position={[-6, 3, -6]}>
-          <MeshDistortMaterial
-            color="#818cf8"
-            speed={3}
-            distort={0.4}
-            radius={1}
-            transparent
-            opacity={0.7}
-          />
-        </Sphere>
-      </Float>
-
-      <Float speed={3} rotationIntensity={2} floatIntensity={1}>
-        <Sphere args={[0.9, 64, 64]} position={[7, -3, -7]}>
-          <MeshDistortMaterial
-            color="#c084fc"
-            speed={5}
-            distort={0.5}
-            radius={1}
-            transparent
-            opacity={0.7}
-          />
-        </Sphere>
-      </Float>
-
-      <Float speed={1.5} rotationIntensity={0.5} floatIntensity={3}>
-        <Sphere args={[1.4, 64, 64]} position={[0, -5, -9]}>
-          <MeshDistortMaterial
-            color="#fb7185"
-            speed={2}
-            distort={0.3}
-            radius={1}
-            transparent
-            opacity={0.6}
-          />
-        </Sphere>
-      </Float>
-    </>
-  );
-}
-
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function ThreeBackground() {
   return (
-    <div className="absolute inset-0 -z-10 bg-slate-950 overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1.2} />
-        <pointLight position={[-10, -10, -10]} color="#38bdf8" intensity={0.8} />
-        <Stars radius={100} depth={50} count={3500} factor={4} saturation={0} fade speed={1.2} />
-        
-        {/* Interactive Magnetic Particle Cloud */}
-        <InteractiveParticles count={280} />
-
-        <AnimatedShapes />
+    <div className="fixed inset-0 z-0 w-full h-full bg-[#030005] pointer-events-none overflow-hidden">
+      <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
+        <VideoBackground />
       </Canvas>
-      <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[1px] pointer-events-none"></div>
     </div>
   );
 }
