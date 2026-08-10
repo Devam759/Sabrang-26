@@ -25,27 +25,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data() as User;
-            setUserData(data);
-            setRole(data.role);
+    let unsubscribe = () => {};
+
+    try {
+      unsubscribe = onAuthStateChanged(
+        auth,
+        async (user) => {
+          setUser(user);
+          if (user) {
+            try {
+              const userDoc = await getDoc(doc(db, 'users', user.uid));
+              if (userDoc.exists()) {
+                const data = userDoc.data() as User;
+                setUserData(data);
+                setRole(data.role);
+              }
+            } catch (error) {
+              console.error("Error fetching user data:", error);
+            }
+          } else {
+            setUserData(null);
+            setRole(null);
           }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
+          setLoading(false);
+        },
+        (error) => {
+          console.warn("Auth state observer warning:", error);
+          setLoading(false);
         }
-      } else {
-        setUserData(null);
-        setRole(null);
-      }
+      );
+    } catch (err) {
+      console.warn("Could not subscribe to Firebase auth state:", err);
       setLoading(false);
-    });
+    }
 
     return () => unsubscribe();
   }, []);

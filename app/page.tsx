@@ -24,21 +24,21 @@ export default function Home() {
         <ThreeBackground />
 
         <div className="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10">
-          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-md text-indigo-700 px-4 py-2 rounded-full text-sm font-bold mb-6 border border-white/50 shadow-sm">
+          <div className="inline-flex items-center space-x-2 bg-slate-900/80 backdrop-blur-md text-cyan-400 px-4 py-2 rounded-full text-sm font-bold mb-6 border border-white/10 shadow-lg">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
             </span>
             <span>October 10-12, 2025 • JK Lakshmipat University</span>
           </div>
           
-          <h1 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter mb-6 uppercase">
-            <span className="text-sabrang">SABRANG</span> <span className="text-indigo-600">2025</span>
+          <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-6 uppercase drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)]">
+            <span className="text-sabrang">SABRANG</span> <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">2025</span>
           </h1>
           
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed font-medium drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
             Experience the grandest cultural & techno-management fest of Rajasthan. 
-            Competing for a <span className="font-bold text-slate-900">₹2.5 Lakh+ Prize Pool</span> 
+            Competing for a <span className="font-bold text-white">₹2.5 Lakh+ Prize Pool</span> 
             across 50+ high-octane events.
           </p>
 

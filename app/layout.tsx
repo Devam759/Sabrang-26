@@ -22,12 +22,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <TubesCursor />
           <CursorFollower />
           <InitialLoader />
-          <div className="min-h-screen flex flex-col bg-black text-white">
+          <div className="min-h-screen flex flex-col bg-black text-white overflow-x-clip">
             <Navbar />
-            <main className="flex-grow container mx-auto px-4 py-8">
+            <main className="flex-grow w-full">
               {children}
             </main>
             <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm">

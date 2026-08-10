@@ -42,9 +42,9 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/animejs": "^3.1.13",
-    "@types/node": "^26",
+    "@types/node": "26.2.0",
     "@types/qrcode": "^1.5.6",
-    "@types/react": "^19",
+    "@types/react": "19.2.18",
     "@types/react-dom": "^19",
     "@types/three": "^0.185.4",
     "babel-plugin-react-compiler": "1.0.0",
@@ -52,6 +52,6 @@
     "eslint": "^10",
     "eslint-config-next": "^16.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5.7.3"
+    "typescript": "5.9.3"
   }
 }
