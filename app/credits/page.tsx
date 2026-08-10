@@ -1,5 +1,5 @@
 import { Metadata } from 'next'; 
-import CreditsClient from './CreditsClient';
+import CodePenCredits from './CodePenCredits';
 import JsonLd from '@/components/JsonLd';
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function CreditsPage() {
   return (
     <>
       <JsonLd data={jsonLdData} />
-      <CreditsClient />
+      <CodePenCredits />
     </>
   );
 }
