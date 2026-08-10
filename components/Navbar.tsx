@@ -78,7 +78,6 @@ export default function Navbar() {
     { href: '/credits', label: 'Tech Team Credits' },
   ];
 
-  if (pathname === '/credits') return null;
 
   return (
     <>
