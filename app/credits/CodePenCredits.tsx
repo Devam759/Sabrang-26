@@ -3,15 +3,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import gsap from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
-import Link from 'next/link';
 
 /* ──────────────────────────────────────────────
-   TEAM DATA  — update names / links as needed
+   TECH TEAM DATA
    ────────────────────────────────────────────── */
 const devTeam = [
   {
     name: 'Devam Sharma',
-    role: 'Lead Web Architect & Fullstack Developer',
     tag: 'CORE',
     avatar: '/team-carousel/1.jpg',
     linkedin: 'https://linkedin.com/in/devamsharma',
@@ -19,72 +17,53 @@ const devTeam = [
     email: 'devam@sabrang.in',
   },
   {
-    name: 'Tech Advisory',
-    role: 'UI/UX & WebGL Shader Design',
+    name: 'Shubh Dixit',
     tag: 'CO-ORDINATOR',
     avatar: '/team-carousel/2.jpg',
-    linkedin: 'https://linkedin.com/in/techadvisory',
-    github: 'https://github.com/techadvisory',
-    email: 'design@sabrang.in',
+    linkedin: 'https://linkedin.com/in/shubhdixit',
+    github: 'https://github.com/shubhdixit',
+    email: 'shubh@sabrang.in',
   },
   {
-    name: 'Frontend Team',
-    role: 'React, Next.js & Animation Engineering',
+    name: 'Kartik Saini',
     tag: 'CO-ORDINATOR',
     avatar: '/team-carousel/3.jpg',
-    linkedin: 'https://linkedin.com/in/frontendteam',
-    github: 'https://github.com/frontendteam',
-    email: 'frontend@sabrang.in',
+    linkedin: 'https://linkedin.com/in/kartiksaini',
+    github: 'https://github.com/kartiksaini',
+    email: 'kartik@sabrang.in',
   },
   {
-    name: 'Backend & Cloud',
-    role: 'Firebase Infrastructure & Auth Services',
+    name: 'Lakshya Gupta',
     tag: 'CO-ORDINATOR',
     avatar: '/team-carousel/4.jpg',
-    linkedin: 'https://linkedin.com/in/backendcloud',
-    github: 'https://github.com/backendcloud',
-    email: 'backend@sabrang.in',
+    linkedin: 'https://linkedin.com/in/lakshyagupta',
+    github: 'https://github.com/lakshyagupta',
+    email: 'lakshya@sabrang.in',
   },
   {
-    name: 'QA & Testing',
-    role: 'Quality Assurance & Automated Testing',
+    name: 'Aditya Singh Nayal',
     tag: 'CO-ORDINATOR',
     avatar: '/team-carousel/5.jpg',
-    linkedin: 'https://linkedin.com/in/qateam',
-    github: 'https://github.com/qateam',
-    email: 'qa@sabrang.in',
+    linkedin: 'https://linkedin.com/in/adityasinghnayal',
+    github: 'https://github.com/adityanayal',
+    email: 'aditya@sabrang.in',
   },
   {
-    name: 'DevOps & SecOps',
-    role: 'CI/CD Pipelines & Platform Security',
+    name: 'Prathum Lalwani',
     tag: 'CO-ORDINATOR',
     avatar: '/team-carousel/6.jpg',
-    linkedin: 'https://linkedin.com/in/devops',
-    github: 'https://github.com/devops',
-    email: 'devops@sabrang.in',
+    linkedin: 'https://linkedin.com/in/prathumlalwani',
+    github: 'https://github.com/prathumlalwani',
+    email: 'prathum@sabrang.in',
   },
   {
-    name: 'Content & Strategy',
-    role: 'Digital Strategy & Content Management',
+    name: 'Saurav Tank',
     tag: 'CO-ORDINATOR',
     avatar: '/team-carousel/7.jpg',
-    linkedin: 'https://linkedin.com/in/contentstrat',
-    github: 'https://github.com/contentstrat',
-    email: 'content@sabrang.in',
+    linkedin: 'https://linkedin.com/in/sauravtank',
+    github: 'https://github.com/sauravtank',
+    email: 'saurav@sabrang.in',
   },
-];
-
-const NAV_LINKS = [
-  { href: '/',          label: 'Home' },
-  { href: '/about',     label: 'About' },
-  { href: '/gallery',   label: 'Gallery' },
-  { href: '/team',      label: 'Our Team' },
-  { href: '/sponsors',  label: 'Sponsors' },
-  { href: '/events',    label: 'Events' },
-  { href: '/schedule',  label: 'Schedule' },
-  { href: '/register',  label: 'Registration' },
-  { href: '/faq',       label: 'FAQ' },
-  { href: '/contact',   label: 'Contact Us' },
 ];
 
 const N = devTeam.length;
@@ -117,10 +96,9 @@ export default function CodePenCredits() {
   const progAnimRef = useRef<gsap.core.Tween | null>(null);
   const curRef      = useRef(0);
   const busyRef     = useRef(false);
-  const advanceRef  = useRef<() => void>(() => {});
+  const goActionRef = useRef<(forward: boolean) => void>(() => {});
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [menuOpen,  setMenuOpen]  = useState(false);
 
   /* ── Progress bar ── */
   const startProgress = useCallback(() => {
@@ -135,76 +113,125 @@ export default function CodePenCredits() {
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     startProgress();
-    timerRef.current = setTimeout(() => advanceRef.current(), AUTO_ADVANCE_MS);
+    timerRef.current = setTimeout(() => {
+      goActionRef.current(true);
+    }, AUTO_ADVANCE_MS);
   }, [startProgress]);
 
-  /* ── GSAP ── */
+  /* ── GSAP & Animation ── */
   useEffect(() => {
     if (!rootRef.current) return;
     gsap.registerPlugin(CustomEase);
     CustomEase.create('hop', 'M0,0 C0.3,0 0.1,1 1,1');
 
     const ctx = gsap.context(() => {
-      const root        = rootRef.current!;
-      const wrapperLeft = root.querySelector<HTMLElement>('.cc-wrapper-left')!;
-      const leftBoxes   = root.querySelectorAll<HTMLElement>('.cc-box-left');
-      const centerImgs  = root.querySelectorAll<HTMLElement>('.cc-center-box img');
-      const countTry    = root.querySelector<HTMLElement>('.cc-try')!;
-      const arrowL      = root.querySelector<HTMLElement>('.cc-arrow-left')!;
-      const arrowR      = root.querySelector<HTMLElement>('.cc-arrow-right')!;
+      const root         = rootRef.current!;
+      const wrapperLeft  = root.querySelector<HTMLElement>('.cc-wrapper-left')!;
+      const wrapperRight = root.querySelector<HTMLElement>('.cc-wrapper-right-marquee')!;
+      const leftBoxes    = root.querySelectorAll<HTMLElement>('.cc-box-left');
+      const rightBoxes   = root.querySelectorAll<HTMLElement>('.cc-box-right-marquee');
+      const centerImgs   = root.querySelectorAll<HTMLElement>('.cc-center-box img');
+      const countTry     = root.querySelector<HTMLElement>('.cc-try')!;
 
       /* init center images */
       centerImgs.forEach((el, i) => { el.style.display = i === 0 ? 'block' : 'none'; });
 
+      /* Marquees: Left moves up, Right moves down */
       gsap.to(wrapperLeft, {
-        y: '-50%', duration: 20, ease: 'none', repeat: -1,
+        y: '-50%', duration: 24, ease: 'none', repeat: -1,
         onRepeat: () => gsap.set(wrapperLeft, { y: '0%' }),
       });
 
-      const centerBox = root.querySelector<HTMLElement>('.cc-center-box')!;
-      gsap.to(centerBox, { height: '420px', duration: 1.2, ease: 'hop' });
-      gsap.to(leftBoxes, { clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)', ease: 'hop', duration: 1, stagger: 0.08 });
-      root.querySelector('.cc-arrows')?.classList.add('cc-show');
+      if (wrapperRight) {
+        gsap.fromTo(wrapperRight, { y: '-50%' }, {
+          y: '0%', duration: 24, ease: 'none', repeat: -1,
+          onRepeat: () => gsap.set(wrapperRight, { y: '-50%' }),
+        });
+      }
 
+      /* Entrance Animation */
+      const centerBox = root.querySelector<HTMLElement>('.cc-center-box')!;
+      gsap.to(centerBox, { height: '440px', duration: 1.2, ease: 'hop' });
+      gsap.to(leftBoxes, { clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)', ease: 'hop', duration: 1, stagger: 0.08 });
+      if (rightBoxes.length > 0) {
+        gsap.to(rightBoxes, { clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)', ease: 'hop', duration: 1, stagger: 0.08 });
+      }
+
+      /* Slide Center */
       const slideCenter = (from: number, to: number, forward: boolean) => {
         const old_ = centerImgs[from] as HTMLElement;
         const new_ = centerImgs[to]  as HTMLElement;
-        gsap.set(new_, { display: 'block', clipPath: forward ? 'polygon(100% 100%,100% 100%,100% 100%,100% 100%)' : 'polygon(0 0,0 0,0 100%,0 100%)', zIndex: 2 });
-        gsap.to(new_, { clipPath: 'polygon(0% 0%,100% 0%,100% 100%,0% 100%)', duration: 1, ease: 'hop',
-          onComplete: () => { old_.style.display = 'none'; new_.style.zIndex = '1'; } });
-      };
-
-      const slideLeft = (fromCls: string, toCls: string, forward: boolean) => {
-        leftBoxes.forEach((box, bi) => {
-          const fromImg = box.querySelector<HTMLElement>(`.${fromCls}`)!;
-          const toImg   = box.querySelector<HTMLElement>(`.${toCls}`)!;
-          if (!fromImg || !toImg) return;
-          gsap.set(toImg, { display: 'block', clipPath: forward ? 'polygon(0 100%,100% 100%,100% 100%,0% 100%)' : 'polygon(0 0%,100% 0%,100% 0%,0% 0%)', zIndex: 2, scale: 2 });
-          gsap.to(toImg, { clipPath: 'polygon(0 0%,100% 0%,100% 100%,0% 100%)', ease: 'hop', duration: 1, scale: 1, delay: 0.06 * bi,
-            onComplete: () => { fromImg.style.display = 'none'; toImg.style.zIndex = '1'; } });
+        if (!old_ || !new_) return;
+        gsap.set(new_, {
+          display: 'block',
+          clipPath: forward ? 'polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)' : 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
+          zIndex: 2,
+          scale: 1.08,
+        });
+        gsap.to(new_, {
+          clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+          scale: 1,
+          duration: 0.9,
+          ease: 'hop',
+          onComplete: () => {
+            old_.style.display = 'none';
+            new_.style.zIndex = '1';
+          },
         });
       };
 
+      /* Slide Side Boxes */
+      const slideSideStrip = (boxes: NodeListOf<HTMLElement>, fromCls: string, toCls: string, forward: boolean) => {
+        boxes.forEach((box, bi) => {
+          const fromImg = box.querySelector<HTMLElement>(`.${fromCls}`)!;
+          const toImg   = box.querySelector<HTMLElement>(`.${toCls}`)!;
+          if (!fromImg || !toImg) return;
+          gsap.set(toImg, {
+            display: 'block',
+            clipPath: forward ? 'polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)' : 'polygon(0 0%, 100% 0%, 100% 0%, 0% 0%)',
+            zIndex: 2,
+            scale: 1.4,
+          });
+          gsap.to(toImg, {
+            clipPath: 'polygon(0 0%, 100% 0%, 100% 100%, 0% 100%)',
+            ease: 'hop',
+            duration: 0.9,
+            scale: 1,
+            delay: 0.05 * bi,
+            onComplete: () => {
+              fromImg.style.display = 'none';
+              toImg.style.zIndex = '1';
+            },
+          });
+        });
+      };
+
+      /* Transition Controller */
       const go = (forward: boolean) => {
         if (busyRef.current) return;
         busyRef.current = true;
         const prev = curRef.current;
         curRef.current = forward ? (prev + 1) % N : (prev - 1 + N) % N;
         const next = curRef.current;
-        gsap.to(countTry, { y: `${next * -14}px`, ease: 'hop', duration: 0.35 });
+
+        if (countTry) {
+          gsap.to(countTry, { y: `${next * -14}px`, ease: 'hop', duration: 0.35 });
+        }
         slideCenter(prev, next, forward);
-        slideLeft(imgCls(prev), imgCls(next), forward);
+        slideSideStrip(leftBoxes, imgCls(prev), imgCls(next), forward);
+        if (rightBoxes.length > 0) {
+          slideSideStrip(rightBoxes, imgCls(prev), imgCls(next), forward);
+        }
+
         setActiveIdx(next);
-        setTimeout(() => { busyRef.current = false; }, 1100);
+        setTimeout(() => { busyRef.current = false; }, 950);
         resetTimer();
       };
 
-      advanceRef.current = () => go(true);
-      arrowR.addEventListener('click', () => go(true));
-      arrowL.addEventListener('click', () => go(false));
+      goActionRef.current = go;
 
       setTimeout(() => startProgress(), 1300);
-      timerRef.current = setTimeout(() => advanceRef.current(), AUTO_ADVANCE_MS + 1300);
+      timerRef.current = setTimeout(() => goActionRef.current(true), AUTO_ADVANCE_MS + 1300);
     }, rootRef);
 
     return () => {
@@ -215,94 +242,73 @@ export default function CodePenCredits() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* close menu on escape */
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
+  const currentMember = devTeam[activeIdx];
+  const nextMember = devTeam[(activeIdx + 1) % N];
 
-  const member = devTeam[activeIdx];
+  const handlePrev = () => goActionRef.current(false);
+  const handleNext = () => goActionRef.current(true);
 
   return (
     <div ref={rootRef} className="cc-root">
 
-      {/* ── HEADER ── */}
-      <header className="cc-header">
+      {/* ── AMBIENT NEON GLOW EFFECTS ── */}
+      <div className="cc-ambient-glow cc-glow-left" />
+      <div className="cc-ambient-glow cc-glow-center" />
+      <div className="cc-ambient-glow cc-glow-right" />
 
-        <Link href="/" className="cc-logo-link">
-          <img src="/sabrang logo.png" alt="Sabrang" />
-        </Link>
-
-        <div className="cc-header-center">
-          <span className="cc-eyebrow">SABRANG 2026 · DIGITAL PLATFORM</span>
-          <h1 className="cc-title">TECH TEAM CREDITS</h1>
-        </div>
-
-        <button
-          className={`cc-menu-btn ${menuOpen ? 'cc-menu-btn--open' : ''}`}
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? (
-            <svg className="cc-menu-icon-x" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <span className="cc-hamburger">
-              <span/><span/><span/>
-            </span>
-          )}
-          <span className="cc-menu-label">{menuOpen ? '' : 'Menu'}</span>
-        </button>
-
-      </header>
-
-      {/* ── FULL-SCREEN MENU OVERLAY ── */}
-      {menuOpen && (
-        <div className="cc-nav-overlay" onClick={() => setMenuOpen(false)}>
-          <div className="cc-nav-inner" onClick={e => e.stopPropagation()}>
-            <div className="cc-nav-grid">
-              {NAV_LINKS.map((link, i) => (
-                <Link key={link.href} href={link.href} className="cc-nav-item" onClick={() => setMenuOpen(false)}>
-                  <span className="cc-nav-num">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="cc-nav-label">{link.label}</span>
-                </Link>
-              ))}
-            </div>
-            <div className="cc-nav-footer">
-              <p>Join Sabrang 2026</p>
-              <Link href="/register" className="cc-nav-cta" onClick={() => setMenuOpen(false)}>
-                Register Now
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── LEFT MARQUEE STRIP ── */}
-      <div className="cc-wrapper-left">
-        {[0, 1].map(g => (
-          <div key={g}>
-            {[0, 1, 2, 3].map(b => (
-              <div key={b} className="cc-box-left">
-                {devTeam.map((m, i) => (
-                  <img key={i} className={imgCls(i)} src={m.avatar} alt={m.name}
-                    style={{
-                      display: i === 0 ? 'block' : 'none',
-                      clipPath: i === 0 ? 'polygon(0 0,100% 0,100% 100%,0 100%)' : 'polygon(0 100%,100% 100%,100% 100%,0 100%)',
-                    }} />
-                ))}
-              </div>
-            ))}
-          </div>
-        ))}
+      {/* ── TOP CENTER PAGE TITLE (Inherits global Navbar for Logo & LiquidMetal Menu button) ── */}
+      <div className="cc-top-header-bar">
+        <h1 className="cc-title">TECH TEAM CREDITS</h1>
       </div>
 
-      {/* ── CENTER WRAPPER ── */}
+      {/* ── LEFT MARQUEE GALLERY ── */}
+      <div className="cc-gallery-side cc-gallery-left" aria-hidden="true">
+        <div className="cc-gallery-overlay" />
+        <div className="cc-wrapper-left">
+          {[0, 1].map(g => (
+            <div key={g}>
+              {[0, 1, 2, 3].map(b => (
+                <div key={b} className="cc-box-left">
+                  {devTeam.map((m, i) => (
+                    <img key={i} className={imgCls(i)} src={m.avatar} alt=""
+                      style={{
+                        display: i === 0 ? 'block' : 'none',
+                        clipPath: i === 0 ? 'polygon(0 0,100% 0,100% 100%,0 100%)' : 'polygon(0 100%,100% 100%,100% 100%,0 100%)',
+                      }} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── RIGHT MARQUEE GALLERY (SYMMETRICAL MIRROR) ── */}
+      <div className="cc-gallery-side cc-gallery-right" aria-hidden="true">
+        <div className="cc-gallery-overlay" />
+        <div className="cc-wrapper-right-marquee">
+          {[0, 1].map(g => (
+            <div key={g}>
+              {[0, 1, 2, 3].map(b => (
+                <div key={b} className="cc-box-right-marquee">
+                  {devTeam.map((m, i) => (
+                    <img key={i} className={imgCls(i)} src={m.avatar} alt=""
+                      style={{
+                        display: i === 0 ? 'block' : 'none',
+                        clipPath: i === 0 ? 'polygon(0 0,100% 0,100% 100%,0 100%)' : 'polygon(0 100%,100% 100%,100% 100%,0 100%)',
+                      }} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── CENTRAL PROFILE CARD ── */}
       <div className="cc-wrapper">
 
-        {/* counter — top right of image */}
+        {/* Counter Badge */}
         <div className="cc-counter-badge">
           <div className="cc-counter-try-wrap">
             <div className="cc-try">
@@ -313,66 +319,75 @@ export default function CodePenCredits() {
           <span className="cc-counter-total">{String(N).padStart(2, '0')}</span>
         </div>
 
-        {/* center image */}
-        <div className="cc-center-box">
-          {devTeam.map((m, i) => (
-            <img key={i} src={m.avatar} alt={m.name}
-              style={{ display: i === 0 ? 'block' : 'none', zIndex: 1 }} />
-          ))}
+        {/* Center Image & Card */}
+        <div className="cc-center-box-container">
+          <div className="cc-center-card-halo" />
+          <div className="cc-center-box">
+            {devTeam.map((m, i) => (
+              <img key={i} src={m.avatar} alt={m.name}
+                style={{ display: i === 0 ? 'block' : 'none', zIndex: 1 }} />
+            ))}
 
-          {/* Name card overlay */}
-          <div className="cc-name-card">
-            <span className="cc-name-tag">{member.tag}</span>
-            <h2 className="cc-name-title">{member.name}</h2>
-            <p className="cc-name-role">{member.role}</p>
-            <div className="cc-name-links">
-              <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="cc-link-btn cc-link-li">
-                <LinkedInIcon /> LinkedIn
-              </a>
-              <a href={member.github} target="_blank" rel="noopener noreferrer" className="cc-link-btn cc-link-gh">
-                <GithubIcon /> GitHub
-              </a>
-              <a href={`mailto:${member.email}`} className="cc-link-btn cc-link-mail">
-                <MailIcon /> Email
-              </a>
+            {/* Name Card Overlay */}
+            <div className="cc-name-card">
+              <span className="cc-name-tag">{currentMember.tag}</span>
+              <h2 className="cc-name-title">{currentMember.name}</h2>
+              <div className="cc-name-links">
+                <a href={currentMember.linkedin} target="_blank" rel="noopener noreferrer" className="cc-link-btn cc-link-li">
+                  <LinkedInIcon /> LinkedIn
+                </a>
+                <a href={currentMember.github} target="_blank" rel="noopener noreferrer" className="cc-link-btn cc-link-gh">
+                  <GithubIcon /> GitHub
+                </a>
+                <a href={`mailto:${currentMember.email}`} className="cc-link-btn cc-link-mail">
+                  <MailIcon /> Email
+                </a>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="cc-progress-track">
+              <div ref={progRef} className="cc-progress-bar" />
+            </div>
+          </div>
+        </div>
+
+        {/* ── BOTTOM CENTER NAVIGATION ── */}
+        <div className="cc-bottom-nav">
+          <button
+            className="cc-nav-btn cc-nav-prev"
+            onClick={handlePrev}
+            aria-label="Previous profile"
+          >
+            <span className="cc-nav-btn-arrow">←</span>
+            <span className="cc-nav-btn-text">PREV</span>
+          </button>
+
+          {/* Dots & Indicator */}
+          <div className="cc-nav-dots-container">
+            <div className="cc-nav-dots">
+              {devTeam.map((_, i) => (
+                <div
+                  key={i}
+                  className={`cc-nav-dot${i === activeIdx ? ' cc-nav-dot-active' : ''}`}
+                />
+              ))}
             </div>
           </div>
 
-          {/* progress bar */}
-          <div className="cc-progress-track">
-            <div ref={progRef} className="cc-progress-bar" />
-          </div>
-        </div>
-      </div>
-
-      {/* ── RIGHT PANEL ── */}
-      <div className="cc-wrapper-right">
-
-        {/* Next-person preview box */}
-        <div className="cc-next-label">NEXT ↓</div>
-        <div className="cc-box-right">
-          <img
-            key={activeIdx}
-            src={devTeam[(activeIdx + 1) % N].avatar}
-            alt={devTeam[(activeIdx + 1) % N].name}
-            className="cc-next-img"
-          />
-          <div className="cc-next-name-card">
-            <span className="cc-next-tag">{devTeam[(activeIdx + 1) % N].tag}</span>
-            <span className="cc-next-nm">{devTeam[(activeIdx + 1) % N].name}</span>
-          </div>
+          <button
+            className="cc-nav-btn cc-nav-next"
+            onClick={handleNext}
+            aria-label="Next profile"
+          >
+            <div className="cc-next-meta">
+              <span className="cc-next-sublabel">UP NEXT</span>
+              <span className="cc-next-name-preview">{nextMember.name}</span>
+            </div>
+            <span className="cc-nav-btn-arrow">→</span>
+          </button>
         </div>
 
-        <div className="cc-arrows">
-          <button className="cc-arrow-left"  aria-label="prev">←</button>
-          <button className="cc-arrow-right" aria-label="next">→</button>
-        </div>
-
-        <div className="cc-dots">
-          {devTeam.map((_, i) => (
-            <div key={i} className={`cc-dot${i === activeIdx ? ' cc-dot-active' : ''}`} />
-          ))}
-        </div>
       </div>
 
       {/* ── STYLES ── */}
@@ -380,176 +395,121 @@ export default function CodePenCredits() {
         /* ─── Root ─── */
         .cc-root {
           position: fixed; inset: 0;
-          background: #070707;
+          background: #050507;
           overflow: hidden;
-          font-family: 'Inter', monospace;
+          font-family: 'Inter', sans-serif;
           color: #fff;
           z-index: 0;
         }
 
-        /* ─── Header ─── */
-        .cc-header {
+        /* ─── Ambient Glows ─── */
+        .cc-ambient-glow {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(130px);
+          pointer-events: none;
+          z-index: 1;
+        }
+        .cc-glow-left {
+          width: 400px; height: 500px;
+          top: 20%; left: -100px;
+          background: radial-gradient(circle, rgba(235, 30, 80, 0.12) 0%, rgba(0,0,0,0) 70%);
+        }
+        .cc-glow-center {
+          width: 550px; height: 550px;
+          top: 30%; left: 50%;
+          transform: translate(-50%, -20%);
+          background: radial-gradient(circle, rgba(80, 40, 220, 0.16) 0%, rgba(220, 20, 90, 0.08) 50%, rgba(0,0,0,0) 75%);
+        }
+        .cc-glow-right {
+          width: 400px; height: 500px;
+          top: 20%; right: -100px;
+          background: radial-gradient(circle, rgba(0, 180, 255, 0.12) 0%, rgba(0,0,0,0) 70%);
+        }
+
+        /* ─── Top Center Page Title ─── */
+        .cc-top-header-bar {
           position: absolute; top: 0; left: 0; right: 0;
-          height: 80px;
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 0 28px;
-          z-index: 200;
-          background: linear-gradient(to bottom, rgba(7,7,7,0.9) 0%, transparent 100%);
-        }
-
-        /* logo */
-        .cc-logo-link {
-          display: flex; align-items: center; flex-shrink: 0;
-          text-decoration: none;
-        }
-        .cc-logo-link img {
-          height: 56px; width: auto; object-fit: contain;
-          transition: transform 0.3s;
-        }
-        .cc-logo-link:hover img { transform: scale(1.05); }
-
-        /* center title */
-        .cc-header-center {
-          position: absolute; left: 50%; transform: translateX(-50%);
-          display: flex; flex-direction: column; align-items: center; gap: 3px;
-          pointer-events: none; text-align: center;
-        }
-        .cc-eyebrow {
-          font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
-          color: rgba(255,255,255,0.35); font-family: monospace;
+          height: 90px;
+          display: flex; align-items: center; justify-content: center;
+          z-index: 40;
+          pointer-events: none;
         }
         .cc-title {
           font-size: 22px; font-weight: 900; letter-spacing: 7px;
           text-transform: uppercase; color: #fff;
           font-family: 'Inter', sans-serif;
           margin: 0; line-height: 1;
-          text-shadow: 0 0 40px rgba(255,255,255,0.2);
+          text-shadow: 0 0 40px rgba(255,255,255,0.25);
           white-space: nowrap;
+          pointer-events: none;
         }
 
-        /* menu button — pill style matching site nav */
-        .cc-menu-btn {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 22px; border-radius: 999px;
-          border: 1.5px solid rgba(255,255,255,0.22);
-          background: rgba(255,255,255,0.07);
-          backdrop-filter: blur(16px);
-          color: #fff; cursor: pointer; flex-shrink: 0;
-          transition: background 0.25s, border-color 0.25s;
-          min-width: 90px; justify-content: center;
+        /* ─── Side Galleries (Framing) ─── */
+        .cc-gallery-side {
+          position: absolute; top: 0; bottom: 0;
+          width: 250px;
+          overflow: hidden;
+          z-index: 2;
+          pointer-events: none;
         }
-        .cc-menu-btn:hover {
-          background: rgba(255,255,255,0.15);
-          border-color: rgba(255,255,255,0.45);
+        .cc-gallery-left {
+          left: 0;
         }
-        .cc-menu-btn--open {
-          background: rgba(255,255,255,0.12);
-          border-color: rgba(255,255,255,0.5);
-        }
-        .cc-hamburger {
-          display: flex; flex-direction: column; gap: 4px; width: 16px;
-        }
-        .cc-hamburger span {
-          display: block; height: 1.5px; width: 100%;
-          background: #fff; border-radius: 2px;
-        }
-        .cc-menu-icon-x {
-          width: 18px; height: 18px; color: #fff;
-        }
-        .cc-menu-label {
-          font-size: 11px; letter-spacing: 2px; font-family: monospace;
-          text-transform: uppercase; color: #fff; font-weight: 600;
+        .cc-gallery-right {
+          right: 0;
         }
 
-        /* ─── Nav Overlay ─── */
-        .cc-nav-overlay {
-          position: fixed; inset: 0;
-          background: rgba(0,0,0,0.96);
-          z-index: 500;
-          display: flex; align-items: center; justify-content: center;
-          animation: cc-fade-in 0.25s ease;
+        /* Subtle edge gradient to blend galleries with background */
+        .cc-gallery-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to right, rgba(5,5,7,0.3) 0%, rgba(5,5,7,0.85) 100%);
+          z-index: 3;
+          pointer-events: none;
         }
-        @keyframes cc-fade-in {
-          from { opacity: 0; }
-          to   { opacity: 1; }
+        .cc-gallery-right .cc-gallery-overlay {
+          background: linear-gradient(to left, rgba(5,5,7,0.3) 0%, rgba(5,5,7,0.85) 100%);
         }
-        .cc-nav-inner {
-          width: 100%; max-width: 860px;
-          padding: 0 32px;
-          display: flex; flex-direction: column; gap: 48px;
-        }
-        .cc-nav-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-        }
-        .cc-nav-item {
-          display: flex; align-items: center; gap: 14px;
-          padding: 18px 22px; border-radius: 12px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.03);
-          text-decoration: none;
-          transition: background 0.2s, border-color 0.2s, transform 0.2s;
-        }
-        .cc-nav-item:hover {
-          background: rgba(255,255,255,0.08);
-          border-color: rgba(255,255,255,0.18);
-          transform: translateY(-2px);
-        }
-        .cc-nav-num {
-          font-size: 10px; letter-spacing: 1px; font-family: monospace;
-          color: rgba(255,255,255,0.3); flex-shrink: 0;
-        }
-        .cc-nav-label {
-          font-size: 20px; font-weight: 700; color: #fff;
-          font-family: 'Inter', sans-serif;
-        }
-        .cc-nav-footer {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 22px 24px; border-radius: 12px;
-          border: 1px solid rgba(255,255,255,0.1);
-          background: rgba(255,255,255,0.03);
-        }
-        .cc-nav-footer p {
-          font-size: 16px; font-weight: 700; color: #fff;
-          margin: 0; font-family: 'Inter', sans-serif;
-        }
-        .cc-nav-cta {
-          padding: 10px 24px; border-radius: 999px;
-          background: #fff; color: #000;
-          font-size: 13px; font-weight: 700;
-          text-decoration: none; font-family: 'Inter', sans-serif;
-          transition: opacity 0.2s;
-        }
-        .cc-nav-cta:hover { opacity: 0.85; }
 
-        /* ─── Left marquee ─── */
-        .cc-wrapper-left {
+        .cc-wrapper-left, .cc-wrapper-right-marquee {
           position: absolute; top: 0; left: 0;
-          width: 280px; display: flex; flex-direction: column;
-          overflow: hidden; height: 200vh; z-index: 0;
+          width: 100%; display: flex; flex-direction: column;
+          overflow: hidden; height: 200vh;
         }
-        .cc-box-left {
-          position: relative; width: 280px; height: 420px;
+        .cc-box-left, .cc-box-right-marquee {
+          position: relative; width: 250px; height: 380px;
           overflow: hidden; margin-bottom: 12px; flex-shrink: 0;
           clip-path: polygon(0 0,0 0,0 100%,0 100%);
+          opacity: 0.55;
+          filter: grayscale(30%) contrast(110%);
+          transition: opacity 0.4s ease;
         }
-        .cc-box-left img {
-          position: absolute; width: 280px; height: 100%;
+        .cc-box-left img, .cc-box-right-marquee img {
+          position: absolute; width: 250px; height: 100%;
           object-fit: cover; transform: scale(1.05); top: 0; left: 0;
         }
 
-        /* ─── Center ─── */
+        /* ─── Central Card & Navigation ─── */
         .cc-wrapper {
-          position: absolute; top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
+          position: absolute;
+          top: 50%; left: 50%;
+          transform: translate(-50%, -48%);
           display: flex; flex-direction: column; align-items: center;
-          z-index: 10; width: 420px;
+          z-index: 10;
+          width: 440px;
+          max-width: 90vw;
         }
 
-        /* counter badge top-right */
+        /* Counter Badge */
         .cc-counter-badge {
           align-self: flex-end;
-          display: flex; align-items: center; gap: 2px;
+          display: flex; align-items: center; gap: 3px;
           margin-bottom: 10px;
+          font-family: monospace;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          padding: 3px 8px;
+          border-radius: 4px;
         }
         .cc-counter-try-wrap { height: 14px; overflow: hidden; }
         .cc-try {
@@ -558,134 +518,238 @@ export default function CodePenCredits() {
         }
         .cc-try span {
           font-size: 11px; font-family: monospace; color: #fff;
-          height: 14px; display: flex; align-items: center;
+          height: 14px; display: flex; align-items: center; font-weight: 600;
         }
         .cc-counter-sep, .cc-counter-total {
-          font-size: 11px; font-family: monospace; color: rgba(255,255,255,0.5);
+          font-size: 11px; font-family: monospace; color: rgba(255,255,255,0.4);
         }
 
-        /* center image box */
+        /* Central Container */
+        .cc-center-box-container {
+          position: relative;
+          width: 440px;
+          max-width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+
+        /* Cinematic halo behind center card */
+        .cc-center-card-halo {
+          position: absolute;
+          inset: -20px;
+          background: radial-gradient(circle, rgba(235, 30, 80, 0.18) 0%, rgba(80, 40, 220, 0.12) 50%, transparent 75%);
+          filter: blur(25px);
+          border-radius: 20px;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        /* Center Image Box */
         .cc-center-box {
-          position: relative; width: 420px; height: 268px;
+          position: relative;
+          width: 440px;
+          height: 280px;
           overflow: hidden;
-          clip-path: polygon(0% 0%,100% 0%,100% 100%,0% 100%);
+          border-radius: 6px;
+          border: 1px solid rgba(255,255,255,0.12);
+          box-shadow: 0 25px 60px -15px rgba(0,0,0,0.85), 0 0 40px rgba(235, 30, 80, 0.15);
           z-index: 1;
+          background: #000;
         }
         .cc-center-box > img {
           position: absolute; inset: 0;
           width: 100%; height: 100%; object-fit: cover;
         }
 
-        /* name card */
+        /* Name Card Overlay */
         .cc-name-card {
           position: absolute; bottom: 0; left: 0; right: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 60%, transparent 100%);
-          padding: 20px 16px 16px;
+          background: linear-gradient(to top, rgba(5,5,7,0.98) 0%, rgba(5,5,7,0.7) 60%, transparent 100%);
+          padding: 24px 20px 18px;
           z-index: 10;
-          display: flex; flex-direction: column; gap: 5px;
+          display: flex; flex-direction: column; gap: 6px;
         }
         .cc-name-tag {
-          font-size: 8px; letter-spacing: 2px; font-family: monospace;
-          text-transform: uppercase; color: rgba(255,255,255,0.45);
-          border: 1px solid rgba(255,255,255,0.18);
-          padding: 2px 7px; border-radius: 2px;
+          font-size: 8.5px; letter-spacing: 2.5px; font-family: monospace;
+          text-transform: uppercase; color: rgba(255,255,255,0.6);
+          border: 1px solid rgba(255,255,255,0.22);
+          background: rgba(255,255,255,0.06);
+          backdrop-filter: blur(8px);
+          padding: 3px 9px; border-radius: 2px;
           width: fit-content;
+          font-weight: 600;
         }
         .cc-name-title {
-          font-size: 22px; font-weight: 900; letter-spacing: -0.3px;
+          font-size: 24px; font-weight: 900; letter-spacing: -0.2px;
           color: #fff; margin: 0; line-height: 1.1;
           font-family: 'Inter', sans-serif; text-transform: uppercase;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
-        .cc-name-role {
-          font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase;
-          color: rgba(255,255,255,0.5); margin: 0; font-family: monospace;
+        .cc-name-links {
+          display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;
         }
-        .cc-name-links { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
         .cc-link-btn {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase;
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 9.5px; letter-spacing: 0.8px; text-transform: uppercase;
           font-family: monospace; text-decoration: none;
-          padding: 4px 10px; border-radius: 3px; border: 1px solid;
+          padding: 5px 12px; border-radius: 4px; border: 1px solid;
           transition: all 0.22s ease; cursor: pointer;
+          backdrop-filter: blur(6px);
         }
-        .cc-link-li  { color: #4f9cf9; border-color: rgba(79,156,249,0.4); background: rgba(79,156,249,0.08); }
-        .cc-link-li:hover  { background: rgba(79,156,249,0.22); }
-        .cc-link-gh  { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.05); }
-        .cc-link-gh:hover  { background: rgba(255,255,255,0.14); }
-        .cc-link-mail{ color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); }
-        .cc-link-mail:hover{ background: rgba(255,255,255,0.1); }
+        .cc-link-li {
+          color: #4f9cf9;
+          border-color: rgba(79,156,249,0.35);
+          background: rgba(79,156,249,0.08);
+        }
+        .cc-link-li:hover {
+          background: rgba(79,156,249,0.24);
+          border-color: #4f9cf9;
+          box-shadow: 0 0 12px rgba(79,156,249,0.3);
+        }
+        .cc-link-gh {
+          color: rgba(255,255,255,0.9);
+          border-color: rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.06);
+        }
+        .cc-link-gh:hover {
+          background: rgba(255,255,255,0.16);
+          border-color: rgba(255,255,255,0.4);
+        }
+        .cc-link-mail {
+          color: rgba(255,255,255,0.75);
+          border-color: rgba(255,255,255,0.15);
+          background: rgba(255,255,255,0.04);
+        }
+        .cc-link-mail:hover {
+          background: rgba(255,255,255,0.12);
+          border-color: rgba(255,255,255,0.3);
+        }
 
-        /* progress bar */
+        /* Progress Bar on Center Card */
         .cc-progress-track {
           position: absolute; bottom: 0; left: 0; right: 0;
-          height: 2px; background: rgba(255,255,255,0.08); z-index: 20;
+          height: 2.5px; background: rgba(255,255,255,0.08); z-index: 20;
         }
         .cc-progress-bar {
           height: 100%; width: 100%;
-          background: linear-gradient(90deg, rgba(255,255,255,0.2), #fff);
+          background: linear-gradient(90deg, rgba(235, 30, 80, 0.4), #fff);
           transform: scaleX(0); transform-origin: left center;
         }
 
-        /* ─── Right panel ─── */
-        .cc-wrapper-right {
-          position: absolute; right: 24px; bottom: 80px;
-          width: 180px; z-index: 5; display: flex; flex-direction: column;
-        }
-        .cc-next-label {
-          font-size: 8px; letter-spacing: 2.5px; font-family: monospace;
-          text-transform: uppercase; color: rgba(255,255,255,0.35);
-          margin-bottom: 6px;
-        }
-        .cc-box-right {
-          position: relative; width: 180px; height: 200px;
-          overflow: hidden; border-radius: 4px;
-        }
-        .cc-next-img {
-          position: absolute; inset: 0; width: 100%; height: 100%;
-          object-fit: cover; transform: scale(1.08);
-          transition: opacity 0.5s ease;
-        }
-        .cc-next-name-card {
-          position: absolute; bottom: 0; left: 0; right: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-          padding: 14px 10px 10px;
-          display: flex; flex-direction: column; gap: 3px;
-        }
-        .cc-next-tag {
-          font-size: 7px; letter-spacing: 1.5px; font-family: monospace;
-          text-transform: uppercase; color: rgba(255,255,255,0.4);
-        }
-        .cc-next-nm {
-          font-size: 11px; font-weight: 700; font-family: 'Inter', sans-serif;
-          color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        /* ─── Bottom Center Navigation Console ─── */
+        .cc-bottom-nav {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          margin-top: 18px;
+          gap: 12px;
         }
 
-        /* arrows */
-        .cc-arrows {
-          display: flex; gap: 8px; margin-top: 12px;
-          opacity: 0; transition: opacity 0.6s ease;
+        .cc-nav-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.14);
+          backdrop-filter: blur(14px);
+          color: #fff;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .cc-arrows.cc-show { opacity: 1; }
-        .cc-arrow-left, .cc-arrow-right {
-          width: 36px; height: 36px; border-radius: 50%;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.15);
-          color: #fff; font-size: 15px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          transition: background 0.25s; padding: 0;
+        .cc-nav-btn:hover {
+          background: rgba(255,255,255,0.12);
+          border-color: rgba(255,255,255,0.4);
+          box-shadow: 0 0 16px rgba(255,255,255,0.12);
+          transform: translateY(-1px);
         }
-        .cc-arrow-left:hover, .cc-arrow-right:hover { background: rgba(255,255,255,0.18); }
+        .cc-nav-btn-arrow {
+          font-size: 13px;
+          line-height: 1;
+          color: rgba(255,255,255,0.85);
+        }
+        .cc-nav-btn-text {
+          font-size: 10px;
+          letter-spacing: 2px;
+          font-family: monospace;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
 
-        /* dots */
-        .cc-dots {
-          display: flex; gap: 5px; margin-top: 10px; justify-content: center;
+        /* Next Button with Text-Only Preview */
+        .cc-nav-next {
+          padding: 7px 18px;
+          text-align: right;
         }
-        .cc-dot {
+        .cc-next-meta {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          line-height: 1.1;
+        }
+        .cc-next-sublabel {
+          font-size: 7.5px;
+          letter-spacing: 1.5px;
+          font-family: monospace;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.4);
+        }
+        .cc-next-name-preview {
+          font-size: 10.5px;
+          letter-spacing: 1px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: #fff;
+          white-space: nowrap;
+        }
+
+        /* Dots Container */
+        .cc-nav-dots-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+        }
+        .cc-nav-dots {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+        .cc-nav-dot {
           width: 5px; height: 5px; border-radius: 50%;
           background: rgba(255,255,255,0.22);
-          transition: background 0.35s, transform 0.35s;
+          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .cc-dot-active { background: #fff; transform: scale(1.5); }
+        .cc-nav-dot-active {
+          background: #fff;
+          transform: scale(1.6);
+          box-shadow: 0 0 8px rgba(255,255,255,0.7);
+        }
+
+        /* ─── Responsive Media Queries ─── */
+        @media (max-width: 1280px) {
+          .cc-gallery-side { width: 200px; }
+          .cc-box-left, .cc-box-right-marquee { width: 200px; height: 320px; }
+          .cc-box-left img, .cc-box-right-marquee img { width: 200px; }
+        }
+
+        @media (max-width: 1024px) {
+          .cc-gallery-side { width: 140px; }
+          .cc-box-left, .cc-box-right-marquee { width: 140px; height: 240px; }
+          .cc-box-left img, .cc-box-right-marquee img { width: 140px; }
+          .cc-wrapper { width: 400px; }
+          .cc-center-box { width: 400px; }
+        }
+
+        @media (max-width: 820px) {
+          .cc-gallery-side { display: none; }
+          .cc-wrapper { width: 90vw; }
+          .cc-center-box-container, .cc-center-box { width: 100%; }
+          .cc-name-title { font-size: 20px; }
+        }
       `}</style>
     </div>
   );
