@@ -6,6 +6,9 @@ export default function CreditsClient() {
     { name: 'Technical Advisory', role: 'UI/UX & WebGL Shader Design', avatar: '/team-carousel/2.jpg', tag: 'Design' },
     { name: 'Frontend Team', role: 'React, Next.js & Animation Engineering', avatar: '/team-carousel/3.jpg', tag: 'Engineering' },
     { name: 'Backend & Cloud', role: 'Firebase Infrastructure & Auth Services', avatar: '/team-carousel/4.jpg', tag: 'Infrastructure' },
+    { name: 'QA & Testing', role: 'Quality Assurance & Automated Testing', avatar: '/team-carousel/5.jpg', tag: 'Quality' },
+    { name: 'DevOps & SecOps', role: 'CI/CD Pipelines & Platform Security', avatar: '/team-carousel/6.jpg', tag: 'Operations' },
+    { name: 'Content & Strategy', role: 'Digital Strategy & Content Management', avatar: '/team-carousel/7.jpg', tag: 'Strategy' },
   ];
 
   return (
@@ -24,26 +27,47 @@ export default function CreditsClient() {
       </section>
 
       {/* Tech Team Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {devTeam.map((member, idx) => (
-          <div
-            key={idx}
-            className="group rounded-3xl bg-neutral-900 border border-white/10 p-6 flex items-center gap-5 shadow-xl hover:border-purple-500/40 transition-all duration-300 hover:scale-[1.02]"
-          >
+      <div className="flex flex-col items-center w-full gap-8">
+        {/* Lead Member */}
+        {devTeam.length > 0 && (
+          <div className="group w-full max-w-2xl rounded-3xl bg-neutral-900 border border-white/10 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-xl hover:border-purple-500/40 transition-all duration-300 hover:scale-[1.02] text-center sm:text-left">
             <img
-              src={member.avatar}
-              alt={member.name}
-              className="w-16 h-16 rounded-2xl object-cover border border-white/15 shrink-0"
+              src={devTeam[0].avatar}
+              alt={devTeam[0].name}
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover border border-white/15 shrink-0"
             />
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-purple-400 font-bold px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-800/40 inline-block">
-                {member.tag}
+            <div className="space-y-2">
+              <span className="text-xs uppercase tracking-wider text-purple-400 font-bold px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/40 inline-block">
+                {devTeam[0].tag}
               </span>
-              <h3 className="text-xl font-bold text-white">{member.name}</h3>
-              <p className="text-xs text-white/60 font-medium">{member.role}</p>
+              <h3 className="text-3xl font-bold text-white">{devTeam[0].name}</h3>
+              <p className="text-sm text-white/60 font-medium">{devTeam[0].role}</p>
             </div>
           </div>
-        ))}
+        )}
+
+        {/* Other Members */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {devTeam.slice(1).map((member, idx) => (
+            <div
+              key={idx}
+              className="group rounded-3xl bg-neutral-900 border border-white/10 p-6 flex items-center gap-5 shadow-xl hover:border-purple-500/40 transition-all duration-300 hover:scale-[1.02]"
+            >
+              <img
+                src={member.avatar}
+                alt={member.name}
+                className="w-16 h-16 rounded-2xl object-cover border border-white/15 shrink-0"
+              />
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-purple-400 font-bold px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-800/40 inline-block">
+                  {member.tag}
+                </span>
+                <h3 className="text-xl font-bold text-white">{member.name}</h3>
+                <p className="text-xs text-white/60 font-medium">{member.role}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Built With Tech Stack */}

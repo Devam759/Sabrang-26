@@ -105,3 +105,22 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 .custom-cursor-circle {
   border-radius: 9999px !important;
 }
+
+/* ── Credits page: zero out global main/footer so the fixed full-screen component owns the viewport ── */
+.credits-layout-escape {
+  /* Nothing needed — just a wrapper; the fixed cc-root handles everything */
+}
+/* Hide footer on credits page */
+.credits-layout-escape ~ footer,
+body:has(.cc-root) footer {
+  display: none !important;
+}
+/* Remove padding/container on the global <main> when credits is rendered */
+body:has(.cc-root) > div > main {
+  padding: 0 !important;
+  container-type: unset !important;
+  max-width: unset !important;
+}
+body:has(.cc-root) {
+  overflow: hidden !important;
+}
