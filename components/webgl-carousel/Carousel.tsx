@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree, extend } from '@react-three/fiber';
 import gsap from 'gsap';
 import * as THREE from 'three';
 import PostProcessing from './PostProcessing';
 import CarouselItem, { CarouselItemData } from './CarouselItem';
 import { lerp, getPiramidalIndex, usePrevious } from './utils';
+import { useTexture, shaderMaterial } from '@react-three/drei';
 
 /* Plane Settings */
 const planeSettings = {
@@ -27,6 +28,64 @@ gsap.defaults({
 interface CarouselProps {
   items: CarouselItemData[];
   onActiveItemChange?: (item: CarouselItemData | null) => void;
+}
+
+const MinimalBackgroundMaterial = shaderMaterial(
+  {
+    uTime: 0,
+  },
+  // Vertex Shader
+  `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  // Fragment Shader
+  `
+    uniform float uTime;
+    varying vec2 vUv;
+    void main() {
+      vec2 uv = vUv;
+      vec3 color1 = vec3(0.04, 0.02, 0.08); // Deep dark violet
+      vec3 color2 = vec3(0.01, 0.01, 0.02); // Dark rich black-grey
+      vec3 color3 = vec3(0.05, 0.03, 0.09);  // Subtle violet glow
+      
+      float mixVal = sin(uv.x * 1.5 + uTime * 0.15) * 0.5 + 0.5;
+      mixVal += cos(uv.y * 1.5 - uTime * 0.2) * 0.5 + 0.5;
+      mixVal /= 2.0;
+      
+      vec3 finalColor = mix(color2, mix(color1, color3, uv.y), mixVal);
+      
+      // Subtle noise to prevent banding
+      float noise = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
+      finalColor += (noise - 0.5) * 0.012;
+      
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `
+);
+
+extend({ MinimalBackgroundMaterial });
+
+function Background() {
+  const { viewport } = useThree();
+  const materialRef = useRef<any>(null);
+
+  useFrame((state) => {
+    if (materialRef.current) {
+      materialRef.current.uTime = state.clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <mesh position={[0, 0, -3]} scale={[viewport.width * 2.5, viewport.height * 2.5, 1]}>
+      <planeGeometry />
+      {/* @ts-ignore */}
+      <minimalBackgroundMaterial ref={materialRef} depthWrite={false} />
+    </mesh>
+  );
 }
 
 export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
@@ -107,7 +166,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       let rawX = index * itemSpacing - (progressVal / 100) * totalWidth;
       let x = (((rawX + halfTotalX) % totalWidth) + totalWidth) % totalWidth - halfTotalX;
 
-      const y = 1.0 - cardHeight / 2;
+      const y = 0.75 - cardHeight / 2;
 
       gsap.to(item.position, {
         x,
@@ -236,6 +295,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
 
   return (
     <group>
+      <Background />
       {renderPlaneEvents()}
       {renderSlider()}
       <PostProcessing ref={$post} />

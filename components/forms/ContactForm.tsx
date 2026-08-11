@@ -58,6 +58,7 @@ export default function ContactForm() {
           className="w-full bg-neutral-950 border border-white/15 text-white placeholder-white/30 rounded-xl p-3.5 focus:border-indigo-500 focus:outline-none transition-all text-sm"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          suppressHydrationWarning
         />
       </div>
 
@@ -72,6 +73,7 @@ export default function ContactForm() {
           className="w-full bg-neutral-950 border border-white/15 text-white placeholder-white/30 rounded-xl p-3.5 focus:border-indigo-500 focus:outline-none transition-all text-sm"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          suppressHydrationWarning
         />
       </div>
 

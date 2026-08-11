@@ -81,24 +81,20 @@ export default function Navbar() {
             : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        {pathname !== '/team' ? (
-          <div className="pointer-events-auto">
-            <Link href="/" className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95">
-              <img
-                src="/sabrang logo.png"
-                alt="Sabrang Logo"
-                className="h-14 md:h-20 w-auto object-contain drop-shadow-2xl"
-              />
-              <img
-                src="/past sponsors/JK Tyre.png"
-                alt="JK Tyre Logo"
-                className="h-5 md:h-7 w-auto object-contain mt-1 drop-shadow-lg filter brightness-110"
-              />
-            </Link>
-          </div>
-        ) : (
-          <div />
-        )}
+        <div className="pointer-events-auto">
+          <Link href="/" className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95">
+            <img
+              src="/sabrang logo.png"
+              alt="Sabrang Logo"
+              className="h-14 md:h-20 w-auto object-contain drop-shadow-2xl"
+            />
+            <img
+              src="/past sponsors/JK Tyre.png"
+              alt="JK Tyre Logo"
+              className="h-5 md:h-7 w-auto object-contain mt-1 drop-shadow-lg filter brightness-110"
+            />
+          </Link>
+        </div>
 
         <div className="pointer-events-auto flex items-start gap-3 md:gap-4">
           <a

@@ -126,3 +126,10 @@ body:has(.cc-root),
 body:has(.gallery-container) {
   overflow: hidden !important;
 }
+
+/* Hide header when a team card is expanded */
+body.team-card-expanded header {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s ease-in-out !important;
+}
