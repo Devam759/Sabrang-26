@@ -77,15 +77,15 @@ const PILLARS: PillarItem[] = [
 ];
 
 export default function FilmRollPillars() {
-  const sectionRef  = useRef<HTMLDivElement>(null);
-  const stageRef    = useRef<HTMLDivElement>(null);
-  const stripRef    = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
   useEffect(() => {
     const section = sectionRef.current;
-    const stage   = stageRef.current;
-    const strip   = stripRef.current;
+    const stage = stageRef.current;
+    const strip = stripRef.current;
     if (!section || !stage || !strip) return;
 
     const ctx = gsap.context(() => {
@@ -217,11 +217,10 @@ export default function FilmRollPillars() {
                     {/* Single Film Frame */}
                     <div
                       onClick={() => setActiveIndex(i)}
-                      className={`relative flex-shrink-0 w-[280px] sm:w-[360px] md:w-[420px] h-[210px] sm:h-[260px] cursor-pointer transition-all duration-500 overflow-hidden border ${
-                        isActive
-                          ? 'border-cyan-400/80 shadow-2xl shadow-cyan-500/30 scale-102 z-20 brightness-110'
-                          : 'border-white/15 opacity-65 scale-98 hover:opacity-90 filter brightness-75'
-                      }`}
+                      className={`relative flex-shrink-0 w-[280px] sm:w-[360px] md:w-[420px] h-[210px] sm:h-[260px] cursor-pointer transition-all duration-500 overflow-hidden border ${isActive
+                        ? 'border-cyan-400/80 shadow-2xl shadow-cyan-500/30 scale-102 z-20 brightness-110'
+                        : 'border-white/15 opacity-65 scale-98 hover:opacity-90 filter brightness-75'
+                        }`}
                     >
                       <Image
                         src={pillar.image}
@@ -229,9 +228,8 @@ export default function FilmRollPillars() {
                         fill
                         sizes="(max-width: 768px) 280px, 420px"
                         quality={75}
-                        className={`object-cover transition-transform duration-700 ease-out ${
-                          isActive ? 'scale-105' : 'scale-100'
-                        }`}
+                        className={`object-cover transition-transform duration-700 ease-out ${isActive ? 'scale-105' : 'scale-100'
+                          }`}
                       />
 
                       {/* Dark overlay for active frame contrast */}
@@ -295,11 +293,10 @@ export default function FilmRollPillars() {
                 <button
                   key={p.id}
                   onClick={() => setActiveIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    idx === activeIndex
-                      ? 'w-8 bg-cyan-400 shadow-md shadow-cyan-400/50'
-                      : 'w-2 bg-white/20 hover:bg-white/40'
-                  }`}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${idx === activeIndex
+                    ? 'w-8 bg-cyan-400 shadow-md shadow-cyan-400/50'
+                    : 'w-2 bg-white/20 hover:bg-white/40'
+                    }`}
                   aria-label={`Go to frame ${p.title}`}
                 />
               ))}

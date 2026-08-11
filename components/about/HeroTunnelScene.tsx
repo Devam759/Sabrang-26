@@ -48,9 +48,9 @@ void main() {
   vec4 mv      = modelViewMatrix * vec4(position, 1.0);
   vCamDist     = -mv.z;                         // positive when in front of camera
 
-  // Perspective-attenuated point size — ultra-dense pin-sharp starfield
-  float rawSize = aSize * (140.0 / vCamDist);
-  gl_PointSize  = clamp(rawSize, 0.8, 7.5);
+  // Perspective-attenuated point size — larger glowing Sabrang particles
+  float rawSize = aSize * (260.0 / vCamDist);
+  gl_PointSize  = clamp(rawSize, 2.5, 18.0);
   gl_Position   = projectionMatrix * mv;
 }
 `;
@@ -69,8 +69,8 @@ void main() {
   float d  = length(uv);
   if (d > 0.5) discard;
 
-  // Crisp glowing point: bright star core on pitch black space
-  float a = pow(clamp(1.0 - d * 2.0, 0.0, 1.0), 3.0);
+  // Rich glowing point: bright vibrant center with smooth edge
+  float a = pow(clamp(1.0 - d * 2.0, 0.0, 1.0), 2.2);
 
   // Near-camera fade
   float nearFade = smoothstep(1.5, 4.0, vCamDist);
@@ -131,12 +131,12 @@ function buildTunnel(n: number): {
 
     // Per-particle colour: vibrant Sabrang multi-colour spectrum
     const p = SABRANG_PALETTE[Math.floor(Math.random() * SABRANG_PALETTE.length)];
-    const b = 0.55 + Math.random() * 0.45; // 55% to 100% full vibrant brightness
+    const b = 0.6 + Math.random() * 0.4; // High vibrant brightness
     col[i * 3    ] = p[0] * b;
     col[i * 3 + 1] = p[1] * b;
     col[i * 3 + 2] = p[2] * b;
 
-    sz[i] = 0.35 + Math.random() * 1.15;
+    sz[i] = 0.7 + Math.random() * 2.0;
   }
 
   return { pos, col, sz };
@@ -151,13 +151,13 @@ function TunnelScene({
   const { camera } = useThree();
   const groupRef   = useRef<THREE.Group>(null);
 
-  // Ultra-dense particle budget (18,000 desktop / 8,000 mobile)
+  // Halved particle budget for cleaner, distinct glowing dots (9,000 desktop / 4,000 mobile)
   const count = useMemo(() => {
-    if (typeof window === 'undefined') return 10000;
+    if (typeof window === 'undefined') return 5000;
     const isMobile = window.innerWidth < 768;
     const cores = navigator.hardwareConcurrency || 4;
-    if (isMobile || cores <= 4) return 8000;
-    return 18000;
+    if (isMobile || cores <= 4) return 4000;
+    return 9000;
   }, []);
 
   // Build geometry + material once

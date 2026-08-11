@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
 }
 
 // ── SSR-safe Three.js canvas ──────────────────────────────────────────────────
-const HeroTunnelScene = dynamic(() => import('./HeroTunnelScene'), {
+const HeroColoursOverBlack = dynamic(() => import('./HeroColoursOverBlack'), {
   ssr: false,
   loading: () => <div style={{ position: 'absolute', inset: 0, background: '#000000' }} />,
 });
@@ -49,26 +49,36 @@ const GALLERY = [
 ];
 
 // ─── 3D Per-Letter Trajectories for Scroll Zoom-Through ────────────────────────
-// Defines individual 3D perspective paths for S-A-B-R-A-N-G as user scrolls.
+// Defines individual 3D perspective paths for A-B-O-U-T S-A-B-R-A-N-G as user scrolls.
 const LETTER_CONFIGS = [
-  // S (0) — flies left & forward, counter-clockwise tilt
-  { x: -380, y: -40,  z: 550, rotateX: 12,  rotateY: -32, rotateZ: -12, scale: 3.6 },
-  // A (1) — flies up-left & forward
-  { x: -200, y: -140, z: 750, rotateX: 24,  rotateY: -18, rotateZ: -8,  scale: 4.2 },
-  // B (2) — flies forward-center, tilting up
-  { x: -60,  y: -50,  z: 950, rotateX: -18, rotateY: -10, rotateZ: 5,   scale: 5.2 },
-  // R (3) — flies dead-center deep forward past camera lens
-  { x: 0,    y: 20,   z: 1250, rotateX: 15,  rotateY: 15,  rotateZ: -6,  scale: 6.5 },
-  // A (4) — flies up-right & forward
-  { x: 110,  y: -100, z: 850, rotateX: -16, rotateY: 18,  rotateZ: 7,   scale: 4.8 },
-  // N (5) — flies down-right & forward
-  { x: 240,  y: 130,  z: 680, rotateX: -22, rotateY: 26,  rotateZ: 11,  scale: 4.0 },
-  // G (6) — flies right & forward, clockwise tilt
-  { x: 410,  y: 40,   z: 520, rotateX: 14,  rotateY: 36,  rotateZ: 16,  scale: 3.5 },
+  // A (0)
+  { x: -520, y: -60,  z: 500, rotateX: 15,  rotateY: -35, rotateZ: -14, scale: 3.5 },
+  // B (1)
+  { x: -430, y: -120, z: 650, rotateX: 20,  rotateY: -28, rotateZ: -10, scale: 3.8 },
+  // O (2)
+  { x: -340, y: -40,  z: 800, rotateX: 18,  rotateY: -22, rotateZ: -6,  scale: 4.2 },
+  // U (3)
+  { x: -250, y: -140, z: 950, rotateX: -15, rotateY: -15, rotateZ: -4,  scale: 4.8 },
+  // T (4)
+  { x: -160, y: -50,  z: 1100, rotateX: -20, rotateY: -10, rotateZ: 2,   scale: 5.5 },
+  // S (5)
+  { x: -60,  y: 30,   z: 1250, rotateX: 12,  rotateY: -5,  rotateZ: -3,  scale: 6.2 },
+  // A (6)
+  { x: 40,   y: -30,  z: 1250, rotateX: -12, rotateY: 5,   rotateZ: 3,   scale: 6.2 },
+  // B (7)
+  { x: 140,  y: 50,   z: 1100, rotateX: -18, rotateY: 10,  rotateZ: -2,  scale: 5.5 },
+  // R (8)
+  { x: 240,  y: -100, z: 950, rotateX: 15,  rotateY: 15,  rotateZ: 4,   scale: 4.8 },
+  // A (9)
+  { x: 330,  y: 40,   z: 800, rotateX: -18, rotateY: 22,  rotateZ: 6,   scale: 4.2 },
+  // N (10)
+  { x: 420,  y: 120,  z: 650, rotateX: -20, rotateY: 28,  rotateZ: 10,  scale: 3.8 },
+  // G (11)
+  { x: 510,  y: 60,   z: 500, rotateX: 15,  rotateY: 35,  rotateZ: 14,  scale: 3.5 },
 ];
 
 // Resting tilt per letter (set to 0 for perfectly straight typography)
-const RESTING_TILTS = [0, 0, 0, 0, 0, 0, 0];
+const RESTING_TILTS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AboutHero() {
@@ -262,7 +272,7 @@ export default function AboutHero() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div ref={wrapperRef} style={{ height: '240vh', background: '#080809' }}>
+    <div ref={wrapperRef} style={{ height: '240vh', background: '#000000' }}>
 
       {/* Pinned 100vh stage */}
       <div
@@ -272,16 +282,16 @@ export default function AboutHero() {
           width:    '100%',
           height:   '100vh',
           overflow: 'hidden',
-          background: '#080809',
+          background: '#000000',
         }}
       >
 
-        {/* Layer 0: Three.js particle tunnel */}
+        {/* Layer 0: Three.js "Colours Over Black" 3D Fluid Ribbon Sculpture background */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-          <HeroTunnelScene scrollProgress={scrollProgressRef} />
+          <HeroColoursOverBlack scrollProgress={scrollProgressRef} />
         </div>
 
-        {/* Layer 1: Ambient radial glow */}
+        {/* Layer 1: Deep atmospheric texture — subtle noise fog */}
         <div
           aria-hidden="true"
           style={{
@@ -289,11 +299,16 @@ export default function AboutHero() {
             inset:    0,
             zIndex:   2,
             pointerEvents: 'none',
-            background: 'radial-gradient(ellipse 42% 36% at 50% 50%, rgba(55,95,255,0.07) 0%, transparent 70%)',
+            background: `
+              radial-gradient(ellipse 50% 40% at 15% 25%, rgba(255,20,60,0.04) 0%, transparent 70%),
+              radial-gradient(ellipse 45% 35% at 85% 20%, rgba(100,0,255,0.04) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 45% at 80% 80%, rgba(0,200,255,0.03) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 40% at 20% 75%, rgba(255,140,0,0.03) 0%, transparent 70%)
+            `,
           }}
         />
 
-        {/* Layer 2: Radial vignette */}
+        {/* Layer 2: Deep cinematic vignette — keeps black dominant */}
         <div
           aria-hidden="true"
           style={{
@@ -301,7 +316,7 @@ export default function AboutHero() {
             inset:    0,
             zIndex:   3,
             pointerEvents: 'none',
-            background: 'radial-gradient(ellipse 75% 65% at 50% 50%, transparent 20%, rgba(6,6,8,0.82) 100%)',
+            background: 'radial-gradient(ellipse 65% 55% at 50% 50%, transparent 10%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.92) 100%)',
           }}
         />
 
@@ -334,7 +349,7 @@ export default function AboutHero() {
           }}
         >
           <span style={CORNER_LABEL}>Sabrang — About</span>
-          <span style={CORNER_LABEL}>2025 Edition</span>
+          <span style={CORNER_LABEL}>2026 Edition</span>
         </div>
 
         {/* ═════════════════════════════════════════════════════════════════════
@@ -364,32 +379,38 @@ export default function AboutHero() {
               display:        'flex',
               alignItems:     'center',
               justifyContent: 'center',
-              gap:            '0.04em',
+              gap:            '0.05em',
               fontFamily:     '"Syne", "Outfit", "Inter", sans-serif',
               fontWeight:     850,
-              fontSize:       'clamp(3.5rem, 14.5vw, 13.5rem)',
-              letterSpacing:  '-0.02em',
+              fontSize:       'clamp(2.0rem, 7.5vw, 7.5rem)',
+              letterSpacing:  '-0.01em',
               lineHeight:     1,
               userSelect:     'none',
               transformStyle: 'preserve-3d',
             }}
           >
-            {'SABRANG'.split('').map((char, i) => (
-              <span
-                key={i}
-                className="hero-letter"
-                style={{
-                  display:            'inline-block',
-                  color:              '#fcfcff',
-                  textShadow:         '0 8px 36px rgba(0,0,0,0.85), 0 0 25px rgba(255,255,255,0.08)',
-                  transformStyle:     'preserve-3d',
-                  backfaceVisibility: 'hidden',
-                  willChange:         'transform, opacity',
-                }}
-              >
-                {char}
-              </span>
-            ))}
+            {'ABOUT SABRANG'.split('').map((char, i) =>
+              char === ' ' ? (
+                <span key={i} style={{ width: '0.32em', display: 'inline-block' }}>
+                  &nbsp;
+                </span>
+              ) : (
+                <span
+                  key={i}
+                  className="hero-letter"
+                  style={{
+                    display:            'inline-block',
+                    color:              '#ffffff',
+                    textShadow:         '0 0 20px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.7), 0 0 85px rgba(168, 85, 247, 0.55), 0 0 120px rgba(236, 72, 153, 0.4), 0 8px 36px rgba(0,0,0,0.95)',
+                    transformStyle:     'preserve-3d',
+                    backfaceVisibility: 'hidden',
+                    willChange:         'transform, opacity',
+                  }}
+                >
+                  {char}
+                </span>
+              )
+            )}
           </div>
 
           {/* Subtitle / Tagline below the editorial title */}
@@ -409,7 +430,7 @@ export default function AboutHero() {
               userSelect:    'none',
             }}
           >
-            All Shades of Creativity&nbsp;&nbsp;·&nbsp;&nbsp;JKLU Jaipur&nbsp;&nbsp;·&nbsp;&nbsp;2025
+            ALL SHADES OF CREATIVITY&nbsp;&nbsp;·&nbsp;&nbsp;JKLU JAIPUR&nbsp;&nbsp;·&nbsp;&nbsp;2026
           </p>
         </div>
 
@@ -429,7 +450,7 @@ export default function AboutHero() {
           }}
         />
 
-        {/* Layer 30: Story intro text */}
+        {/* Layer 30: Story intro — Split Layout (Image Left, Text Right) */}
         <div
           ref={storyRef}
           style={{
@@ -437,70 +458,119 @@ export default function AboutHero() {
             inset:          0,
             zIndex:         30,
             display:        'flex',
-            flexDirection:  'column',
             alignItems:     'center',
             justifyContent: 'center',
-            gap:            20,
-            padding:        '0 24px',
-            textAlign:      'center',
+            padding:        '0 5vw',
             pointerEvents:  'none',
           }}
         >
-          <p
-            className="story-el"
-            style={{
-              margin:        0,
-              opacity:       0,
-              fontFamily:    'monospace',
-              fontSize:      'clamp(0.52rem, 0.85vw, 0.68rem)',
-              letterSpacing: '0.28em',
-              color:         'rgba(255,255,255,0.32)',
-              textTransform: 'uppercase',
-            }}
-          >
-            Sabrang · About
-          </p>
-
-          <h2
-            className="story-el"
-            style={{
-              margin:        0,
-              opacity:       0,
-              fontFamily:    '"Syne", "Outfit", "Inter", sans-serif',
-              fontWeight:    800,
-              fontSize:      'clamp(2.2rem, 5.2vw, 4.8rem)',
-              letterSpacing: '-0.02em',
-              color:         '#ffffff',
-              lineHeight:    1.08,
-              textTransform: 'uppercase',
-              textShadow:    '0 4px 24px rgba(0,0,0,0.95)',
-            }}
-          >
-            Where Passion<br />Becomes Legend
-          </h2>
-
-          <p
-            className="story-el"
-            style={{
-              margin:     0,
-              opacity:    0,
-              fontFamily: '"Inter", sans-serif',
-              fontWeight: 400,
-              fontSize:   'clamp(0.85rem, 1.35vw, 1.05rem)',
-              color:      'rgba(255,255,255,0.48)',
-              lineHeight: 1.75,
-              maxWidth:   '36ch',
-            }}
-          >
-            The annual flagship cultural and techno-management festival of
-            JK Lakshmipat University — three electric days where art,
-            technology, and raw talent collide.
-          </p>
-
           <div
-            className="story-el"
-            style={{ opacity: 0, width: 28, height: 1, background: 'rgba(255,255,255,0.14)' }}
-          />
+            style={{
+              display:             'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap:                 'clamp(20px, 4vw, 48px)',
+              alignItems:          'center',
+              width:               '100%',
+              maxWidth:            '1100px',
+            }}
+          >
+            {/* LEFT SIDE: Concert Image Showcase */}
+            <div
+              className="story-el"
+              style={{
+                opacity:        0,
+                position:       'relative',
+                width:          '100%',
+                aspectRatio:    '16 / 10',
+                maxHeight:      '340px',
+                borderRadius:   '16px',
+                overflow:       'hidden',
+                border:         '1px solid rgba(255, 255, 255, 0.16)',
+                boxShadow:      '0 24px 60px rgba(157, 78, 221, 0.35), 0 0 35px rgba(0, 255, 255, 0.18)',
+              }}
+            >
+              <Image
+                src="/sabrang-live.png"
+                alt="Sabrang Live Concert Performance"
+                fill
+                sizes="(max-width: 768px) 90vw, 45vw"
+                style={{ objectFit: 'cover' }}
+                priority
+              />
+              <div
+                style={{
+                  position:   'absolute',
+                  inset:      0,
+                  background: 'linear-gradient(to top, rgba(3,0,5,0.65) 0%, transparent 60%)',
+                }}
+              />
+            </div>
+
+            {/* RIGHT SIDE: Text Content */}
+            <div
+              style={{
+                display:        'flex',
+                flexDirection:  'column',
+                alignItems:     'flex-start',
+                textAlign:      'left',
+                gap:            16,
+              }}
+            >
+              <p
+                className="story-el"
+                style={{
+                  margin:        0,
+                  opacity:       0,
+                  fontFamily:    'monospace',
+                  fontSize:      'clamp(0.58rem, 0.9vw, 0.72rem)',
+                  letterSpacing: '0.28em',
+                  color:         'rgba(255,255,255,0.48)',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Sabrang · About
+              </p>
+
+              <h2
+                className="story-el"
+                style={{
+                  margin:        0,
+                  opacity:       0,
+                  fontFamily:    '"Syne", "Outfit", "Inter", sans-serif',
+                  fontWeight:    800,
+                  fontSize:      'clamp(2.0rem, 3.8vw, 3.6rem)',
+                  letterSpacing: '-0.02em',
+                  color:         '#ffffff',
+                  lineHeight:    1.1,
+                  textTransform: 'uppercase',
+                  textShadow:    '0 4px 24px rgba(0,0,0,0.95)',
+                }}
+              >
+                About Sabrang
+              </h2>
+
+              <p
+                className="story-el"
+                style={{
+                  margin:     0,
+                  opacity:    0,
+                  fontFamily: '"Inter", sans-serif',
+                  fontWeight: 400,
+                  fontSize:   'clamp(0.85rem, 1.15vw, 1.02rem)',
+                  color:      'rgba(255,255,255,0.85)',
+                  lineHeight: 1.68,
+                  maxWidth:   '46ch',
+                }}
+              >
+                Sabrang isn't just a fest — it's an explosion of talent, creativity, and cosmic energy. Over three thrilling days, JKLU transforms into a universe of music, dance, art, technology, and pure celebration. With a massive prize pool, flagship events, celebrity performances, and non-stop entertainment, Sabrang is where memories are made and legends are born.
+              </p>
+
+              <div
+                className="story-el"
+                style={{ opacity: 0, width: 36, height: 1, background: 'rgba(255,255,255,0.22)', marginTop: 4 }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Scroll indicator */}
