@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Dynamic from 'next/dynamic';
 import { CarouselItemData } from './CarouselItem';
 
@@ -20,8 +20,26 @@ interface WebGLCarouselProps {
 export default function WebGLCarousel({ items, className = 'w-full h-[70vh]' }: WebGLCarouselProps) {
   const [activeItem, setActiveItem] = useState<CarouselItemData | null>(null);
 
+  useEffect(() => {
+    if (activeItem) {
+      document.body.classList.add('team-card-expanded');
+    } else {
+      document.body.classList.remove('team-card-expanded');
+    }
+    return () => {
+      document.body.classList.remove('team-card-expanded');
+    };
+  }, [activeItem]);
+
   return (
     <div className={`relative overflow-hidden rounded-3xl ${className}`}>
+      {/* Page Heading (fades out when a card is active) */}
+      <div className={`absolute top-10 left-0 w-full z-20 text-center pointer-events-none transition-all duration-500 ease-in-out ${activeItem ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        <h1 className="text-white font-bold text-3xl md:text-4xl uppercase tracking-[0.25em]">
+          Team
+        </h1>
+      </div>
+
       <Canvas
         gl={{ alpha: true, antialias: true }}
         onCreated={({ gl }) => {

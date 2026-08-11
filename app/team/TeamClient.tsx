@@ -38,7 +38,7 @@ export default function TeamClient() {
   ];
 
   const carouselMembers = Array.from({ length: 33 }, (_, i) => ({
-    image: `/team-carousel/${(i % 12) + 1}.jpg`,
+    image: (i % 2 === 0) ? '/team-carousel/image copy.png' : '/team-carousel/image copy 2.png',
     name: names[i % names.length],
     role: roles[i % roles.length],
   }));
