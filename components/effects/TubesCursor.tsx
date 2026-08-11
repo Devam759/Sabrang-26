@@ -18,13 +18,20 @@ if (typeof window !== 'undefined') {
 
 export default function TubesCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isTouch, setIsTouch] = useState(true);
+  const [isTouch, setIsTouch] = useState(false);
 
   useEffect(() => {
-    const hoverMatch = window.matchMedia('(hover: hover) and (pointer: fine)');
-    setIsTouch(!hoverMatch.matches);
+    const isTouchDevice =
+      typeof window !== 'undefined' &&
+      (('ontouchstart' in window && !window.matchMedia('(pointer: fine)').matches) ||
+        (navigator.maxTouchPoints > 0 && window.matchMedia('(pointer: coarse)').matches));
 
-    if (!hoverMatch.matches) return;
+    if (isTouchDevice) {
+      setIsTouch(true);
+      return;
+    }
+
+    setIsTouch(false);
 
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -209,7 +216,7 @@ export default function TubesCursor() {
         height: '100vh',
         overflow: 'hidden',
         pointerEvents: 'none',
-        zIndex: 30,
+        zIndex: 9980,
         mixBlendMode: 'screen',
       }}
     >

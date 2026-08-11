@@ -118,21 +118,6 @@ export default function AboutHero() {
           duration: 1.25,
           ease: 'power3.out',
           delay: 0.35,
-          onComplete: () => {
-            // 2. Continuous floating suspension motion per letter
-            // Wrapped in ctx.add so GSAP context tracks and reverts these tweens
-            ctx.add(() => {
-              letters.forEach((el, i) => {
-                gsap.to(el, {
-                  y: (i % 2 === 0 ? -1 : 1) * (3.5 + (i % 3) * 1.5),
-                  duration: 2.8 + i * 0.35,
-                  repeat: -1,
-                  yoyo: true,
-                  ease: 'sine.inOut',
-                });
-              });
-            });
-          },
         }
       );
 
