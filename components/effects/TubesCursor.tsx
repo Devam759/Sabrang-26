@@ -188,6 +188,7 @@ export default function TubesCursor() {
 
   return (
     <div
+      className="tubes-cursor-container"
       style={{
         position: 'fixed',
         top: 0,

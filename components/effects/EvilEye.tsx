@@ -110,7 +110,7 @@ void main() {
   uv /= uScale;
   float ft = uTime * uFlameSpeed;
 
-  float eyelidMask = smoothstep(0.0, 0.08, uBlink * 0.7 - abs(uv.y));
+  float eyelidMask = smoothstep(0.0, 0.08, uBlink * 1.0 - abs(uv.y));
 
   float polarRadius = length(uv) * 2.0;
   float polarAngle = (2.0 * atan(uv.x, uv.y)) / 6.28 * 0.3;
@@ -218,13 +218,9 @@ export default function EvilEye({
     noiseTexture.wrapT = gl.REPEAT;
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-
-    function onMouseMove(e: MouseEvent) {
-      mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.ty = -((e.clientY / window.innerHeight) * 2 - 1);
-    }
-
-    window.addEventListener('mousemove', onMouseMove);
+    let lastMoveTime = 0;
+    let targetX = 0;
+    let targetY = 0;
 
     let program: Program;
 
@@ -277,9 +273,25 @@ export default function EvilEye({
       if (mm) {
         mouse.tx = mm[0];
         mouse.ty = mm[1];
+      } else {
+        // Wanders randomly every 1.5 - 3 seconds
+        if (time - lastMoveTime > 1500 + Math.random() * 1500) {
+          if (Math.random() < 0.25) {
+            targetX = 0;
+            targetY = 0;
+          } else {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 0.2 + Math.random() * 0.65;
+            targetX = Math.cos(angle) * dist;
+            targetY = Math.sin(angle) * dist;
+          }
+          lastMoveTime = time;
+        }
+        mouse.tx = targetX;
+        mouse.ty = targetY;
       }
-      mouse.x += (mouse.tx - mouse.x) * 0.08;
-      mouse.y += (mouse.ty - mouse.y) * 0.08;
+      mouse.x += (mouse.tx - mouse.x) * 0.05;
+      mouse.y += (mouse.ty - mouse.y) * 0.05;
       program.uniforms.uMouse.value = [mouse.x, mouse.y];
       program.uniforms.uBlink.value = blinkRef.current;
       program.uniforms.uTime.value = time * 0.001;
@@ -290,7 +302,6 @@ export default function EvilEye({
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', onMouseMove);
       if (gl.canvas && container.contains(gl.canvas)) {
         container.removeChild(gl.canvas);
       }

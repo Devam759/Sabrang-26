@@ -133,3 +133,15 @@ body.team-card-expanded header {
   pointer-events: none !important;
   transition: opacity 0.4s ease-in-out !important;
 }
+
+/* Show default browser cursor and hide custom follow trails when loader is active */
+body.loader-active,
+body.loader-active * {
+  cursor: auto !important;
+}
+body.loader-active .tubes-cursor-container,
+body.loader-active .custom-cursor-circle {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
