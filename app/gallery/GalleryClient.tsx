@@ -179,7 +179,7 @@ function ImageTube({
       const list = (Array.isArray(loaded) ? loaded : [loaded]) as Texture[];
       list.forEach((t) => {
         t.colorSpace = SRGBColorSpace;
-        const img = t.image;
+        const img = t.image as any;
         if (img && img.width && img.height) {
           const imageAspect = img.width / img.height;
           const planeAspect = tileW / tileH;
