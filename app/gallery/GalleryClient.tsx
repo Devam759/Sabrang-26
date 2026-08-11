@@ -17,18 +17,18 @@ import {
 import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
 
 const IMAGES: Array<{ src: string; title: string }> = [
-  { src: '/team-carousel/1.jpg', title: 'Bandjam' },
-  { src: '/team-carousel/2.jpg', title: 'Panache' },
-  { src: '/team-carousel/3.jpg', title: 'Step Up' },
-  { src: '/team-carousel/4.jpg', title: 'Dance Battle' },
-  { src: '/team-carousel/5.jpg', title: 'DJ Night' },
-  { src: '/team-carousel/6.jpg', title: 'Theatre' },
-  { src: '/team-carousel/7.jpg', title: 'E-Sports' },
-  { src: '/team-carousel/8.jpg', title: 'Art & Decor' },
-  { src: '/team-carousel/9.jpg', title: 'Pro Show' },
-  { src: '/team-carousel/10.jpg', title: 'Nukkad' },
-  { src: '/team-carousel/11.jpg', title: 'Rampwalk' },
-  { src: '/team-carousel/12.jpg', title: 'Afterglow' },
+  { src: '/team-carousel/image copy.png', title: 'Bandjam' },
+  { src: '/team-carousel/image copy 2.png', title: 'Panache' },
+  { src: '/team-carousel/image copy.png', title: 'Step Up' },
+  { src: '/team-carousel/image copy 2.png', title: 'Dance Battle' },
+  { src: '/team-carousel/image copy.png', title: 'DJ Night' },
+  { src: '/team-carousel/image copy 2.png', title: 'Theatre' },
+  { src: '/team-carousel/image copy.png', title: 'E-Sports' },
+  { src: '/team-carousel/image copy 2.png', title: 'Art & Decor' },
+  { src: '/team-carousel/image copy.png', title: 'Pro Show' },
+  { src: '/team-carousel/image copy 2.png', title: 'Nukkad' },
+  { src: '/team-carousel/image copy.png', title: 'Rampwalk' },
+  { src: '/team-carousel/image copy 2.png', title: 'Afterglow' },
 ];
 
 const ROWS = 5;
