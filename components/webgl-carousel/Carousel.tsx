@@ -224,7 +224,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     const currentPos = isMobile ? clientY : clientX;
     const delta = currentPos - startPos.current;
     if (delta !== 0) {
-      progress.current = progress.current + (isMobile ? -delta : delta) * speedDrag;
+      progress.current = progress.current + delta * speedDrag;
       startPos.current = currentPos;
     }
   };

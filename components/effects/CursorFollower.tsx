@@ -5,8 +5,14 @@ import { useEffect, useState } from 'react';
 export default function CursorFollower() {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
+  const [isTouch, setIsTouch] = useState(true);
 
   useEffect(() => {
+    const hoverMatch = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setIsTouch(!hoverMatch.matches);
+
+    if (!hoverMatch.matches) return;
+
     let mouseX = -100;
     let mouseY = -100;
     let currentX = -100;
@@ -46,6 +52,8 @@ export default function CursorFollower() {
       cancelAnimationFrame(animId);
     };
   }, []);
+
+  if (isTouch) return null;
 
   return (
     <div

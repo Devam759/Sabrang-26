@@ -7,9 +7,36 @@ export default function TeamClient() {
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+    document.body.classList.remove('team-scrolled');
+
+    let initialTouchY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      initialTouchY = e.touches[0]?.clientY || 0;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const currentTouchY = e.touches[0]?.clientY || 0;
+      const diffY = Math.abs(currentTouchY - initialTouchY);
+      if (diffY > 10) {
+        document.body.classList.add('team-scrolled');
+      }
+    };
+
+    const handleWheel = () => {
+      document.body.classList.add('team-scrolled');
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('wheel', handleWheel, { passive: true });
+
     return () => {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
+      document.body.classList.remove('team-scrolled');
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('wheel', handleWheel);
     };
   }, []);
 

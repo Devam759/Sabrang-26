@@ -9,7 +9,7 @@ import { CustomEase } from 'gsap/CustomEase';
    ────────────────────────────────────────────── */
 const devTeam = [
   {
-    name: 'Devam Sharma',
+    name: 'Devam Gupta',
     tag: 'CORE',
     avatar: '/team-carousel/image copy.png',
     linkedin: 'https://linkedin.com/in/devamsharma',

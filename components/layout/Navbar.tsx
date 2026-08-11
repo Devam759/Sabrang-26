@@ -81,7 +81,7 @@ export default function Navbar() {
             : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        <div className="pointer-events-auto">
+        <div className={`navbar-logos pointer-events-auto transition-opacity duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <Link href="/" className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95">
             <img
               src="/sabrang logo.png"
@@ -101,7 +101,7 @@ export default function Navbar() {
             href="https://jklu.edu.in"
             target="_blank"
             rel="noopener noreferrer"
-            className="block outline-none transition-transform hover:scale-105 active:scale-95"
+            className={`navbar-jklu-logo block outline-none transition-transform hover:scale-105 active:scale-95 transition-opacity duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
             <img
               src="/white_jklu_logo.png"

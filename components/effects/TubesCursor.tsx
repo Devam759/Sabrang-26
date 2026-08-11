@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CURSOR_TRAIL_COLORS } from '@/lib/constants';
 
 if (typeof window !== 'undefined') {
@@ -18,8 +18,14 @@ if (typeof window !== 'undefined') {
 
 export default function TubesCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isTouch, setIsTouch] = useState(true);
 
   useEffect(() => {
+    const hoverMatch = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setIsTouch(!hoverMatch.matches);
+
+    if (!hoverMatch.matches) return;
+
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
 
@@ -75,6 +81,7 @@ export default function TubesCursor() {
       if (isIdle) return;
       isIdle = true;
 
+      let frameCount = 0;
       const wander = () => {
         if (!isIdle) return;
 
@@ -108,18 +115,21 @@ export default function TubesCursor() {
           angle = -angle;
         }
 
-        const targetEl = document.elementFromPoint(currentPos.x, currentPos.y) || window;
-        const eventInit = {
-          clientX: currentPos.x,
-          clientY: currentPos.y,
-          pageX: currentPos.x,
-          pageY: currentPos.y,
-          bubbles: true,
-          cancelable: true,
-        };
+        frameCount++;
+        if (frameCount % 6 === 0) {
+          const targetEl = document.elementFromPoint(currentPos.x, currentPos.y) || window;
+          const eventInit = {
+            clientX: currentPos.x,
+            clientY: currentPos.y,
+            pageX: currentPos.x,
+            pageY: currentPos.y,
+            bubbles: true,
+            cancelable: true,
+          };
 
-        targetEl.dispatchEvent(new PointerEvent('pointermove', eventInit));
-        targetEl.dispatchEvent(new MouseEvent('mousemove', eventInit));
+          targetEl.dispatchEvent(new PointerEvent('pointermove', eventInit));
+          targetEl.dispatchEvent(new MouseEvent('mousemove', eventInit));
+        }
 
         animFrameId = requestAnimationFrame(wander);
       };
@@ -185,6 +195,8 @@ export default function TubesCursor() {
       }
     };
   }, []);
+
+  if (isTouch) return null;
 
   return (
     <div
