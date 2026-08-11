@@ -74,11 +74,7 @@ void main() {
   float b = texture2D(tVideo, vec2(uv.x - caSpread, uv.y)).b;
   
   vec3 texColor = vec3(r, g, b);
-  float gray = dot(texColor, vec3(0.299, 0.587, 0.114));
-  
-  vec3 nebulaDark = vec3(0.12, 0.0, 0.25);
-  vec3 nebulaLight = vec3(0.62, 0.0, 1.0);
-  vec3 mappedColor = mix(nebulaDark, nebulaLight, gray * 1.5);
+  vec3 mappedColor = texColor;
   
   // Aggressive Color Mix
   vec3 finalColor = mix(mappedColor, mappedColor * uHoverColor * 3.0, uTintMix);
@@ -187,9 +183,9 @@ function VideoBackground() {
     const isHovered = hoverState !== 'idle';
     mat.uniforms.uTintMix.value = THREE.MathUtils.lerp(mat.uniforms.uTintMix.value, isHovered ? 0.9 : 0.0, 0.05);
 
-    // Cyan (Panache), Magenta (Bandjam), Electric Yellow (Step-Up)
+    // Purple (Panache), Magenta (Bandjam), Electric Yellow (Step-Up)
     const targetColor = new THREE.Color(
-      hoverState === 'primary' ? '#00FFFF' : 
+      hoverState === 'primary' ? '#9d4edd' : 
       hoverState === 'secondary' ? '#FF00FF' : 
       hoverState === 'tertiary' ? '#FFFF00' : '#9d4edd'
     );
