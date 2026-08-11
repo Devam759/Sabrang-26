@@ -17,18 +17,17 @@ import {
 import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
 
 const IMAGES: Array<{ src: string; title: string }> = [
-  { src: '/team-carousel/image copy.png', title: 'Bandjam' },
-  { src: '/team-carousel/image copy 2.png', title: 'Panache' },
-  { src: '/team-carousel/image copy.png', title: 'Step Up' },
-  { src: '/team-carousel/image copy 2.png', title: 'Dance Battle' },
-  { src: '/team-carousel/image copy.png', title: 'DJ Night' },
-  { src: '/team-carousel/image copy 2.png', title: 'Theatre' },
-  { src: '/team-carousel/image copy.png', title: 'E-Sports' },
-  { src: '/team-carousel/image copy 2.png', title: 'Art & Decor' },
-  { src: '/team-carousel/image copy.png', title: 'Pro Show' },
-  { src: '/team-carousel/image copy 2.png', title: 'Nukkad' },
-  { src: '/team-carousel/image copy.png', title: 'Rampwalk' },
-  { src: '/team-carousel/image copy 2.png', title: 'Afterglow' },
+  { src: '/team-carousel/Aditya Nayak.png', title: 'Aditya Nayak' },
+  { src: '/team-carousel/Ambika Dalmia.png', title: 'Ambika Dalmia' },
+  { src: '/team-carousel/Aryan.png', title: 'Aryan' },
+  { src: '/team-carousel/Ashlesha Sharma.png', title: 'Ashlesha Sharma' },
+  { src: '/team-carousel/Daksh kumar.png', title: 'Daksh Kumar' },
+  { src: '/team-carousel/Devansh Srivastava .png', title: 'Devansh Srivastava' },
+  { src: '/team-carousel/Manan.png', title: 'Manan' },
+  { src: '/team-carousel/Naman Shukla.png', title: 'Naman Shukla' },
+  { src: '/team-carousel/Rashi.png', title: 'Rashi' },
+  { src: '/team-carousel/Roshan jangir .png', title: 'Roshan Jangir' },
+  { src: '/team-carousel/Satvik.png', title: 'Satvik' },
 ];
 
 const ROWS = 5;
@@ -170,21 +169,34 @@ function ImageTube({
   const angle = useRef(0);
   const rotationSpeedScale = useRef(1);
 
+  const radius = 4;
+  const tileW = 0.95;
+  const tileH = 1;
+
   const textures = useTexture(
     IMAGES.map((i) => i.src),
     (loaded) => {
       const list = (Array.isArray(loaded) ? loaded : [loaded]) as Texture[];
       list.forEach((t) => {
         t.colorSpace = SRGBColorSpace;
+        const img = t.image;
+        if (img && img.width && img.height) {
+          const imageAspect = img.width / img.height;
+          const planeAspect = tileW / tileH;
+          if (imageAspect > planeAspect) {
+            t.repeat.set(planeAspect / imageAspect, 1);
+            t.offset.set((1 - (planeAspect / imageAspect)) / 2, 0);
+          } else {
+            t.repeat.set(1, imageAspect / planeAspect);
+            t.offset.set(0, (1 - (imageAspect / planeAspect)) / 2);
+          }
+        }
       });
     },
   ) as Texture[];
 
   const { camera, size } = useThree();
 
-  const radius = 4;
-  const tileW = 0.95;
-  const tileH = 1;
   const ySpacing = 2.7;
   const baseSpeed = 0.25;
   const loopHeight = ROWS * ySpacing;

@@ -321,21 +321,7 @@ export default function AboutHero() {
           }}
         />
 
-        {/* Layer 5: Corner nav labels */}
-        <div
-          style={{
-            position:       'absolute',
-            top: 0, left: 0, right: 0,
-            zIndex:         60,
-            display:        'flex',
-            justifyContent: 'space-between',
-            padding:        '18px 28px',
-            pointerEvents:  'none',
-          }}
-        >
-          <span style={CORNER_LABEL}>Sabrang — About</span>
-          <span style={CORNER_LABEL}>2026 Edition</span>
-        </div>
+
 
         {/* ═════════════════════════════════════════════════════════════════════
             Layer 10: 3D EDITORIAL TYPOGRAPHY "SABRANG"
@@ -619,12 +605,3 @@ export default function AboutHero() {
   );
 }
 
-// ─── Shared style objects ─────────────────────────────────────────────────────
-const CORNER_LABEL: React.CSSProperties = {
-  fontFamily:    'monospace',
-  fontSize:      '0.62rem',
-  letterSpacing: '0.2em',
-  color:         'rgba(255,255,255,0.65)',
-  textShadow:    '0 1px 6px rgba(0,0,0,0.9)',
-  textTransform: 'uppercase',
-};

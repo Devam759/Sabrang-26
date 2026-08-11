@@ -133,12 +133,8 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     const cardHeight = isMobile ? 0.85 : heightVariantsDesktop[index % heightVariantsDesktop.length];
 
     if (activePlane === index) {
-      gsap.to(item.position, {
-        x: 0,
-        y: 0,
-        duration: 0.6,
-        ease: 'power3.out',
-      });
+      item.position.x = THREE.MathUtils.lerp(item.position.x, 0, 0.15);
+      item.position.y = THREE.MathUtils.lerp(item.position.y, 0, 0.15);
       return;
     }
 
@@ -151,12 +147,8 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       let rawY = -index * itemSpacing + (progressVal / 100) * totalHeight;
       let y = (((rawY + halfTotalY) % totalHeight) + totalHeight) % totalHeight - halfTotalY;
 
-      gsap.to(item.position, {
-        x: 0,
-        y,
-        duration: 0.1,
-        ease: 'power2.out',
-      });
+      item.position.x = 0;
+      item.position.y = y;
     } else {
       // Desktop: Horizontal flow (left to right) with vertical cards
       const itemSpacing = cardWidth + planeSettings.gap;
@@ -168,12 +160,8 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
 
       const y = 0.75 - cardHeight / 2;
 
-      gsap.to(item.position, {
-        x,
-        y,
-        duration: 0.1,
-        ease: 'power2.out',
-      });
+      item.position.x = x;
+      item.position.y = y;
     }
   };
 
@@ -189,7 +177,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     oldProgress.current = lerp(oldProgress.current, progress.current, 0.1);
 
     if ($post.current) {
-      $post.current.thickness = speed.current;
+      $post.current.thickness = Math.min(0.25, speed.current);
     }
   });
 

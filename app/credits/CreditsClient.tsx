@@ -2,13 +2,13 @@
 
 export default function CreditsClient() {
   const devTeam = [
-    { name: 'Devam Gupta', role: 'Lead Web Architect & Fullstack Developer', avatar: '/team-carousel/1.jpg', tag: 'Core Lead' },
-    { name: 'Technical Advisory', role: 'UI/UX & WebGL Shader Design', avatar: '/team-carousel/2.jpg', tag: 'Design' },
-    { name: 'Frontend Team', role: 'React, Next.js & Animation Engineering', avatar: '/team-carousel/3.jpg', tag: 'Engineering' },
-    { name: 'Backend & Cloud', role: 'Firebase Infrastructure & Auth Services', avatar: '/team-carousel/4.jpg', tag: 'Infrastructure' },
-    { name: 'QA & Testing', role: 'Quality Assurance & Automated Testing', avatar: '/team-carousel/5.jpg', tag: 'Quality' },
-    { name: 'DevOps & SecOps', role: 'CI/CD Pipelines & Platform Security', avatar: '/team-carousel/6.jpg', tag: 'Operations' },
-    { name: 'Content & Strategy', role: 'Digital Strategy & Content Management', avatar: '/team-carousel/7.jpg', tag: 'Strategy' },
+    { name: 'Devam Gupta', role: 'Lead Web Architect & Fullstack Developer', avatar: '/team-carousel/Devansh Srivastava .png', tag: 'Core Lead' },
+    { name: 'Technical Advisory', role: 'UI/UX & WebGL Shader Design', avatar: '/team-carousel/Aditya Nayak.png', tag: 'Design' },
+    { name: 'Frontend Team', role: 'React, Next.js & Animation Engineering', avatar: '/team-carousel/Ambika Dalmia.png', tag: 'Engineering' },
+    { name: 'Backend & Cloud', role: 'Firebase Infrastructure & Auth Services', avatar: '/team-carousel/Aryan.png', tag: 'Infrastructure' },
+    { name: 'QA & Testing', role: 'Quality Assurance & Automated Testing', avatar: '/team-carousel/Ashlesha Sharma.png', tag: 'Quality' },
+    { name: 'DevOps & SecOps', role: 'CI/CD Pipelines & Platform Security', avatar: '/team-carousel/Daksh kumar.png', tag: 'Operations' },
+    { name: 'Content & Strategy', role: 'Digital Strategy & Content Management', avatar: '/team-carousel/Manan.png', tag: 'Strategy' },
   ];
 
   return (
