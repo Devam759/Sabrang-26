@@ -86,9 +86,21 @@
   border-radius: 8px !important;
 }
 
-/* Hide default browser system cursor globally */
-html, body, body *, a, button, input, select, textarea, [role="button"] {
-  cursor: none !important;
+/* Hide default browser system cursor globally on desktop (pointer: fine) */
+@media (hover: hover) and (pointer: fine) {
+  html, body, body *, a, button, input, select, textarea, [role="button"] {
+    cursor: none !important;
+  }
+}
+
+/* Ensure custom cursors are completely hidden on mobile/touch screens */
+@media (hover: none), (pointer: coarse) {
+  .custom-cursor-circle,
+  .tubes-cursor-container {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 /* Hide browser scrollbars globally */
@@ -144,4 +156,15 @@ body.loader-active .custom-cursor-circle {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* On mobile, hide logos and heading on the team page after scroll interaction */
+@media (max-width: 767px) {
+  body.team-scrolled .navbar-logos,
+  body.team-scrolled .navbar-jklu-logo,
+  body.team-scrolled .team-page-heading {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease-out !important;
+  }
 }

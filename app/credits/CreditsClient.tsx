@@ -2,7 +2,7 @@
 
 export default function CreditsClient() {
   const devTeam = [
-    { name: 'Devam Sharma', role: 'Lead Web Architect & Fullstack Developer', avatar: '/team-carousel/1.jpg', tag: 'Core Lead' },
+    { name: 'Devam Gupta', role: 'Lead Web Architect & Fullstack Developer', avatar: '/team-carousel/1.jpg', tag: 'Core Lead' },
     { name: 'Technical Advisory', role: 'UI/UX & WebGL Shader Design', avatar: '/team-carousel/2.jpg', tag: 'Design' },
     { name: 'Frontend Team', role: 'React, Next.js & Animation Engineering', avatar: '/team-carousel/3.jpg', tag: 'Engineering' },
     { name: 'Backend & Cloud', role: 'Firebase Infrastructure & Auth Services', avatar: '/team-carousel/4.jpg', tag: 'Infrastructure' },

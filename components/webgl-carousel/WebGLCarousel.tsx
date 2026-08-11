@@ -34,13 +34,14 @@ export default function WebGLCarousel({ items, className = 'w-full h-[70vh]' }: 
   return (
     <div className={`relative overflow-hidden rounded-3xl ${className}`}>
       {/* Page Heading (fades out when a card is active) */}
-      <div className={`absolute top-10 left-0 w-full z-20 text-center pointer-events-none transition-all duration-500 ease-in-out ${activeItem ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+      <div className={`team-page-heading absolute top-10 left-0 w-full z-20 text-center pointer-events-none transition-all duration-500 ease-in-out ${activeItem ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         <h1 className="text-white font-bold text-3xl md:text-4xl uppercase tracking-[0.25em]">
           Team
         </h1>
       </div>
 
       <Canvas
+        style={{ touchAction: 'none' }}
         gl={{ alpha: true, antialias: true }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0);
