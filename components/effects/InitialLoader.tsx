@@ -23,17 +23,39 @@ export default function InitialLoader() {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [eyeBlink, setEyeBlink] = useState(1.0);
   const [progress, setProgress] = useState(0);
+  const [lookTarget, setLookTarget] = useState<[number, number]>([0, 0]);
 
   const handleSkip = () => {
     setIsFadingOut(true);
+    document.body.classList.remove('loader-active');
     setTimeout(() => {
       setShouldRender(false);
       document.body.style.overflow = '';
     }, 400);
   };
 
+  // Shared wandering loop to keep eye movements sync'd
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    const updateTarget = () => {
+      if (Math.random() < 0.25) {
+        setLookTarget([0, 0]);
+      } else {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 0.2 + Math.random() * 0.65;
+        setLookTarget([Math.cos(angle) * dist, Math.sin(angle) * dist]);
+      }
+      const nextDelay = 1500 + Math.random() * 1500;
+      timer = setTimeout(updateTarget, nextDelay);
+    };
+
+    timer = setTimeout(updateTarget, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('loader-active');
 
     let startTime = performance.now();
     let animId: number;
@@ -41,11 +63,11 @@ export default function InitialLoader() {
     const animate = (now: number) => {
       const elapsed = (now - startTime) / 1000;
 
-      const currentProgress = Math.min(1.0, elapsed / 5.5);
+      const currentProgress = Math.min(1.0, elapsed / 4.0);
       setProgress(currentProgress);
 
-      if (elapsed >= 4.6 && elapsed <= 5.4) {
-        const blinkProgress = (elapsed - 4.6) / 0.8;
+      if (elapsed >= 3.2 && elapsed <= 3.9) {
+        const blinkProgress = (elapsed - 3.2) / 0.7;
         const blinkVal = Math.sin(blinkProgress * Math.PI);
         setEyeBlink(Math.max(0.0, 1.0 - blinkVal));
       } else {
@@ -59,18 +81,20 @@ export default function InitialLoader() {
 
     const fadeTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 5500);
+      document.body.classList.remove('loader-active');
+    }, 4000);
 
     const removeTimer = setTimeout(() => {
       setShouldRender(false);
       document.body.style.overflow = '';
-    }, 6000);
+    }, 4400);
 
     return () => {
       cancelAnimationFrame(animId);
       clearTimeout(fadeTimer);
       clearTimeout(removeTimer);
       document.body.style.overflow = '';
+      document.body.classList.remove('loader-active');
     };
   }, []);
 
@@ -122,11 +146,12 @@ export default function InitialLoader() {
               pupilSize={1.95}
               irisWidth={0.8}
               glowIntensity={0.5}
-              scale={1.0}
+              scale={0.8}
               noiseScale={1.4}
-              pupilFollow={2}
+              pupilFollow={3.2}
               flameSpeed={1.0}
               blink={eyeBlink}
+              manualMouse={lookTarget}
             />
           </div>
 
@@ -136,17 +161,18 @@ export default function InitialLoader() {
               pupilSize={1.95}
               irisWidth={0.8}
               glowIntensity={0.5}
-              scale={1.0}
+              scale={0.8}
               noiseScale={1.4}
-              pupilFollow={2}
+              pupilFollow={3.2}
               flameSpeed={1.0}
               blink={eyeBlink}
+              manualMouse={lookTarget}
             />
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-12 z-20 flex flex-col items-center space-y-3 select-none pointer-events-none text-center">
+      <div className="absolute bottom-12 left-0 w-full z-20 flex flex-col items-center space-y-3 select-none pointer-events-none text-center">
         <div className="flex items-center gap-2 tracking-[0.4em] uppercase text-[11px] font-bold">
           <span className="text-[#00e5ff]">ENTERING</span>
           <span className="text-[#ff2a8d]">EXPERIENCE</span>
@@ -155,13 +181,6 @@ export default function InitialLoader() {
         <h1 className="text-4xl md:text-5xl font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#ffc800] via-[#ff2a8d] to-[#00d2ff] drop-shadow-[0_0_20px_rgba(255,42,141,0.4)]">
           SABRANG 2026
         </h1>
-
-        <div className="w-64 md:w-80 h-1.5 rounded-full bg-gradient-to-r from-[#ffc800] via-[#ff2a8d] to-[#00d2ff] relative overflow-visible shadow-[0_0_16px_rgba(255,42,141,0.6)] mt-2">
-          <div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_12px_#ffffff,0_0_20px_#ff2a8d] transition-all duration-75"
-            style={{ left: `${Math.min(100, Math.max(0, progress * 100))}%` }}
-          />
-        </div>
 
         <span className="tracking-[0.3em] uppercase text-[10px] font-medium text-white/50 pt-1">
           LOADING EXPERIENCE...

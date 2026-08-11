@@ -1,49 +1,25 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import Link from 'next/link';
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { useAuth } from '@/components/auth/AuthProvider';
 import ThreeBackground from '@/components/effects/ThreeBackground';
-import { LiquidMetalButton } from '@/components/ui/liquid-metal';
 import { useInteraction } from '@/components/InteractionContext';
 
-function MagneticHeroText({ text, scrollY1, isTopHalf }: { text: string, scrollY1: any, isTopHalf: boolean }) {
+function MagneticHeroText({ text, scrollY1, isTopHalf, x, y }: { text: string, scrollY1: any, isTopHalf: boolean, x: any, y: any }) {
   const ref = useRef<HTMLHeadingElement>(null);
-  
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  
-  const x = useSpring(mouseX, { damping: 15, stiffness: 150 });
-  const y = useSpring(mouseY, { damping: 15, stiffness: 150 });
   
   const splitY = useTransform(scrollY1, [0, 0.6], [0, isTopHalf ? -500 : 500]);
   const splitOpacity = useTransform(scrollY1, [0, 0.5, 0.6], [1, 1, 0]);
 
-  function handleMouseMove(e: React.MouseEvent) {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    mouseX.set((e.clientX - centerX) * 0.1);
-    mouseY.set((e.clientY - centerY) * 0.1);
-  }
-
-  function handleMouseLeave() {
-    mouseX.set(0);
-    mouseY.set(0);
-  }
-
   return (
     <motion.div 
-      className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-auto"
+      className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none"
       style={{ 
         clipPath: isTopHalf ? 'inset(0% 0% 50% 0%)' : 'inset(50% 0% 0% 0%)',
         y: splitY,
         opacity: splitOpacity
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
     >
       <motion.h1 
         ref={ref}
@@ -60,6 +36,23 @@ export default function Home() {
   const { user } = useAuth();
   const { setHoverState } = useInteraction();
   
+  const mX = useMotionValue(0);
+  const mY = useMotionValue(0);
+  const x = useSpring(mX, { damping: 15, stiffness: 150 });
+  const y = useSpring(mY, { damping: 15, stiffness: 150 });
+
+  function handleMouseMove(e: React.MouseEvent) {
+    const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 500;
+    const centerY = typeof window !== 'undefined' ? window.innerHeight / 2 : 400;
+    mX.set((e.clientX - centerX) * 0.08);
+    mY.set((e.clientY - centerY) * 0.08);
+  }
+
+  function handleMouseLeave() {
+    mX.set(0);
+    mY.set(0);
+  }
+
   // ─── SECTION 1: HERO & ABOUT ───
   const section1Ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress: scrollY1 } = useScroll({
@@ -97,7 +90,11 @@ export default function Home() {
 
       {/* SECTION 1: HERO & ABOUT */}
       <div ref={section1Ref} className="h-[200vh] relative z-10">
-        <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center pointer-events-none">
+        <div 
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center pointer-events-auto"
+        >
           
           <motion.div 
             style={{ opacity: aboutOpacity, scale: aboutScale }}
@@ -125,32 +122,10 @@ export default function Home() {
             </div>
           </motion.div>
 
-          <MagneticHeroText text="Sabrang 2026" scrollY1={scrollY1} isTopHalf={true} />
-          <MagneticHeroText text="Sabrang 2026" scrollY1={scrollY1} isTopHalf={false} />
+          <MagneticHeroText text="Sabrang 2026" scrollY1={scrollY1} isTopHalf={true} x={x} y={y} />
+          <MagneticHeroText text="Sabrang 2026" scrollY1={scrollY1} isTopHalf={false} x={x} y={y} />
 
-          <motion.div 
-            style={{ opacity: buttonsOpacity, y: buttonsY }}
-            className="absolute inset-0 flex flex-col items-center justify-end pb-32 z-30 pointer-events-auto"
-          >
-            <div className="flex gap-6 mt-12">
-              <Link href="/events" onMouseEnter={() => setHoverState('primary')} onMouseLeave={() => setHoverState('idle')}>
-                <LiquidMetalButton size="lg" borderWidth={1} metalConfig={heroMetalConfig}
-                  icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
-                >
-                  Explore Events
-                </LiquidMetalButton>
-              </Link>
-              {!user && (
-                <Link href="/register" onMouseEnter={() => setHoverState('secondary')} onMouseLeave={() => setHoverState('idle')}>
-                  <LiquidMetalButton size="lg" borderWidth={1} metalConfig={heroMetalConfig}
-                    icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>}
-                  >
-                    Register Now
-                  </LiquidMetalButton>
-                </Link>
-              )}
-            </div>
-          </motion.div>
+
 
         </div>
       </div>

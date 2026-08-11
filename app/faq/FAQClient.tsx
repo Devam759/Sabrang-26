@@ -62,7 +62,7 @@ const faqs = [
   },
   {
     question: 'Can I sponsor Sabrang?',
-    answer: 'Yes! We offer various sponsorship packages. Visit our "Why Sponsor Us" page or contact our sponsorship team for more details.',
+    answer: 'Yes! We offer various sponsorship packages. Contact our sponsorship team or reach out via our contact page for more details.',
   },
   {
     question: 'Will there be live streaming of events?',
