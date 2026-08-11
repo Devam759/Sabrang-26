@@ -47,7 +47,7 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
         uProgress: { value: 0 },
         uZoomScale: { value: new THREE.Vector2(1, 1) },
         uTex: { value: tex },
-        uRes: { value: new THREE.Vector2(1, 1) },
+        uRes: { value: new THREE.Vector2(width, height) },
         uImageRes: {
           value: new THREE.Vector2(
             tex.image ? (tex.image as any).width || 1000 : 1000,
@@ -82,7 +82,7 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
           float rs = s.x / s.y;
           float ri = i.x / i.y;
           vec2 st = rs < ri ? vec2(i.x * s.y / i.y, s.y) : vec2(s.x, i.y * s.x / i.x);
-          vec2 o = (rs < ri ? vec2((st.x - s.x) / 2.0, 0.0) : vec2(0.0, (st.y - s.y) / 2.0)) / st;
+          vec2 o = (rs < ri ? vec2((st.x - s.x) / 2.0, 0.0) : vec2(0.0, st.y - s.y)) / st;
           return u * s / st + o;
         }
 

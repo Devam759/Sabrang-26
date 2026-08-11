@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
+import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
 const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -44,6 +44,4 @@ try {
   db = getFirestore(fallbackApp);
 }
 
-const googleProvider = new GoogleAuthProvider();
-
-export { app, auth, db, googleProvider };
+export { app, auth, db };

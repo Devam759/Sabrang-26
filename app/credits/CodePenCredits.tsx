@@ -11,7 +11,7 @@ const devTeam = [
   {
     name: 'Devam Gupta',
     tag: 'CORE',
-    avatar: '/team-carousel/image copy.png',
+    avatar: '/team-carousel/Devansh Srivastava .png',
     linkedin: 'https://linkedin.com/in/devamsharma',
     github: 'https://github.com/devamsharma',
     email: 'devam@sabrang.in',
@@ -19,7 +19,7 @@ const devTeam = [
   {
     name: 'Shubh Dixit',
     tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/image copy 2.png',
+    avatar: '/team-carousel/Aditya Nayak.png',
     linkedin: 'https://linkedin.com/in/shubhdixit',
     github: 'https://github.com/shubhdixit',
     email: 'shubh@sabrang.in',
@@ -27,7 +27,7 @@ const devTeam = [
   {
     name: 'Kartik Saini',
     tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/image copy.png',
+    avatar: '/team-carousel/Aryan.png',
     linkedin: 'https://linkedin.com/in/kartiksaini',
     github: 'https://github.com/kartiksaini',
     email: 'kartik@sabrang.in',
@@ -35,7 +35,7 @@ const devTeam = [
   {
     name: 'Lakshya Gupta',
     tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/image copy 2.png',
+    avatar: '/team-carousel/Daksh kumar.png',
     linkedin: 'https://linkedin.com/in/lakshyagupta',
     github: 'https://github.com/lakshyagupta',
     email: 'lakshya@sabrang.in',
@@ -43,7 +43,7 @@ const devTeam = [
   {
     name: 'Aditya Singh Nayal',
     tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/image copy.png',
+    avatar: '/team-carousel/Satvik.png',
     linkedin: 'https://linkedin.com/in/adityasinghnayal',
     github: 'https://github.com/adityanayal',
     email: 'aditya@sabrang.in',
@@ -51,7 +51,7 @@ const devTeam = [
   {
     name: 'Prathum Lalwani',
     tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/image copy 2.png',
+    avatar: '/team-carousel/Rashi.png',
     linkedin: 'https://linkedin.com/in/prathumlalwani',
     github: 'https://github.com/prathumlalwani',
     email: 'prathum@sabrang.in',
@@ -59,7 +59,7 @@ const devTeam = [
   {
     name: 'Saurav Tank',
     tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/image copy.png',
+    avatar: '/team-carousel/Manan.png',
     linkedin: 'https://linkedin.com/in/sauravtank',
     github: 'https://github.com/sauravtank',
     email: 'saurav@sabrang.in',

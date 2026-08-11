@@ -64,8 +64,22 @@ export default function TeamClient() {
     'Core Advisory'
   ];
 
+  const teamImages = [
+    '/team-carousel/Aditya Nayak.png',
+    '/team-carousel/Ambika Dalmia.png',
+    '/team-carousel/Aryan.png',
+    '/team-carousel/Ashlesha Sharma.png',
+    '/team-carousel/Daksh kumar.png',
+    '/team-carousel/Devansh Srivastava .png',
+    '/team-carousel/Manan.png',
+    '/team-carousel/Naman Shukla.png',
+    '/team-carousel/Rashi.png',
+    '/team-carousel/Roshan jangir .png',
+    '/team-carousel/Satvik.png'
+  ];
+
   const carouselMembers = Array.from({ length: 33 }, (_, i) => ({
-    image: (i % 2 === 0) ? '/team-carousel/image copy.png' : '/team-carousel/image copy 2.png',
+    image: teamImages[i % teamImages.length],
     name: names[i % names.length],
     role: roles[i % roles.length],
   }));
