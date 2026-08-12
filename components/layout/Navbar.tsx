@@ -147,7 +147,6 @@ export default function Navbar() {
             />
           </a>
 
-          {/* StaggeredMenu toggle button style */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation menu"
@@ -179,7 +178,6 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* 3D Film Reel Carousel Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
