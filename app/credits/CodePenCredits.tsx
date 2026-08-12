@@ -1,68 +1,68 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import gsap from 'gsap';
-import { CustomEase } from 'gsap/CustomEase';
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import gsap from "gsap";
+import { CustomEase } from "gsap/CustomEase";
 
 /* ──────────────────────────────────────────────
    TECH TEAM DATA
    ────────────────────────────────────────────── */
 const devTeam = [
   {
-    name: 'Devam Gupta',
-    tag: 'CORE',
-    avatar: '/team-carousel/Devansh Srivastava .png',
-    linkedin: 'https://linkedin.com/in/devamsharma',
-    github: 'https://github.com/devamsharma',
-    email: 'devam@sabrang.in',
+    name: "Devam Gupta",
+    tag: "CORE",
+    avatar: "/team-carousel/Devansh Srivastava.png",
+    linkedin: "https://linkedin.com/in/devamsharma",
+    github: "https://github.com/devamsharma",
+    email: "devam@sabrang.in",
   },
   {
-    name: 'Shubh Dixit',
-    tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/Aditya Nayak.png',
-    linkedin: 'https://linkedin.com/in/shubhdixit',
-    github: 'https://github.com/shubhdixit',
-    email: 'shubh@sabrang.in',
+    name: "Shubh Dixit",
+    tag: "CO-ORDINATOR",
+    avatar: "/team-carousel/Aditya Nayak.png",
+    linkedin: "https://linkedin.com/in/shubhdixit",
+    github: "https://github.com/shubhdixit",
+    email: "shubh@sabrang.in",
   },
   {
-    name: 'Kartik Saini',
-    tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/Aryan.png',
-    linkedin: 'https://linkedin.com/in/kartiksaini',
-    github: 'https://github.com/kartiksaini',
-    email: 'kartik@sabrang.in',
+    name: "Kartik Saini",
+    tag: "CO-ORDINATOR",
+    avatar: "/team-carousel/Aryan.png",
+    linkedin: "https://linkedin.com/in/kartiksaini",
+    github: "https://github.com/kartiksaini",
+    email: "kartik@sabrang.in",
   },
   {
-    name: 'Lakshya Gupta',
-    tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/Daksh kumar.png',
-    linkedin: 'https://linkedin.com/in/lakshyagupta',
-    github: 'https://github.com/lakshyagupta',
-    email: 'lakshya@sabrang.in',
+    name: "Lakshya Gupta",
+    tag: "CO-ORDINATOR",
+    avatar: "/team-carousel/Daksh kumar.png",
+    linkedin: "https://linkedin.com/in/lakshyagupta",
+    github: "https://github.com/lakshyagupta",
+    email: "lakshya@sabrang.in",
   },
   {
-    name: 'Aditya Singh Nayal',
-    tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/Satvik.png',
-    linkedin: 'https://linkedin.com/in/adityasinghnayal',
-    github: 'https://github.com/adityanayal',
-    email: 'aditya@sabrang.in',
+    name: "Aditya Singh Nayal",
+    tag: "CO-ORDINATOR",
+    avatar: "/team-carousel/Satvik.png",
+    linkedin: "https://linkedin.com/in/adityasinghnayal",
+    github: "https://github.com/adityanayal",
+    email: "aditya@sabrang.in",
   },
   {
-    name: 'Prathum Lalwani',
-    tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/Rashi.png',
-    linkedin: 'https://linkedin.com/in/prathumlalwani',
-    github: 'https://github.com/prathumlalwani',
-    email: 'prathum@sabrang.in',
+    name: "Prathum Lalwani",
+    tag: "CO-ORDINATOR",
+    avatar: "/team-carousel/Rashi.png",
+    linkedin: "https://linkedin.com/in/prathumlalwani",
+    github: "https://github.com/prathumlalwani",
+    email: "prathum@sabrang.in",
   },
   {
-    name: 'Saurav Tank',
-    tag: 'CO-ORDINATOR',
-    avatar: '/team-carousel/Manan.png',
-    linkedin: 'https://linkedin.com/in/sauravtank',
-    github: 'https://github.com/sauravtank',
-    email: 'saurav@sabrang.in',
+    name: "Saurav Tank",
+    tag: "CO-ORDINATOR",
+    avatar: "/team-carousel/Manan.png",
+    linkedin: "https://linkedin.com/in/sauravtank",
+    github: "https://github.com/sauravtank",
+    email: "saurav@sabrang.in",
   },
 ];
 
@@ -72,30 +72,37 @@ const imgCls = (i: number) => `img-seq-${i}`;
 
 const LinkedInIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
   </svg>
 );
 
 const GithubIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+    <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
   </svg>
 );
 
 const MailIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="2" y="4" width="20" height="16" rx="2"/>
-    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
   </svg>
 );
 
 export default function CodePenCredits() {
-  const rootRef     = useRef<HTMLDivElement>(null);
-  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const progRef     = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progRef = useRef<HTMLDivElement>(null);
   const progAnimRef = useRef<gsap.core.Tween | null>(null);
-  const curRef      = useRef(0);
-  const busyRef     = useRef(false);
+  const curRef = useRef(0);
+  const busyRef = useRef(false);
   const goActionRef = useRef<(forward: boolean) => void>(() => {});
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -104,9 +111,11 @@ export default function CodePenCredits() {
   const startProgress = useCallback(() => {
     if (!progRef.current) return;
     progAnimRef.current?.kill();
-    gsap.set(progRef.current, { scaleX: 0, transformOrigin: 'left center' });
+    gsap.set(progRef.current, { scaleX: 0, transformOrigin: "left center" });
     progAnimRef.current = gsap.to(progRef.current, {
-      scaleX: 1, duration: AUTO_ADVANCE_MS / 1000, ease: 'none',
+      scaleX: 1,
+      duration: AUTO_ADVANCE_MS / 1000,
+      ease: "none",
     });
   }, []);
 
@@ -122,85 +131,121 @@ export default function CodePenCredits() {
   useEffect(() => {
     if (!rootRef.current) return;
     gsap.registerPlugin(CustomEase);
-    CustomEase.create('hop', 'M0,0 C0.3,0 0.1,1 1,1');
+    CustomEase.create("hop", "M0,0 C0.3,0 0.1,1 1,1");
 
     const ctx = gsap.context(() => {
-      const root         = rootRef.current!;
-      const wrapperLeft  = root.querySelector<HTMLElement>('.cc-wrapper-left')!;
-      const wrapperRight = root.querySelector<HTMLElement>('.cc-wrapper-right-marquee')!;
-      const leftBoxes    = root.querySelectorAll<HTMLElement>('.cc-box-left');
-      const rightBoxes   = root.querySelectorAll<HTMLElement>('.cc-box-right-marquee');
-      const centerImgs   = root.querySelectorAll<HTMLElement>('.cc-center-box img');
-      const countTry     = root.querySelector<HTMLElement>('.cc-try')!;
+      const root = rootRef.current!;
+      const wrapperLeft = root.querySelector<HTMLElement>(".cc-wrapper-left")!;
+      const wrapperRight = root.querySelector<HTMLElement>(
+        ".cc-wrapper-right-marquee",
+      )!;
+      const leftBoxes = root.querySelectorAll<HTMLElement>(".cc-box-left");
+      const rightBoxes = root.querySelectorAll<HTMLElement>(
+        ".cc-box-right-marquee",
+      );
+      const centerImgs =
+        root.querySelectorAll<HTMLElement>(".cc-center-box img");
+      const countTry = root.querySelector<HTMLElement>(".cc-try")!;
 
       /* init center images */
-      centerImgs.forEach((el, i) => { el.style.display = i === 0 ? 'block' : 'none'; });
+      centerImgs.forEach((el, i) => {
+        el.style.display = i === 0 ? "block" : "none";
+      });
 
       /* Marquees: Left moves up, Right moves down */
       gsap.to(wrapperLeft, {
-        y: '-50%', duration: 24, ease: 'none', repeat: -1,
-        onRepeat: () => gsap.set(wrapperLeft, { y: '0%' }),
+        y: "-50%",
+        duration: 24,
+        ease: "none",
+        repeat: -1,
+        onRepeat: () => gsap.set(wrapperLeft, { y: "0%" }),
       });
 
       if (wrapperRight) {
-        gsap.fromTo(wrapperRight, { y: '-50%' }, {
-          y: '0%', duration: 24, ease: 'none', repeat: -1,
-          onRepeat: () => gsap.set(wrapperRight, { y: '-50%' }),
-        });
+        gsap.fromTo(
+          wrapperRight,
+          { y: "-50%" },
+          {
+            y: "0%",
+            duration: 24,
+            ease: "none",
+            repeat: -1,
+            onRepeat: () => gsap.set(wrapperRight, { y: "-50%" }),
+          },
+        );
       }
 
       /* Entrance Animation */
-      const centerBox = root.querySelector<HTMLElement>('.cc-center-box')!;
-      gsap.to(centerBox, { height: '440px', duration: 1.2, ease: 'hop' });
-      gsap.to(leftBoxes, { clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)', ease: 'hop', duration: 1, stagger: 0.08 });
+      const centerBox = root.querySelector<HTMLElement>(".cc-center-box")!;
+      gsap.to(centerBox, { height: "440px", duration: 1.2, ease: "hop" });
+      gsap.to(leftBoxes, {
+        clipPath: "polygon(0 0,100% 0,100% 100%,0 100%)",
+        ease: "hop",
+        duration: 1,
+        stagger: 0.08,
+      });
       if (rightBoxes.length > 0) {
-        gsap.to(rightBoxes, { clipPath: 'polygon(0 0,100% 0,100% 100%,0 100%)', ease: 'hop', duration: 1, stagger: 0.08 });
+        gsap.to(rightBoxes, {
+          clipPath: "polygon(0 0,100% 0,100% 100%,0 100%)",
+          ease: "hop",
+          duration: 1,
+          stagger: 0.08,
+        });
       }
 
       /* Slide Center */
       const slideCenter = (from: number, to: number, forward: boolean) => {
         const old_ = centerImgs[from] as HTMLElement;
-        const new_ = centerImgs[to]  as HTMLElement;
+        const new_ = centerImgs[to] as HTMLElement;
         if (!old_ || !new_) return;
         gsap.set(new_, {
-          display: 'block',
-          clipPath: forward ? 'polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)' : 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
+          display: "block",
+          clipPath: forward
+            ? "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)"
+            : "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)",
           zIndex: 2,
           scale: 1.08,
         });
         gsap.to(new_, {
-          clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
           scale: 1,
           duration: 0.9,
-          ease: 'hop',
+          ease: "hop",
           onComplete: () => {
-            old_.style.display = 'none';
-            new_.style.zIndex = '1';
+            old_.style.display = "none";
+            new_.style.zIndex = "1";
           },
         });
       };
 
       /* Slide Side Boxes */
-      const slideSideStrip = (boxes: NodeListOf<HTMLElement>, fromCls: string, toCls: string, forward: boolean) => {
+      const slideSideStrip = (
+        boxes: NodeListOf<HTMLElement>,
+        fromCls: string,
+        toCls: string,
+        forward: boolean,
+      ) => {
         boxes.forEach((box, bi) => {
           const fromImg = box.querySelector<HTMLElement>(`.${fromCls}`)!;
-          const toImg   = box.querySelector<HTMLElement>(`.${toCls}`)!;
+          const toImg = box.querySelector<HTMLElement>(`.${toCls}`)!;
           if (!fromImg || !toImg) return;
           gsap.set(toImg, {
-            display: 'block',
-            clipPath: forward ? 'polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)' : 'polygon(0 0%, 100% 0%, 100% 0%, 0% 0%)',
+            display: "block",
+            clipPath: forward
+              ? "polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)"
+              : "polygon(0 0%, 100% 0%, 100% 0%, 0% 0%)",
             zIndex: 2,
             scale: 1.4,
           });
           gsap.to(toImg, {
-            clipPath: 'polygon(0 0%, 100% 0%, 100% 100%, 0% 100%)',
-            ease: 'hop',
+            clipPath: "polygon(0 0%, 100% 0%, 100% 100%, 0% 100%)",
+            ease: "hop",
             duration: 0.9,
             scale: 1,
             delay: 0.05 * bi,
             onComplete: () => {
-              fromImg.style.display = 'none';
-              toImg.style.zIndex = '1';
+              fromImg.style.display = "none";
+              toImg.style.zIndex = "1";
             },
           });
         });
@@ -215,7 +260,11 @@ export default function CodePenCredits() {
         const next = curRef.current;
 
         if (countTry) {
-          gsap.to(countTry, { y: `${next * -14}px`, ease: 'hop', duration: 0.35 });
+          gsap.to(countTry, {
+            y: `${next * -14}px`,
+            ease: "hop",
+            duration: 0.35,
+          });
         }
         slideCenter(prev, next, forward);
         slideSideStrip(leftBoxes, imgCls(prev), imgCls(next), forward);
@@ -224,14 +273,19 @@ export default function CodePenCredits() {
         }
 
         setActiveIdx(next);
-        setTimeout(() => { busyRef.current = false; }, 950);
+        setTimeout(() => {
+          busyRef.current = false;
+        }, 950);
         resetTimer();
       };
 
       goActionRef.current = go;
 
       setTimeout(() => startProgress(), 1300);
-      timerRef.current = setTimeout(() => goActionRef.current(true), AUTO_ADVANCE_MS + 1300);
+      timerRef.current = setTimeout(
+        () => goActionRef.current(true),
+        AUTO_ADVANCE_MS + 1300,
+      );
     }, rootRef);
 
     return () => {
@@ -239,7 +293,7 @@ export default function CodePenCredits() {
       if (timerRef.current) clearTimeout(timerRef.current);
       progAnimRef.current?.kill();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const currentMember = devTeam[activeIdx];
@@ -250,7 +304,6 @@ export default function CodePenCredits() {
 
   return (
     <div ref={rootRef} className="cc-root">
-
       {/* ── AMBIENT NEON GLOW EFFECTS ── */}
       <div className="cc-ambient-glow cc-glow-left" />
       <div className="cc-ambient-glow cc-glow-center" />
@@ -265,16 +318,24 @@ export default function CodePenCredits() {
       <div className="cc-gallery-side cc-gallery-left" aria-hidden="true">
         <div className="cc-gallery-overlay" />
         <div className="cc-wrapper-left">
-          {[0, 1].map(g => (
+          {[0, 1].map((g) => (
             <div key={g}>
-              {[0, 1, 2, 3].map(b => (
+              {[0, 1, 2, 3].map((b) => (
                 <div key={b} className="cc-box-left">
                   {devTeam.map((m, i) => (
-                    <img key={i} className={imgCls(i)} src={m.avatar} alt=""
+                    <img
+                      key={i}
+                      className={imgCls(i)}
+                      src={m.avatar}
+                      alt=""
                       style={{
-                        display: i === 0 ? 'block' : 'none',
-                        clipPath: i === 0 ? 'polygon(0 0,100% 0,100% 100%,0 100%)' : 'polygon(0 100%,100% 100%,100% 100%,0 100%)',
-                      }} />
+                        display: i === 0 ? "block" : "none",
+                        clipPath:
+                          i === 0
+                            ? "polygon(0 0,100% 0,100% 100%,0 100%)"
+                            : "polygon(0 100%,100% 100%,100% 100%,0 100%)",
+                      }}
+                    />
                   ))}
                 </div>
               ))}
@@ -287,16 +348,24 @@ export default function CodePenCredits() {
       <div className="cc-gallery-side cc-gallery-right" aria-hidden="true">
         <div className="cc-gallery-overlay" />
         <div className="cc-wrapper-right-marquee">
-          {[0, 1].map(g => (
+          {[0, 1].map((g) => (
             <div key={g}>
-              {[0, 1, 2, 3].map(b => (
+              {[0, 1, 2, 3].map((b) => (
                 <div key={b} className="cc-box-right-marquee">
                   {devTeam.map((m, i) => (
-                    <img key={i} className={imgCls(i)} src={m.avatar} alt=""
+                    <img
+                      key={i}
+                      className={imgCls(i)}
+                      src={m.avatar}
+                      alt=""
                       style={{
-                        display: i === 0 ? 'block' : 'none',
-                        clipPath: i === 0 ? 'polygon(0 0,100% 0,100% 100%,0 100%)' : 'polygon(0 100%,100% 100%,100% 100%,0 100%)',
-                      }} />
+                        display: i === 0 ? "block" : "none",
+                        clipPath:
+                          i === 0
+                            ? "polygon(0 0,100% 0,100% 100%,0 100%)"
+                            : "polygon(0 100%,100% 100%,100% 100%,0 100%)",
+                      }}
+                    />
                   ))}
                 </div>
               ))}
@@ -307,16 +376,17 @@ export default function CodePenCredits() {
 
       {/* ── CENTRAL PROFILE CARD ── */}
       <div className="cc-wrapper">
-
         {/* Counter Badge */}
         <div className="cc-counter-badge">
           <div className="cc-counter-try-wrap">
             <div className="cc-try">
-              {devTeam.map((_, i) => <span key={i}>{String(i + 1).padStart(2, '0')}</span>)}
+              {devTeam.map((_, i) => (
+                <span key={i}>{String(i + 1).padStart(2, "0")}</span>
+              ))}
             </div>
           </div>
           <span className="cc-counter-sep">/</span>
-          <span className="cc-counter-total">{String(N).padStart(2, '0')}</span>
+          <span className="cc-counter-total">{String(N).padStart(2, "0")}</span>
         </div>
 
         {/* Center Image & Card */}
@@ -324,8 +394,12 @@ export default function CodePenCredits() {
           <div className="cc-center-card-halo" />
           <div className="cc-center-box">
             {devTeam.map((m, i) => (
-              <img key={i} src={m.avatar} alt={m.name}
-                style={{ display: i === 0 ? 'block' : 'none', zIndex: 1 }} />
+              <img
+                key={i}
+                src={m.avatar}
+                alt={m.name}
+                style={{ display: i === 0 ? "block" : "none", zIndex: 1 }}
+              />
             ))}
 
             {/* Name Card Overlay */}
@@ -333,13 +407,26 @@ export default function CodePenCredits() {
               <span className="cc-name-tag">{currentMember.tag}</span>
               <h2 className="cc-name-title">{currentMember.name}</h2>
               <div className="cc-name-links">
-                <a href={currentMember.linkedin} target="_blank" rel="noopener noreferrer" className="cc-link-btn cc-link-li">
+                <a
+                  href={currentMember.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cc-link-btn cc-link-li"
+                >
                   <LinkedInIcon /> LinkedIn
                 </a>
-                <a href={currentMember.github} target="_blank" rel="noopener noreferrer" className="cc-link-btn cc-link-gh">
+                <a
+                  href={currentMember.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cc-link-btn cc-link-gh"
+                >
                   <GithubIcon /> GitHub
                 </a>
-                <a href={`mailto:${currentMember.email}`} className="cc-link-btn cc-link-mail">
+                <a
+                  href={`mailto:${currentMember.email}`}
+                  className="cc-link-btn cc-link-mail"
+                >
                   <MailIcon /> Email
                 </a>
               </div>
@@ -369,7 +456,7 @@ export default function CodePenCredits() {
               {devTeam.map((_, i) => (
                 <div
                   key={i}
-                  className={`cc-nav-dot${i === activeIdx ? ' cc-nav-dot-active' : ''}`}
+                  className={`cc-nav-dot${i === activeIdx ? " cc-nav-dot-active" : ""}`}
                 />
               ))}
             </div>
@@ -387,7 +474,6 @@ export default function CodePenCredits() {
             <span className="cc-nav-btn-arrow">→</span>
           </button>
         </div>
-
       </div>
 
       {/* ── STYLES ── */}

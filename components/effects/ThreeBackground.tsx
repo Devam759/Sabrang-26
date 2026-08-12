@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useAspect } from '@react-three/drei';
-import * as THREE from 'three';
-import { useInteraction } from '@/components/InteractionContext';
+import { useRef, useEffect, useMemo, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useAspect } from "@react-three/drei";
+import * as THREE from "three";
+import { useInteraction } from "@/components/InteractionContext";
 
 const videoVertex = `
 varying vec2 vUv;
@@ -88,75 +88,71 @@ void main() {
 
 function VideoBackground() {
   const { hoverState } = useInteraction();
-  const { viewport } = useThree();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const lastScrollY = useRef(0);
   const scrollVelocity = useRef(0);
   const glitchIntensity = useRef(0);
   const lastHoverState = useRef(hoverState);
-  
+
+  const scale = useAspect(1920, 1080, 1);
+
   useEffect(() => {
-    const video = document.createElement('video');
-    video.src = '/background.mp4';
-    video.crossOrigin = 'Anonymous';
+    const video = document.createElement("video");
+    video.src = "/background.mp4";
+    video.crossOrigin = "Anonymous";
     video.loop = true;
     video.muted = true;
     video.playsInline = true;
     video.autoplay = true;
-    video.style.display = 'none';
+    video.style.display = "none";
     document.body.appendChild(video);
-    
-    video.play().then(() => {
-      const texture = new THREE.VideoTexture(video);
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.format = THREE.RGBAFormat;
-      if (materialRef.current) {
-        materialRef.current.uniforms.tVideo.value = texture;
-        // Dynamically set actual video resolution for perfect object-fit: cover
-        if (video.videoWidth && video.videoHeight) {
-          materialRef.current.uniforms.uVideoResolution.value.set(video.videoWidth, video.videoHeight);
-        }
-      }
-    }).catch(e => console.warn(e));
 
-    // Also catch loadedmetadata just in case play() resolves before metadata is fully parsed
-    video.addEventListener('loadedmetadata', () => {
-      if (materialRef.current && video.videoWidth && video.videoHeight) {
-        materialRef.current.uniforms.uVideoResolution.value.set(video.videoWidth, video.videoHeight);
-      }
-    });
+    video
+      .play()
+      .then(() => {
+        const texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBAFormat;
+        if (materialRef.current)
+          materialRef.current.uniforms.tVideo.value = texture;
+      })
+      .catch((e) => console.warn(e));
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       scrollVelocity.current = Math.abs(currentScrollY - lastScrollY.current);
       lastScrollY.current = currentScrollY;
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       video.pause();
       if (video.parentNode) video.parentNode.removeChild(video);
     };
   }, []);
 
-  const shaderMat = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: videoVertex,
-    fragmentShader: videoFragment,
-    uniforms: {
-      tVideo: { value: null },
-      uTime: { value: 0 },
-      uTintMix: { value: 0 },
-      uVelocity: { value: 0 },
-      uGlitchMultiplier: { value: 0 },
-      uMouse: { value: new THREE.Vector2(0, 0) },
-      uHoverColor: { value: new THREE.Color('#ff0a54') },
-      uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
-      uVideoResolution: { value: new THREE.Vector2(1920, 1080) }, // dynamically updated
-    },
-    depthWrite: false,
-  }), []);
+  const shaderMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: videoVertex,
+        fragmentShader: videoFragment,
+        uniforms: {
+          tVideo: { value: null },
+          uTime: { value: 0 },
+          uTintMix: { value: 0 },
+          uVelocity: { value: 0 },
+          uGlitchMultiplier: { value: 0 },
+          uMouse: { value: new THREE.Vector2(0, 0) },
+          uHoverColor: { value: new THREE.Color("#ff0a54") },
+          uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
+          uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
+        },
+        depthWrite: false,
+      }),
+    [],
+  );
 
   useEffect(() => {
     materialRef.current = shaderMat;
@@ -166,7 +162,7 @@ function VideoBackground() {
   // Trigger glitch spike on hover state change
   useEffect(() => {
     if (hoverState !== lastHoverState.current) {
-      if (hoverState !== 'idle') {
+      if (hoverState !== "idle") {
         glitchIntensity.current = 1.0; // Huge glitch spike
       }
       lastHoverState.current = hoverState;
@@ -177,103 +173,83 @@ function VideoBackground() {
     if (!materialRef.current) return;
     const mat = materialRef.current;
     mat.uniforms.uTime.value = state.clock.elapsedTime;
-    
+
     mat.uniforms.uResolution.value.set(state.size.width, state.size.height);
-    
+
     // Decay velocity
-    scrollVelocity.current = THREE.MathUtils.lerp(scrollVelocity.current, 0, 0.1);
-    mat.uniforms.uVelocity.value = THREE.MathUtils.lerp(mat.uniforms.uVelocity.value, Math.min(scrollVelocity.current * 0.05, 1.0), 0.1);
+    scrollVelocity.current = THREE.MathUtils.lerp(
+      scrollVelocity.current,
+      0,
+      0.1,
+    );
+    mat.uniforms.uVelocity.value = THREE.MathUtils.lerp(
+      mat.uniforms.uVelocity.value,
+      Math.min(scrollVelocity.current * 0.05, 1.0),
+      0.1,
+    );
 
     // Decay hover glitch
-    glitchIntensity.current = THREE.MathUtils.lerp(glitchIntensity.current, 0, 0.05);
+    glitchIntensity.current = THREE.MathUtils.lerp(
+      glitchIntensity.current,
+      0,
+      0.05,
+    );
     mat.uniforms.uGlitchMultiplier.value = glitchIntensity.current;
 
     // Mouse tracking
-    mat.uniforms.uMouse.value.x = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.x, state.mouse.x, 0.1);
-    mat.uniforms.uMouse.value.y = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.y, state.mouse.y, 0.1);
+    mat.uniforms.uMouse.value.x = THREE.MathUtils.lerp(
+      mat.uniforms.uMouse.value.x,
+      state.mouse.x,
+      0.1,
+    );
+    mat.uniforms.uMouse.value.y = THREE.MathUtils.lerp(
+      mat.uniforms.uMouse.value.y,
+      state.mouse.y,
+      0.1,
+    );
 
-    const isHovered = hoverState !== 'idle';
-    mat.uniforms.uTintMix.value = THREE.MathUtils.lerp(mat.uniforms.uTintMix.value, isHovered ? 0.9 : 0.0, 0.05);
+    const isHovered = hoverState !== "idle";
+    mat.uniforms.uTintMix.value = THREE.MathUtils.lerp(
+      mat.uniforms.uTintMix.value,
+      isHovered ? 0.9 : 0.0,
+      0.05,
+    );
 
     // Purple (Panache), Magenta (Bandjam), Electric Yellow (Step-Up)
     const targetColor = new THREE.Color(
-      hoverState === 'primary' ? '#9d4edd' : 
-      hoverState === 'secondary' ? '#FF00FF' : 
-      hoverState === 'tertiary' ? '#FFFF00' : '#9d4edd'
+      hoverState === "primary"
+        ? "#9d4edd"
+        : hoverState === "secondary"
+          ? "#FF00FF"
+          : hoverState === "tertiary"
+            ? "#FFFF00"
+            : "#9d4edd",
     );
     mat.uniforms.uHoverColor.value.lerp(targetColor, 0.1);
   });
 
+  const safeScale: [number, number, number] = useMemo(() => {
+    if (Array.isArray(scale) && !isNaN(scale[0]) && !isNaN(scale[1])) {
+      return scale as [number, number, number];
+    }
+    return [1, 1, 1];
+  }, [scale]);
+
   return (
-    <mesh position={[0, 0, 0]}>
-      <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
+    <mesh position={[0, 0, 0]} scale={safeScale}>
+      <planeGeometry args={[1, 1]} />
       <primitive object={shaderMat} attach="material" />
     </mesh>
-  );
-}
-
-import { Text3D, MeshTransmissionMaterial, Center } from '@react-three/drei';
-
-function Hero3DText() {
-  const groupRef = useRef<THREE.Group>(null);
-  
-  useFrame((state) => {
-    if (!groupRef.current) return;
-    
-    // Smooth Floating Bob
-    groupRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.2;
-    
-    // Smooth Mouse Parallax (Tilting the glass)
-    const targetRotX = -(state.mouse.y * Math.PI) / 15;
-    const targetRotY = (state.mouse.x * Math.PI) / 15;
-    
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.05);
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.05);
-    
-    // Scroll Parallax (Flying backward into the scene)
-    const scrollY = window.scrollY;
-    const targetZ = scrollY > 0 ? -(scrollY * 0.02) : 0;
-    groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.1);
-  });
-
-  return (
-    <group ref={groupRef} position={[0, 0, 0]}>
-      <Center>
-        <Text3D
-          font="/fonts/helvetiker_bold.typeface.json"
-          size={1.8}
-          height={0.5}
-          curveSegments={12}
-          bevelEnabled
-          bevelThickness={0.05}
-          bevelSize={0.05}
-          bevelOffset={0}
-          bevelSegments={5}
-          letterSpacing={0.05}
-        >
-          SABRANG 2026
-          <MeshTransmissionMaterial 
-            backside
-            thickness={2}
-            roughness={0.05}
-            transmission={1}
-            ior={1.2}
-            chromaticAberration={0.05}
-            anisotropy={1}
-            clearcoat={1}
-            clearcoatRoughness={0}
-            color="#ffffff"
-          />
-        </Text3D>
-      </Center>
-    </group>
   );
 }
 
 export default function ThreeBackground() {
   return (
     <div className="fixed inset-0 z-0 w-full h-full bg-[#030005] pointer-events-none overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+      <Canvas
+        camera={{ position: [0, 0, 10], fov: 45 }}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
+      >
         <VideoBackground />
       </Canvas>
     </div>

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 export default function RegisterClient() {
   const router = useRouter();
@@ -16,13 +16,15 @@ export default function RegisterClient() {
             Registrations Opening Soon
           </h1>
           <p className="mt-4 text-sm text-white/60 leading-relaxed">
-            Registrations for Sabrang 2026 events are not yet open. Stay tuned to secure your spot in our flagship competitions, fashion shows, and musical performances.
+            Registrations for Sabrang 2026 events are not yet open. Stay tuned
+            to secure your spot in our flagship competitions, fashion shows, and
+            musical performances.
           </p>
         </div>
 
         <div className="mt-8 flex justify-center">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
             className="px-6 py-2.5 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-lg text-sm transition-colors duration-200 shadow-lg shadow-violet-500/20 active:scale-95"
           >
             Back to Home

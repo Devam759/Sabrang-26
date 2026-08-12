@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import ContactForm from '@/components/forms/ContactForm';
-import CursorGrid from '@/components/ui/CursorGrid';
-import { ORGANIZING_HEADS, SITE_CONFIG } from '@/lib/constants';
+import React from "react";
+import ContactForm from "@/components/forms/ContactForm";
+import CursorGrid from "@/components/ui/CursorGrid";
+import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
 
 export default function ContactClient() {
   return (
@@ -34,7 +34,8 @@ export default function ContactClient() {
             Contact Us
           </h1>
           <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto">
-            Have questions or want to collaborate? Connect with the organizing team of {SITE_CONFIG.name}.
+            Have questions or want to collaborate? Connect with the organizing
+            team of {SITE_CONFIG.name}.
           </p>
         </section>
 
@@ -54,14 +55,26 @@ export default function ContactClient() {
               >
                 <div className="space-y-3">
                   <div className="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white tracking-tight">{head.name}</h3>
+                    <h3 className="text-xl font-bold text-white tracking-tight">
+                      {head.name}
+                    </h3>
                     <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
-                      {head.role || 'Organizing Head'}
+                      {head.role || "Organizing Head"}
                     </span>
                   </div>
                 </div>
@@ -71,8 +84,18 @@ export default function ContactClient() {
                     href={`tel:${head.phone}`}
                     className="flex items-center gap-2.5 text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors"
                   >
-                    <svg className="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    <svg
+                      className="w-4 h-4 text-indigo-400 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                      />
                     </svg>
                     <span>{head.displayPhone}</span>
                   </a>
@@ -85,8 +108,18 @@ export default function ContactClient() {
         {/* Email Callout Section */}
         <section className="bg-gradient-to-r from-neutral-900/90 via-neutral-900/90 to-neutral-800/90 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center space-y-4 shadow-2xl">
           <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto">
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            <svg
+              className="w-7 h-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
             </svg>
           </div>
           <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">
@@ -117,17 +150,33 @@ export default function ContactClient() {
             <h2 className="text-2xl font-black text-white tracking-tight uppercase">
               Festival Venue
             </h2>
-            
+
             <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-0.5">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">{SITE_CONFIG.university.name}</h3>
+                  <h3 className="font-bold text-white text-base">
+                    {SITE_CONFIG.university.name}
+                  </h3>
                   <p className="text-white/60">Mahapura, Ajmer Road</p>
                   <p className="text-white/60">Jaipur, Rajasthan 302026</p>
                 </div>
@@ -142,8 +191,18 @@ export default function ContactClient() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/10"
               >
                 <span>View On Google Maps</span>
-                <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <svg
+                  className="w-4 h-4 text-purple-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
                 </svg>
               </a>
             </div>

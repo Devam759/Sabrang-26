@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Italiana&family=Syne:wght@500;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Rush Driver';
+  src: url('/fonts/rush-driver/RushDriver-Italic.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* Material Design 3 Inspired Palette */
   --color-primary: #004ac6;
