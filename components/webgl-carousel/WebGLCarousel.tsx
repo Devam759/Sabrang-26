@@ -1,15 +1,18 @@
-'use client';
+"use client";
 
-import { Suspense, useState, useEffect, useRef } from 'react';
-import Dynamic from 'next/dynamic';
-import gsap from 'gsap';
-import { CarouselItemData } from './CarouselItem';
+import { Suspense, useState, useEffect, useRef } from "react";
+import Dynamic from "next/dynamic";
+import gsap from "gsap";
+import { CarouselItemData } from "./CarouselItem";
 
-const Canvas = Dynamic(() => import('@react-three/fiber').then((mod) => mod.Canvas), {
-  ssr: false,
-});
+const Canvas = Dynamic(
+  () => import("@react-three/fiber").then((mod) => mod.Canvas),
+  {
+    ssr: false,
+  },
+);
 
-const Carousel = Dynamic(() => import('./Carousel'), {
+const Carousel = Dynamic(() => import("./Carousel"), {
   ssr: false,
 });
 
@@ -23,9 +26,9 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
   const line2Ref = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
 
-  const parts = (item.name || 'Team Member').trim().split(' ');
-  const firstLine = parts[0] || '';
-  const secondLine = parts.slice(1).join(' ');
+  const parts = (item.name || "Team Member").trim().split(" ");
+  const firstLine = parts[0] || "";
+  const secondLine = parts.slice(1).join(" ");
 
   useEffect(() => {
     // Delay GSAP timeline reveal until 3D card expansion finishes opening (~0.65s)
@@ -35,7 +38,14 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
       tl.fromTo(
         line1Ref.current,
         { y: 90, opacity: 0, skewY: 7, rotateX: -35 },
-        { y: 0, opacity: 1, skewY: 0, rotateX: 0, duration: 0.8, ease: 'power4.out' }
+        {
+          y: 0,
+          opacity: 1,
+          skewY: 0,
+          rotateX: 0,
+          duration: 0.8,
+          ease: "power4.out",
+        },
       );
     }
 
@@ -43,8 +53,15 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
       tl.fromTo(
         line2Ref.current,
         { y: 90, opacity: 0, skewY: 7, rotateX: -35 },
-        { y: 0, opacity: 1, skewY: 0, rotateX: 0, duration: 0.8, ease: 'power4.out' },
-        '-=0.6'
+        {
+          y: 0,
+          opacity: 1,
+          skewY: 0,
+          rotateX: 0,
+          duration: 0.8,
+          ease: "power4.out",
+        },
+        "-=0.6",
       );
     }
 
@@ -52,8 +69,8 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
       tl.fromTo(
         badgeRef.current,
         { scale: 0.75, opacity: 0, y: 20 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' },
-        '-=0.4'
+        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.8)" },
+        "-=0.4",
       );
     }
 
@@ -85,10 +102,7 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
         )}
       </div>
 
-      <div
-        ref={badgeRef}
-        className="flex items-center gap-5 pt-1"
-      >
+      <div ref={badgeRef} className="flex items-center gap-5 pt-1">
         <a
           href="https://instagram.com"
           target="_blank"
@@ -96,10 +110,18 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
           className="text-white/80 hover:text-purple-400 transition-colors p-1"
           title="Instagram"
         >
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
           </svg>
         </a>
         <a
@@ -109,10 +131,18 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
           className="text-white/80 hover:text-purple-400 transition-colors p-1"
           title="LinkedIn"
         >
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-            <rect x="2" y="9" width="4" height="12"/>
-            <circle cx="4" cy="4" r="2"/>
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+            <rect x="2" y="9" width="4" height="12" />
+            <circle cx="4" cy="4" r="2" />
           </svg>
         </a>
         <a
@@ -122,8 +152,16 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
           className="text-white/80 hover:text-purple-400 transition-colors p-1"
           title="X / Twitter"
         >
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
           </svg>
         </a>
         <a
@@ -131,9 +169,17 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
           className="text-white/80 hover:text-purple-400 transition-colors p-1"
           title="Email"
         >
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
           </svg>
         </a>
       </div>
@@ -141,31 +187,36 @@ function OpenedNameOverlay({ item }: { item: CarouselItemData }) {
   );
 }
 
-export default function WebGLCarousel({ items, className = 'w-full h-[70vh]' }: WebGLCarouselProps) {
+export default function WebGLCarousel({
+  items,
+  className = "w-full h-[70vh]",
+}: WebGLCarouselProps) {
   const [activeItem, setActiveItem] = useState<CarouselItemData | null>(null);
 
   useEffect(() => {
     if (activeItem) {
-      document.body.classList.add('team-card-expanded');
+      document.body.classList.add("team-card-expanded");
     } else {
-      document.body.classList.remove('team-card-expanded');
+      document.body.classList.remove("team-card-expanded");
     }
     return () => {
-      document.body.classList.remove('team-card-expanded');
+      document.body.classList.remove("team-card-expanded");
     };
   }, [activeItem]);
 
   return (
     <div className={`relative overflow-hidden rounded-3xl ${className}`}>
       {/* Page Heading (fades out when a card is active) */}
-      <div className={`team-page-heading absolute top-10 left-0 w-full z-20 text-center pointer-events-none transition-all duration-500 ease-in-out ${activeItem ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+      <div
+        className={`team-page-heading absolute top-10 left-0 w-full z-20 text-center pointer-events-none transition-all duration-500 ease-in-out ${activeItem ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}
+      >
         <h1 className="text-white font-bold text-3xl md:text-4xl uppercase tracking-[0.25em]">
           Team
         </h1>
       </div>
 
       <Canvas
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: "none" }}
         gl={{ alpha: true, antialias: true }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0);

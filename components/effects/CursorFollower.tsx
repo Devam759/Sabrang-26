@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function CursorFollower() {
   const [pos, setPos] = useState({ x: -100, y: -100 });
@@ -8,7 +8,7 @@ export default function CursorFollower() {
   const [isTouch, setIsTouch] = useState(true);
 
   useEffect(() => {
-    const hoverMatch = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const hoverMatch = window.matchMedia("(hover: hover) and (pointer: fine)");
     setIsTouch(!hoverMatch.matches);
 
     if (!hoverMatch.matches) return;
@@ -28,7 +28,7 @@ export default function CursorFollower() {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        typeof target.closest === 'function' &&
+        typeof target.closest === "function" &&
         target.closest('a, button, input, select, textarea, [role="button"]')
       ) {
         setIsHovered(true);
@@ -44,11 +44,11 @@ export default function CursorFollower() {
       animId = requestAnimationFrame(update);
     };
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener("mousemove", onMouseMove);
     animId = requestAnimationFrame(update);
 
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener("mousemove", onMouseMove);
       cancelAnimationFrame(animId);
     };
   }, []);
@@ -65,7 +65,7 @@ export default function CursorFollower() {
     >
       <div
         className={`w-4 h-4 rounded-full custom-cursor-circle bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-transform duration-200 ${
-          isHovered ? 'scale-150 opacity-90' : 'scale-100 opacity-100'
+          isHovered ? "scale-150 opacity-90" : "scale-100 opacity-100"
         }`}
       />
     </div>

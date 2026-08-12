@@ -1,14 +1,49 @@
-'use client';
+"use client";
 
 export default function CreditsClient() {
   const devTeam = [
-    { name: 'Devam Gupta', role: 'Lead Web Architect & Fullstack Developer', avatar: '/team-carousel/Devansh Srivastava .png', tag: 'Core Lead' },
-    { name: 'Technical Advisory', role: 'UI/UX & WebGL Shader Design', avatar: '/team-carousel/Aditya Nayak.png', tag: 'Design' },
-    { name: 'Frontend Team', role: 'React, Next.js & Animation Engineering', avatar: '/team-carousel/Ambika Dalmia.png', tag: 'Engineering' },
-    { name: 'Backend & Cloud', role: 'Firebase Infrastructure & Auth Services', avatar: '/team-carousel/Aryan.png', tag: 'Infrastructure' },
-    { name: 'QA & Testing', role: 'Quality Assurance & Automated Testing', avatar: '/team-carousel/Ashlesha Sharma.png', tag: 'Quality' },
-    { name: 'DevOps & SecOps', role: 'CI/CD Pipelines & Platform Security', avatar: '/team-carousel/Daksh kumar.png', tag: 'Operations' },
-    { name: 'Content & Strategy', role: 'Digital Strategy & Content Management', avatar: '/team-carousel/Manan.png', tag: 'Strategy' },
+    {
+      name: "Devam Gupta",
+      role: "Lead Web Architect & Fullstack Developer",
+      avatar: "/team-carousel/Devansh Srivastava.png",
+      tag: "Core Lead",
+    },
+    {
+      name: "Technical Advisory",
+      role: "UI/UX & WebGL Shader Design",
+      avatar: "/team-carousel/Aditya Nayak.png",
+      tag: "Design",
+    },
+    {
+      name: "Frontend Team",
+      role: "React, Next.js & Animation Engineering",
+      avatar: "/team-carousel/Ambika Dalmia.png",
+      tag: "Engineering",
+    },
+    {
+      name: "Backend & Cloud",
+      role: "Firebase Infrastructure & Auth Services",
+      avatar: "/team-carousel/Aryan.png",
+      tag: "Infrastructure",
+    },
+    {
+      name: "QA & Testing",
+      role: "Quality Assurance & Automated Testing",
+      avatar: "/team-carousel/Ashlesha Sharma.png",
+      tag: "Quality",
+    },
+    {
+      name: "DevOps & SecOps",
+      role: "CI/CD Pipelines & Platform Security",
+      avatar: "/team-carousel/Daksh kumar.png",
+      tag: "Operations",
+    },
+    {
+      name: "Content & Strategy",
+      role: "Digital Strategy & Content Management",
+      avatar: "/team-carousel/Manan.png",
+      tag: "Strategy",
+    },
   ];
 
   return (
@@ -22,7 +57,8 @@ export default function CreditsClient() {
           Tech Team Credits
         </h1>
         <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto">
-          Crafted with passion, precision, and modern web architecture by the Sabrang Technical Team.
+          Crafted with passion, precision, and modern web architecture by the
+          Sabrang Technical Team.
         </p>
       </section>
 
@@ -40,8 +76,12 @@ export default function CreditsClient() {
               <span className="text-xs uppercase tracking-wider text-purple-400 font-bold px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/40 inline-block">
                 {devTeam[0].tag}
               </span>
-              <h3 className="text-3xl font-bold text-white">{devTeam[0].name}</h3>
-              <p className="text-sm text-white/60 font-medium">{devTeam[0].role}</p>
+              <h3 className="text-3xl font-bold text-white">
+                {devTeam[0].name}
+              </h3>
+              <p className="text-sm text-white/60 font-medium">
+                {devTeam[0].role}
+              </p>
             </div>
           </div>
         )}
@@ -63,7 +103,9 @@ export default function CreditsClient() {
                   {member.tag}
                 </span>
                 <h3 className="text-xl font-bold text-white">{member.name}</h3>
-                <p className="text-xs text-white/60 font-medium">{member.role}</p>
+                <p className="text-xs text-white/60 font-medium">
+                  {member.role}
+                </p>
               </div>
             </div>
           ))}
@@ -76,7 +118,14 @@ export default function CreditsClient() {
           Built With Next-Gen Web Technologies
         </h3>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {['Next.js 16', 'React 19', 'Three.js / WebGL', 'Tailwind CSS', 'GSAP Shaders', 'Firebase Platform'].map((tech, i) => (
+          {[
+            "Next.js 16",
+            "React 19",
+            "Three.js / WebGL",
+            "Tailwind CSS",
+            "GSAP Shaders",
+            "Firebase Platform",
+          ].map((tech, i) => (
             <span
               key={i}
               className="px-4 py-2 rounded-full bg-white/[0.04] border border-white/10 text-xs font-semibold text-white/80"

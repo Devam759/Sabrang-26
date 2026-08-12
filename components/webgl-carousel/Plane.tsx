@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef } from 'react';
-import { useThree } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
-import gsap from 'gsap';
-import * as THREE from 'three';
+import { useEffect, useMemo, useRef } from "react";
+import { useThree } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
+import gsap from "gsap";
+import * as THREE from "three";
 
 interface PlaneProps {
   texture: string;
@@ -22,21 +22,21 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
   useEffect(() => {
     if ($mesh.current && $mesh.current.material) {
       const mat = $mesh.current.material as THREE.ShaderMaterial;
-      
+
       mat.uniforms.uZoomScale.value.x = viewport.width / width;
       mat.uniforms.uZoomScale.value.y = viewport.height / height;
 
       gsap.to(mat.uniforms.uProgress, {
         value: active ? 1 : 0,
         duration: 2.5,
-        ease: 'power3.out',
+        ease: "power3.out",
       });
 
       gsap.to(mat.uniforms.uRes.value, {
         x: active ? viewport.width : width,
         y: active ? viewport.height : height,
         duration: 2.5,
-        ease: 'power3.out',
+        ease: "power3.out",
       });
     }
   }, [viewport, active, width, height]);
@@ -47,13 +47,13 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
         uProgress: { value: 0 },
         uZoomScale: { value: new THREE.Vector2(1, 1) },
         uTex: { value: tex },
-        uContain: { value: texture.includes('jklu') ? 1.0 : 0.0 },
-        uFlipX: { value: texture.toLowerCase().includes('satvik') ? 1.0 : 0.0 },
+        uContain: { value: texture.includes("jklu") ? 1.0 : 0.0 },
+        uFlipX: { value: texture.toLowerCase().includes("satvik") ? 1.0 : 0.0 },
         uRes: { value: new THREE.Vector2(width, height) },
         uImageRes: {
           value: new THREE.Vector2(
             tex.image ? (tex.image as any).width || 1000 : 1000,
-            tex.image ? (tex.image as any).height || 1000 : 1000
+            tex.image ? (tex.image as any).height || 1000 : 1000,
           ),
         },
       },
@@ -117,7 +117,7 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
         }
       `,
     }),
-    [tex, texture, width, height]
+    [tex, texture, width, height],
   );
 
   return (

@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { CURSOR_TRAIL_COLORS } from '@/lib/constants';
+import { useEffect, useRef, useState } from "react";
+import { CURSOR_TRAIL_COLORS } from "@/lib/constants";
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const origWarn = console.warn;
   console.warn = (...args: unknown[]) => {
     if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('Multiple instances of Three.js') || args[0].includes('THREE.Clock'))
+      typeof args[0] === "string" &&
+      (args[0].includes("Multiple instances of Three.js") ||
+        args[0].includes("THREE.Clock"))
     ) {
       return;
     }
@@ -22,9 +23,11 @@ export default function TubesCursor() {
 
   useEffect(() => {
     const isTouchDevice =
-      typeof window !== 'undefined' &&
-      (('ontouchstart' in window && !window.matchMedia('(pointer: fine)').matches) ||
-        (navigator.maxTouchPoints > 0 && window.matchMedia('(pointer: coarse)').matches));
+      typeof window !== "undefined" &&
+      (("ontouchstart" in window &&
+        !window.matchMedia("(pointer: fine)").matches) ||
+        (navigator.maxTouchPoints > 0 &&
+          window.matchMedia("(pointer: coarse)").matches));
 
     if (isTouchDevice) {
       setIsTouch(true);
@@ -37,17 +40,20 @@ export default function TubesCursor() {
     const canvas = canvasRef.current;
 
     let app: {
-      tubes?: { setColors: (c: string[]) => void; setLightsColors: (c: string[]) => void };
+      tubes?: {
+        setColors: (c: string[]) => void;
+        setLightsColors: (c: string[]) => void;
+      };
       dispose?: () => void;
     } | null = null;
 
     let isMounted = true;
 
     const FIXED_TUBE_COLORS = [...CURSOR_TRAIL_COLORS];
-    const FIXED_LIGHT_COLORS = ['#83f36e', '#fe8a2e', '#ff008a', '#60aed5'];
+    const FIXED_LIGHT_COLORS = ["#83f36e", "#fe8a2e", "#ff008a", "#60aed5"];
 
     // @ts-ignore
-    import('threejs-components/build/cursors/tubes1.min.js')
+    import("threejs-components/build/cursors/tubes1.min.js")
       .then((module) => {
         if (!isMounted || !canvas) return;
         const TubesCursor = module.default ?? module;
@@ -74,8 +80,8 @@ export default function TubesCursor() {
     let isIdle = false;
 
     const currentPos = {
-      x: typeof window !== 'undefined' ? window.innerWidth / 2 : 500,
-      y: typeof window !== 'undefined' ? window.innerHeight / 2 : 400,
+      x: typeof window !== "undefined" ? window.innerWidth / 2 : 500,
+      y: typeof window !== "undefined" ? window.innerHeight / 2 : 400,
     };
     const velocity = {
       x: (Math.random() - 0.5) * 4,
@@ -124,7 +130,8 @@ export default function TubesCursor() {
 
         frameCount++;
         if (frameCount % 6 === 0) {
-          const targetEl = document.elementFromPoint(currentPos.x, currentPos.y) || window;
+          const targetEl =
+            document.elementFromPoint(currentPos.x, currentPos.y) || window;
           const eventInit = {
             clientX: currentPos.x,
             clientY: currentPos.y,
@@ -134,8 +141,8 @@ export default function TubesCursor() {
             cancelable: true,
           };
 
-          targetEl.dispatchEvent(new PointerEvent('pointermove', eventInit));
-          targetEl.dispatchEvent(new MouseEvent('mousemove', eventInit));
+          targetEl.dispatchEvent(new PointerEvent("pointermove", eventInit));
+          targetEl.dispatchEvent(new MouseEvent("mousemove", eventInit));
         }
 
         animFrameId = requestAnimationFrame(wander);
@@ -180,11 +187,11 @@ export default function TubesCursor() {
       resetIdleTimer();
     };
 
-    window.addEventListener('mousemove', handleUserMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
-    document.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('blur', handleWindowBlur);
-    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener("mousemove", handleUserMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("mouseleave", handleMouseLeave);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("focus", handleWindowFocus);
 
     resetIdleTimer();
 
@@ -192,12 +199,12 @@ export default function TubesCursor() {
       isMounted = false;
       stopRandomWander();
       if (idleTimer) clearTimeout(idleTimer);
-      window.removeEventListener('mousemove', handleUserMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      window.removeEventListener('blur', handleWindowBlur);
-      window.removeEventListener('focus', handleWindowFocus);
-      if (app && typeof app.dispose === 'function') {
+      window.removeEventListener("mousemove", handleUserMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("focus", handleWindowFocus);
+      if (app && typeof app.dispose === "function") {
         app.dispose();
       }
     };
@@ -209,23 +216,23 @@ export default function TubesCursor() {
     <div
       className="tubes-cursor-container"
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        pointerEvents: 'none',
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        pointerEvents: "none",
         zIndex: 9980,
-        mixBlendMode: 'screen',
+        mixBlendMode: "screen",
       }}
     >
       <canvas
         ref={canvasRef}
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'block',
+          width: "100%",
+          height: "100%",
+          display: "block",
         }}
       />
     </div>

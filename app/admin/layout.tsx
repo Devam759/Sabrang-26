@@ -1,5 +1,5 @@
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import AdminTopBar from '@/components/layout/AdminTopBar';
+import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminTopBar from "@/components/layout/AdminTopBar";
 
 export default function AdminLayout({
   children,
@@ -11,9 +11,7 @@ export default function AdminLayout({
       <AdminSidebar />
       <div className="flex-grow ml-64 flex flex-col">
         <AdminTopBar />
-        <main className="p-10">
-          {children}
-        </main>
+        <main className="p-10">{children}</main>
       </div>
     </div>
   );

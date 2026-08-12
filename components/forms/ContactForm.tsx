@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,20 +20,33 @@ export default function ContactForm() {
 
     setSubmitted(true);
     setLoading(false);
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
   if (submitted) {
     return (
       <div className="bg-emerald-950/40 border border-emerald-500/30 p-8 rounded-2xl text-center space-y-4">
         <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
-        <h3 className="text-xl font-bold text-white">Message Sent Successfully!</h3>
+        <h3 className="text-xl font-bold text-white">
+          Message Sent Successfully!
+        </h3>
         <p className="text-sm text-white/70">
-          Thank you for reaching out to Sabrang 2026. Our team will get back to you shortly.
+          Thank you for reaching out to Sabrang 2026. Our team will get back to
+          you shortly.
         </p>
         <button
           onClick={() => setSubmitted(false)}
@@ -85,14 +98,28 @@ export default function ContactForm() {
           required
           className="w-full bg-neutral-950 border border-white/15 text-white rounded-xl p-3.5 focus:border-indigo-500 focus:outline-none transition-all text-sm"
           value={formData.subject}
-          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, subject: e.target.value })
+          }
         >
-          <option value="" disabled className="bg-neutral-900 text-white/40">Select a topic</option>
-          <option value="general" className="bg-neutral-900 text-white">General Inquiry</option>
-          <option value="registration" className="bg-neutral-900 text-white">Event Registration Help</option>
-          <option value="sponsorship" className="bg-neutral-900 text-white">Sponsorship & Partnership</option>
-          <option value="technical" className="bg-neutral-900 text-white">Technical Support</option>
-          <option value="other" className="bg-neutral-900 text-white">Other</option>
+          <option value="" disabled className="bg-neutral-900 text-white/40">
+            Select a topic
+          </option>
+          <option value="general" className="bg-neutral-900 text-white">
+            General Inquiry
+          </option>
+          <option value="registration" className="bg-neutral-900 text-white">
+            Event Registration Help
+          </option>
+          <option value="sponsorship" className="bg-neutral-900 text-white">
+            Sponsorship & Partnership
+          </option>
+          <option value="technical" className="bg-neutral-900 text-white">
+            Technical Support
+          </option>
+          <option value="other" className="bg-neutral-900 text-white">
+            Other
+          </option>
         </select>
       </div>
 
@@ -106,7 +133,9 @@ export default function ContactForm() {
           placeholder="Write your message here..."
           className="w-full bg-neutral-950 border border-white/15 text-white placeholder-white/30 rounded-xl p-3.5 focus:border-indigo-500 focus:outline-none transition-all text-sm resize-none"
           value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, message: e.target.value })
+          }
         />
       </div>
 
@@ -115,7 +144,7 @@ export default function ContactForm() {
         disabled={loading}
         className="w-full bg-white text-black font-bold py-3.5 px-6 rounded-xl hover:bg-neutral-200 transition-all uppercase tracking-wider text-xs shadow-xl disabled:opacity-50"
       >
-        {loading ? 'Sending Message...' : 'Send Message'}
+        {loading ? "Sending Message..." : "Send Message"}
       </button>
     </form>
   );
