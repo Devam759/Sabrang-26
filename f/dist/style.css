@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+html {
+  overscroll-behavior: none;
+}
+
+body {
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+section {
+  position:relative;
+  left:0;
+  top:0;
+  width:100%;
+  min-height:150vh;
+}
+
+.map {
+  position:absolute;
+  z-index:999;
+  width:50%;
+  height:100vh;
+}
+
+.info {
+  position:relative;
+  left:50%;
+  padding:5%;
+  width:40%;
+  font-size:1.2rem;
+}
+
+.info p, .info .shaded {
+  margin-top:3rem;
+  line-height:2rem;
+}
+
+.info svg {
+  width:15px;
+  padding-right:4px;
+}
+
+.info .shaded {
+  color:#fff;
+  background:#223e6b;
+  padding:5px 25px;
+  border-radius:10px;
+}
+
+.info ul {
+  list-style:none;
+  padding:0;
+}
+
+.info li {
+  padding-bottom:2rem;
+}
+
+.close-map {
+  opacity:0;
+  z-index:9999;
+  position:fixed;
+  right:10px;
+  bottom:10px;
+  padding:0;
+  border:none;
+  background:none;
+}
+
+.expand-map {
+  border:none;
+  background:none;
+  margin-top:10px;
+  font-size:1.75rem;
+  border-radius:10px;
+  padding:5px 15px;
+}
+
+.expand-map svg {
+  width:20px;
+}
