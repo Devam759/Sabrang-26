@@ -185,30 +185,30 @@ export default function SchedulePage() {
 
         {/* Schedule */}
         {Object.entries(schedule).map(([day, events]) => (
-          <section key={day} className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight border-l-4 border-purple-500 pl-4">
+          <section key={day} className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight border-l-4 border-purple-500 pl-3 sm:pl-4">
               {day}
             </h2>
-            <div className="bg-neutral-900/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+            <div className="bg-neutral-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
               <div className="divide-y divide-white/10">
                 {events.map((item, index) => (
                   <div
                     key={index}
-                    className="p-6 hover:bg-white/5 transition-colors grid grid-cols-1 md:grid-cols-4 gap-4 items-center"
+                    className="p-4 sm:p-6 hover:bg-white/5 transition-colors grid grid-cols-1 md:grid-cols-4 gap-2 sm:gap-4 items-start md:items-center"
                   >
-                    <div className="font-bold text-white text-lg">
+                    <div className="font-bold text-indigo-300 sm:text-white text-base sm:text-lg">
                       {item.time}
                     </div>
                     <div className="md:col-span-2">
-                      <div className="font-bold text-white text-lg">
+                      <div className="font-bold text-white text-base sm:text-lg">
                         {item.event}
                       </div>
-                      <div className="text-sm text-white/60 flex items-center gap-1 mt-1">
+                      <div className="text-xs sm:text-sm text-white/60 flex items-center gap-1 mt-1">
                         <span>📍</span>
                         <span>{item.venue}</span>
                       </div>
                     </div>
-                    <div className="text-left md:text-right">
+                    <div className="text-left md:text-right mt-1 md:mt-0">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getTypeColor(item.type)}`}
                       >

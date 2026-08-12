@@ -101,65 +101,67 @@ export default function Dashboard() {
   const firstName = fullName.split(" ")[0].split("@")[0];
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <header className="mb-10 flex justify-between items-end">
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <header className="mb-8 sm:mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">User Dashboard</h1>
-          <p className="text-slate-500">Welcome back, {firstName}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white sm:text-slate-900">User Dashboard</h1>
+          <p className="text-white/60 sm:text-slate-500 text-sm">Welcome back, {firstName}</p>
         </div>
       </header>
 
       <section>
-        <h2 className="text-xl font-black mb-6 text-slate-900 tracking-tight uppercase">
+        <h2 className="text-lg sm:text-xl font-black mb-4 sm:mb-6 text-white sm:text-slate-900 tracking-tight uppercase">
           Your Registered Events
         </h2>
         {registrations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {registrations.map((reg) => (
               <div
                 key={reg.id}
-                className="bg-white rounded-2xl shadow-sm border p-6 flex flex-col md:flex-row gap-6"
+                className="bg-neutral-900/90 sm:bg-white rounded-2xl shadow-md border border-white/10 sm:border-slate-200 p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6"
               >
-                <div className="flex-shrink-0 flex flex-col items-center justify-center p-2 border rounded-xl bg-slate-50">
+                <div className="flex-shrink-0 flex flex-col items-center justify-center p-3 border border-white/10 sm:border-slate-200 rounded-xl bg-neutral-950 sm:bg-slate-50">
                   <img
                     src={reg.qrDataUrl}
                     alt="QR Code"
-                    className="w-32 h-32"
+                    className="w-28 h-28 sm:w-32 sm:h-32"
                   />
                   <div className="mt-2 text-center">
-                    <span className="block text-[10px] text-slate-400 font-mono uppercase tracking-widest leading-none">
+                    <span className="block text-[10px] text-white/50 sm:text-slate-400 font-mono uppercase tracking-widest leading-none">
                       Entry: {reg.qrCode}
                     </span>
-                    <span className="block text-[11px] text-indigo-600 font-bold mt-1 font-mono uppercase tracking-widest leading-none">
+                    <span className="block text-[11px] text-indigo-400 sm:text-indigo-600 font-bold mt-1 font-mono uppercase tracking-widest leading-none">
                       Referral: {reg.referralCode}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-black text-slate-900 leading-tight">
-                      {reg.eventTitle}
-                    </h3>
-                    {reg.attended ? (
-                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                        Attended
-                      </span>
-                    ) : (
-                      <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                        Pending
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-slate-500 mb-6">
-                    {formatDate(reg.eventDate)}
+                <div className="flex-grow flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <h3 className="text-base sm:text-lg font-black text-white sm:text-slate-900 leading-tight">
+                        {reg.eventTitle}
+                      </h3>
+                      {reg.attended ? (
+                        <span className="bg-green-500/20 sm:bg-green-100 text-green-400 sm:text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0">
+                          Attended
+                        </span>
+                      ) : (
+                        <span className="bg-amber-500/20 sm:bg-amber-100 text-amber-400 sm:text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0">
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs sm:text-sm text-white/50 sm:text-slate-500 mb-4">
+                      {formatDate(reg.eventDate)}
+                    </div>
                   </div>
 
-                  <div className="mt-auto pt-4 flex gap-4">
+                  <div className="pt-2 flex gap-4 border-t border-white/10 sm:border-slate-100">
                     {!reg.attended && (
                       <button
                         onClick={() => handleUnregister(reg.id!)}
-                        className="text-red-500 text-xs font-semibold hover:underline"
+                        className="text-red-400 sm:text-red-500 text-xs font-semibold hover:underline min-h-[44px] flex items-center"
                       >
                         Unregister
                       </button>
@@ -170,7 +172,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="bg-white border-2 border-dashed rounded-2xl p-12 text-center text-slate-500 italic">
+          <div className="bg-neutral-900/60 sm:bg-white border-2 border-dashed border-white/10 sm:border-slate-300 rounded-2xl p-8 sm:p-12 text-center text-white/50 sm:text-slate-500 italic text-sm">
             You haven't registered for any events yet.
           </div>
         )}

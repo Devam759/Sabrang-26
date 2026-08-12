@@ -82,7 +82,7 @@ export default function ContactClient() {
                 <div className="pt-2 border-t border-white/10">
                   <a
                     href={`tel:${head.phone}`}
-                    className="flex items-center gap-2.5 text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors"
+                    className="flex items-center gap-2.5 text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors min-h-[44px]"
                   >
                     <svg
                       className="w-4 h-4 text-indigo-400 flex-shrink-0"
