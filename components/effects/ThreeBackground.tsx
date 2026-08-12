@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useMemo, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useAspect } from '@react-three/drei';
 import * as THREE from 'three';
 import { useInteraction } from '@/components/InteractionContext';
@@ -88,13 +88,12 @@ void main() {
 
 function VideoBackground() {
   const { hoverState } = useInteraction();
+  const { viewport } = useThree();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const lastScrollY = useRef(0);
   const scrollVelocity = useRef(0);
   const glitchIntensity = useRef(0);
   const lastHoverState = useRef(hoverState);
-  
-  const scale = useAspect(1920, 1080, 1);
   
   useEffect(() => {
     const video = document.createElement('video');
@@ -112,8 +111,21 @@ function VideoBackground() {
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.format = THREE.RGBAFormat;
-      if (materialRef.current) materialRef.current.uniforms.tVideo.value = texture;
+      if (materialRef.current) {
+        materialRef.current.uniforms.tVideo.value = texture;
+        // Dynamically set actual video resolution for perfect object-fit: cover
+        if (video.videoWidth && video.videoHeight) {
+          materialRef.current.uniforms.uVideoResolution.value.set(video.videoWidth, video.videoHeight);
+        }
+      }
     }).catch(e => console.warn(e));
+
+    // Also catch loadedmetadata just in case play() resolves before metadata is fully parsed
+    video.addEventListener('loadedmetadata', () => {
+      if (materialRef.current && video.videoWidth && video.videoHeight) {
+        materialRef.current.uniforms.uVideoResolution.value.set(video.videoWidth, video.videoHeight);
+      }
+    });
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -141,7 +153,7 @@ function VideoBackground() {
       uMouse: { value: new THREE.Vector2(0, 0) },
       uHoverColor: { value: new THREE.Color('#ff0a54') },
       uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
-      uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
+      uVideoResolution: { value: new THREE.Vector2(1920, 1080) }, // dynamically updated
     },
     depthWrite: false,
   }), []);
@@ -193,17 +205,75 @@ function VideoBackground() {
   });
 
   return (
-    <mesh position={[0, 0, 0]} scale={scale}>
-      <planeGeometry args={[1, 1]} />
+    <mesh position={[0, 0, 0]}>
+      <planeGeometry args={[viewport.width, viewport.height]} />
       <primitive object={shaderMat} attach="material" />
     </mesh>
+  );
+}
+
+import { Text3D, MeshTransmissionMaterial, Center } from '@react-three/drei';
+
+function Hero3DText() {
+  const groupRef = useRef<THREE.Group>(null);
+  
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    
+    // Smooth Floating Bob
+    groupRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.2;
+    
+    // Smooth Mouse Parallax (Tilting the glass)
+    const targetRotX = -(state.mouse.y * Math.PI) / 15;
+    const targetRotY = (state.mouse.x * Math.PI) / 15;
+    
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotX, 0.05);
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.05);
+    
+    // Scroll Parallax (Flying backward into the scene)
+    const scrollY = window.scrollY;
+    const targetZ = scrollY > 0 ? -(scrollY * 0.02) : 0;
+    groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.1);
+  });
+
+  return (
+    <group ref={groupRef} position={[0, 0, 0]}>
+      <Center>
+        <Text3D
+          font="/fonts/helvetiker_bold.typeface.json"
+          size={1.8}
+          height={0.5}
+          curveSegments={12}
+          bevelEnabled
+          bevelThickness={0.05}
+          bevelSize={0.05}
+          bevelOffset={0}
+          bevelSegments={5}
+          letterSpacing={0.05}
+        >
+          SABRANG 2026
+          <MeshTransmissionMaterial 
+            backside
+            thickness={2}
+            roughness={0.05}
+            transmission={1}
+            ior={1.2}
+            chromaticAberration={0.05}
+            anisotropy={1}
+            clearcoat={1}
+            clearcoatRoughness={0}
+            color="#ffffff"
+          />
+        </Text3D>
+      </Center>
+    </group>
   );
 }
 
 export default function ThreeBackground() {
   return (
     <div className="fixed inset-0 z-0 w-full h-full bg-[#030005] pointer-events-none overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
+      <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
         <VideoBackground />
       </Canvas>
     </div>
