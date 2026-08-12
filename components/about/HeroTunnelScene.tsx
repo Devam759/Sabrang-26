@@ -169,6 +169,7 @@ function TunnelScene({
     g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     g.setAttribute("aColor", new THREE.BufferAttribute(col, 3));
     g.setAttribute("aSize", new THREE.BufferAttribute(sz, 1));
+    g.computeBoundingSphere();
 
     const m = new THREE.ShaderMaterial({
       uniforms: { uOpacity: { value: 1.0 } },

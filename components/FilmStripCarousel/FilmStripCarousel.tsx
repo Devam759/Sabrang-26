@@ -93,30 +93,20 @@ function EffectsRig({
   const caRef = useRef<ChromaticAberrationEffect>(null);
   useFrame(() => {
     const p = expandRef.current.p;
-    caRef.current?.offset.set(0.0012 * (1 + 2.5 * p), 0.0008 * (1 + 2.5 * p));
+    caRef.current?.offset.set(0.001 * (1 + 1.5 * p), 0.0006 * (1 + 1.5 * p));
   });
   return (
-    <EffectComposer>
-      {/* First in the chain: lens distortion + previous-scene blend happen to
-          the raw scene, then bloom/CA/vignette/grain grade the result. */}
+    <EffectComposer multisampling={0}>
       <FilmTransition sim={sim} handleRef={transitionRef} reducedMotion={reducedMotion} />
-      {/* `&&` rather than a fragment: EffectComposer walks its children to
-          build the pass chain, and React.Children.toArray drops `false` but
-          keeps an empty fragment. */}
       {!mobile && (
-        <Bloom luminanceThreshold={0.62} luminanceSmoothing={0.28} intensity={0.5} mipmapBlur />
+        <Bloom luminanceThreshold={0.7} luminanceSmoothing={0.3} intensity={0.35} />
       )}
       <ChromaticAberration
         ref={caRef}
-        offset={[0.0012, 0.0008]}
-        // upstream d.ts drops the constructor props (Partial<T | undefined>),
-        // so radial modulation has to go past the type checker
+        offset={[0.001, 0.0006]}
         {...({ radialModulation: true, modulationOffset: 0.15 } as Record<string, unknown>)}
       />
-      <Vignette offset={0.28} darkness={0.72} eskil={false} />
-      {/* premultiplied so grain rides the image instead of lifting the blacks —
-          the difference between "film stock" and "noisy render" */}
-      {!mobile && <Noise premultiply opacity={0.18} />}
+      <Vignette offset={0.28} darkness={0.7} eskil={false} />
     </EffectComposer>
   );
 }
@@ -298,9 +288,12 @@ export default function FilmStripCarousel({
             capped at 1.5 — the post chain runs full-resolution passes, and 2x
             on a retina laptop is what made the menu stutter. */}
         <Canvas
-          dpr={[1, 1.5]}
+          dpr={[1, 1.25]}
           gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
           camera={{ position: [0, 0, bp.cameraZ], fov: bp.fov }}
+          onCreated={({ gl }) => {
+            gl.domElement?.addEventListener('webglcontextlost', (e) => e.preventDefault());
+          }}
         >
           <CarouselCamera
             z={bp.cameraZ}

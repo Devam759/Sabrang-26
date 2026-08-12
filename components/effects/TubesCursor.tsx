@@ -9,7 +9,8 @@ if (typeof window !== "undefined") {
     if (
       typeof args[0] === "string" &&
       (args[0].includes("Multiple instances of Three.js") ||
-        args[0].includes("THREE.Clock"))
+        args[0].includes("THREE.Clock") ||
+        args[0].includes("THREE.BufferGeometry.computeBoundingSphere"))
     ) {
       return;
     }
