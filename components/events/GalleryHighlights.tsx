@@ -130,15 +130,15 @@ function PosterDetail({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${
         visible
-          ? "bg-black/85 backdrop-blur-md opacity-100"
-          : "bg-transparent opacity-0"
+          ? "bg-black/90 backdrop-blur-md opacity-100"
+          : "bg-transparent opacity-0 pointer-events-none"
       }`}
       onClick={onClose}
     >
       <div
-        className={`relative mx-6 flex max-h-[85vh] max-w-5xl flex-col md:flex-row gap-8 transition-all duration-500 ${
+        className={`relative my-auto flex max-h-[90vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-500 overflow-y-auto p-4 sm:p-6 bg-neutral-950/90 border border-white/10 rounded-2xl ${
           visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -146,13 +146,13 @@ function PosterDetail({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute -top-10 right-0 text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors z-10"
+          className="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors z-20 min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           ✕ Close
         </button>
 
         {/* Poster image */}
-        <div className="relative flex-shrink-0 w-full md:w-[380px] overflow-hidden rounded-xl shadow-2xl shadow-indigo-500/10 ring-1 ring-white/10">
+        <div className="relative flex-shrink-0 w-full md:w-[320px] lg:w-[380px] overflow-hidden rounded-xl shadow-2xl shadow-indigo-500/10 ring-1 ring-white/10 mt-6 md:mt-0">
           <Image
             src={item.image}
             alt={item.alt}
@@ -165,17 +165,17 @@ function PosterDetail({
         </div>
 
         {/* Info panel */}
-        <div className="flex flex-col justify-center py-4">
+        <div className="flex flex-col justify-center py-2 md:py-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">
             {item.category}
           </p>
-          <h3 className="mt-3 text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
+          <h3 className="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
             {item.title}
           </h3>
-          <p className="mt-4 max-w-sm text-base leading-relaxed text-slate-300">
+          <p className="mt-3 max-w-sm text-sm sm:text-base leading-relaxed text-slate-300">
             {item.description}
           </p>
-          <div className="mt-6 flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+          <div className="mt-5 flex items-center gap-3 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
             <span>{item.venue}</span>
             <span className="h-1 w-1 rounded-full bg-slate-600" />
             <span>Sabrang {item.year}</span>

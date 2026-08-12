@@ -278,7 +278,7 @@ export default function PillarAccordion() {
         onMouseLeave={() => {
           isHoveredRef.current = false;
         }}
-        className="relative z-10 w-full h-[520px] sm:h-[600px] flex flex-col md:flex-row gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-3xl bg-black/80 border border-white/10 backdrop-blur-2xl shadow-2xl overflow-hidden"
+        className="relative z-10 w-full min-h-[580px] sm:h-[600px] flex flex-col md:flex-row gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-3xl bg-black/80 border border-white/10 backdrop-blur-2xl shadow-2xl overflow-hidden"
         style={{ perspective: "1400px" }}
       >
         {PILLARS.map((pillar, i) => {
