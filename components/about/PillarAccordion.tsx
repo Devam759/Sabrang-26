@@ -43,11 +43,11 @@ const PILLARS: PillarItem[] = [
     title: 'PANACHE',
     category: 'Fashion & High Art',
     desc: 'The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.',
-    gradient: 'from-cyan-400 via-sky-500 to-indigo-600',
-    ambientGlow: 'rgba(0, 255, 255, 0.28)',
-    activeBorder: 'border-cyan-400/80 shadow-cyan-500/30 ring-cyan-400/30',
-    accentText: 'text-cyan-300',
-    btnGradient: 'from-cyan-600 via-sky-600 to-blue-600 shadow-cyan-600/30',
+    gradient: 'from-cyan-300 via-sky-300 to-indigo-300',
+    ambientGlow: 'rgba(103, 232, 249, 0.16)',
+    activeBorder: 'border-cyan-300/50 shadow-cyan-400/20 ring-cyan-300/20',
+    accentText: 'text-cyan-200',
+    btnGradient: 'from-cyan-500/80 via-sky-500/80 to-blue-600/80 shadow-cyan-500/20',
     image: '/panache-runway.png',
     eventsCount: '12+ Runway Events',
     highlights: ['◆ Haute Couture Runway', '✦ Theatrical Styling', '✧ Model Portfolios'],
@@ -57,11 +57,11 @@ const PILLARS: PillarItem[] = [
     title: 'VERSEVAAD',
     category: 'Literary Debates & Slam',
     desc: 'An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.',
-    gradient: 'from-amber-400 via-yellow-500 to-orange-500',
-    ambientGlow: 'rgba(255, 215, 0, 0.28)',
-    activeBorder: 'border-amber-400/80 shadow-amber-500/30 ring-amber-400/30',
-    accentText: 'text-amber-300',
-    btnGradient: 'from-amber-500 via-yellow-500 to-orange-600 shadow-amber-500/30',
+    gradient: 'from-amber-200 via-yellow-300 to-orange-300',
+    ambientGlow: 'rgba(253, 224, 71, 0.16)',
+    activeBorder: 'border-amber-300/50 shadow-amber-400/20 ring-amber-300/20',
+    accentText: 'text-amber-200',
+    btnGradient: 'from-amber-500/80 via-yellow-500/80 to-orange-500/80 shadow-amber-500/20',
     image: '/versevaad.jpg',
     eventsCount: '10+ Literary Stages',
     highlights: ['🎤 Spoken Word Slam', '⚡ Parliamentary Debate', '📜 Slam Poetry'],
@@ -71,11 +71,11 @@ const PILLARS: PillarItem[] = [
     title: 'ECHOS OF NOOR',
     category: 'Sufi Night & Acoustics',
     desc: 'Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.',
-    gradient: 'from-purple-500 via-violet-500 to-pink-500',
-    ambientGlow: 'rgba(157, 78, 221, 0.28)',
-    activeBorder: 'border-purple-400/80 shadow-purple-500/30 ring-purple-400/30',
-    accentText: 'text-purple-300',
-    btnGradient: 'from-purple-600 via-violet-600 to-pink-600 shadow-purple-600/30',
+    gradient: 'from-purple-300 via-violet-300 to-pink-300',
+    ambientGlow: 'rgba(216, 180, 254, 0.16)',
+    activeBorder: 'border-purple-300/50 shadow-purple-400/20 ring-purple-300/20',
+    accentText: 'text-purple-200',
+    btnGradient: 'from-purple-500/80 via-violet-500/80 to-pink-500/80 shadow-purple-500/20',
     image: '/echos-of-noor.png',
     eventsCount: 'Soulful Live Night',
     highlights: ['✦ Sufi & Classical Night', '♬ Acoustic Unplugged', '✨ Candlelight Melodies'],
@@ -85,11 +85,11 @@ const PILLARS: PillarItem[] = [
     title: 'BAND JAM',
     category: 'Battle of the Bands & Rock',
     desc: 'Pure sonic warfare under the open sky — head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.',
-    gradient: 'from-fuchsia-500 via-pink-500 to-purple-600',
-    ambientGlow: 'rgba(255, 0, 255, 0.28)',
-    activeBorder: 'border-fuchsia-400/80 shadow-fuchsia-500/30 ring-fuchsia-400/30',
-    accentText: 'text-fuchsia-300',
-    btnGradient: 'from-fuchsia-600 via-pink-600 to-purple-600 shadow-fuchsia-600/30',
+    gradient: 'from-fuchsia-300 via-pink-300 to-purple-300',
+    ambientGlow: 'rgba(244, 114, 182, 0.16)',
+    activeBorder: 'border-fuchsia-300/50 shadow-fuchsia-400/20 ring-fuchsia-300/20',
+    accentText: 'text-fuchsia-200',
+    btnGradient: 'from-fuchsia-500/80 via-pink-500/80 to-purple-500/80 shadow-fuchsia-500/20',
     image: '/gallery/DSC_0192.webp',
     eventsCount: 'Battle of the Bands',
     highlights: ['⚡ Rock Battle Royale', '🎸 High Octane Riffs', '🥁 Live Open Air Stage'],
@@ -99,11 +99,11 @@ const PILLARS: PillarItem[] = [
     title: 'DANCE BATTLES',
     category: 'Solo & Street Dance Showcase',
     desc: 'High-octane solo and duo street dance battles featuring hip-hop, popping, locking, and freestyle dance showdowns.',
-    gradient: 'from-rose-500 via-pink-500 to-red-600',
-    ambientGlow: 'rgba(244, 63, 94, 0.28)',
-    activeBorder: 'border-rose-400/80 shadow-rose-500/30 ring-rose-400/30',
-    accentText: 'text-rose-300',
-    btnGradient: 'from-rose-600 via-pink-600 to-red-600 shadow-rose-600/30',
+    gradient: 'from-rose-300 via-pink-300 to-red-300',
+    ambientGlow: 'rgba(253, 164, 175, 0.16)',
+    activeBorder: 'border-rose-300/50 shadow-rose-400/20 ring-rose-300/20',
+    accentText: 'text-rose-200',
+    btnGradient: 'from-rose-500/80 via-pink-500/80 to-red-500/80 shadow-rose-500/20',
     image: '/dance-battle.png',
     eventsCount: '8+ Dance Battles',
     highlights: ['💃 Hip-Hop & Street Dance', '⚡ Solo & Group Battles', '🔥 High Energy Drops'],
@@ -113,11 +113,11 @@ const PILLARS: PillarItem[] = [
     title: 'STEP UP',
     category: 'Group Choreography Showdown',
     desc: 'Flawless synchronized group dance battles featuring power-packed choreography, thematic storytelling, and explosive energy.',
-    gradient: 'from-emerald-400 via-teal-500 to-cyan-600',
-    ambientGlow: 'rgba(52, 211, 153, 0.28)',
-    activeBorder: 'border-emerald-400/80 shadow-emerald-500/30 ring-emerald-400/30',
-    accentText: 'text-emerald-300',
-    btnGradient: 'from-emerald-600 via-teal-600 to-cyan-600 shadow-emerald-600/30',
+    gradient: 'from-emerald-300 via-teal-300 to-cyan-300',
+    ambientGlow: 'rgba(110, 231, 183, 0.16)',
+    activeBorder: 'border-emerald-300/50 shadow-emerald-400/20 ring-emerald-300/20',
+    accentText: 'text-emerald-200',
+    btnGradient: 'from-emerald-500/80 via-teal-500/80 to-cyan-500/80 shadow-emerald-500/20',
     image: '/step-up.jpg',
     eventsCount: 'Choreo Showdown',
     highlights: ['✨ Flawless Group Choreo', '✦ Tactical Dance Battles', '🏆 National Trophy'],
@@ -283,7 +283,7 @@ export default function PillarAccordion() {
               />
 
               {/* Accent Top Glow Sweep Line */}
-              <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${pillar.gradient} z-20`} />
+              <div className={`absolute top-0 left-0 right-0 h-1 opacity-70 bg-gradient-to-r ${pillar.gradient} z-20`} />
 
               {/* Micro Film Grain Texture */}
               <div
@@ -306,41 +306,37 @@ export default function PillarAccordion() {
                         {pillar.eventsCount}
                       </span>
                     </div>
-
-                    <span className="text-3xl font-mono font-black text-white/30 tracking-widest select-none">
-                      {pillar.id}
-                    </span>
                   </div>
 
                   {/* Bottom Text & Interactive Actions */}
                   <div className="space-y-4 max-w-xl">
                     <h4
-                      className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]"
+                      className="-ml-3 sm:-ml-4.5 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tight leading-[0.92] drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)] select-none break-normal [word-break:keep-all] max-w-[98%]"
                       style={{ fontFamily: '"Syne", "Outfit", "Inter", sans-serif' }}
                     >
                       {pillar.title}
                     </h4>
 
-                    <p className="text-slate-200 text-xs sm:text-sm md:text-base leading-relaxed font-light drop-shadow-md">
+                    <p className="-ml-3 sm:-ml-4.5 text-sm sm:text-base md:text-lg leading-relaxed font-light text-slate-200 drop-shadow-md">
                       {pillar.desc}
                     </p>
 
                     {/* Highlights pill tags */}
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="-ml-3 sm:-ml-4.5 flex flex-wrap gap-2 pt-1">
                       {pillar.highlights.map((tag, tIdx) => (
                         <span
                           key={tIdx}
-                          className="text-[11px] font-mono px-3 py-1 rounded-lg bg-white/10 backdrop-blur-md text-slate-200 border border-white/15 shadow-sm"
+                          className="text-xs sm:text-sm font-mono px-3.5 py-1.5 rounded-lg bg-white/10 backdrop-blur-md text-slate-200 border border-white/15 shadow-sm"
                         >
                           ✓ {tag}
                         </span>
                       ))}
                     </div>
 
-                    <div className="pt-2">
+                    <div className="-ml-3 sm:-ml-4.5 pt-2">
                       <Link
                         href="/events"
-                        className={`inline-flex items-center space-x-2.5 px-6 py-3 rounded-xl bg-gradient-to-r ${pillar.btnGradient} text-white font-bold text-xs font-mono uppercase tracking-widest transition-all hover:scale-[1.02]`}
+                        className={`inline-flex items-center space-x-2.5 px-6 py-3 rounded-xl bg-gradient-to-r ${pillar.btnGradient} text-white font-bold text-xs sm:text-sm font-mono uppercase tracking-widest transition-all hover:scale-[1.02]`}
                       >
                         <span>EXPLORE {pillar.title}</span>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -353,42 +349,22 @@ export default function PillarAccordion() {
               ) : (
                 /* Collapsed State Preview */
                 <div className="relative z-20 h-full flex flex-row md:flex-col justify-between items-center md:items-start transition-all duration-500">
-                  <span className="text-2xl font-mono font-bold text-white/40 select-none">
-                    {pillar.id}
-                  </span>
-
                   {/* Vertical title for desktop collapsed bar */}
-                  <div className="hidden md:block my-auto transform -rotate-90 origin-left text-base font-black uppercase text-white/70 tracking-wider whitespace-nowrap">
+                  <div className="hidden md:block my-auto transform -rotate-90 origin-left text-xl sm:text-2xl font-black uppercase text-white/80 tracking-widest whitespace-nowrap">
                     {pillar.title}
                   </div>
 
                   {/* Horizontal title for mobile collapsed bar */}
-                  <div className="block md:hidden text-sm font-black uppercase text-white/80 tracking-wider">
+                  <div className="block md:hidden text-base sm:text-lg font-black uppercase text-white/90 tracking-wider">
                     {pillar.title}
                   </div>
 
-                  <span className={`text-xs font-mono ${pillar.accentText}`}>0{i + 1}</span>
+                  <span className={`text-sm sm:text-base font-mono font-bold ${pillar.accentText}`}>0{i + 1}</span>
                 </div>
               )}
             </div>
           );
         })}
-      </div>
-
-      {/* Accordion Progress Dots */}
-      <div className="relative z-20 flex justify-center items-center gap-3 pt-2">
-        {PILLARS.map((p, idx) => (
-          <button
-            key={p.id}
-            onClick={() => setActiveIndex(idx)}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              idx === activeIndex
-                ? `w-10 bg-gradient-to-r ${p.gradient} shadow-lg`
-                : 'w-2 bg-white/20 hover:bg-white/40'
-            }`}
-            aria-label={`Go to event ${p.title}`}
-          />
-        ))}
       </div>
     </section>
   );
