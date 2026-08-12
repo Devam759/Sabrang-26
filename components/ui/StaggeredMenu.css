@@ -1,0 +1,372 @@
+/* ─────────────────────────────────────────────
+   StaggeredMenu — Premium Edition
+   Pure color. Pure type. No gradients. No noise.
+   ───────────────────────────────────────────── */
+
+/* Google Font: Bebas Neue for display impact */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+/* ── Wrapper ── */
+.staggered-menu-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.staggered-menu-wrapper.fixed-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 40;
+  overflow: hidden !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+}
+
+/* ── Header ── */
+.staggered-menu-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5em 2.5em;
+  background: transparent;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.staggered-menu-header > * {
+  pointer-events: auto;
+}
+
+.sm-logo {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.sm-logo-img {
+  display: block;
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ── Toggle Button ── */
+.sm-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: #0a0a0a;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  color: #ffffff;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.sm-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sm-accent, #f967fb);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: -1;
+}
+
+.sm-toggle:hover {
+  border-color: var(--sm-accent, #f967fb);
+  color: #000;
+}
+
+.sm-toggle:hover::before {
+  opacity: 1;
+}
+
+.sm-toggle:focus-visible {
+  outline: 2px solid var(--sm-accent, #f967fb);
+  outline-offset: 4px;
+}
+
+.sm-toggle-textWrap {
+  position: relative;
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sm-toggle-textInner {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.sm-toggle-line {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+.sm-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.sm-icon-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+}
+
+/* ── Prelayers ── */
+.sm-prelayers {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: fit-content;
+  min-width: auto;
+  max-width: 95vw;
+  overflow: hidden !important;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+}
+
+[data-position='left'] .sm-prelayers {
+  right: auto;
+  left: 0;
+}
+
+.sm-prelayer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+}
+
+/* ── Panel ── */
+.staggered-menu-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* Lock width so letter-spacing / transform changes never resize the panel */
+  width: max-content;
+  min-width: auto;
+  max-width: 95vw;
+  height: 100%;
+  /* Contain layout so hover effects don't reflow the document */
+  contain: layout style;
+  background: #070707;
+  display: flex;
+  flex-direction: column;
+  padding: 6em 2.8em 2em 2.4em;
+  overflow: hidden !important;
+  z-index: 10;
+  pointer-events: auto;
+  opacity: 0;
+  /* Single sharp left border — 3px, pure white */
+  border-left: 3px solid rgba(255, 255, 255, 0.06);
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.staggered-menu-panel::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+[data-position='left'] .staggered-menu-panel {
+  right: auto;
+  left: 0;
+  border-left: none;
+  border-right: 3px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Panel Inner ── */
+.sm-panel-inner {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ── Nav List ── */
+.sm-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Item Wrap ── */
+.sm-panel-itemWrap {
+  position: relative;
+  /* Tight separator line */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: clamp(0.1rem, 0.6vh, 0.3rem) 0;
+  overflow: visible;
+}
+
+.sm-panel-itemWrap:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Item Link ── */
+.sm-panel-item {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+  flex: 1;
+  padding: 0;
+}
+
+/* The text label */
+.sm-panel-itemLabel {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.4rem, 6.2vh, 5.25rem);
+  line-height: 0.92;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--item-color, #fff);
+  /* Use transform only — avoids layout reflow entirely */
+  will-change: transform;
+  transform: translateX(0);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              text-shadow 0.35s ease;
+  white-space: nowrap;
+}
+
+/* ── Hover State ── */
+/* translateX only — GPU composited, zero layout reflow */
+.sm-panel-item:hover .sm-panel-itemLabel {
+  transform: translateX(14px);
+  text-shadow:
+    0 0 35px var(--item-color, #fff),
+    0 0 70px var(--item-color, #fff);
+}
+
+/* Whole row dims siblings on hover — zero layout cost */
+.sm-panel-list:hover .sm-panel-itemLabel {
+  opacity: 0.35;
+  transition: opacity 0.25s ease;
+}
+
+.sm-panel-itemWrap:hover .sm-panel-itemLabel {
+  opacity: 1 !important;
+}
+
+
+
+/* ── Extras ── */
+.sm-extra-content {
+  margin-top: auto;
+}
+
+.sm-socials {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sm-socials-title {
+  margin: 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.sm-socials-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.sm-socials-link {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.sm-socials-link:hover {
+  color: #fff;
+}
+
+.sm-socials-link:focus-visible {
+  outline: 1.5px solid var(--sm-accent, #f967fb);
+  outline-offset: 3px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .staggered-menu-panel,
+  .sm-prelayers {
+    width: 100%;
+    left: 0;
+    right: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .staggered-menu-header {
+    padding: 1.25em 1.5em;
+  }
+
+  .staggered-menu-panel {
+    padding: 5em 1.5em 1.5em 1.5em;
+  }
+}
