@@ -48,6 +48,8 @@ export const metadata: Metadata = {
   },
 };
 
+import IntroReveal from '@/components/effects/IntroReveal';
+
 const festivalEventSchema = {
   "@context": "https://schema.org",
   "@type": "Festival",
@@ -92,6 +94,7 @@ export default function Home() {
   return (
     <>
       <JsonLd data={festivalEventSchema} />
+      <IntroReveal />
       <HomeClient />
     </>
   );

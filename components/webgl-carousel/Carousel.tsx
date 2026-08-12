@@ -86,7 +86,7 @@ function Background() {
   return (
     <mesh
       position={[0, 0, -3]}
-      scale={[viewport.width * 2.5, viewport.height * 2.5, 1]}
+      scale={[(viewport.width || 1) * 2.5, (viewport.height || 1) * 2.5, 1]}
     >
       <planeGeometry />
       {/* @ts-ignore */}
