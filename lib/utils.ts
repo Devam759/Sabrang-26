@@ -17,13 +17,33 @@ export const formatDate = (date: any) => {
   });
 };
 
-export const generateId = () => Math.random().toString(36).substring(2, 15);
+export const generateId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const array = new Uint8Array(8);
+    crypto.getRandomValues(array);
+    return Array.from(array, (b) => b.toString(36).padStart(2, "0"))
+      .join("")
+      .slice(0, 13);
+  }
+  return Math.random().toString(36).substring(2, 15);
+};
 
 export const generateReferralCode = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
-  for (let i = 0; i < 5; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const array = new Uint32Array(5);
+    crypto.getRandomValues(array);
+    for (let i = 0; i < 5; i++) {
+      code += chars.charAt(array[i] % chars.length);
+    }
+  } else {
+    for (let i = 0; i < 5; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
   }
   return code;
 };
