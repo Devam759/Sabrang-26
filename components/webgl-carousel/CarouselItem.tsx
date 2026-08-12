@@ -99,7 +99,7 @@ const CarouselItem = ({
 
       {isCloseActive ? (
         <mesh position={[0, 0, 0.01]} onClick={handleClose}>
-          <planeGeometry args={[viewport.width, viewport.height]} />
+          <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
           <meshBasicMaterial transparent={true} opacity={0} color={'red'} />
         </mesh>
       ) : null}

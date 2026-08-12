@@ -7,7 +7,7 @@ import ThreeBackground from '@/components/effects/ThreeBackground';
 import { useInteraction } from '@/components/InteractionContext';
 
 import GsapCyberText from '@/components/effects/GsapCyberText';
-
+import IntroReveal from '@/components/effects/IntroReveal';
 export default function Home() {
   const { user } = useAuth();
   const { setHoverState } = useInteraction();
@@ -62,6 +62,7 @@ export default function Home() {
 
   return (
     <div className="relative bg-transparent font-sans">
+      <IntroReveal />
       <ThreeBackground />
 
       {/* SECTION 1: HERO & ABOUT */}
