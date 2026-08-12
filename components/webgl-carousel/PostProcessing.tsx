@@ -11,7 +11,7 @@ const PostProcessing = forwardRef<any, { thickness?: number }>(
 
     return (
       <mesh position={[0, 0, 1]}>
-        <planeGeometry args={[viewport.width * 2, viewport.height * 2]} />
+        <planeGeometry args={[(viewport.width || 1) * 2, (viewport.height || 1) * 2]} />
         <MeshTransmissionMaterial
           ref={ref}
           transmission={0.7}

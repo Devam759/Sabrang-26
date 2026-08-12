@@ -206,7 +206,7 @@ function VideoBackground() {
 
   return (
     <mesh position={[0, 0, 0]}>
-      <planeGeometry args={[viewport.width, viewport.height]} />
+      <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
       <primitive object={shaderMat} attach="material" />
     </mesh>
   );

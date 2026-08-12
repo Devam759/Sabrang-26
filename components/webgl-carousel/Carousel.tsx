@@ -80,7 +80,7 @@ function Background() {
   });
 
   return (
-    <mesh position={[0, 0, -3]} scale={[viewport.width * 2.5, viewport.height * 2.5, 1]}>
+    <mesh position={[0, 0, -3]} scale={[(viewport.width || 1) * 2.5, (viewport.height || 1) * 2.5, 1]}>
       <planeGeometry />
       {/* @ts-ignore */}
       <minimalBackgroundMaterial ref={materialRef} depthWrite={false} />
@@ -252,7 +252,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
         onPointerLeave={handleUp}
         onPointerCancel={handleUp}
       >
-        <planeGeometry args={[viewport.width, viewport.height]} />
+        <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
         <meshBasicMaterial transparent={true} opacity={0} />
       </mesh>
     );
