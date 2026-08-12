@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export default function SabrangLetterPortal() {
   const letters = [
-    { char: 'S', key: 'letter-S' },
-    { char: 'A', key: 'letter-A1' },
-    { char: 'B', key: 'letter-B' },
-    { char: 'R', key: 'letter-R' },
-    { char: 'A', key: 'letter-A2' },
-    { char: 'N', key: 'letter-N' },
-    { char: 'G', key: 'letter-G' },
+    { char: "S", key: "letter-S" },
+    { char: "A", key: "letter-A1" },
+    { char: "B", key: "letter-B" },
+    { char: "R", key: "letter-R" },
+    { char: "A", key: "letter-A2" },
+    { char: "N", key: "letter-N" },
+    { char: "G", key: "letter-G" },
   ];
 
   return (
@@ -24,11 +24,11 @@ export default function SabrangLetterPortal() {
             key={idx}
             className={`sabrang-letter ${item.key} inline-block font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400`}
             style={{
-              fontSize: 'clamp(3.8rem, 15.5vw, 15rem)',
+              fontSize: "clamp(3.8rem, 15.5vw, 15rem)",
               lineHeight: 0.9,
-              WebkitTextStroke: '1px rgba(255,255,255,0.25)',
-              transformStyle: 'preserve-3d',
-              willChange: 'transform, opacity',
+              WebkitTextStroke: "1px rgba(255,255,255,0.25)",
+              transformStyle: "preserve-3d",
+              willChange: "transform, opacity",
             }}
           >
             {item.char}

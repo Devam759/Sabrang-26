@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 /*------------------------------
 Lerp
@@ -11,7 +11,7 @@ Get Piramidal Index
 --------------------*/
 export const getPiramidalIndex = (array: any[], index: number): number[] =>
   array.map((_, i) =>
-    index === i ? array.length : array.length - Math.abs(index - i)
+    index === i ? array.length : array.length - Math.abs(index - i),
   );
 
 /*--------------------

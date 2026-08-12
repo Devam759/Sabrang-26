@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import LogoLoop from '@/components/ui/LogoLoop';
-import { PAST_SPONSORS } from '@/lib/constants';
+import React from "react";
+import LogoLoop from "@/components/ui/LogoLoop";
+import { PAST_SPONSORS } from "@/lib/constants";
 
 export default function SponsorsClient() {
   return (

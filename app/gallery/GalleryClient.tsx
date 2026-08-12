@@ -1,8 +1,20 @@
-'use client';
+"use client";
 
-import { Loader, useTexture } from '@react-three/drei';
-import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Loader, useTexture } from "@react-three/drei";
+import {
+  Canvas,
+  type ThreeEvent,
+  useFrame,
+  useThree,
+} from "@react-three/fiber";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   DoubleSide,
   Mesh,
@@ -12,22 +24,25 @@ import {
   Texture,
   Vector2,
   Vector3,
-} from 'three';
+} from "three";
 
-import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
+import GalleryLightbox, { type OriginRect } from "./GalleryLightbox";
 
 const IMAGES: Array<{ src: string; title: string }> = [
-  { src: '/team-carousel/Aditya Nayak.png', title: 'Aditya Nayak' },
-  { src: '/team-carousel/Ambika Dalmia.png', title: 'Ambika Dalmia' },
-  { src: '/team-carousel/Aryan.png', title: 'Aryan' },
-  { src: '/team-carousel/Ashlesha Sharma.png', title: 'Ashlesha Sharma' },
-  { src: '/team-carousel/Daksh kumar.png', title: 'Daksh Kumar' },
-  { src: '/team-carousel/Devansh Srivastava .png', title: 'Devansh Srivastava' },
-  { src: '/team-carousel/Manan.png', title: 'Manan' },
-  { src: '/team-carousel/Naman Shukla.png', title: 'Naman Shukla' },
-  { src: '/team-carousel/Rashi.png', title: 'Rashi' },
-  { src: '/team-carousel/Roshan jangir .png', title: 'Roshan Jangir' },
-  { src: '/team-carousel/Satvik.png', title: 'Satvik' },
+  { src: "/team-carousel/Aditya Nayak.png", title: "Aditya Nayak" },
+  { src: "/team-carousel/Ambika Dalmia.png", title: "Ambika Dalmia" },
+  { src: "/team-carousel/Aryan.png", title: "Aryan" },
+  { src: "/team-carousel/Ashlesha Sharma.png", title: "Ashlesha Sharma" },
+  { src: "/team-carousel/Daksh kumar.png", title: "Daksh Kumar" },
+  {
+    src: "/team-carousel/Devansh Srivastava.png",
+    title: "Devansh Srivastava",
+  },
+  { src: "/team-carousel/Manan.png", title: "Manan" },
+  { src: "/team-carousel/Naman Shukla.png", title: "Naman Shukla" },
+  { src: "/team-carousel/Rashi.png", title: "Rashi" },
+  { src: "/team-carousel/Roshan jangir.png", title: "Roshan Jangir" },
+  { src: "/team-carousel/Satvik.png", title: "Satvik" },
 ];
 
 const ROWS = 5;
@@ -42,7 +57,11 @@ const TILE_CORNERS: ReadonlyArray<readonly [number, number]> = [
 
 /* ---------------------------------------------------------------- grid plane */
 
-function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2> }) {
+function GridPlane({
+  targetCenterUv,
+}: {
+  targetCenterUv: React.RefObject<Vector2>;
+}) {
   const meshRef = useRef<Mesh>(null);
   const uniforms = useMemo(
     () => ({
@@ -64,7 +83,10 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
     if (!mesh) return;
     const material = mesh.material as ShaderMaterial;
     material.uniforms.uTime.value = state.clock.getElapsedTime();
-    (material.uniforms.uCenter.value as Vector2).lerp(targetCenterUv.current, 0.08);
+    (material.uniforms.uCenter.value as Vector2).lerp(
+      targetCenterUv.current,
+      0.08,
+    );
   });
 
   return (
@@ -134,7 +156,6 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
   );
 }
 
-
 /* ----------------------------------------------------------------- image tube */
 
 function ImageTube({
@@ -185,10 +206,10 @@ function ImageTube({
           const planeAspect = tileW / tileH;
           if (imageAspect > planeAspect) {
             t.repeat.set(planeAspect / imageAspect, 1);
-            t.offset.set((1 - (planeAspect / imageAspect)) / 2, 0);
+            t.offset.set((1 - planeAspect / imageAspect) / 2, 0);
           } else {
             t.repeat.set(1, imageAspect / planeAspect);
-            t.offset.set(0, (1 - (imageAspect / planeAspect)) / 2);
+            t.offset.set(0, (1 - imageAspect / planeAspect) / 2);
           }
         }
       });
@@ -204,7 +225,11 @@ function ImageTube({
 
   // Rows near the bottom of the tube spin a touch faster, which reads as depth.
   const rowSpeed = useMemo(
-    () => Array.from({ length: ROWS }, (_, r) => 0.65 + (ROWS <= 1 ? 0 : r / (ROWS - 1)) * 0.9),
+    () =>
+      Array.from(
+        { length: ROWS },
+        (_, r) => 0.65 + (ROWS <= 1 ? 0 : r / (ROWS - 1)) * 0.9,
+      ),
     [],
   );
 
@@ -233,7 +258,10 @@ function ImageTube({
       let maxY = -Infinity;
 
       for (const [cx, cy] of TILE_CORNERS) {
-        point.set(cx * tileW, cy * tileH, 0).applyMatrix4(mesh.matrixWorld).project(camera);
+        point
+          .set(cx * tileW, cy * tileH, 0)
+          .applyMatrix4(mesh.matrixWorld)
+          .project(camera);
         const x = (point.x * 0.5 + 0.5) * size.width;
         const y = (-point.y * 0.5 + 0.5) * size.height;
         minX = Math.min(minX, x);
@@ -250,8 +278,10 @@ function ImageTube({
   const onTileClick = useCallback(
     (texIndex: number, event: ThreeEvent<MouseEvent>) => {
       const mesh = event.object as Mesh;
-      const image = textures[texIndex]?.image as { width?: number; height?: number } | undefined;
-      const aspect = image?.width && image?.height ? image.width / image.height : 1;
+      const image = textures[texIndex]?.image as
+        { width?: number; height?: number } | undefined;
+      const aspect =
+        image?.width && image?.height ? image.width / image.height : 1;
       onImageSelect({
         index: texIndex,
         aspect,
@@ -263,7 +293,8 @@ function ImageTube({
   );
 
   useFrame((_state, dt) => {
-    scrollCurrent.current += (scrollTargetRef.current - scrollCurrent.current) * 0.12;
+    scrollCurrent.current +=
+      (scrollTargetRef.current - scrollCurrent.current) * 0.12;
 
     // Reposition both current and target together, so the loop never jumps.
     if (scrollCurrent.current > loopHeight / 2) {
@@ -275,14 +306,18 @@ function ImageTube({
     }
 
     spinVelocityRef.current *= Math.pow(0.92, dt * 60);
-    spinVelocityRef.current = Math.max(-2.0, Math.min(2.0, spinVelocityRef.current));
+    spinVelocityRef.current = Math.max(
+      -2.0,
+      Math.min(2.0, spinVelocityRef.current),
+    );
 
     rotationSpeedScale.current +=
       (rotationSpeedScaleTargetRef.current - rotationSpeedScale.current) * 0.12;
 
     // Scaling dt slows the whole system consistently, inertia included.
     const scaledDt = dt * rotationSpeedScale.current;
-    angle.current += (naturalDirRef.current * baseSpeed + spinVelocityRef.current) * scaledDt;
+    angle.current +=
+      (naturalDirRef.current * baseSpeed + spinVelocityRef.current) * scaledDt;
     tubeAngleRef.current = angle.current;
 
     const group = groupRef.current;
@@ -312,7 +347,11 @@ function ImageTube({
             return (
               <mesh
                 key={col}
-                position={[Math.cos(theta) * radius, 0, Math.sin(theta) * radius]}
+                position={[
+                  Math.cos(theta) * radius,
+                  0,
+                  Math.sin(theta) * radius,
+                ]}
                 rotation={[0, -(theta + Math.PI / 2), 0]}
                 onPointerOver={(e) => {
                   e.stopPropagation();
@@ -332,7 +371,11 @@ function ImageTube({
                 }}
               >
                 <planeGeometry args={[tileW, tileH]} />
-                <meshBasicMaterial map={textures[texIndex]} toneMapped={false} side={DoubleSide} />
+                <meshBasicMaterial
+                  map={textures[texIndex]}
+                  toneMapped={false}
+                  side={DoubleSide}
+                />
               </mesh>
             );
           })}
@@ -382,7 +425,7 @@ export default function GalleryClient() {
 
   useEffect(() => {
     return () => {
-      const styleEl = document.getElementById('gallery-global-cursor-override');
+      const styleEl = document.getElementById("gallery-global-cursor-override");
       if (styleEl) styleEl.remove();
     };
   }, []);
@@ -393,8 +436,10 @@ export default function GalleryClient() {
     const tick = () => {
       const tip = tooltipElRef.current;
       if (tip) {
-        tooltipCurrent.current.x += (tooltipTarget.current.x - tooltipCurrent.current.x) * 0.18;
-        tooltipCurrent.current.y += (tooltipTarget.current.y - tooltipCurrent.current.y) * 0.18;
+        tooltipCurrent.current.x +=
+          (tooltipTarget.current.x - tooltipCurrent.current.x) * 0.18;
+        tooltipCurrent.current.y +=
+          (tooltipTarget.current.y - tooltipCurrent.current.y) * 0.18;
         tip.style.transform = `translate3d(${(tooltipCurrent.current.x + 12).toFixed(2)}px, ${(
           tooltipCurrent.current.y - 18
         ).toFixed(2)}px, 0)`;
@@ -402,12 +447,14 @@ export default function GalleryClient() {
 
       const dot = cursorElRef.current;
       if (dot) {
-        cursorCurrent.current.x += (cursorTarget.current.x - cursorCurrent.current.x) * 0.14;
-        cursorCurrent.current.y += (cursorTarget.current.y - cursorCurrent.current.y) * 0.14;
+        cursorCurrent.current.x +=
+          (cursorTarget.current.x - cursorCurrent.current.x) * 0.14;
+        cursorCurrent.current.y +=
+          (cursorTarget.current.y - cursorCurrent.current.y) * 0.14;
         dot.style.transform = `translate3d(${(cursorCurrent.current.x + 8).toFixed(2)}px, ${(
           cursorCurrent.current.y + 8
         ).toFixed(2)}px, 0) translate(-50%, -50%)`;
-        dot.style.opacity = cursorActive.current ? '1' : '0';
+        dot.style.opacity = cursorActive.current ? "1" : "0";
       }
 
       raf = requestAnimationFrame(tick);
@@ -427,24 +474,31 @@ export default function GalleryClient() {
       if (viewerOpenRef.current) return;
       tubeScrollTarget.current += event.deltaY * 0.002;
       tubeSpinVelocity.current += event.deltaY * 0.004;
-      if (event.deltaY !== 0) tubeNaturalDir.current = event.deltaY < 0 ? -1 : 1;
+      if (event.deltaY !== 0)
+        tubeNaturalDir.current = event.deltaY < 0 ? -1 : 1;
     };
 
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  const setTooltipFromClientPoint = useCallback((clientX: number, clientY: number) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    tooltipTarget.current = { x: clientX - rect.left, y: clientY - rect.top };
-  }, []);
+  const setTooltipFromClientPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      tooltipTarget.current = { x: clientX - rect.left, y: clientY - rect.top };
+    },
+    [],
+  );
 
   const onImageHoverStart = useCallback(
     (projectName: string, event: ThreeEvent<PointerEvent>) => {
       if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
       setHoveredProject(projectName);
-      setTooltipFromClientPoint(event.nativeEvent.clientX, event.nativeEvent.clientY);
+      setTooltipFromClientPoint(
+        event.nativeEvent.clientX,
+        event.nativeEvent.clientY,
+      );
       tooltipCurrent.current = { ...tooltipTarget.current };
       rotationSpeedScaleTarget.current = 0.35;
     },
@@ -454,7 +508,10 @@ export default function GalleryClient() {
   const onImageHoverMove = useCallback(
     (event: ThreeEvent<PointerEvent>) => {
       if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-      setTooltipFromClientPoint(event.nativeEvent.clientX, event.nativeEvent.clientY);
+      setTooltipFromClientPoint(
+        event.nativeEvent.clientX,
+        event.nativeEvent.clientY,
+      );
     },
     [setTooltipFromClientPoint],
   );
@@ -480,7 +537,11 @@ export default function GalleryClient() {
       tubeSpinVelocity.current = 0;
       cursorActive.current = false;
       setHoveredProject(null);
-      setSelected({ index: selection.index, aspect: selection.aspect, rect: selection.rect });
+      setSelected({
+        index: selection.index,
+        aspect: selection.aspect,
+        rect: selection.rect,
+      });
     },
     [],
   );
@@ -492,63 +553,90 @@ export default function GalleryClient() {
     setSelected(null);
   }, []);
 
-  const remeasureOrigin = useCallback(() => remeasureOriginRef.current?.() ?? null, []);
+  const remeasureOrigin = useCallback(
+    () => remeasureOriginRef.current?.() ?? null,
+    [],
+  );
 
-  const onPointerEnter = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    cursorTarget.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
-    cursorCurrent.current = { ...cursorTarget.current };
-    cursorActive.current = true;
+  const onPointerEnter = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      cursorTarget.current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+      cursorCurrent.current = { ...cursorTarget.current };
+      cursorActive.current = true;
 
-    let styleEl = document.getElementById('gallery-global-cursor-override');
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = 'gallery-global-cursor-override';
-      document.head.appendChild(styleEl);
-    }
-    styleEl.innerHTML = '.custom-cursor-circle { opacity: 0 !important; }';
-  }, []);
+      let styleEl = document.getElementById("gallery-global-cursor-override");
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "gallery-global-cursor-override";
+        document.head.appendChild(styleEl);
+      }
+      styleEl.innerHTML = ".custom-cursor-circle { opacity: 0 !important; }";
+    },
+    [],
+  );
 
-  const onPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-    if (viewerOpenRef.current) return;
+  const onPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      if (viewerOpenRef.current) return;
 
-    if (
-      Math.abs(event.clientX - dragStart.current.x) > 10 ||
-      Math.abs(event.clientY - dragStart.current.y) > 10
-    ) {
-      pointerMovedRef.current = true;
-    }
+      if (
+        Math.abs(event.clientX - dragStart.current.x) > 10 ||
+        Math.abs(event.clientY - dragStart.current.y) > 10
+      ) {
+        pointerMovedRef.current = true;
+      }
 
-    cursorTarget.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      cursorTarget.current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
 
-    // Touch drag stands in for the wheel, feeding the same motion system.
-    if (dragPointerId.current === event.pointerId) {
-      const dy = dragLastY.current - event.clientY;
+      // Touch drag stands in for the wheel, feeding the same motion system.
+      if (dragPointerId.current === event.pointerId) {
+        const dy = dragLastY.current - event.clientY;
+        dragLastY.current = event.clientY;
+        tubeScrollTarget.current += dy * 0.01;
+        tubeSpinVelocity.current += dy * 0.02;
+        if (dy !== 0) tubeNaturalDir.current = dy < 0 ? -1 : 1;
+      }
+
+      const nx = Math.min(
+        1,
+        Math.max(0, (event.clientX - rect.left) / rect.width),
+      );
+      const ny = Math.min(
+        1,
+        Math.max(0, (event.clientY - rect.top) / rect.height),
+      );
+
+      const strength = 0.4;
+      targetCenterUv.current.set(
+        0.5 + (nx - 0.5) * strength,
+        0.5 + (1 - ny - 0.5) * strength,
+      );
+    },
+    [],
+  );
+
+  const onPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      pointerMovedRef.current = false;
+      dragStart.current = { x: event.clientX, y: event.clientY };
+      if (event.pointerType === "mouse" || viewerOpenRef.current) return;
+      dragPointerId.current = event.pointerId;
       dragLastY.current = event.clientY;
-      tubeScrollTarget.current += dy * 0.01;
-      tubeSpinVelocity.current += dy * 0.02;
-      if (dy !== 0) tubeNaturalDir.current = dy < 0 ? -1 : 1;
-    }
-
-    const nx = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-    const ny = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-
-    const strength = 0.4;
-    targetCenterUv.current.set(0.5 + (nx - 0.5) * strength, 0.5 + (1 - ny - 0.5) * strength);
-  }, []);
-
-  const onPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    pointerMovedRef.current = false;
-    dragStart.current = { x: event.clientX, y: event.clientY };
-    if (event.pointerType === 'mouse' || viewerOpenRef.current) return;
-    dragPointerId.current = event.pointerId;
-    dragLastY.current = event.clientY;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }, []);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [],
+  );
 
   const endDrag = useCallback(() => {
     dragPointerId.current = null;
@@ -560,9 +648,9 @@ export default function GalleryClient() {
     endDrag();
     onImageHoverEnd();
 
-    const styleEl = document.getElementById('gallery-global-cursor-override');
+    const styleEl = document.getElementById("gallery-global-cursor-override");
     if (styleEl) {
-      styleEl.innerHTML = '';
+      styleEl.innerHTML = "";
     }
   }, [endDrag, onImageHoverEnd]);
 
@@ -570,8 +658,9 @@ export default function GalleryClient() {
     // Full-bleed: cancels the layout container's padding and horizontal gutter.
     <div
       ref={containerRef}
-      className={`gallery-container relative left-1/2 h-screen min-h-screen w-screen -translate-x-1/2 touch-none overflow-hidden bg-black ${viewerOpen ? 'cursor-auto' : 'cursor-none'
-        }`}
+      className={`gallery-container relative left-1/2 h-screen min-h-screen w-screen -translate-x-1/2 touch-none overflow-hidden bg-black ${
+        viewerOpen ? "cursor-auto" : "cursor-none"
+      }`}
       onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}
       onPointerDown={onPointerDown}
@@ -587,8 +676,12 @@ export default function GalleryClient() {
         <Suspense fallback={null}>
           <ambientLight intensity={0.8} />
           <directionalLight position={[5, 8, 5]} intensity={1.5} />
-          <directionalLight position={[-5, -5, -5]} intensity={0.5} color="#4f46e5" />
-          <hemisphereLight args={['#ffffff', '#111827', 0.8]} />
+          <directionalLight
+            position={[-5, -5, -5]}
+            intensity={0.5}
+            color="#4f46e5"
+          />
+          <hemisphereLight args={["#ffffff", "#111827", 0.8]} />
 
           <GridPlane targetCenterUv={targetCenterUv} />
 
@@ -638,7 +731,9 @@ export default function GalleryClient() {
           origin={selected.rect}
           containerRef={containerRef}
           measureOrigin={remeasureOrigin}
-          onIndexChange={(next) => setSelected((current) => current && { ...current, index: next })}
+          onIndexChange={(next) =>
+            setSelected((current) => current && { ...current, index: next })
+          }
           onClose={onViewerClose}
         />
       )}

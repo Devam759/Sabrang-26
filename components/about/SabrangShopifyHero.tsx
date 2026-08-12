@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import dynamic from 'next/dynamic';
-import SabrangLetterPortal from './SabrangLetterPortal';
-import FestivalFloatingCards from './FestivalFloatingCards';
+import React, { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import dynamic from "next/dynamic";
+import SabrangLetterPortal from "./SabrangLetterPortal";
+import FestivalFloatingCards from "./FestivalFloatingCards";
 
 // Dynamically import Three.js Canvas with SSR disabled
-const ShopifyStyle3DCanvas = dynamic(() => import('./ShopifyStyle3DCanvas'), {
+const ShopifyStyle3DCanvas = dynamic(() => import("./ShopifyStyle3DCanvas"), {
   ssr: false,
   loading: () => <div className="absolute inset-0 bg-[#050508]" />,
 });
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
@@ -46,8 +46,8 @@ export default function SabrangShopifyHero() {
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
-          start: 'top top',
-          end: 'bottom bottom',
+          start: "top top",
+          end: "bottom bottom",
           pin: pinnedStage,
           scrub: 0.6, // Silky smooth scrub interpolation
           onUpdate: (self) => {
@@ -60,14 +60,14 @@ export default function SabrangShopifyHero() {
       // Phase 1: Spatial Zoom & Letter Portal Split (0 -> 45%)
       // GPU-accelerated transforms without expensive CSS blur filters
       // ----------------------------------------------------
-      const letterS = portalTypography.querySelector('.letter-S');
-      const letterA1 = portalTypography.querySelector('.letter-A1');
-      const letterB = portalTypography.querySelector('.letter-B');
-      const letterR = portalTypography.querySelector('.letter-R');
-      const letterA2 = portalTypography.querySelector('.letter-A2');
-      const letterN = portalTypography.querySelector('.letter-N');
-      const letterG = portalTypography.querySelector('.letter-G');
-      const subtitle = portalTypography.querySelector('.hero-subtitle');
+      const letterS = portalTypography.querySelector(".letter-S");
+      const letterA1 = portalTypography.querySelector(".letter-A1");
+      const letterB = portalTypography.querySelector(".letter-B");
+      const letterR = portalTypography.querySelector(".letter-R");
+      const letterA2 = portalTypography.querySelector(".letter-A2");
+      const letterN = portalTypography.querySelector(".letter-N");
+      const letterG = portalTypography.querySelector(".letter-G");
+      const subtitle = portalTypography.querySelector(".hero-subtitle");
 
       if (scrollIndicator) {
         mainTl.to(scrollIndicator, { opacity: 0, y: -20, duration: 0.1 }, 0);
@@ -79,25 +79,88 @@ export default function SabrangShopifyHero() {
 
       // 3D Canvas zoom-in towards camera
       if (canvas3D) {
-        mainTl.to(canvas3D, { scale: 4, opacity: 0.15, duration: 0.45, ease: 'power2.inOut' }, 0);
+        mainTl.to(
+          canvas3D,
+          { scale: 4, opacity: 0.15, duration: 0.45, ease: "power2.inOut" },
+          0,
+        );
       }
 
       // Letterforms split outwards while expanding 20-35x in Z perspective
-      if (letterS) mainTl.to(letterS, { xPercent: -200, yPercent: -50, scale: 14, opacity: 0, duration: 0.45 }, 0);
-      if (letterG) mainTl.to(letterG, { xPercent: 200, yPercent: 50, scale: 14, opacity: 0, duration: 0.45 }, 0);
-      if (letterA1) mainTl.to(letterA1, { xPercent: -130, yPercent: 35, scale: 18, opacity: 0, duration: 0.45 }, 0);
-      if (letterN) mainTl.to(letterN, { xPercent: 130, yPercent: -35, scale: 18, opacity: 0, duration: 0.45 }, 0);
-      if (letterB) mainTl.to(letterB, { xPercent: -75, scale: 24, opacity: 0, duration: 0.45 }, 0);
-      if (letterA2) mainTl.to(letterA2, { xPercent: 75, scale: 24, opacity: 0, duration: 0.45 }, 0);
-      if (letterR) mainTl.to(letterR, { scale: 40, opacity: 0, duration: 0.45 }, 0);
+      if (letterS)
+        mainTl.to(
+          letterS,
+          {
+            xPercent: -200,
+            yPercent: -50,
+            scale: 14,
+            opacity: 0,
+            duration: 0.45,
+          },
+          0,
+        );
+      if (letterG)
+        mainTl.to(
+          letterG,
+          {
+            xPercent: 200,
+            yPercent: 50,
+            scale: 14,
+            opacity: 0,
+            duration: 0.45,
+          },
+          0,
+        );
+      if (letterA1)
+        mainTl.to(
+          letterA1,
+          {
+            xPercent: -130,
+            yPercent: 35,
+            scale: 18,
+            opacity: 0,
+            duration: 0.45,
+          },
+          0,
+        );
+      if (letterN)
+        mainTl.to(
+          letterN,
+          {
+            xPercent: 130,
+            yPercent: -35,
+            scale: 18,
+            opacity: 0,
+            duration: 0.45,
+          },
+          0,
+        );
+      if (letterB)
+        mainTl.to(
+          letterB,
+          { xPercent: -75, scale: 24, opacity: 0, duration: 0.45 },
+          0,
+        );
+      if (letterA2)
+        mainTl.to(
+          letterA2,
+          { xPercent: 75, scale: 24, opacity: 0, duration: 0.45 },
+          0,
+        );
+      if (letterR)
+        mainTl.to(letterR, { scale: 40, opacity: 0, duration: 0.45 }, 0);
 
-      mainTl.to(portalTypography, { scale: 4, opacity: 0.05, duration: 0.45 }, 0);
+      mainTl.to(
+        portalTypography,
+        { scale: 4, opacity: 0.05, duration: 0.45 },
+        0,
+      );
 
       // ----------------------------------------------------
       // Phase 2: 3D Floating Cards & Energy Moments (28% -> 72%)
       // ----------------------------------------------------
       if (floatingCards) {
-        const cards = floatingCards.querySelectorAll('.floating-card-item');
+        const cards = floatingCards.querySelectorAll(".floating-card-item");
         mainTl.to(floatingCards, { opacity: 1, duration: 0.1 }, 0.25);
 
         cards.forEach((card, idx) => {
@@ -106,14 +169,14 @@ export default function SabrangShopifyHero() {
           mainTl.fromTo(
             card,
             { scale: 0.2, opacity: 0 },
-            { scale: 1.15, opacity: 1, duration: 0.2, ease: 'power2.out' },
-            startT
+            { scale: 1.15, opacity: 1, duration: 0.2, ease: "power2.out" },
+            startT,
           );
 
           mainTl.to(
             card,
-            { scale: 2.2, opacity: 0, duration: 0.15, ease: 'power2.in' },
-            startT + 0.18
+            { scale: 2.2, opacity: 0, duration: 0.15, ease: "power2.in" },
+            startT + 0.18,
           );
         });
 
@@ -127,8 +190,8 @@ export default function SabrangShopifyHero() {
         mainTl.fromTo(
           storyIntro,
           { opacity: 0, scale: 0.9, y: 50 },
-          { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power3.out' },
-          0.65
+          { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: "power3.out" },
+          0.65,
         );
       }
     }, container);
@@ -137,14 +200,20 @@ export default function SabrangShopifyHero() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[400vh] bg-[#050508] text-white overflow-hidden">
+    <div
+      ref={containerRef}
+      className="relative w-full h-[400vh] bg-[#050508] text-white overflow-hidden"
+    >
       {/* Background Volumetric Glow */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140vw] h-[85vh] rounded-b-[100%] bg-gradient-to-b from-indigo-900/40 via-purple-900/20 to-transparent opacity-70" />
       </div>
 
       {/* 3D WebGL Canvas Layer (Three.js Refractive Torus + Particle Rain) */}
-      <div ref={canvas3DRef} className="absolute inset-0 z-0 pointer-events-auto">
+      <div
+        ref={canvas3DRef}
+        className="absolute inset-0 z-0 pointer-events-auto"
+      >
         <ShopifyStyle3DCanvas />
       </div>
 
@@ -152,7 +221,7 @@ export default function SabrangShopifyHero() {
       <div
         ref={pinnedStageRef}
         className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden z-10"
-        style={{ perspective: '1200px' }}
+        style={{ perspective: "1200px" }}
       >
         {/* SHOPIFY-STYLE MONOSPACE BRANDING HEADER */}
         <div className="absolute top-6 left-6 md:left-12 right-6 md:right-12 flex justify-between items-center z-30 pointer-events-none">
@@ -171,18 +240,25 @@ export default function SabrangShopifyHero() {
         </div>
 
         {/* HERO PORTAL TYPOGRAPHY */}
-        <div ref={portalTypographyRef} className="relative z-20 w-full flex flex-col items-center justify-center pointer-events-none">
+        <div
+          ref={portalTypographyRef}
+          className="relative z-20 w-full flex flex-col items-center justify-center pointer-events-none"
+        >
           <SabrangLetterPortal />
 
           <div className="hero-subtitle mt-6 md:mt-10 text-center px-4 max-w-3xl">
             <p className="text-xs sm:text-base md:text-xl font-semibold tracking-[0.2em] text-white/90 uppercase drop-shadow-md">
-              The Grandest Cultural & Techno-Management Festival of Rajasthan • JKLU Jaipur
+              The Grandest Cultural & Techno-Management Festival of Rajasthan •
+              JKLU Jaipur
             </p>
           </div>
         </div>
 
         {/* 3D FLOATING GALLERY CARDS (PORTAL FLY-THROUGH) */}
-        <div ref={floatingCardsRef} className="absolute inset-0 z-20 pointer-events-none opacity-0">
+        <div
+          ref={floatingCardsRef}
+          className="absolute inset-0 z-20 pointer-events-none opacity-0"
+        >
           <FestivalFloatingCards />
         </div>
 
@@ -194,7 +270,7 @@ export default function SabrangShopifyHero() {
           <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-indigo-500/40 bg-indigo-950/60 backdrop-blur-xl text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-6 shadow-xl">
             <span>Discover The Realm</span>
           </div>
-          
+
           <h2 className="text-4xl md:text-7xl font-black tracking-tight text-white uppercase leading-none mb-6">
             Where Passion Meets <br />
             <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-pink-400 bg-clip-text text-transparent">
@@ -203,13 +279,25 @@ export default function SabrangShopifyHero() {
           </h2>
 
           <p className="text-lg md:text-2xl text-slate-200 max-w-2xl font-light leading-relaxed mb-8">
-            Sabrang is not just an event—it is a living pulse of artistic expression, high-stakes competition, and legendary nights at JK Lakshmipat University.
+            Sabrang is not just an event—it is a living pulse of artistic
+            expression, high-stakes competition, and legendary nights at JK
+            Lakshmipat University.
           </p>
 
           <div className="flex items-center gap-4 text-xs font-mono text-cyan-300">
             <span>SCROLL DOWN TO EXPLORE STORY</span>
-            <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            <svg
+              className="w-4 h-4 animate-bounce"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
             </svg>
           </div>
         </div>

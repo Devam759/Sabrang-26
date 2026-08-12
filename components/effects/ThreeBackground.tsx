@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useAspect } from '@react-three/drei';
-import * as THREE from 'three';
-import { useInteraction } from '@/components/InteractionContext';
+import { useRef, useEffect, useMemo, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useAspect } from "@react-three/drei";
+import * as THREE from "three";
+import { useInteraction } from "@/components/InteractionContext";
 
 const videoVertex = `
 varying vec2 vUv;
@@ -93,58 +93,66 @@ function VideoBackground() {
   const scrollVelocity = useRef(0);
   const glitchIntensity = useRef(0);
   const lastHoverState = useRef(hoverState);
-  
+
   const scale = useAspect(1920, 1080, 1);
-  
+
   useEffect(() => {
-    const video = document.createElement('video');
-    video.src = '/background.mp4';
-    video.crossOrigin = 'Anonymous';
+    const video = document.createElement("video");
+    video.src = "/background.mp4";
+    video.crossOrigin = "Anonymous";
     video.loop = true;
     video.muted = true;
     video.playsInline = true;
     video.autoplay = true;
-    video.style.display = 'none';
+    video.style.display = "none";
     document.body.appendChild(video);
-    
-    video.play().then(() => {
-      const texture = new THREE.VideoTexture(video);
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.format = THREE.RGBAFormat;
-      if (materialRef.current) materialRef.current.uniforms.tVideo.value = texture;
-    }).catch(e => console.warn(e));
+
+    video
+      .play()
+      .then(() => {
+        const texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBAFormat;
+        if (materialRef.current)
+          materialRef.current.uniforms.tVideo.value = texture;
+      })
+      .catch((e) => console.warn(e));
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       scrollVelocity.current = Math.abs(currentScrollY - lastScrollY.current);
       lastScrollY.current = currentScrollY;
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       video.pause();
       if (video.parentNode) video.parentNode.removeChild(video);
     };
   }, []);
 
-  const shaderMat = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: videoVertex,
-    fragmentShader: videoFragment,
-    uniforms: {
-      tVideo: { value: null },
-      uTime: { value: 0 },
-      uTintMix: { value: 0 },
-      uVelocity: { value: 0 },
-      uGlitchMultiplier: { value: 0 },
-      uMouse: { value: new THREE.Vector2(0, 0) },
-      uHoverColor: { value: new THREE.Color('#ff0a54') },
-      uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
-      uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
-    },
-    depthWrite: false,
-  }), []);
+  const shaderMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: videoVertex,
+        fragmentShader: videoFragment,
+        uniforms: {
+          tVideo: { value: null },
+          uTime: { value: 0 },
+          uTintMix: { value: 0 },
+          uVelocity: { value: 0 },
+          uGlitchMultiplier: { value: 0 },
+          uMouse: { value: new THREE.Vector2(0, 0) },
+          uHoverColor: { value: new THREE.Color("#ff0a54") },
+          uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
+          uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
+        },
+        depthWrite: false,
+      }),
+    [],
+  );
 
   useEffect(() => {
     materialRef.current = shaderMat;
@@ -154,7 +162,7 @@ function VideoBackground() {
   // Trigger glitch spike on hover state change
   useEffect(() => {
     if (hoverState !== lastHoverState.current) {
-      if (hoverState !== 'idle') {
+      if (hoverState !== "idle") {
         glitchIntensity.current = 1.0; // Huge glitch spike
       }
       lastHoverState.current = hoverState;
@@ -165,29 +173,57 @@ function VideoBackground() {
     if (!materialRef.current) return;
     const mat = materialRef.current;
     mat.uniforms.uTime.value = state.clock.elapsedTime;
-    
+
     mat.uniforms.uResolution.value.set(state.size.width, state.size.height);
-    
+
     // Decay velocity
-    scrollVelocity.current = THREE.MathUtils.lerp(scrollVelocity.current, 0, 0.1);
-    mat.uniforms.uVelocity.value = THREE.MathUtils.lerp(mat.uniforms.uVelocity.value, Math.min(scrollVelocity.current * 0.05, 1.0), 0.1);
+    scrollVelocity.current = THREE.MathUtils.lerp(
+      scrollVelocity.current,
+      0,
+      0.1,
+    );
+    mat.uniforms.uVelocity.value = THREE.MathUtils.lerp(
+      mat.uniforms.uVelocity.value,
+      Math.min(scrollVelocity.current * 0.05, 1.0),
+      0.1,
+    );
 
     // Decay hover glitch
-    glitchIntensity.current = THREE.MathUtils.lerp(glitchIntensity.current, 0, 0.05);
+    glitchIntensity.current = THREE.MathUtils.lerp(
+      glitchIntensity.current,
+      0,
+      0.05,
+    );
     mat.uniforms.uGlitchMultiplier.value = glitchIntensity.current;
 
     // Mouse tracking
-    mat.uniforms.uMouse.value.x = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.x, state.mouse.x, 0.1);
-    mat.uniforms.uMouse.value.y = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.y, state.mouse.y, 0.1);
+    mat.uniforms.uMouse.value.x = THREE.MathUtils.lerp(
+      mat.uniforms.uMouse.value.x,
+      state.mouse.x,
+      0.1,
+    );
+    mat.uniforms.uMouse.value.y = THREE.MathUtils.lerp(
+      mat.uniforms.uMouse.value.y,
+      state.mouse.y,
+      0.1,
+    );
 
-    const isHovered = hoverState !== 'idle';
-    mat.uniforms.uTintMix.value = THREE.MathUtils.lerp(mat.uniforms.uTintMix.value, isHovered ? 0.9 : 0.0, 0.05);
+    const isHovered = hoverState !== "idle";
+    mat.uniforms.uTintMix.value = THREE.MathUtils.lerp(
+      mat.uniforms.uTintMix.value,
+      isHovered ? 0.9 : 0.0,
+      0.05,
+    );
 
     // Purple (Panache), Magenta (Bandjam), Electric Yellow (Step-Up)
     const targetColor = new THREE.Color(
-      hoverState === 'primary' ? '#9d4edd' : 
-      hoverState === 'secondary' ? '#FF00FF' : 
-      hoverState === 'tertiary' ? '#FFFF00' : '#9d4edd'
+      hoverState === "primary"
+        ? "#9d4edd"
+        : hoverState === "secondary"
+          ? "#FF00FF"
+          : hoverState === "tertiary"
+            ? "#FFFF00"
+            : "#9d4edd",
     );
     mat.uniforms.uHoverColor.value.lerp(targetColor, 0.1);
   });
@@ -210,7 +246,10 @@ function VideoBackground() {
 export default function ThreeBackground() {
   return (
     <div className="fixed inset-0 z-0 w-full h-full bg-[#030005] pointer-events-none overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ antialias: false, powerPreference: 'high-performance' }}>
+      <Canvas
+        camera={{ position: [0, 0, 10], fov: 45 }}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
+      >
         <VideoBackground />
       </Canvas>
     </div>

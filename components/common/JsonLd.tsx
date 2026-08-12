@@ -1,1 +1,1 @@
-export { default } from '@/components/seo/JsonLd';
+export { default } from "@/components/seo/JsonLd";

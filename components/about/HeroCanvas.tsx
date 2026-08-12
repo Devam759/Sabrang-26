@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import React, { useRef, useMemo, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
 // ------------------------------------------------------------------
 // Atmospheric point cloud — 800 particles, slow drift, depth scatter
@@ -46,12 +46,12 @@ function AtmosphereCloud({
     pointsRef.current.rotation.x = THREE.MathUtils.lerp(
       pointsRef.current.rotation.x,
       -mouse.current.y * 0.15,
-      0.03
+      0.03,
     );
     pointsRef.current.rotation.y = THREE.MathUtils.lerp(
       pointsRef.current.rotation.y,
       mouse.current.x * 0.15,
-      0.03
+      0.03,
     );
   });
 
@@ -93,7 +93,8 @@ function ForegroundDust() {
 
   useFrame((state) => {
     if (!pointsRef.current) return;
-    pointsRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.02;
+    pointsRef.current.rotation.z =
+      Math.sin(state.clock.elapsedTime * 0.05) * 0.02;
   });
 
   return (
@@ -164,7 +165,7 @@ export default function HeroCanvas({
     <div
       onPointerMove={handlePointerMove}
       className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: 'none' }}
+      style={{ pointerEvents: "none" }}
     >
       <Canvas
         dpr={[1, 1.5]}
@@ -175,12 +176,12 @@ export default function HeroCanvas({
             canvas: (canvasTarget.canvas || canvasTarget) as HTMLCanvasElement,
             antialias: false, // off for perf
             alpha: true,
-            powerPreference: 'high-performance',
+            powerPreference: "high-performance",
           })
         }
         onCreated={({ gl }) => {
           if (gl.domElement?.addEventListener) {
-            gl.domElement.addEventListener('webglcontextlost', (e) => {
+            gl.domElement.addEventListener("webglcontextlost", (e) => {
               e.preventDefault();
             });
           }

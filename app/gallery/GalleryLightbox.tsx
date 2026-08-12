@@ -1,9 +1,20 @@
-'use client';
+"use client";
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
-export type OriginRect = { x: number; y: number; width: number; height: number };
+export type OriginRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 /** Fits `aspect` inside the container, leaving room for the viewer chrome. */
 function fitRect(aspect: number, w: number, h: number): OriginRect {
@@ -42,7 +53,7 @@ export default function GalleryLightbox({
   const reduceMotion = useReducedMotion();
   const spring = reduceMotion
     ? ({ duration: 0.2 } as const)
-    : ({ type: 'spring', stiffness: 170, damping: 24, mass: 0.85 } as const);
+    : ({ type: "spring", stiffness: 170, damping: 24, mass: 0.85 } as const);
 
   const [bounds, setBounds] = useState<{ w: number; h: number } | null>(null);
   const [aspect, setAspect] = useState(initialAspect);
@@ -89,14 +100,14 @@ export default function GalleryLightbox({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-      else if (event.key === 'ArrowLeft') go(-1);
-      else if (event.key === 'ArrowRight') go(1);
+      if (event.key === "Escape") close();
+      else if (event.key === "ArrowLeft") go(-1);
+      else if (event.key === "ArrowRight") go(1);
       else return;
       event.preventDefault();
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [close, go]);
 
   useEffect(() => {
@@ -136,7 +147,11 @@ export default function GalleryLightbox({
       <motion.div
         className="absolute left-0 top-0 overflow-hidden bg-black/40 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)]"
         initial={{ ...origin, borderRadius: 3 }}
-        animate={closing ? { ...exitRect, borderRadius: 3 } : { ...target, borderRadius: 10 }}
+        animate={
+          closing
+            ? { ...exitRect, borderRadius: 3 }
+            : { ...target, borderRadius: 10 }
+        }
         transition={spring}
         onAnimationComplete={() => {
           if (closing) onClose();
@@ -152,10 +167,14 @@ export default function GalleryLightbox({
             initial={{ opacity: 0, x: dir * 28 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: dir * -28 }}
-            transition={{ duration: reduceMotion ? 0.15 : 0.32, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: reduceMotion ? 0.15 : 0.32,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             onLoad={(event) => {
               const el = event.currentTarget;
-              if (el.naturalHeight > 0) setAspect(el.naturalWidth / el.naturalHeight);
+              if (el.naturalHeight > 0)
+                setAspect(el.naturalWidth / el.naturalHeight);
             }}
           />
         </AnimatePresence>
@@ -172,7 +191,8 @@ export default function GalleryLightbox({
             {image.title}
           </p>
           <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-white/40">
-            {String(index + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}
+            {String(index + 1).padStart(2, "0")} /{" "}
+            {String(images.length).padStart(2, "0")}
           </p>
         </div>
 
@@ -183,7 +203,13 @@ export default function GalleryLightbox({
           onClick={close}
           className="pointer-events-auto absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/60 text-white/70 transition hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:right-10 md:top-8"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
             <path d="M5 5l14 14M19 5L5 19" strokeLinecap="round" />
           </svg>
         </button>
@@ -194,8 +220,18 @@ export default function GalleryLightbox({
           onClick={() => go(-1)}
           className="pointer-events-auto absolute left-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-black/50 text-white/60 transition hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:left-8"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              d="M15 5l-7 7 7 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
@@ -205,8 +241,18 @@ export default function GalleryLightbox({
           onClick={() => go(1)}
           className="pointer-events-auto absolute right-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-black/50 text-white/60 transition hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:right-8"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              d="M9 5l7 7-7 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 

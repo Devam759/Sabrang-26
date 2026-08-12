@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl';
-import { useEffect, useRef } from 'react';
-import './EvilEye.css';
+import { Renderer, Program, Mesh, Triangle, Texture } from "ogl";
+import { useEffect, useRef } from "react";
+import "./EvilEye.css";
 
 interface EvilEyeProps {
   eyeColor?: string;
@@ -19,7 +19,7 @@ interface EvilEyeProps {
 }
 
 function hexToVec3(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
+  const h = hex.replace("#", "");
   return [
     parseInt(h.slice(0, 2), 16) / 255,
     parseInt(h.slice(2, 4), 16) / 255,
@@ -48,7 +48,12 @@ function generateNoiseTexture(size = 256): Uint8Array {
     const v10 = hash((((ix + 1) % w) + w) % w, ((iy % w) + w) % w, seed);
     const v01 = hash(((ix % w) + w) % w, (((iy + 1) % w) + w) % w, seed);
     const v11 = hash((((ix + 1) % w) + w) % w, (((iy + 1) % w) + w) % w, seed);
-    return v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
+    return (
+      v00 * (1 - tx) * (1 - ty) +
+      v10 * tx * (1 - ty) +
+      v01 * (1 - tx) * ty +
+      v11 * tx * ty
+    );
   }
 
   for (let y = 0; y < size; y++) {
@@ -171,7 +176,7 @@ void main() {
 `;
 
 export default function EvilEye({
-  eyeColor = '#7C3AED',
+  eyeColor = "#7C3AED",
   intensity = 1.6,
   pupilSize = 1.95,
   irisWidth = 0.8,
@@ -187,8 +192,12 @@ export default function EvilEye({
   const blinkRef = useRef<number>(blink ?? 1.0);
   const manualMouseRef = useRef<[number, number] | undefined>(manualMouse);
 
-  useEffect(() => { blinkRef.current = blink ?? 1.0; }, [blink]);
-  useEffect(() => { manualMouseRef.current = manualMouse; }, [manualMouse]);
+  useEffect(() => {
+    blinkRef.current = blink ?? 1.0;
+  }, [blink]);
+  useEffect(() => {
+    manualMouseRef.current = manualMouse;
+  }, [manualMouse]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -235,7 +244,7 @@ export default function EvilEye({
         ];
       }
     }
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
     resize();
 
     const geometry = new Triangle(gl);
@@ -245,7 +254,11 @@ export default function EvilEye({
       uniforms: {
         uTime: { value: 0 },
         uResolution: {
-          value: [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height],
+          value: [
+            gl.canvas.width,
+            gl.canvas.height,
+            gl.canvas.width / gl.canvas.height,
+          ],
         },
         uNoiseTexture: { value: noiseTexture },
         uPupilSize: { value: pupilSize },
@@ -301,13 +314,13 @@ export default function EvilEye({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener("resize", resize);
       if (gl.canvas && container.contains(gl.canvas)) {
         container.removeChild(gl.canvas);
       }
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     eyeColor,
     intensity,

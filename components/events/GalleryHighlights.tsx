@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * GALLERY HIGHLIGHTS — the section shell.
@@ -12,22 +12,22 @@
  * quiet static archive instead — never an empty black rectangle.
  */
 
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { galleryItems, type GalleryItem } from '@/lib/highlights-data';
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
 
-const ArchiveScene = dynamic(() => import('./ArchiveScene'), { ssr: false });
+const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
 
-type StageMode = 'pending' | 'webgl' | 'static';
+type StageMode = "pending" | "webgl" | "static";
 
 function supportsWebGL() {
   try {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     return Boolean(
-      canvas.getContext('webgl2') ??
-      canvas.getContext('webgl') ??
-      canvas.getContext('experimental-webgl'),
+      canvas.getContext("webgl2") ??
+      canvas.getContext("webgl") ??
+      canvas.getContext("experimental-webgl"),
     );
   } catch {
     return false;
@@ -43,7 +43,7 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
     <figure className="group relative overflow-hidden bg-[#0e1018] outline outline-white/10">
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
         <span className="text-4xl font-black tracking-tighter text-white/85">
-          {String(index + 1).padStart(2, '0')}
+          {String(index + 1).padStart(2, "0")}
         </span>
         <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-300/70">
           {item.category}
@@ -61,15 +61,18 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0'
-            }`}
+          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
         />
       )}
 
       {failed && <div className="aspect-[3/4] w-full" />}
 
       <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-4">
-        <p className="text-sm font-bold uppercase tracking-tight text-white">{item.title}</p>
+        <p className="text-sm font-bold uppercase tracking-tight text-white">
+          {item.title}
+        </p>
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
           {item.venue} · {item.year}
         </p>
@@ -82,7 +85,7 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
  * One heading, rendered either as an overlay on the pinned stage or in normal
  * flow above the static archive — never twice, never in two different voices.
  */
-function ArchiveHeading({ className = '' }: { className?: string }) {
+function ArchiveHeading({ className = "" }: { className?: string }) {
   return (
     <header className={`mx-auto max-w-6xl px-6 ${className}`}>
       <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-indigo-400">
@@ -119,21 +122,25 @@ function PosterDetail({
     requestAnimationFrame(() => setVisible(true));
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${visible ? 'bg-black/85 backdrop-blur-md opacity-100' : 'bg-transparent opacity-0'
-        }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
+        visible
+          ? "bg-black/85 backdrop-blur-md opacity-100"
+          : "bg-transparent opacity-0"
+      }`}
       onClick={onClose}
     >
       <div
-        className={`relative mx-6 flex max-h-[85vh] max-w-5xl flex-col md:flex-row gap-8 transition-all duration-500 ${visible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
-          }`}
+        className={`relative mx-6 flex max-h-[85vh] max-w-5xl flex-col md:flex-row gap-8 transition-all duration-500 ${
+          visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -151,6 +158,7 @@ function PosterDetail({
             alt={item.alt}
             width={380}
             height={540}
+            style={{ width: "100%", height: "auto" }}
             className="h-auto w-full object-cover"
             priority
           />
@@ -193,7 +201,7 @@ export default function GalleryHighlights({
 }: {
   items?: GalleryItem[];
 }) {
-  const [mode, setMode] = useState<StageMode>('pending');
+  const [mode, setMode] = useState<StageMode>("pending");
   const [active, setActive] = useState(false);
   const [ready, setReady] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -203,25 +211,25 @@ export default function GalleryHighlights({
   const focusRequestRef = useRef<((itemIndex: number) => void) | null>(null);
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const decide = () => {
-      setMode(reducedMotion.matches || !supportsWebGL() ? 'static' : 'webgl');
+      setMode(reducedMotion.matches || !supportsWebGL() ? "static" : "webgl");
     };
 
     decide();
-    reducedMotion.addEventListener('change', decide);
-    return () => reducedMotion.removeEventListener('change', decide);
+    reducedMotion.addEventListener("change", decide);
+    return () => reducedMotion.removeEventListener("change", decide);
   }, []);
 
   /** The render loop only runs while the chamber is actually on screen. */
   useEffect(() => {
     const element = stageRef.current;
-    if (!element || mode !== 'webgl') return;
+    if (!element || mode !== "webgl") return;
 
     const observer = new IntersectionObserver(
       ([entry]) => setActive(entry.isIntersecting),
-      { rootMargin: '10% 0px' },
+      { rootMargin: "10% 0px" },
     );
 
     observer.observe(element);
@@ -253,7 +261,8 @@ export default function GalleryHighlights({
   const onWheel = useCallback(
     (event: React.WheelEvent<HTMLDivElement>) => {
       // deltaMode 1 is lines, 2 is pages — normalise both to something pixel-ish.
-      const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
+      const scale =
+        event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
       const wheel = wheelRef.current;
       const now = event.timeStamp;
 
@@ -272,10 +281,10 @@ export default function GalleryHighlights({
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
         event.preventDefault();
         step(1);
-      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
         event.preventDefault();
         step(-1);
       }
@@ -295,7 +304,7 @@ export default function GalleryHighlights({
         // z-10 so the nav still floats over the dark.
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
-        {mode === 'static' ? (
+        {mode === "static" ? (
           <>
             <ArchiveHeading className="pt-16 md:pt-20" />
             <StaticArchive items={items} />
@@ -313,7 +322,7 @@ export default function GalleryHighlights({
                 aria-label="Festival photograph archive. Use the arrow keys to move between photographs."
                 className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400"
               >
-                {mode === 'webgl' && (
+                {mode === "webgl" && (
                   <ArchiveScene
                     items={items}
                     active={active}
@@ -347,11 +356,13 @@ export default function GalleryHighlights({
               {/* METADATA — supports the imagery, never competes with it. */}
               <div
                 aria-live="polite"
-                className={`pointer-events-none absolute inset-x-0 bottom-0 px-8 pb-8 transition-opacity duration-500 md:px-12 md:pb-12 ${ready ? 'opacity-100' : 'opacity-0'
-                  }`}
+                className={`pointer-events-none absolute inset-x-0 bottom-0 px-8 pb-8 transition-opacity duration-500 md:px-12 md:pb-12 ${
+                  ready ? "opacity-100" : "opacity-0"
+                }`}
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-400">
-                  {String(focusedIndex + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}
+                  {String(focusedIndex + 1).padStart(2, "0")} /{" "}
+                  {String(items.length).padStart(2, "0")}
                 </p>
                 <p className="mt-2 text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
                   {focused.title}
@@ -371,7 +382,8 @@ export default function GalleryHighlights({
         <ul className="sr-only">
           {items.map((item) => (
             <li key={item.id}>
-              {item.title} — {item.category}, {item.venue}, {item.year}. {item.alt}
+              {item.title} — {item.category}, {item.venue}, {item.year}.{" "}
+              {item.alt}
             </li>
           ))}
         </ul>

@@ -1,5 +1,5 @@
-import React from 'react';
-import PillarAccordion from './PillarAccordion';
+import React from "react";
+import PillarAccordion from "./PillarAccordion";
 
 export default function AboutStoryContent() {
   return (

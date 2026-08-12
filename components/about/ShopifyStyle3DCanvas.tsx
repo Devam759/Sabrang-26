@@ -1,13 +1,17 @@
-'use client';
+"use client";
 
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import React, { useRef, useMemo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 // ----------------------------------------------------
 // High-Performance GPU Particle Field (0 CPU Uploads)
 // ----------------------------------------------------
-function ParticleRain({ mouse }: { mouse: React.RefObject<{ x: number; y: number }> }) {
+function ParticleRain({
+  mouse,
+}: {
+  mouse: React.RefObject<{ x: number; y: number }>;
+}) {
   const count = 500;
   const pointsRef = useRef<THREE.Points>(null);
 
@@ -24,7 +28,11 @@ function ParticleRain({ mouse }: { mouse: React.RefObject<{ x: number; y: number
   useFrame((state, delta) => {
     if (!pointsRef.current) return;
     pointsRef.current.rotation.y += delta * 0.08;
-    pointsRef.current.rotation.x = THREE.MathUtils.lerp(pointsRef.current.rotation.x, -mouse.current.y * 0.2, 0.05);
+    pointsRef.current.rotation.x = THREE.MathUtils.lerp(
+      pointsRef.current.rotation.x,
+      -mouse.current.y * 0.2,
+      0.05,
+    );
   });
 
   return (
@@ -71,12 +79,15 @@ export default function ShopifyStyle3DCanvas() {
             canvas: (canvasTarget.canvas || canvasTarget) as HTMLCanvasElement,
             antialias: true,
             alpha: true,
-            powerPreference: 'high-performance',
+            powerPreference: "high-performance",
           })
         }
         onCreated={({ gl }) => {
-          if (gl.domElement && typeof gl.domElement.addEventListener === 'function') {
-            gl.domElement.addEventListener('webglcontextlost', (e) => {
+          if (
+            gl.domElement &&
+            typeof gl.domElement.addEventListener === "function"
+          ) {
+            gl.domElement.addEventListener("webglcontextlost", (e) => {
               e.preventDefault();
             });
           }
@@ -84,7 +95,11 @@ export default function ShopifyStyle3DCanvas() {
         className="w-full h-full"
       >
         <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 10]} intensity={1.5} color="#c7d2fe" />
+        <directionalLight
+          position={[10, 10, 10]}
+          intensity={1.5}
+          color="#c7d2fe"
+        />
 
         <ParticleRain mouse={mouse} />
       </Canvas>
