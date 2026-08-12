@@ -47,6 +47,8 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
         uProgress: { value: 0 },
         uZoomScale: { value: new THREE.Vector2(1, 1) },
         uTex: { value: tex },
+        uContain: { value: texture.includes('jklu') ? 1.0 : 0.0 },
+        uFlipX: { value: texture.toLowerCase().includes('satvik') ? 1.0 : 0.0 },
         uRes: { value: new THREE.Vector2(width, height) },
         uImageRes: {
           value: new THREE.Vector2(
@@ -77,6 +79,8 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
         uniform vec2 uRes;
         uniform vec2 uZoomScale;
         uniform vec2 uImageRes;
+        uniform float uContain;
+        uniform float uFlipX;
 
         vec2 CoverUV(vec2 u, vec2 s, vec2 i) {
           float rs = s.x / s.y;
@@ -86,20 +90,39 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
           return u * s / st + o;
         }
 
+        vec2 ContainUV(vec2 u, vec2 s, vec2 i) {
+          float rs = s.x / s.y;
+          float ri = i.x / i.y;
+          vec2 st = rs > ri ? vec2(i.x * s.y / i.y, s.y) : vec2(s.x, i.y * s.x / i.x);
+          vec2 o = (rs > ri ? vec2((st.x - s.x) / 2.0, 0.0) : vec2(0.0, st.y - s.y)) / st;
+          return u * s / st + o;
+        }
+
         varying vec2 vUv;
         void main() {
-          vec2 uv = CoverUV(vUv, uRes, uImageRes);
-          vec3 texColor = texture2D(uTex, uv).rgb;
+          vec2 currentUv = vUv;
+          if (uFlipX > 0.5) {
+            currentUv.x = 1.0 - currentUv.x;
+          }
+          vec2 uvCover = CoverUV(currentUv, uRes, uImageRes);
+          vec2 uvContain = ContainUV(currentUv, uRes, uImageRes);
+          vec2 uv = mix(uvCover, uvContain, uContain);
+
+          vec3 texColor = vec3(0.0);
+          if (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0) {
+            texColor = texture2D(uTex, uv).rgb;
+          }
+
           gl_FragColor = vec4( texColor, 1.0 );
         }
       `,
     }),
-    [tex]
+    [tex, texture, width, height]
   );
 
   return (
     <mesh ref={$mesh} {...props}>
-      <planeGeometry args={[width, height, 30, 30]} />
+      <planeGeometry args={[width || 0.72, height || 1.8, 30, 30]} />
       <shaderMaterial args={[shaderArgs]} />
     </mesh>
   );

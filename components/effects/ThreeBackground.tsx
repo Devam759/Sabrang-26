@@ -192,8 +192,15 @@ function VideoBackground() {
     mat.uniforms.uHoverColor.value.lerp(targetColor, 0.1);
   });
 
+  const safeScale: [number, number, number] = useMemo(() => {
+    if (Array.isArray(scale) && !isNaN(scale[0]) && !isNaN(scale[1])) {
+      return scale as [number, number, number];
+    }
+    return [1, 1, 1];
+  }, [scale]);
+
   return (
-    <mesh position={[0, 0, 0]} scale={scale}>
+    <mesh position={[0, 0, 0]} scale={safeScale}>
       <planeGeometry args={[1, 1]} />
       <primitive object={shaderMat} attach="material" />
     </mesh>

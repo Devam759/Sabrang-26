@@ -40,7 +40,7 @@ export const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/gallery', label: 'Gallery' },
-  { href: '/team', label: 'Our Team' },
+  { href: '/team', label: 'Team' },
   { href: '/sponsors', label: 'Sponsors' },
   { href: '/events', label: 'Events' },
   { href: '/schedule', label: 'Schedule' },
