@@ -461,6 +461,8 @@ type ArchiveSceneProps = {
   onFocusChange: (itemIndex: number) => void;
   onReady: () => void;
   focusRequestRef: React.RefObject<((itemIndex: number) => void) | null>;
+  /** Fires when a tile is tapped (not dragged), with the item index. */
+  onTileTap?: (itemIndex: number) => void;
 };
 
 export default function ArchiveScene({
@@ -469,6 +471,7 @@ export default function ArchiveScene({
   onFocusChange,
   onReady,
   focusRequestRef,
+  onTileTap,
 }: ArchiveSceneProps) {
   const textures = useArchiveTextures(items);
 
@@ -645,10 +648,13 @@ export default function ArchiveScene({
       if (!placement) return;
 
       window.setTimeout(() => {
-        if (dragMovedRef.current < 6) focusItem(placement.itemIndex);
+        if (dragMovedRef.current < 6) {
+          focusItem(placement.itemIndex);
+          onTileTap?.(placement.itemIndex);
+        }
       }, 0);
     },
-    [focusItem],
+    [focusItem, onTileTap],
   );
 
   useEffect(() => {
