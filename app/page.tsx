@@ -6,31 +6,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import ThreeBackground from '@/components/effects/ThreeBackground';
 import { useInteraction } from '@/components/InteractionContext';
 
-function MagneticHeroText({ text, scrollY1, isTopHalf, x, y }: { text: string, scrollY1: any, isTopHalf: boolean, x: any, y: any }) {
-  const ref = useRef<HTMLHeadingElement>(null);
-  
-  const splitY = useTransform(scrollY1, [0, 0.6], [0, isTopHalf ? -500 : 500]);
-  const splitOpacity = useTransform(scrollY1, [0, 0.5, 0.6], [1, 1, 0]);
-
-  return (
-    <motion.div 
-      className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none"
-      style={{ 
-        clipPath: isTopHalf ? 'inset(0% 0% 50% 0%)' : 'inset(50% 0% 0% 0%)',
-        y: splitY,
-        opacity: splitOpacity
-      }}
-    >
-      <motion.h1 
-        ref={ref}
-        style={{ x, y }}
-        className="text-6xl md:text-[8rem] font-medium tracking-tighter uppercase text-white leading-[0.85] drop-shadow-2xl cursor-default"
-      >
-        Sabrang <span className="font-light text-white/70">2026</span>
-      </motion.h1>
-    </motion.div>
-  );
-}
+import GsapCyberText from '@/components/effects/GsapCyberText';
 
 export default function Home() {
   const { user } = useAuth();
@@ -122,9 +98,7 @@ export default function Home() {
             </div>
           </motion.div>
 
-          <MagneticHeroText text="Sabrang 2026" scrollY1={scrollY1} isTopHalf={true} x={x} y={y} />
-          <MagneticHeroText text="Sabrang 2026" scrollY1={scrollY1} isTopHalf={false} x={x} y={y} />
-
+          <GsapCyberText />
 
 
         </div>
