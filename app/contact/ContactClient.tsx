@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
-import ContactForm from "@/components/forms/ContactForm";
-import CursorGrid from "@/components/ui/CursorGrid";
-import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
+import React from 'react';
+import ContactForm from '@/components/forms/ContactForm';
+import CursorGrid from '@/components/ui/CursorGrid';
+import VenueMap from '@/components/contact/VenueMap';
+import { ORGANIZING_HEADS, SITE_CONFIG } from '@/lib/constants';
 
 export default function ContactClient() {
   return (
@@ -208,6 +209,11 @@ export default function ContactClient() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Venue Map Section — full bleed below the main content */}
+      <div className="relative z-10 mt-16 -mx-4">
+        <VenueMap />
       </div>
     </div>
   );
