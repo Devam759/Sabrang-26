@@ -114,12 +114,12 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
   }, [activePlane, items, onActiveItemChange]);
 
   /* Vars */
-  const progress = useRef(50);
+  const progress = useRef(4.6875);
   const startPos = useRef(0);
   const isDown = useRef(false);
   const speedWheel = 0.008;
   const speedDrag = -0.035;
-  const oldProgress = useRef(50);
+  const oldProgress = useRef(4.6875);
   const speed = useRef(0);
 
   const $items = useMemo(() => {
@@ -252,7 +252,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
         onPointerLeave={handleUp}
         onPointerCancel={handleUp}
       >
-        <planeGeometry args={[viewport.width, viewport.height]} />
+        <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
         <meshBasicMaterial transparent={true} opacity={0} />
       </mesh>
     );

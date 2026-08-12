@@ -28,6 +28,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let unsubscribe = () => {};
 
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (
+        event.reason &&
+        (event.reason.message?.includes('Database is closing') ||
+          event.reason.message?.includes('database is closing') ||
+          event.reason.code === 'failed-precondition')
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    }
+
     try {
       unsubscribe = onAuthStateChanged(
         auth,
@@ -41,8 +56,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUserData(data);
                 setRole(data.role);
               }
-            } catch (error) {
-              console.error("Error fetching user data:", error);
+            } catch (error: any) {
+              if (!error?.message?.includes('Database is closing')) {
+                console.error("Error fetching user data:", error);
+              }
             }
           } else {
             setUserData(null);
@@ -60,7 +77,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     }
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      }
+    };
   }, []);
 
   return (

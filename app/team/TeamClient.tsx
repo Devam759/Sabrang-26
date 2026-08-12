@@ -40,30 +40,6 @@ export default function TeamClient() {
     };
   }, []);
 
-  const names = [
-    'Dr. Rajesh Sharma', 'Prof. Anita Verma', 'Amit Kumar', 'Priya Singh',
-    'Rahul Verma', 'Sneha Kapur', 'Karan Johar', 'Ishaan Khattar',
-    'Neha Gupta', 'Ananya Patel', 'Vikram Rao', 'Meera Joshi',
-    'Rohan Mehta', 'Sanya Malhotra', 'Aditya Roy', 'Riya Sen',
-    'Devansh Saxena', 'Kavya Nair', 'Arjun Kapoor', 'Tanvi Shah',
-    'Yash Vardhan', 'Pooja Hegde', 'Varun Dhawan', 'Shraddha Das',
-    'Siddharth Malhotra', 'Jahnvi Kapoor', 'Kartik Aaryan', 'Kiara Advani',
-    'Ayushmann Khurrana', 'Kriti Sanon', 'Vicky Kaushal', 'Sara Ali Khan',
-    'Ranbir Kapoor'
-  ];
-
-  const roles = [
-    'Festival Director', 'Event Coordinator', 'General Secretary', 'Joint Secretary',
-    'Treasurer', 'Event Head', 'Technical Lead', 'Web Developer',
-    'App Developer', 'Design Head', 'Content Lead', 'Social Media Manager',
-    'Logistics Lead', 'Public Relations', 'Sponsorship Head', 'Stage Manager',
-    'Security In-Charge', 'Creative Director', 'Operations Lead', 'Marketing Head',
-    'Hospitality Head', 'Decor Lead', 'Finance Officer', 'Media Coordinator',
-    'Tech Support', 'VIP Guest Management', 'Sound & Lights Lead', 'Volunteer Coordinator',
-    'Photography Head', 'Video Production Lead', 'Sponsorship Manager', 'Registration Lead',
-    'Core Advisory'
-  ];
-
   const teamImages = [
     '/team-carousel/Aditya Nayak.png',
     '/team-carousel/Ambika Dalmia.png',
@@ -78,10 +54,66 @@ export default function TeamClient() {
     '/team-carousel/Satvik.png'
   ];
 
-  const carouselMembers = Array.from({ length: 33 }, (_, i) => ({
-    image: teamImages[i % teamImages.length],
-    name: names[i % names.length],
-    role: roles[i % roles.length],
+  const rawMembers = [
+    // Organizing Heads
+    { name: 'Kartik Sharma', role: 'Organizing Head' },
+    { name: 'Rishika Singh', role: 'Organizing Head' },
+    { name: 'Gurseerat Kaur', role: 'Organizing Head' },
+    { name: 'Pratigya Bomb', role: 'Organizing Head' },
+
+    // Core Members
+    { name: 'Tanik Gupta', role: 'Discipline Core' },
+    { name: 'Saumya Puri', role: 'Discipline Core' },
+    { name: 'Aayush', role: 'Design Core' },
+    { name: 'Abhirama Shreyas', role: 'Decor Core' },
+    { name: 'Mahi Tripathi', role: 'Decor Core' },
+    { name: 'Vaibhav Sharma', role: 'Media & Report Core' },
+    { name: 'Kartik Singh', role: 'Photography Core' },
+    { name: 'Roshan Jangir', role: 'Photography Core' },
+    { name: 'Aadhya Mittal', role: 'Events Core' },
+    { name: 'Devansh Srivastava', role: 'Events Core' },
+    { name: 'Jheel Jain', role: 'Events Core' },
+    { name: 'Devam Gupta', role: 'Tech & Support Core' },
+    { name: 'Satvik Agrawal', role: 'Internal Arrangements Core' },
+    { name: 'Asmit Sharma', role: 'Internal Arrangements Core' },
+    { name: 'Kunal Kasliwal', role: 'Transport Core' },
+    { name: 'Manan Lala', role: 'Transport Core' },
+    { name: 'Aditya Nayak', role: 'Social Media Core' },
+    { name: 'Aryan Gupta', role: 'Social Media Core' },
+    { name: 'Ashlesha Sharma', role: 'Prize & Certificates Core' },
+    { name: 'Ambika Dalmia', role: 'Hospitality Core' },
+    { name: 'Khushi Soni', role: 'Hospitality Core' },
+    { name: 'Naman Shukla', role: 'Stage & Venue Core' },
+    { name: 'Diksha Shekhawat', role: 'Stage & Venue Core' },
+    { name: 'Jayash Gahlot', role: 'Registrations Core' },
+    { name: 'Ankit Joshi', role: 'Registrations Core' },
+    { name: 'Gaurang Tak', role: 'Sponsorship & Promotions Core' },
+    { name: 'Daksh Kumar', role: 'Anchoring Core' },
+    { name: 'Laksh Sharma', role: 'Anchoring Core' }
+  ];
+
+  function getMemberImage(name: string): string {
+    const normalized = name.toLowerCase().trim();
+    if (normalized.includes('aditya nayak')) return '/team-carousel/Aditya Nayak.png';
+    if (normalized.includes('ambika dalmia')) return '/team-carousel/Ambika Dalmia.png';
+    if (normalized.includes('aryan gupta') || normalized === 'aryan') return '/team-carousel/Aryan.png';
+    if (normalized.includes('ashlesha sharma')) return '/team-carousel/Ashlesha Sharma.png';
+    if (normalized.includes('daksh kumar')) return '/team-carousel/Daksh kumar.png';
+    if (normalized.includes('devansh srivastava')) return '/team-carousel/Devansh Srivastava .png';
+    if (normalized.includes('manan lala') || normalized === 'manan') return '/team-carousel/Manan.png';
+    if (normalized.includes('naman shukla')) return '/team-carousel/Naman Shukla.png';
+    if (normalized.includes('rashi')) return '/team-carousel/Rashi.png';
+    if (normalized.includes('roshan jangir')) return '/team-carousel/Roshan jangir .png';
+    if (normalized.includes('satvik agrawal') || normalized === 'satvik') return '/team-carousel/Satvik.png';
+
+    // Fallback to JKLU logo for those we don't have photos for
+    return '/white_jklu_logo.png';
+  }
+
+  const carouselMembers = rawMembers.map((member) => ({
+    image: getMemberImage(member.name),
+    name: member.name,
+    role: member.role
   }));
 
   return (
