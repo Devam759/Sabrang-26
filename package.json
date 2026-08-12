@@ -11,6 +11,7 @@
     "deploy:hosting": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@paper-design/shaders-react": "^0.0.79",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
@@ -33,6 +34,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "split-type": "^0.3.4",
     "tailwind-merge": "^3.6.0",
     "three": "^0.185.1",
     "threejs-components": "^0.0.30",

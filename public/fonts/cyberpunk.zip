@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Error 404</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+<!--
+body{background:#fff;margin:0px 14px;padding:0px}
+body,p {
+	font-family: Arial, Helvetica, sans-serif;
+}
+body{background-image:url("/img/penguins_lowres.jpg");background-size: 100%;background-repeat: no-repeat;}
+img{border:none}
+a {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	line-height:24px;
+	text-decoration:none;
+	color:#000;
+}
+a:hover {color:#c00;text-decoration:underline;}
+.flag img{margin-right:8px}
+-->
+</style>
+</head>
+
+<body>
+<div style="float:left;height:250px"><a href="/"><img src="/img/dafont.png" style="margin-right:20px" /></a><div></div></div>
+
+<div>
+
+<div style="padding:10px 0px 16px;font-size:34px"><b>404. Page not found.</b></div>
+
+<div class="flag">
+<a href="/"><img src="/img/flags/en.gif">English</a><br>
+<a href="/fr/"><img src="/img/flags/fr.gif">Fran&ccedil;ais</a><br>
+<a href="/es/"><img src="/img/flags/es.gif">Espa&ntilde;ol</a><br>
+<a href="/de/"><img src="/img/flags/de.gif">Deutsch</a><br>
+<a href="/it/"><img src="/img/flags/it.gif">Italiano</a><br>
+<a href="/pt/"><img src="/img/flags/pt.gif">Portugu&ecirc;s</a><br>
+</div>
+
+</div>
+
+</body>
+
+</html>
