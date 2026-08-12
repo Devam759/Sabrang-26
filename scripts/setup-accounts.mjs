@@ -1,6 +1,7 @@
 import admin from 'firebase-admin';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { randomInt } from 'crypto';
 
 const serviceAccount = JSON.parse(
   readFileSync(join(process.cwd(), 'sabrang-26-firebase-adminsdk-fbsvc-a93ec956bb.json'), 'utf8')
@@ -15,11 +16,11 @@ if (!admin.apps.length) {
 const auth = admin.auth();
 const db = admin.firestore();
 
-// Generate a random numeric password of N digits
+// Generate a random numeric password of N digits using cryptographically secure PRNG
 const generatePassword = (length) => {
   let pass = '';
   for (let i = 0; i < length; i++) {
-    pass += Math.floor(Math.random() * 10).toString();
+    pass += randomInt(0, 10).toString();
   }
   return pass;
 };
