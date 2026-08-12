@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import SabrangLetterPortal from './SabrangLetterPortal';
-import FestivalFloatingCards from './FestivalFloatingCards';
+import React, { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SabrangLetterPortal from "./SabrangLetterPortal";
+import FestivalFloatingCards from "./FestivalFloatingCards";
 
 // Register ScrollTrigger plugin safely on client
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
@@ -39,8 +39,8 @@ export default function SabrangHeroContainer() {
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
-          start: 'top top',
-          end: 'bottom bottom',
+          start: "top top",
+          end: "bottom bottom",
           pin: pinnedSection,
           scrub: 0.8,
           onUpdate: (self) => {
@@ -52,14 +52,14 @@ export default function SabrangHeroContainer() {
       // ----------------------------------------------------
       // Phase 1: Letter Portal Zoom & Spatial Separation (0 -> 45%)
       // ----------------------------------------------------
-      const letterS = portalWrapper.querySelector('.letter-S');
-      const letterA1 = portalWrapper.querySelector('.letter-A1');
-      const letterB = portalWrapper.querySelector('.letter-B');
-      const letterR = portalWrapper.querySelector('.letter-R');
-      const letterA2 = portalWrapper.querySelector('.letter-A2');
-      const letterN = portalWrapper.querySelector('.letter-N');
-      const letterG = portalWrapper.querySelector('.letter-G');
-      const subtitleEl = portalWrapper.querySelector('.hero-subtitle');
+      const letterS = portalWrapper.querySelector(".letter-S");
+      const letterA1 = portalWrapper.querySelector(".letter-A1");
+      const letterB = portalWrapper.querySelector(".letter-B");
+      const letterR = portalWrapper.querySelector(".letter-R");
+      const letterA2 = portalWrapper.querySelector(".letter-A2");
+      const letterN = portalWrapper.querySelector(".letter-N");
+      const letterG = portalWrapper.querySelector(".letter-G");
+      const subtitleEl = portalWrapper.querySelector(".hero-subtitle");
 
       // Hide scroll indicator quickly on initial scroll
       if (scrollIndicator) {
@@ -68,31 +68,103 @@ export default function SabrangHeroContainer() {
 
       // Subtitle fade and drop
       if (subtitleEl) {
-        mainTl.to(subtitleEl, { opacity: 0, scale: 0.8, filter: 'blur(10px)', duration: 0.2 }, 0);
+        mainTl.to(
+          subtitleEl,
+          { opacity: 0, scale: 0.8, filter: "blur(10px)", duration: 0.2 },
+          0,
+        );
       }
 
       // Outer letters split outwards violently while scaling up into camera
       if (letterS) {
-        mainTl.to(letterS, { xPercent: -180, yPercent: -40, scale: 12, opacity: 0, filter: 'blur(12px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterS,
+          {
+            xPercent: -180,
+            yPercent: -40,
+            scale: 12,
+            opacity: 0,
+            filter: "blur(12px)",
+            duration: 0.45,
+          },
+          0,
+        );
       }
       if (letterG) {
-        mainTl.to(letterG, { xPercent: 180, yPercent: 40, scale: 12, opacity: 0, filter: 'blur(12px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterG,
+          {
+            xPercent: 180,
+            yPercent: 40,
+            scale: 12,
+            opacity: 0,
+            filter: "blur(12px)",
+            duration: 0.45,
+          },
+          0,
+        );
       }
       if (letterA1) {
-        mainTl.to(letterA1, { xPercent: -120, yPercent: 30, scale: 16, opacity: 0, filter: 'blur(8px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterA1,
+          {
+            xPercent: -120,
+            yPercent: 30,
+            scale: 16,
+            opacity: 0,
+            filter: "blur(8px)",
+            duration: 0.45,
+          },
+          0,
+        );
       }
       if (letterN) {
-        mainTl.to(letterN, { xPercent: 120, yPercent: -30, scale: 16, opacity: 0, filter: 'blur(8px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterN,
+          {
+            xPercent: 120,
+            yPercent: -30,
+            scale: 16,
+            opacity: 0,
+            filter: "blur(8px)",
+            duration: 0.45,
+          },
+          0,
+        );
       }
       if (letterB) {
-        mainTl.to(letterB, { xPercent: -60, scale: 22, opacity: 0, filter: 'blur(6px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterB,
+          {
+            xPercent: -60,
+            scale: 22,
+            opacity: 0,
+            filter: "blur(6px)",
+            duration: 0.45,
+          },
+          0,
+        );
       }
       if (letterA2) {
-        mainTl.to(letterA2, { xPercent: 60, scale: 22, opacity: 0, filter: 'blur(6px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterA2,
+          {
+            xPercent: 60,
+            scale: 22,
+            opacity: 0,
+            filter: "blur(6px)",
+            duration: 0.45,
+          },
+          0,
+        );
       }
       // Center letter 'R' acts as the primary camera gateway aperture
       if (letterR) {
-        mainTl.to(letterR, { scale: 35, opacity: 0, filter: 'blur(20px)', duration: 0.45 }, 0);
+        mainTl.to(
+          letterR,
+          { scale: 35, opacity: 0, filter: "blur(20px)", duration: 0.45 },
+          0,
+        );
       }
 
       // Portal wrapper overall depth scale (camera moving through)
@@ -102,7 +174,7 @@ export default function SabrangHeroContainer() {
       // Phase 2: 3D Floating Fest Cards & Energy Particles (30% -> 75%)
       // ----------------------------------------------------
       if (floatingCards) {
-        const cards = floatingCards.querySelectorAll('.floating-card-item');
+        const cards = floatingCards.querySelectorAll(".floating-card-item");
 
         // Reset visibility
         mainTl.to(floatingCards, { opacity: 1, duration: 0.1 }, 0.25);
@@ -117,17 +189,17 @@ export default function SabrangHeroContainer() {
               scale: 0.2,
               z: -1200,
               opacity: 0,
-              filter: 'blur(15px)',
+              filter: "blur(15px)",
             },
             {
               scale: 1.15,
               z: 200,
               opacity: 1,
-              filter: 'blur(0px)',
+              filter: "blur(0px)",
               duration: 0.2,
-              ease: 'power2.out',
+              ease: "power2.out",
             },
-            depthStart
+            depthStart,
           );
 
           mainTl.to(
@@ -136,11 +208,11 @@ export default function SabrangHeroContainer() {
               scale: 2.2,
               z: 800,
               opacity: 0,
-              filter: 'blur(12px)',
+              filter: "blur(12px)",
               duration: 0.15,
-              ease: 'power2.in',
+              ease: "power2.in",
             },
-            depthStart + 0.18
+            depthStart + 0.18,
           );
         });
 
@@ -158,17 +230,17 @@ export default function SabrangHeroContainer() {
             opacity: 0,
             scale: 0.85,
             y: 60,
-            filter: 'blur(15px)',
+            filter: "blur(15px)",
           },
           {
             opacity: 1,
             scale: 1,
             y: 0,
-            filter: 'blur(0px)',
+            filter: "blur(0px)",
             duration: 0.3,
-            ease: 'power3.out',
+            ease: "power3.out",
           },
-          0.65
+          0.65,
         );
       }
     }, container);
@@ -177,7 +249,10 @@ export default function SabrangHeroContainer() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[400vh] bg-[#050508] text-white overflow-hidden">
+    <div
+      ref={containerRef}
+      className="relative w-full h-[400vh] bg-[#050508] text-white overflow-hidden"
+    >
       {/* Ambient background glowing mesh */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-indigo-900/40 via-purple-600/30 to-pink-500/20 rounded-full blur-[140px] opacity-70 animate-pulse" />
@@ -189,7 +264,7 @@ export default function SabrangHeroContainer() {
       <div
         ref={pinnedSectionRef}
         className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden z-10"
-        style={{ perspective: '1200px' }}
+        style={{ perspective: "1200px" }}
       >
         {/* TOP BRANDING ACCENT */}
         <div className="absolute top-8 left-6 md:left-12 right-6 md:right-12 flex justify-between items-center z-30 pointer-events-none">
@@ -205,7 +280,10 @@ export default function SabrangHeroContainer() {
         </div>
 
         {/* HERO PORTAL TYPOGRAPHY */}
-        <div ref={portalWrapperRef} className="relative z-20 w-full flex flex-col items-center justify-center pointer-events-none">
+        <div
+          ref={portalWrapperRef}
+          className="relative z-20 w-full flex flex-col items-center justify-center pointer-events-none"
+        >
           <SabrangLetterPortal />
 
           <div className="hero-subtitle mt-6 md:mt-10 text-center px-4">
@@ -216,7 +294,10 @@ export default function SabrangHeroContainer() {
         </div>
 
         {/* 3D FLOATING FEST MOMENT CARDS (INSIDE THE PORTAL) */}
-        <div ref={floatingCardsRef} className="absolute inset-0 z-20 pointer-events-none opacity-0">
+        <div
+          ref={floatingCardsRef}
+          className="absolute inset-0 z-20 pointer-events-none opacity-0"
+        >
           <FestivalFloatingCards />
         </div>
 
@@ -228,7 +309,7 @@ export default function SabrangHeroContainer() {
           <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-950/40 backdrop-blur-md text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-6">
             <span>Discover The Realm</span>
           </div>
-          
+
           <h2 className="text-4xl md:text-7xl font-black tracking-tight text-white uppercase leading-none mb-6">
             Where Passion Meets <br />
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -237,13 +318,25 @@ export default function SabrangHeroContainer() {
           </h2>
 
           <p className="text-lg md:text-2xl text-slate-300 max-w-2xl font-light leading-relaxed mb-8">
-            Sabrang is not just an event—it is a living pulse of artistic expression, high-stakes competition, and legendary nights at JK Lakshmipat University.
+            Sabrang is not just an event—it is a living pulse of artistic
+            expression, high-stakes competition, and legendary nights at JK
+            Lakshmipat University.
           </p>
 
           <div className="flex items-center gap-4 text-xs font-mono text-indigo-400/80">
             <span>SCROLL DOWN TO EXPLORE</span>
-            <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            <svg
+              className="w-4 h-4 animate-bounce"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
             </svg>
           </div>
         </div>

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * The WebGL half of Gallery Highlights.
@@ -19,10 +19,15 @@
  *    the photographs are the only subject
  */
 
-import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import * as THREE from 'three';
-import type { GalleryItem } from '@/lib/highlights-data';
+import {
+  Canvas,
+  useFrame,
+  useThree,
+  type ThreeEvent,
+} from "@react-three/fiber";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import type { GalleryItem } from "@/lib/highlights-data";
 
 const TWO_PI = Math.PI * 2;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
@@ -45,7 +50,6 @@ const RESTING_OPACITY = 0.58;
 const MAX_PITCH = 0.72;
 const DAMPING = 0.9;
 const DRAG_TO_ANGLE = 0.0032;
-
 
 type TilePlacement = {
   /** Unit direction from the centre of the sphere. */
@@ -75,25 +79,25 @@ function createPlaceholderTexture(item: GalleryItem, index: number) {
   // smaller reads as a blurred upscale the moment a photograph takes focus.
   const w = 768;
   const h = 1024;
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
   if (ctx) {
-    ctx.fillStyle = '#1b1f2e';
+    ctx.fillStyle = "#1b1f2e";
     ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(129, 140, 248, 0.55)';
+    ctx.strokeStyle = "rgba(129, 140, 248, 0.55)";
     ctx.lineWidth = 6;
     ctx.strokeRect(24, 24, w - 48, h - 48);
 
-    ctx.fillStyle = 'rgba(226, 232, 240, 0.92)';
-    ctx.font = '700 192px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(String(index + 1).padStart(2, '0'), w / 2, h / 2);
+    ctx.fillStyle = "rgba(226, 232, 240, 0.92)";
+    ctx.font = "700 192px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(String(index + 1).padStart(2, "0"), w / 2, h / 2);
 
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
-    ctx.font = '600 48px system-ui, sans-serif';
+    ctx.fillStyle = "rgba(148, 163, 184, 0.8)";
+    ctx.font = "600 48px system-ui, sans-serif";
     ctx.fillText(item.category.toUpperCase(), w / 2, h / 2 + 120);
   }
 
@@ -212,7 +216,8 @@ function ArchiveSphere({
   const tileSizes = useMemo(
     () =>
       textures.map((texture) => {
-        const image = texture.image as { width?: number; height?: number } | undefined;
+        const image = texture.image as
+          { width?: number; height?: number } | undefined;
         const aspect =
           image?.width && image?.height ? image.width / image.height : 0.75;
         const clamped = Math.min(2.1, Math.max(0.55, aspect));
@@ -237,7 +242,11 @@ function ArchiveSphere({
     const slots = Array.from({ length: count }, (_, i) => {
       const t = count <= 1 ? 0.5 : i / (count - 1);
       const y = (1 - t * 2) * maxY;
-      return { y, ring: Math.sqrt(Math.max(0, 1 - y * y)), theta: GOLDEN_ANGLE * i };
+      return {
+        y,
+        ring: Math.sqrt(Math.max(0, 1 - y * y)),
+        theta: GOLDEN_ANGLE * i,
+      };
     });
 
     const order = slots
@@ -261,7 +270,11 @@ function ArchiveSphere({
       // from a camera 6.6 out — it took focus at three times the size of every
       // other photograph, skewed by perspective. Uniform radius means the
       // subject is the same size wherever it comes from.
-      return { dir, position: dir.clone().multiplyScalar(SHELL_RADIUS), itemIndex };
+      return {
+        dir,
+        position: dir.clone().multiplyScalar(SHELL_RADIUS),
+        itemIndex,
+      };
     });
   }, [items.length]);
 
@@ -301,27 +314,35 @@ function ArchiveSphere({
   useFrame((state, delta) => {
     const dt = Math.min(delta, 1 / 30);
     const decay = Math.pow(DAMPING, dt * 60);
-    const focusScale = state.size.width < 768 ? FOCUS_SCALE_NARROW : FOCUS_SCALE;
+    const focusScale =
+      state.size.width < 768 ? FOCUS_SCALE_NARROW : FOCUS_SCALE;
 
     spinYawRef.current *= decay;
     spinPitchRef.current *= decay;
 
     yawOffsetRef.current += spinYawRef.current * dt;
     pitchRef.current += spinPitchRef.current * dt;
-    pitchRef.current = Math.min(MAX_PITCH, Math.max(-MAX_PITCH, pitchRef.current));
+    pitchRef.current = Math.min(
+      MAX_PITCH,
+      Math.max(-MAX_PITCH, pitchRef.current),
+    );
 
     if (snapActiveRef.current && !isDraggingRef.current) {
       const alpha = 1 - Math.pow(0.9, dt * 60);
       const targetOffset = snapYawRef.current;
 
-      yawOffsetRef.current += wrapPi(targetOffset - yawOffsetRef.current) * alpha;
+      yawOffsetRef.current +=
+        wrapPi(targetOffset - yawOffsetRef.current) * alpha;
       pitchRef.current += (snapPitchRef.current - pitchRef.current) * alpha;
 
       spinYawRef.current *= 0.86;
       spinPitchRef.current *= 0.86;
 
       const yawErr = Math.abs(wrapPi(targetOffset - yawOffsetRef.current));
-      if (yawErr < 0.003 && Math.abs(snapPitchRef.current - pitchRef.current) < 0.003) {
+      if (
+        yawErr < 0.003 &&
+        Math.abs(snapPitchRef.current - pitchRef.current) < 0.003
+      ) {
         yawOffsetRef.current += wrapPi(targetOffset - yawOffsetRef.current);
         pitchRef.current = snapPitchRef.current;
         spinYawRef.current = 0;
@@ -461,6 +482,8 @@ type ArchiveSceneProps = {
   onFocusChange: (itemIndex: number) => void;
   onReady: () => void;
   focusRequestRef: React.RefObject<((itemIndex: number) => void) | null>;
+  /** Fires when a tile is tapped (not dragged), with the item index. */
+  onTileTap?: (itemIndex: number) => void;
 };
 
 export default function ArchiveScene({
@@ -469,6 +492,7 @@ export default function ArchiveScene({
   onFocusChange,
   onReady,
   focusRequestRef,
+  onTileTap,
 }: ArchiveSceneProps) {
   const textures = useArchiveTextures(items);
 
@@ -498,7 +522,10 @@ export default function ArchiveScene({
     const horizontal = Math.hypot(dir.x, dir.z);
     return {
       yaw: Math.atan2(-dir.x, dir.z),
-      pitch: Math.max(-MAX_PITCH, Math.min(MAX_PITCH, Math.atan2(dir.y, horizontal))),
+      pitch: Math.max(
+        -MAX_PITCH,
+        Math.min(MAX_PITCH, Math.atan2(dir.y, horizontal)),
+      ),
     };
   }, []);
 
@@ -539,7 +566,9 @@ export default function ArchiveScene({
   /** Bring one specific photograph forward — used by keyboard navigation. */
   const focusItem = useCallback(
     (itemIndex: number) => {
-      const placement = placementsRef.current.find((p) => p.itemIndex === itemIndex);
+      const placement = placementsRef.current.find(
+        (p) => p.itemIndex === itemIndex,
+      );
       if (!placement) return;
 
       const currentYaw = yawOffsetRef.current;
@@ -561,53 +590,71 @@ export default function ArchiveScene({
     };
   }, [focusItem, focusRequestRef]);
 
-  const onPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
+  const onPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
 
-    pointerRef.current = {
-      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -(((event.clientY - rect.top) / rect.height) * 2 - 1),
-    };
+      pointerRef.current = {
+        x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        y: -(((event.clientY - rect.top) / rect.height) * 2 - 1),
+      };
 
-    if (!isDraggingRef.current || dragPointerIdRef.current !== event.pointerId) return;
+      if (
+        !isDraggingRef.current ||
+        dragPointerIdRef.current !== event.pointerId
+      )
+        return;
 
-    const dx = event.clientX - dragLastRef.current.x;
-    const dy = event.clientY - dragLastRef.current.y;
-    const dtMs = event.timeStamp - dragLastRef.current.t;
+      const dx = event.clientX - dragLastRef.current.x;
+      const dy = event.clientY - dragLastRef.current.y;
+      const dtMs = event.timeStamp - dragLastRef.current.t;
 
-    dragLastRef.current = { x: event.clientX, y: event.clientY, t: event.timeStamp };
-    dragMovedRef.current += Math.abs(dx) + Math.abs(dy);
+      dragLastRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        t: event.timeStamp,
+      };
+      dragMovedRef.current += Math.abs(dx) + Math.abs(dy);
 
-    const deltaYaw = dx * DRAG_TO_ANGLE;
-    const deltaPitch = -dy * DRAG_TO_ANGLE * 0.6;
+      const deltaYaw = dx * DRAG_TO_ANGLE;
+      const deltaPitch = -dy * DRAG_TO_ANGLE * 0.6;
 
-    yawOffsetRef.current += deltaYaw;
-    pitchRef.current = Math.min(
-      MAX_PITCH,
-      Math.max(-MAX_PITCH, pitchRef.current + deltaPitch),
-    );
+      yawOffsetRef.current += deltaYaw;
+      pitchRef.current = Math.min(
+        MAX_PITCH,
+        Math.max(-MAX_PITCH, pitchRef.current + deltaPitch),
+      );
 
-    if (dtMs > 0) {
-      const dt = dtMs / 1000;
-      spinYawRef.current = Math.max(-3.2, Math.min(3.2, deltaYaw / dt));
-      spinPitchRef.current = Math.max(-3.2, Math.min(3.2, deltaPitch / dt));
-    }
-  }, []);
+      if (dtMs > 0) {
+        const dt = dtMs / 1000;
+        spinYawRef.current = Math.max(-3.2, Math.min(3.2, deltaYaw / dt));
+        spinPitchRef.current = Math.max(-3.2, Math.min(3.2, deltaPitch / dt));
+      }
+    },
+    [],
+  );
 
-  const onPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    snapActiveRef.current = false;
-    isDraggingRef.current = true;
-    dragPointerIdRef.current = event.pointerId;
-    dragLastRef.current = { x: event.clientX, y: event.clientY, t: event.timeStamp };
-    dragMovedRef.current = 0;
+  const onPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      snapActiveRef.current = false;
+      isDraggingRef.current = true;
+      dragPointerIdRef.current = event.pointerId;
+      dragLastRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        t: event.timeStamp,
+      };
+      dragMovedRef.current = 0;
 
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      // Pointer capture is best-effort; drag still works without it.
-    }
-  }, []);
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // Pointer capture is best-effort; drag still works without it.
+      }
+    },
+    [],
+  );
 
   const endDrag = useCallback(
     (event?: React.PointerEvent<HTMLDivElement>) => {
@@ -645,10 +692,13 @@ export default function ArchiveScene({
       if (!placement) return;
 
       window.setTimeout(() => {
-        if (dragMovedRef.current < 6) focusItem(placement.itemIndex);
+        if (dragMovedRef.current < 6) {
+          focusItem(placement.itemIndex);
+          onTileTap?.(placement.itemIndex);
+        }
       }, 0);
     },
-    [focusItem],
+    [focusItem, onTileTap],
   );
 
   useEffect(() => {
@@ -665,9 +715,9 @@ export default function ArchiveScene({
       onPointerLeave={onPointerLeave}
     >
       <Canvas
-        frameloop={active ? 'always' : 'never'}
+        frameloop={active ? "always" : "never"}
         dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ position: [0, 0, 11], fov: 48 }}
       >
         <CameraRig pointerRef={pointerRef} />

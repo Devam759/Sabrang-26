@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * HeroColoursOverBlack — Volumetric Colorful Liquid Cloud & Smoke Background
@@ -17,9 +17,9 @@
  *   - High performance 1-quad WebGL renderer with fluid mouse interaction.
  */
 
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import React, { useEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
 const FRAGMENT_SHADER = /* glsl */ `
 precision highp float;
@@ -131,9 +131,13 @@ void main() {
 }
 `;
 
-function FluidScreenQuad({ scrollProgress }: { scrollProgress: { current: number } }) {
+function FluidScreenQuad({
+  scrollProgress,
+}: {
+  scrollProgress: { current: number };
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const matRef  = useRef<THREE.ShaderMaterial>(null);
+  const matRef = useRef<THREE.ShaderMaterial>(null);
   const { size } = useThree();
 
   const mouse = useRef({ x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 });
@@ -141,20 +145,20 @@ function FluidScreenQuad({ scrollProgress }: { scrollProgress: { current: number
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       mouse.current.targetX = e.clientX / window.innerWidth;
-      mouse.current.targetY = 1.0 - (e.clientY / window.innerHeight);
+      mouse.current.targetY = 1.0 - e.clientY / window.innerHeight;
     };
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   const uniforms = useMemo(
     () => ({
-      uTime:           { value: 0 },
-      uResolution:     { value: new THREE.Vector2(size.width, size.height) },
-      uMouse:          { value: new THREE.Vector2(0.5, 0.5) },
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uScrollProgress: { value: 0 },
     }),
-    [size.width, size.height]
+    [size.width, size.height],
   );
 
   useEffect(() => {
@@ -197,10 +201,20 @@ export default function HeroColoursOverBlack({
   return (
     <div
       aria-hidden="true"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: '#000000' }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        background: "#000000",
+      }}
     >
       <Canvas
-        dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? [1, 1] : [1, 1.5]}
+        dpr={
+          typeof window !== "undefined" && window.innerWidth < 768
+            ? [1, 1]
+            : [1, 1.5]
+        }
         performance={{ min: 0.8 }}
         camera={{ position: [0, 0, 1] }}
         gl={{
@@ -208,13 +222,15 @@ export default function HeroColoursOverBlack({
           alpha: false,
           stencil: false,
           depth: false,
-          powerPreference: 'high-performance',
+          powerPreference: "high-performance",
         }}
         onCreated={({ gl }) => {
-          gl.setClearColor(new THREE.Color('#000000'), 1);
-          gl.domElement?.addEventListener('webglcontextlost', (e) => e.preventDefault());
+          gl.setClearColor(new THREE.Color("#000000"), 1);
+          gl.domElement?.addEventListener("webglcontextlost", (e) =>
+            e.preventDefault(),
+          );
         }}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: "100%", height: "100%" }}
       >
         <FluidScreenQuad scrollProgress={scrollProgress} />
       </Canvas>

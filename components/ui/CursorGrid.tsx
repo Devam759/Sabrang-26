@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect } from 'react';
-import './CursorGrid.css';
+import React, { useRef, useEffect } from "react";
+import "./CursorGrid.css";
 
 const FALLOFF_CURVES = {
   linear: (t: number) => t,
@@ -10,8 +10,14 @@ const FALLOFF_CURVES = {
 };
 
 const hexToRgb = (hex: string): [number, number, number] => {
-  const h = hex.replace('#', '');
-  const v = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const h = hex.replace("#", "");
+  const v =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
   const num = parseInt(v.slice(0, 6), 16);
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 };
@@ -20,7 +26,7 @@ export interface CursorGridProps {
   cellSize?: number;
   color?: string;
   radius?: number;
-  falloff?: 'linear' | 'smooth' | 'sharp';
+  falloff?: "linear" | "smooth" | "sharp";
   holdTime?: number;
   fadeDuration?: number;
   lineWidth?: number;
@@ -35,9 +41,9 @@ export interface CursorGridProps {
 
 export default function CursorGrid({
   cellSize = 70,
-  color = '#D946EF',
+  color = "#D946EF",
   radius = 140,
-  falloff = 'smooth',
+  falloff = "smooth",
   holdTime = 400,
   fadeDuration = 800,
   lineWidth = 1.2,
@@ -47,7 +53,7 @@ export default function CursorGrid({
   cellRadius = 0,
   clickPulse = true,
   pulseSpeed = 600,
-  className = '',
+  className = "",
 }: CursorGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,7 +97,7 @@ export default function CursorGrid({
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -139,9 +145,15 @@ export default function CursorGrid({
       const ease = FALLOFF_CURVES[p.falloff] ?? FALLOFF_CURVES.linear;
       const now = performance.now();
       const minCol = Math.max(0, Math.floor((x - r - offX) / p.cellSize));
-      const maxCol = Math.min(cols - 1, Math.floor((x + r - offX) / p.cellSize));
+      const maxCol = Math.min(
+        cols - 1,
+        Math.floor((x + r - offX) / p.cellSize),
+      );
       const minRow = Math.max(0, Math.floor((y - r - offY) / p.cellSize));
-      const maxRow = Math.min(rows - 1, Math.floor((y + r - offY) / p.cellSize));
+      const maxRow = Math.min(
+        rows - 1,
+        Math.floor((y + r - offY) / p.cellSize),
+      );
       for (let cRow = minRow; cRow <= maxRow; cRow++) {
         for (let cCol = minCol; cCol <= maxCol; cCol++) {
           const i = cRow * cols + cCol;
@@ -192,10 +204,22 @@ export default function CursorGrid({
           continue;
         }
         const band = p.cellSize;
-        const minCol = Math.max(0, Math.floor((pulse.x - ringR - band - offX) / p.cellSize));
-        const maxCol = Math.min(cols - 1, Math.floor((pulse.x + ringR + band - offX) / p.cellSize));
-        const minRow = Math.max(0, Math.floor((pulse.y - ringR - band - offY) / p.cellSize));
-        const maxRow = Math.min(rows - 1, Math.floor((pulse.y + ringR + band - offY) / p.cellSize));
+        const minCol = Math.max(
+          0,
+          Math.floor((pulse.x - ringR - band - offX) / p.cellSize),
+        );
+        const maxCol = Math.min(
+          cols - 1,
+          Math.floor((pulse.x + ringR + band - offX) / p.cellSize),
+        );
+        const minRow = Math.max(
+          0,
+          Math.floor((pulse.y - ringR - band - offY) / p.cellSize),
+        );
+        const maxRow = Math.min(
+          rows - 1,
+          Math.floor((pulse.y + ringR + band - offY) / p.cellSize),
+        );
         for (let cRow = minRow; cRow <= maxRow; cRow++) {
           for (let cCol = minCol; cCol <= maxCol; cCol++) {
             const i = cRow * cols + cCol;
@@ -224,7 +248,14 @@ export default function CursorGrid({
         anyVisible = true;
 
         const [cx, cy] = cellCenter(i);
-        const gradient = ctx.createRadialGradient(cx, cy, half * 0.1, cx, cy, p.cellSize);
+        const gradient = ctx.createRadialGradient(
+          cx,
+          cy,
+          half * 0.1,
+          cx,
+          cy,
+          p.cellSize,
+        );
         gradient.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${a})`);
         gradient.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
 
@@ -233,7 +264,7 @@ export default function CursorGrid({
         const s = p.cellSize - 1;
 
         ctx.beginPath();
-        if (p.cellRadius > 0 && typeof ctx.roundRect === 'function') {
+        if (p.cellRadius > 0 && typeof ctx.roundRect === "function") {
           ctx.roundRect(x, y, s, s, p.cellRadius);
         } else {
           ctx.rect(x, y, s, s);
@@ -293,14 +324,14 @@ export default function CursorGrid({
     rebuild();
     wake();
 
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerdown", onPointerDown);
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
     };
   }, [cellSize]);
 
@@ -309,7 +340,10 @@ export default function CursorGrid({
   }, [gridOpacity, color, lineWidth, maxOpacity, fillOpacity, cellRadius]);
 
   return (
-    <div ref={containerRef} className={`cursor-grid${className ? ` ${className}` : ''}`}>
+    <div
+      ref={containerRef}
+      className={`cursor-grid${className ? ` ${className}` : ""}`}
+    >
       <canvas ref={canvasRef} className="cursor-grid__canvas" />
     </div>
   );

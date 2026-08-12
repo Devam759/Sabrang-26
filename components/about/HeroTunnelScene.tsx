@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * HeroTunnelScene — Three.js particle tunnel
@@ -22,9 +22,9 @@
  * scrollProgress prop: { current: number }  — mutable ref updated by GSAP
  */
 
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import React, { useEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
 // ─── GLSL: Vertex shader ────────────────────────────────────────────────────
 //
@@ -84,26 +84,26 @@ void main() {
 // Electric Cyan, Hot Magenta/Pink, Deep Violet/Purple, Sunburst Yellow/Gold,
 // Emerald Lime Green, Sunset Orange-Coral, Electric Sapphire Blue, Starlight White.
 const SABRANG_PALETTE: [number, number, number][] = [
-  [0.00, 0.90, 1.00], // Neon Electric Cyan
-  [1.00, 0.15, 0.60], // Hot Magenta / Sabrang Pink
-  [0.68, 0.22, 1.00], // Vivid Violet / Purple
-  [1.00, 0.82, 0.05], // Sunburst Yellow / Amber Gold
-  [0.10, 0.92, 0.45], // Emerald Lime Green
-  [1.00, 0.36, 0.10], // Sunset Orange-Coral
-  [0.20, 0.55, 1.00], // Electric Sapphire Blue
-  [1.00, 0.95, 0.85], // Warm Diamond Starlight
-  [0.92, 0.95, 1.00], // Cold Diamond Starlight
+  [0.0, 0.9, 1.0], // Neon Electric Cyan
+  [1.0, 0.15, 0.6], // Hot Magenta / Sabrang Pink
+  [0.68, 0.22, 1.0], // Vivid Violet / Purple
+  [1.0, 0.82, 0.05], // Sunburst Yellow / Amber Gold
+  [0.1, 0.92, 0.45], // Emerald Lime Green
+  [1.0, 0.36, 0.1], // Sunset Orange-Coral
+  [0.2, 0.55, 1.0], // Electric Sapphire Blue
+  [1.0, 0.95, 0.85], // Warm Diamond Starlight
+  [0.92, 0.95, 1.0], // Cold Diamond Starlight
 ];
 
 // ─── Geometry builder ────────────────────────────────────────────────────────
 function buildTunnel(n: number): {
   pos: Float32Array;
   col: Float32Array;
-  sz:  Float32Array;
+  sz: Float32Array;
 } {
   const pos = new Float32Array(n * 3);
   const col = new Float32Array(n * 3);
-  const sz  = new Float32Array(n);
+  const sz = new Float32Array(n);
 
   for (let i = 0; i < n; i++) {
     const z = (Math.random() - 0.5) * 90;
@@ -111,7 +111,7 @@ function buildTunnel(n: number): {
     let x = 0;
     let y = 0;
     const angle = Math.random() * Math.PI * 2;
-    const zone  = Math.random();
+    const zone = Math.random();
 
     if (zone < 0.82) {
       // Dense inner tunnel wall (radius 2.0 - 5.8)
@@ -125,14 +125,15 @@ function buildTunnel(n: number): {
       y = Math.sin(angle) * r;
     }
 
-    pos[i * 3    ] = x;
+    pos[i * 3] = x;
     pos[i * 3 + 1] = y;
     pos[i * 3 + 2] = z;
 
     // Per-particle colour: vibrant Sabrang multi-colour spectrum
-    const p = SABRANG_PALETTE[Math.floor(Math.random() * SABRANG_PALETTE.length)];
+    const p =
+      SABRANG_PALETTE[Math.floor(Math.random() * SABRANG_PALETTE.length)];
     const b = 0.6 + Math.random() * 0.4; // High vibrant brightness
-    col[i * 3    ] = p[0] * b;
+    col[i * 3] = p[0] * b;
     col[i * 3 + 1] = p[1] * b;
     col[i * 3 + 2] = p[2] * b;
 
@@ -149,11 +150,11 @@ function TunnelScene({
   scrollProgress: { current: number };
 }) {
   const { camera } = useThree();
-  const groupRef   = useRef<THREE.Group>(null);
+  const groupRef = useRef<THREE.Group>(null);
 
   // Halved particle budget for cleaner, distinct glowing dots (9,000 desktop / 4,000 mobile)
   const count = useMemo(() => {
-    if (typeof window === 'undefined') return 5000;
+    if (typeof window === "undefined") return 5000;
     const isMobile = window.innerWidth < 768;
     const cores = navigator.hardwareConcurrency || 4;
     if (isMobile || cores <= 4) return 4000;
@@ -165,24 +166,30 @@ function TunnelScene({
     const { pos, col, sz } = buildTunnel(count);
 
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setAttribute('aColor',   new THREE.BufferAttribute(col, 3));
-    g.setAttribute('aSize',    new THREE.BufferAttribute(sz,  1));
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setAttribute("aColor", new THREE.BufferAttribute(col, 3));
+    g.setAttribute("aSize", new THREE.BufferAttribute(sz, 1));
 
     const m = new THREE.ShaderMaterial({
       uniforms: { uOpacity: { value: 1.0 } },
-      vertexShader:   VERT,
+      vertexShader: VERT,
       fragmentShader: FRAG,
-      transparent:    true,
-      blending:       THREE.AdditiveBlending,
-      depthWrite:     false,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
 
     return { geo: g, mat: m };
   }, [count]);
 
   // Dispose GPU resources when component unmounts
-  useEffect(() => () => { geo.dispose(); mat.dispose(); }, [geo, mat]);
+  useEffect(
+    () => () => {
+      geo.dispose();
+      mat.dispose();
+    },
+    [geo, mat],
+  );
 
   // Per-frame: update camera + tunnel rotation + particle opacity
   useFrame((_, delta) => {
@@ -222,10 +229,14 @@ export default function HeroTunnelScene({
   return (
     <div
       aria-hidden="true"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
     >
       <Canvas
-        dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? [1, 1.5] : [1, 2]}
+        dpr={
+          typeof window !== "undefined" && window.innerWidth < 768
+            ? [1, 1.5]
+            : [1, 2]
+        }
         performance={{ min: 0.5 }}
         camera={{ position: [0, 0, 18], fov: 60, near: 0.1, far: 300 }}
         gl={{
@@ -233,14 +244,14 @@ export default function HeroTunnelScene({
           alpha: true,
           stencil: false,
           depth: false,
-          powerPreference: 'high-performance',
+          powerPreference: "high-performance",
         }}
         onCreated={({ gl }) => {
-          gl.domElement?.addEventListener('webglcontextlost', (e) =>
-            e.preventDefault()
+          gl.domElement?.addEventListener("webglcontextlost", (e) =>
+            e.preventDefault(),
           );
         }}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: "100%", height: "100%" }}
       >
         <TunnelScene scrollProgress={scrollProgress} />
       </Canvas>
