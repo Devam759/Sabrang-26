@@ -18,13 +18,13 @@ const devTeam = [
     instagram: "https://instagram.com/devamsharma",
   },
   {
-    name: "Shubh Dixit",
+    name: "Aditya Singh Nayal",
     tag: "CO-ORDINATOR",
-    avatar: "/tech team credit/Shubh dixt.png",
-    linkedin: "https://www.linkedin.com/in/shubhdixit0912",
-    github: "https://github.com/Shubhdix9",
-    email: "Shubhdixit@jklu.edu.in",
-    instagram: "https://www.instagram.com/shubh_dixit__",
+    avatar: "/tech team credit/Aditya.png",
+    linkedin: "https://www.linkedin.com/in/aditya-singh-nayal-5678b3378",
+    github: "https://github.com/Aston-09",
+    email: "adityasinghnayal@jklu.edu.in",
+    instagram: "https://www.instagram.com/aston_axn",
   },
   {
     name: "Kartik Saini",
@@ -36,24 +36,6 @@ const devTeam = [
     instagram: "https://www.instagram.com/kartik_14saini?igsh=dTV2MTc5M2p1bnZq",
   },
   {
-    name: "Lakshya Gupta",
-    tag: "CO-ORDINATOR",
-    avatar: "/tech team credit/Lakshya.png",
-    linkedin: "https://www.linkedin.com/in/lakshya-gupta-b87616370/",
-    github: "https://github.com/Metamorpho-1",
-    email: "lakshyagupta@jklu.edu.in",
-    instagram: "https://instagram.com/lakshyagupta",
-  },
-  {
-    name: "Aditya Singh Nayal",
-    tag: "CO-ORDINATOR",
-    avatar: "/tech team credit/Aditya.png",
-    linkedin: "https://www.linkedin.com/in/aditya-singh-nayal-5678b3378",
-    github: "https://github.com/Aston-09",
-    email: "adityasinghnayal@jklu.edu.in",
-    instagram: "https://www.instagram.com/aston_axn",
-  },
-  {
     name: "Pratham Lalwani",
     tag: "CO-ORDINATOR",
     avatar: "/tech team credit/Pratham.png",
@@ -63,6 +45,15 @@ const devTeam = [
     instagram: "https://www.instagram.com/pratham_lalwani05",
   },
   {
+    name: "Lakshya Gupta",
+    tag: "CO-ORDINATOR",
+    avatar: "/tech team credit/Lakshya.png",
+    linkedin: "https://www.linkedin.com/in/lakshya-gupta-b87616370/",
+    github: "https://github.com/Metamorpho-1",
+    email: "lakshyagupta@jklu.edu.in",
+    instagram: "https://instagram.com/lakshyagupta",
+  },
+  {
     name: "Saurav Tank",
     tag: "CO-ORDINATOR",
     avatar: "/tech team credit/Saurav.png",
@@ -70,6 +61,15 @@ const devTeam = [
     github: "https://github.com/sauravtank1507",
     email: "sauravtank@jklu.edu.in",
     instagram: "https://instagram.com/sauravtank",
+  },
+  {
+    name: "Shubh Dixit",
+    tag: "CO-ORDINATOR",
+    avatar: "/tech team credit/Shubh dixt.png",
+    linkedin: "https://www.linkedin.com/in/shubhdixit0912",
+    github: "https://github.com/Shubhdix9",
+    email: "Shubhdixit@jklu.edu.in",
+    instagram: "https://www.instagram.com/shubh_dixit__",
   },
 ];
 
@@ -341,8 +341,11 @@ export default function CodePenCredits() {
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+                      decoding="sync"
+                      loading="eager"
                       style={{
                         visibility: i === 0 ? "visible" : "hidden",
+                        willChange: "clip-path, transform",
                         clipPath:
                           i === 0
                             ? "polygon(0 0,100% 0,100% 100%,0 100%)"
@@ -371,8 +374,11 @@ export default function CodePenCredits() {
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+                      decoding="sync"
+                      loading="eager"
                       style={{
                         visibility: i === 0 ? "visible" : "hidden",
+                        willChange: "clip-path, transform",
                         clipPath:
                           i === 0
                             ? "polygon(0 0,100% 0,100% 100%,0 100%)"
@@ -411,7 +417,13 @@ export default function CodePenCredits() {
                 key={i}
                 src={m.avatar}
                 alt={m.name}
-                style={{ visibility: i === 0 ? "visible" : "hidden", zIndex: 1 }}
+                decoding="sync"
+                loading="eager"
+                style={{ 
+                  visibility: i === 0 ? "visible" : "hidden", 
+                  willChange: "clip-path, transform",
+                  zIndex: 1 
+                }}
               />
             ))}
 
