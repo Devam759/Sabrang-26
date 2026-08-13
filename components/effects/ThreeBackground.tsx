@@ -102,22 +102,39 @@ function VideoBackground() {
     video.crossOrigin = "Anonymous";
     video.loop = true;
     video.muted = true;
+    video.defaultMuted = true;
     video.playsInline = true;
     video.autoplay = true;
     video.style.display = "none";
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
     document.body.appendChild(video);
 
-    video
-      .play()
-      .then(() => {
-        const texture = new THREE.VideoTexture(video);
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.format = THREE.RGBAFormat;
-        if (materialRef.current)
-          materialRef.current.uniforms.tVideo.value = texture;
-      })
-      .catch((e) => console.warn(e));
+    const texture = new THREE.VideoTexture(video);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBAFormat;
+    
+    if (materialRef.current) {
+      materialRef.current.uniforms.tVideo.value = texture;
+    }
+
+    const tryPlay = () => {
+      video.play().catch(() => {
+        // Silently ignore autoplay errors
+      });
+    };
+
+    tryPlay();
+
+    const onInteraction = () => {
+      if (video.paused) {
+        tryPlay();
+      }
+    };
+
+    window.addEventListener("click", onInteraction);
+    window.addEventListener("touchstart", onInteraction);
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -128,6 +145,8 @@ function VideoBackground() {
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("click", onInteraction);
+      window.removeEventListener("touchstart", onInteraction);
       video.pause();
       if (video.parentNode) video.parentNode.removeChild(video);
     };

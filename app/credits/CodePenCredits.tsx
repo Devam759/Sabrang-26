@@ -15,54 +15,61 @@ const devTeam = [
     linkedin: "https://linkedin.com/in/devamsharma",
     github: "https://github.com/devamsharma",
     email: "devam@sabrang.in",
-  },
-  {
-    name: "Shubh Dixit",
-    tag: "CO-ORDINATOR",
-    avatar: "/team-carousel/Aditya Nayak.png",
-    linkedin: "https://linkedin.com/in/shubhdixit",
-    github: "https://github.com/shubhdixit",
-    email: "shubh@sabrang.in",
-  },
-  {
-    name: "Kartik Saini",
-    tag: "CO-ORDINATOR",
-    avatar: "/team-carousel/Aryan.png",
-    linkedin: "https://linkedin.com/in/kartiksaini",
-    github: "https://github.com/kartiksaini",
-    email: "kartik@sabrang.in",
-  },
-  {
-    name: "Lakshya Gupta",
-    tag: "CO-ORDINATOR",
-    avatar: "/team-carousel/Daksh kumar.png",
-    linkedin: "https://linkedin.com/in/lakshyagupta",
-    github: "https://github.com/lakshyagupta",
-    email: "lakshya@sabrang.in",
+    instagram: "https://instagram.com/devamsharma",
   },
   {
     name: "Aditya Singh Nayal",
     tag: "CO-ORDINATOR",
-    avatar: "/team-carousel/Satvik.png",
-    linkedin: "https://linkedin.com/in/adityasinghnayal",
-    github: "https://github.com/adityanayal",
-    email: "aditya@sabrang.in",
+    avatar: "/tech team credit/Aditya.png",
+    linkedin: "https://www.linkedin.com/in/aditya-singh-nayal-5678b3378",
+    github: "https://github.com/Aston-09",
+    email: "adityasinghnayal@jklu.edu.in",
+    instagram: "https://www.instagram.com/aston_axn",
   },
   {
-    name: "Prathum Lalwani",
+    name: "Kartik Saini",
     tag: "CO-ORDINATOR",
-    avatar: "/team-carousel/Rashi.png",
-    linkedin: "https://linkedin.com/in/prathumlalwani",
-    github: "https://github.com/prathumlalwani",
-    email: "prathum@sabrang.in",
+    avatar: "/tech team credit/Kartik Saini.png",
+    linkedin: "https://linkedin.com/in/kartik-14saini",
+    github: "https://github.com/PrimeKartik",
+    email: "kartiksaini@jklu.edu.in",
+    instagram: "https://www.instagram.com/kartik_14saini?igsh=dTV2MTc5M2p1bnZq",
+  },
+  {
+    name: "Pratham Lalwani",
+    tag: "CO-ORDINATOR",
+    avatar: "/tech team credit/Pratham.png",
+    linkedin: "https://www.linkedin.com/in/pratham2k07",
+    github: "https://github.com/Pratham2k07",
+    email: "prathamlalwani@jklu.edu.in",
+    instagram: "https://www.instagram.com/pratham_lalwani05",
+  },
+  {
+    name: "Lakshya Gupta",
+    tag: "CO-ORDINATOR",
+    avatar: "/tech team credit/Lakshya.png",
+    linkedin: "https://www.linkedin.com/in/lakshya-gupta-b87616370/",
+    github: "https://github.com/Metamorpho-1",
+    email: "lakshyagupta@jklu.edu.in",
+    instagram: "https://instagram.com/lakshyagupta",
   },
   {
     name: "Saurav Tank",
     tag: "CO-ORDINATOR",
-    avatar: "/team-carousel/Manan.png",
-    linkedin: "https://linkedin.com/in/sauravtank",
-    github: "https://github.com/sauravtank",
-    email: "saurav@sabrang.in",
+    avatar: "/tech team credit/Saurav.png",
+    linkedin: "https://www.linkedin.com/in/saurav-tank/",
+    github: "https://github.com/sauravtank1507",
+    email: "sauravtank@jklu.edu.in",
+    instagram: "https://instagram.com/sauravtank",
+  },
+  {
+    name: "Shubh Dixit",
+    tag: "CO-ORDINATOR",
+    avatar: "/tech team credit/Shubh dixt.png",
+    linkedin: "https://www.linkedin.com/in/shubhdixit0912",
+    github: "https://github.com/Shubhdix9",
+    email: "Shubhdixit@jklu.edu.in",
+    instagram: "https://www.instagram.com/shubh_dixit__",
   },
 ];
 
@@ -93,6 +100,12 @@ const MailIcon = () => (
   >
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
+
+const InstagramIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
   </svg>
 );
 
@@ -149,7 +162,7 @@ export default function CodePenCredits() {
 
       /* init center images */
       centerImgs.forEach((el, i) => {
-        el.style.display = i === 0 ? "block" : "none";
+        el.style.visibility = i === 0 ? "visible" : "hidden";
       });
 
       /* Marquees: Left moves up, Right moves down */
@@ -199,7 +212,7 @@ export default function CodePenCredits() {
         const new_ = centerImgs[to] as HTMLElement;
         if (!old_ || !new_) return;
         gsap.set(new_, {
-          display: "block",
+          visibility: "visible",
           clipPath: forward
             ? "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)"
             : "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)",
@@ -212,7 +225,7 @@ export default function CodePenCredits() {
           duration: 0.9,
           ease: "hop",
           onComplete: () => {
-            old_.style.display = "none";
+            old_.style.visibility = "hidden";
             new_.style.zIndex = "1";
           },
         });
@@ -230,7 +243,7 @@ export default function CodePenCredits() {
           const toImg = box.querySelector<HTMLElement>(`.${toCls}`)!;
           if (!fromImg || !toImg) return;
           gsap.set(toImg, {
-            display: "block",
+            visibility: "visible",
             clipPath: forward
               ? "polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)"
               : "polygon(0 0%, 100% 0%, 100% 0%, 0% 0%)",
@@ -244,7 +257,7 @@ export default function CodePenCredits() {
             scale: 1,
             delay: 0.05 * bi,
             onComplete: () => {
-              fromImg.style.display = "none";
+              fromImg.style.visibility = "hidden";
               toImg.style.zIndex = "1";
             },
           });
@@ -328,8 +341,11 @@ export default function CodePenCredits() {
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+                      decoding="sync"
+                      loading="eager"
                       style={{
-                        display: i === 0 ? "block" : "none",
+                        visibility: i === 0 ? "visible" : "hidden",
+                        willChange: "clip-path, transform",
                         clipPath:
                           i === 0
                             ? "polygon(0 0,100% 0,100% 100%,0 100%)"
@@ -358,8 +374,11 @@ export default function CodePenCredits() {
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+                      decoding="sync"
+                      loading="eager"
                       style={{
-                        display: i === 0 ? "block" : "none",
+                        visibility: i === 0 ? "visible" : "hidden",
+                        willChange: "clip-path, transform",
                         clipPath:
                           i === 0
                             ? "polygon(0 0,100% 0,100% 100%,0 100%)"
@@ -398,7 +417,13 @@ export default function CodePenCredits() {
                 key={i}
                 src={m.avatar}
                 alt={m.name}
-                style={{ display: i === 0 ? "block" : "none", zIndex: 1 }}
+                decoding="sync"
+                loading="eager"
+                style={{ 
+                  visibility: i === 0 ? "visible" : "hidden", 
+                  willChange: "clip-path, transform",
+                  zIndex: 1 
+                }}
               />
             ))}
 
@@ -428,6 +453,14 @@ export default function CodePenCredits() {
                   className="cc-link-btn cc-link-mail"
                 >
                   <MailIcon /> Email
+                </a>
+                <a
+                  href={currentMember.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cc-link-btn cc-link-ig"
+                >
+                  <InstagramIcon /> Instagram
                 </a>
               </div>
             </div>
@@ -709,6 +742,16 @@ export default function CodePenCredits() {
         .cc-link-mail:hover {
           background: rgba(255,255,255,0.12);
           border-color: rgba(255,255,255,0.3);
+        }
+        .cc-link-ig {
+          color: #e1306c;
+          border-color: rgba(225,48,108,0.35);
+          background: rgba(225,48,108,0.08);
+        }
+        .cc-link-ig:hover {
+          background: rgba(225,48,108,0.22);
+          border-color: #e1306c;
+          box-shadow: 0 0 12px rgba(225,48,108,0.35);
         }
 
         /* Progress Bar on Center Card */
