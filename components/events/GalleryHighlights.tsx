@@ -61,9 +61,8 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+            }`}
         />
       )}
 
@@ -130,17 +129,15 @@ function PosterDetail({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${
-        visible
-          ? "bg-black/90 backdrop-blur-md opacity-100"
-          : "bg-transparent opacity-0 pointer-events-none"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${visible
+        ? "bg-black/90 backdrop-blur-md opacity-100"
+        : "bg-transparent opacity-0 pointer-events-none"
+        }`}
       onClick={onClose}
     >
       <div
-        className={`relative my-auto flex max-h-[90vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-500 overflow-y-auto p-4 sm:p-6 bg-neutral-950/90 border border-white/10 rounded-2xl ${
-          visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
-        }`}
+        className={`relative my-auto flex max-h-[90vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-500 overflow-y-auto p-4 sm:p-6 bg-neutral-950/90 border border-white/10 rounded-2xl ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -256,7 +253,8 @@ export default function GalleryHighlights({
    * inertia from becoming five cards, and the idle reset keeps a slow scroll
    * from accumulating across unrelated gestures.
    */
-  const wheelRef = useRef({ delta: 0, eventAt: 0, stepAt: 0 });
+  // We add lastAbsDelta to detect velocity spikes (new physical swipes during inertia)
+  const wheelRef = useRef({ delta: 0, eventAt: 0, stepAt: 0, stepsInBurst: 0, lastAbsDelta: 0 });
 
   const onWheel = useCallback(
     (event: React.WheelEvent<HTMLDivElement>) => {
@@ -265,14 +263,30 @@ export default function GalleryHighlights({
         event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
       const wheel = wheelRef.current;
       const now = event.timeStamp;
+      const absDelta = Math.abs(event.deltaY * scale);
 
-      if (now - wheel.eventAt > 400) wheel.delta = 0;
+      // A gap of >75ms between events OR a massive spike in velocity indicates a new physical swipe.
+      if (now - wheel.eventAt > 75 || absDelta > wheel.lastAbsDelta * 4 + 20) {
+        wheel.delta = 0;
+        wheel.stepsInBurst = 0;
+      }
       wheel.eventAt = now;
+      wheel.lastAbsDelta = absDelta;
+
+      // Capped at 2 steps per swipe to strictly prevent overshoot.
+      if (wheel.stepsInBurst >= 2) {
+        wheel.delta = 0;
+        return;
+      }
+
+      // Accumulate delta but don't step if we are on cooldown.
       wheel.delta += event.deltaY * scale;
 
-      if (Math.abs(wheel.delta) < 40 || now - wheel.stepAt < 280) return;
+      if (now - wheel.stepAt < 250) return;
+      if (Math.abs(wheel.delta) < 40) return;
 
       step(Math.sign(wheel.delta));
+      wheel.stepsInBurst++;
       wheel.delta = 0;
       wheel.stepAt = now;
     },
@@ -356,9 +370,8 @@ export default function GalleryHighlights({
               {/* METADATA — supports the imagery, never competes with it. */}
               <div
                 aria-live="polite"
-                className={`pointer-events-none absolute inset-x-0 bottom-0 px-8 pb-8 transition-opacity duration-500 md:px-12 md:pb-12 ${
-                  ready ? "opacity-100" : "opacity-0"
-                }`}
+                className={`pointer-events-none absolute inset-x-0 bottom-0 px-8 pb-8 transition-opacity duration-500 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
+                  }`}
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-400">
                   {String(focusedIndex + 1).padStart(2, "0")} /{" "}
@@ -366,9 +379,6 @@ export default function GalleryHighlights({
                 </p>
                 <p className="mt-2 text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
                   {focused.title}
-                </p>
-                <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-300">
-                  {focused.description}
                 </p>
                 <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
                   {focused.category} · {focused.venue}

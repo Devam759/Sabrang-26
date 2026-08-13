@@ -15,28 +15,28 @@
   --color-on-primary: #ffffff;
   --color-primary-container: #2563eb;
   --color-on-primary-container: #eeefff;
-  
+
   --color-secondary: #545f73;
   --color-on-secondary: #ffffff;
   --color-secondary-container: #d5e0f8;
   --color-on-secondary-container: #586377;
-  
+
   --color-surface: #faf8ff;
   --color-on-surface: #191b23;
   --color-surface-variant: #e1e2ed;
   --color-on-surface-variant: #434655;
-  
+
   --color-surface-container-low: #f3f3fe;
   --color-surface-container: #ededf9;
   --color-surface-container-high: #e7e7f3;
   --color-surface-container-highest: #e1e2ed;
   --color-surface-container-lowest: #ffffff;
-  
+
   --color-outline: #737686;
   --color-outline-variant: #c3c6d7;
   --color-background: #faf8ff;
   --color-on-background: #191b23;
-  
+
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
@@ -56,6 +56,7 @@
     overflow-x: clip;
     -webkit-tap-highlight-color: transparent;
   }
+
   body {
     @apply bg-background text-on-background font-body;
     /* Full-bleed sections break out with 100vw; keep that off the h-scrollbar.
@@ -71,7 +72,7 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .card-shadow {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05);
   }
@@ -96,19 +97,31 @@
   border-radius: 6px !important;
 }
 
-.rounded-2xl, .rounded-3xl {
+.rounded-2xl,
+.rounded-3xl {
   border-radius: 8px !important;
 }
 
 /* Hide default browser system cursor globally on desktop (pointer: fine) */
 @media (hover: hover) and (pointer: fine) {
-  html, body, body *, a, button, input, select, textarea, [role="button"] {
+
+  html,
+  body,
+  body *,
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
     cursor: none !important;
   }
 }
 
 /* Ensure custom cursors are completely hidden on mobile/touch screens */
-@media (hover: none), (pointer: coarse) {
+@media (hover: none),
+(pointer: coarse) {
+
   .custom-cursor-circle,
   .tubes-cursor-container {
     display: none !important;
@@ -118,12 +131,14 @@
 }
 
 /* Hide browser scrollbars globally */
-html, body {
+html,
+body {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
 
-html::-webkit-scrollbar, body::-webkit-scrollbar {
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
@@ -135,19 +150,21 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 /* ── Credits page: zero out global main/footer so the fixed full-screen component owns the viewport ── */
 /* Hide footer on credits & gallery pages */
-.credits-layout-escape ~ footer,
+.credits-layout-escape~footer,
 body:has(.cc-root) footer,
 body:has(.gallery-container) footer {
   display: none !important;
 }
+
 /* Remove padding/container on the global <main> when credits or gallery is rendered */
-body:has(.cc-root) > div > main,
-body:has(.gallery-container) > div > main {
+body:has(.cc-root)>div>main,
+body:has(.gallery-container)>div>main {
   padding: 0 !important;
   margin: 0 !important;
   container-type: unset !important;
   max-width: unset !important;
 }
+
 body:has(.cc-root),
 body:has(.gallery-container) {
   overflow: hidden !important;
@@ -165,6 +182,7 @@ body.loader-active,
 body.loader-active * {
   cursor: auto !important;
 }
+
 body.loader-active .tubes-cursor-container,
 body.loader-active .custom-cursor-circle {
   display: none !important;
@@ -174,6 +192,7 @@ body.loader-active .custom-cursor-circle {
 
 /* On mobile, hide logos and heading on the team page after scroll interaction */
 @media (max-width: 767px) {
+
   body.team-scrolled .navbar-logos,
   body.team-scrolled .navbar-jklu-logo,
   body.team-scrolled .team-page-heading {
