@@ -65,7 +65,7 @@ const devTeam = [
   {
     name: "Arihant Jain",
     tag: "CO-ORDINATOR",
-    avatar: "/tech team credit/Arihant.png",
+    avatar: "/tech team credit/Arihant Jain.png",
     linkedin: "https://www.linkedin.com/in/arihant-jain-0a2503383",
     github: "https://github.com/arrieejain3149",
     email: "arihantjain2025@jklu.edu.in",
