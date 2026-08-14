@@ -1,15 +1,77 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 import ContactForm from "@/components/forms/ContactForm";
 import CursorGrid from "@/components/ui/CursorGrid";
 import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
 
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 export default function ContactClient() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Select all sections that we want to reveal on scroll
+    const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
+
+    revealElements.forEach((el) => {
+      gsap.fromTo(
+        el,
+        {
+          opacity: 0,
+          y: 40, // reduced translation for mobile
+          scale: 0.98,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 95%",
+            end: "top 70%",
+            scrub: 1, // 1 second smooth scrubbing effect
+          },
+        }
+      );
+    });
+
+    // For staggered elements like the organizing heads
+    const headCards = gsap.utils.toArray<HTMLElement>('.gsap-stagger-card');
+    if (headCards.length > 0) {
+      gsap.fromTo(
+        headCards,
+        {
+          opacity: 0,
+          y: 30, // reduced translation for mobile
+        },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".gsap-stagger-container",
+            start: "top 90%",
+            end: "top 60%",
+            scrub: 1,
+          },
+        }
+      );
+    }
+  }, { scope: containerRef });
+
   return (
-    <div className="relative min-h-screen py-12 px-4">
-      {/* Dynamic CursorGrid Interactive Background - Full Screen Stretch */}
-      <div className="fixed inset-0 z-0 opacity-70 pointer-events-none w-screen h-screen overflow-hidden">
+    <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden" ref={containerRef}>
+      {/* Dynamic CursorGrid Interactive Background */}
+      <div className="fixed inset-0 z-0 opacity-70 pointer-events-none overflow-hidden">
         <CursorGrid
           cellSize={70}
           color="#D946EF"
@@ -27,36 +89,41 @@ export default function ContactClient() {
         />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto space-y-16">
-        {/* Hero Header */}
-        <section className="text-center space-y-4 pt-4">
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight uppercase">
+      <div className="relative z-10 max-w-6xl mx-auto space-y-12 md:space-y-16">
+        {/* Hero Header (Framer Motion for smooth initial load) */}
+        <motion.section 
+          className="text-center space-y-4 pt-4 md:pt-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight uppercase">
             Contact Us
           </h1>
-          <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-white/70 max-w-2xl mx-auto px-4">
             Have questions or want to collaborate? Connect with the organizing
             team of {SITE_CONFIG.name}.
           </p>
-        </section>
+        </motion.section>
 
-        {/* Organizing Heads Grid */}
-        <section className="space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight uppercase">
+        {/* Organizing Heads Grid (GSAP Scrub) */}
+        <section className="space-y-6 md:space-y-8 gsap-stagger-container">
+          <div className="text-center space-y-2 gsap-reveal">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight uppercase">
               Organizing Heads
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {ORGANIZING_HEADS.map((head, idx) => (
               <div
                 key={idx}
-                className="bg-neutral-900/80 backdrop-blur-md border border-white/10 hover:border-white/30 rounded-2xl p-6 flex flex-col justify-between space-y-6 transition-all duration-300 hover:scale-[1.02] shadow-xl group"
+                className="bg-neutral-900/80 backdrop-blur-md border border-white/10 hover:border-white/30 rounded-2xl p-5 md:p-6 flex flex-col justify-between space-y-5 md:space-y-6 transition-all duration-300 hover:scale-[1.02] shadow-xl group gsap-stagger-card"
               >
                 <div className="space-y-3">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                     <svg
-                      className="w-6 h-6"
+                      className="w-5 h-5 md:w-6 md:h-6"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -70,10 +137,10 @@ export default function ContactClient() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white tracking-tight">
+                    <h3 className="text-lg md:text-xl font-bold text-white tracking-tight">
                       {head.name}
                     </h3>
-                    <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                    <span className="text-[10px] md:text-xs font-semibold text-purple-400 uppercase tracking-wider">
                       {head.role || "Organizing Head"}
                     </span>
                   </div>
@@ -82,7 +149,7 @@ export default function ContactClient() {
                 <div className="pt-2 border-t border-white/10">
                   <a
                     href={`tel:${head.phone}`}
-                    className="flex items-center gap-2.5 text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors min-h-[44px]"
+                    className="flex items-center gap-2.5 text-xs md:text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors min-h-[44px]"
                   >
                     <svg
                       className="w-4 h-4 text-indigo-400 flex-shrink-0"
@@ -105,11 +172,11 @@ export default function ContactClient() {
           </div>
         </section>
 
-        {/* Email Callout Section */}
-        <section className="bg-gradient-to-r from-neutral-900/90 via-neutral-900/90 to-neutral-800/90 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center space-y-4 shadow-2xl">
-          <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto">
+        {/* Email Callout Section (GSAP Scrub) */}
+        <section className="bg-gradient-to-r from-neutral-900/90 via-neutral-900/90 to-neutral-800/90 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 md:p-12 text-center space-y-4 shadow-2xl gsap-reveal mx-2 sm:mx-0">
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto">
             <svg
-              className="w-7 h-7"
+              className="w-6 h-6 md:w-7 md:h-7"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -122,40 +189,40 @@ export default function ContactClient() {
               />
             </svg>
           </div>
-          <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">
+          <h2 className="text-lg md:text-2xl font-black text-white uppercase tracking-tight">
             Drop Us An Email At
           </h2>
-          <div>
+          <div className="break-words">
             <a
               href={`mailto:${SITE_CONFIG.email}`}
-              className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 hover:opacity-90 transition-opacity tracking-tight"
+              className="text-xl sm:text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 hover:opacity-90 transition-opacity tracking-tight"
             >
               {SITE_CONFIG.email}
             </a>
           </div>
         </section>
 
-        {/* Form & Venue Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Form & Venue Section (GSAP Scrub) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
           {/* Send Us A Message Form */}
-          <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
-            <h2 className="text-2xl font-black text-white tracking-tight uppercase">
+          <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 md:p-8 space-y-6 shadow-xl gsap-reveal mx-2 sm:mx-0">
+            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">
               Send Us A Message
             </h2>
             <ContactForm />
           </div>
 
           {/* Venue & Location Details */}
-          <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
-            <h2 className="text-2xl font-black text-white tracking-tight uppercase">
+          <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 md:p-8 space-y-6 shadow-xl gsap-reveal mx-2 sm:mx-0">
+            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">
               Festival Venue
             </h2>
 
-            <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed">
+            <div className="space-y-4 text-white/80 text-xs sm:text-sm md:text-base leading-relaxed">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-0.5">
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 md:w-5 md:h-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -174,7 +241,7 @@ export default function ContactClient() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">
+                  <h3 className="font-bold text-white text-sm md:text-base">
                     {SITE_CONFIG.university.name}
                   </h3>
                   <p className="text-white/60">Mahapura, Ajmer Road</p>
@@ -188,11 +255,11 @@ export default function ContactClient() {
                 href="https://maps.google.com/?q=JK+Lakshmipat+University+Jaipur"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/10"
+                className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all border border-white/10"
               >
                 <span>View On Google Maps</span>
                 <svg
-                  className="w-4 h-4 text-purple-400"
+                  className="w-3 h-3 md:w-4 md:h-4 text-purple-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -212,3 +279,4 @@ export default function ContactClient() {
     </div>
   );
 }
+
