@@ -1,7 +1,9 @@
 import React from "react";
 import type { Metadata } from "next";
 import AboutHero from "@/components/about/AboutHero";
-import AboutStoryContent from "@/components/about/AboutStoryContent";
+import AccordionGallery, {
+  AccordionGalleryItem,
+} from "@/components/about/AccordionGallery";
 import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
@@ -38,6 +40,57 @@ const aboutSchema = {
   },
 };
 
+const PILLARS_ITEMS: AccordionGalleryItem[] = [
+  {
+    id: "01",
+    label: "Panache",
+    category: "Fashion & High Art",
+    desc: "The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.",
+    image: "/panache-runway.png",
+    link: "/events",
+  },
+  {
+    id: "02",
+    label: "Versevaad",
+    category: "Literary Debates & Slam",
+    desc: "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
+    image: "/versevaad.jpg",
+    link: "/events",
+  },
+  {
+    id: "03",
+    label: "Echoes of Noor",
+    category: "Sufi Night & Acoustics",
+    desc: "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.",
+    image: "/echos-of-noor.png",
+    link: "/events",
+  },
+  {
+    id: "04",
+    label: "Band Jam",
+    category: "Battle of the Bands",
+    desc: "Pure sonic warfare under the open sky — head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
+    image: "/events_posters/BANDJAM.webp",
+    link: "/events",
+  },
+  {
+    id: "05",
+    label: "Dance Battles",
+    category: "Solo & Street Dance",
+    desc: "High-octane solo and duo street dance battles featuring hip-hop, popping, locking, and freestyle dance showdowns.",
+    image: "/dance-battle.png",
+    link: "/events",
+  },
+  {
+    id: "06",
+    label: "Step Up",
+    category: "Group Choreography Showdown",
+    desc: "Flawless synchronized group dance battles featuring power-packed choreography, thematic storytelling, and explosive energy.",
+    image: "/step-up.jpg",
+    link: "/events",
+  },
+];
+
 export default function AboutPage() {
   return (
     <>
@@ -46,8 +99,41 @@ export default function AboutPage() {
         {/* Immersive pinned hero */}
         <AboutHero />
 
-        {/* Editorial story content below the hero */}
-        <AboutStoryContent />
+        {/* Pillars of Sabrang Accordion Gallery Section at the Bottom of About Page */}
+        <section className="relative w-full bg-[#000000] text-white py-16 px-4 sm:px-8 md:px-16 border-t border-white/10 z-30">
+          {/* Background Ambient Glows */}
+          <div className="absolute top-1/4 right-0 w-[550px] h-[550px] bg-purple-600/15 rounded-full blur-[170px] pointer-events-none" />
+          <div className="absolute bottom-10 left-0 w-[650px] h-[650px] bg-cyan-500/15 rounded-full blur-[190px] pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+            {/* Section Header */}
+            <div className="text-center space-y-3 max-w-2xl mx-auto">
+              <div className="inline-flex items-center space-x-2.5 text-purple-300 text-xs font-mono tracking-widest uppercase bg-purple-500/10 px-3.5 py-1.5 rounded-full border border-purple-500/20 shadow-lg shadow-purple-500/10">
+                <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                <span>PILLARS OF SABRANG</span>
+              </div>
+
+              <h2
+                className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
+                style={{ fontFamily: '"Syne", "Outfit", "Inter", sans-serif' }}
+              >
+                Pillars of Sabrang
+              </h2>
+
+              <p className="text-slate-400 text-xs sm:text-sm font-light max-w-lg mx-auto">
+                Explore the flagship events and artistic pillars crafted to celebrate every dimension of sound, fashion, and art.
+              </p>
+            </div>
+
+            {/* Accordion Gallery Showcase */}
+            <AccordionGallery
+              items={PILLARS_ITEMS}
+              defaultIndex={2}
+              expandRatio={0.52}
+              trigger="hover"
+            />
+          </div>
+        </section>
       </div>
     </>
   );
