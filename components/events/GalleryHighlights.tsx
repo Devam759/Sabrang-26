@@ -373,16 +373,42 @@ export default function GalleryHighlights({
                 className={`pointer-events-none absolute inset-x-0 bottom-0 px-8 pb-8 transition-opacity duration-500 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
                   }`}
               >
-                <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-400">
-                  {String(focusedIndex + 1).padStart(2, "0")} /{" "}
-                  {String(items.length).padStart(2, "0")}
-                </p>
-                <p className="mt-2 text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
-                  {focused.title}
-                </p>
-                <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  {focused.category} · {focused.venue}
-                </p>
+                {/* Centered Navigation Buttons */}
+                <div className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-6 pointer-events-auto z-20">
+                  <button
+                    onClick={() => step(-1)}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:bg-white/10 hover:border-white/30 active:scale-90"
+                    aria-label="Previous image"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                  </button>
+                  
+                  <div className="flex items-center gap-3 text-[13px] font-bold tracking-[0.2em] font-mono">
+                    <span className="text-white">{String(focusedIndex + 1).padStart(2, "0")}</span>
+                    <span className="text-white/20">/</span>
+                    <span className="text-white/40">{String(items.length).padStart(2, "0")}</span>
+                  </div>
+
+                  <button
+                    onClick={() => step(1)}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:bg-white/10 hover:border-white/30 active:scale-90"
+                    aria-label="Next image"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                  </button>
+                </div>
+
+                <div className="max-w-[calc(50vw-4rem)]">
+                  <p className="mt-2 text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+                    {focused.title}
+                  </p>
+                  <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-slate-300">
+                    {focused.description}
+                  </p>
+                  <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    {focused.category} · {focused.venue}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
