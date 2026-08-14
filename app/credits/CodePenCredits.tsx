@@ -11,11 +11,11 @@ const devTeam = [
   {
     name: "Devam Gupta",
     tag: "CORE",
-    avatar: "/team-carousel/Devansh Srivastava.png",
-    linkedin: "https://linkedin.com/in/devamsharma",
-    github: "https://github.com/devamsharma",
-    email: "devam@sabrang.in",
-    instagram: "https://instagram.com/devamsharma",
+    avatar: "/tech team credit/Devam gupta.png",
+    linkedin: "https://www.linkedin.com/in/devam-gupta/",
+    github: "https://github.com/Devam759",
+    email: "devamgupta@jklu.edu.in",
+    instagram: "https://www.instagram.com/who.is.devam/",
   },
   {
     name: "Aditya Singh Nayal",
@@ -61,6 +61,15 @@ const devTeam = [
     github: "https://github.com/sauravtank1507",
     email: "sauravtank@jklu.edu.in",
     instagram: "https://instagram.com/sauravtank",
+  },
+  {
+    name: "Arihant Jain",
+    tag: "CO-ORDINATOR",
+    avatar: "/tech team credit/Arihant.png",
+    linkedin: "https://www.linkedin.com/in/arihant-jain-0a2503383",
+    github: "https://github.com/arrieejain3149",
+    email: "arihantjain2025@jklu.edu.in",
+    instagram: "https://www.instagram.com/arriee.jain/",
   },
   {
     name: "Shubh Dixit",
@@ -314,6 +323,45 @@ export default function CodePenCredits() {
 
   const handlePrev = () => goActionRef.current(false);
   const handleNext = () => goActionRef.current(true);
+
+  useEffect(() => {
+    let lastWheelTime = 0;
+    const handleWheel = (e: WheelEvent) => {
+      const now = Date.now();
+      if (now - lastWheelTime < 1200) return;
+      if (Math.abs(e.deltaY) < 15) return;
+      if (e.deltaY > 0) {
+        goActionRef.current(true);
+        lastWheelTime = now;
+      } else if (e.deltaY < 0) {
+        goActionRef.current(false);
+        lastWheelTime = now;
+      }
+    };
+
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const diff = touchStartY - touchEndY;
+      if (diff > 50) {
+        goActionRef.current(true);
+      } else if (diff < -50) {
+        goActionRef.current(false);
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel);
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
 
   return (
     <div ref={rootRef} className="cc-root">
