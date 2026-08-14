@@ -268,6 +268,11 @@ export default function ThreeBackground() {
       <Canvas
         camera={{ position: [0, 0, 10], fov: 45 }}
         gl={{ antialias: false, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => {
+          gl.domElement?.addEventListener("webglcontextlost", (e) =>
+            e.preventDefault()
+          );
+        }}
       >
         <VideoBackground />
       </Canvas>

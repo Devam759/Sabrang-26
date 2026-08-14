@@ -1,10 +1,9 @@
 "use client";
 
-import React from 'react';
-import ContactForm from '@/components/forms/ContactForm';
-import CursorGrid from '@/components/ui/CursorGrid';
-import VenueMap from '@/components/contact/VenueMap';
-import { ORGANIZING_HEADS, SITE_CONFIG } from '@/lib/constants';
+import React from "react";
+import ContactForm from "@/components/forms/ContactForm";
+import CursorGrid from "@/components/ui/CursorGrid";
+import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
 
 export default function ContactClient() {
   return (
@@ -83,7 +82,7 @@ export default function ContactClient() {
                 <div className="pt-2 border-t border-white/10">
                   <a
                     href={`tel:${head.phone}`}
-                    className="flex items-center gap-2.5 text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors"
+                    className="flex items-center gap-2.5 text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors min-h-[44px]"
                   >
                     <svg
                       className="w-4 h-4 text-indigo-400 flex-shrink-0"
@@ -209,11 +208,6 @@ export default function ContactClient() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Venue Map Section — full bleed below the main content */}
-      <div className="relative z-10 mt-16 -mx-4">
-        <VenueMap />
       </div>
     </div>
   );

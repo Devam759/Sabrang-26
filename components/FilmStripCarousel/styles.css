@@ -1,0 +1,295 @@
+/* The environment itself is rendered in WebGL (see Environment.tsx). This
+   gradient only exists so the section is on-brand for the frame or two before
+   the canvas paints — it must never be what the user actually looks at. */
+.fsc-section {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0 0 24px 24px;
+  background: linear-gradient(
+    180deg,
+    #04010a 0%,
+    #0b0524 42%,
+    #1b0836 74%,
+    #32104b 100%
+  );
+}
+
+.fsc-canvas {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none; /* keeps the page from scrolling under a touch drag */
+}
+
+/* ---- background typography (deepest DOM layer) ---- */
+/* Sits above the canvas in stacking order but reads as a light mass in the
+   haze: 5% opacity and heavily blurred, so it never competes with the strip.
+   Its parallax factor (~0.12) is set in ProjectOverlay. */
+.fsc-ghost-title {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 2;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: 'Bodoni Moda', 'Cinzel', Georgia, serif;
+  font-size: clamp(7rem, 22vw, 20rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: #fff;
+  opacity: 0.05;
+  filter: blur(18px);
+  mix-blend-mode: overlay;
+  will-change: transform, opacity;
+}
+
+/* ---- title ---- */
+.fsc-titlebox {
+  position: absolute;
+  top: 7%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+  transform-style: preserve-3d;
+  will-change: transform, filter, opacity;
+}
+
+.fsc-titlegroup {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+.fsc-title {
+  font-family: 'Bodoni Moda', 'Cinzel', Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.05;
+  margin: 0;
+  /* warm core + magenta halo — the bloom pass picks up the core, the halo
+     ties the type to the environment's key light */
+  text-shadow:
+    0 0 24px rgba(255, 236, 214, 0.35),
+    0 0 60px rgba(255, 42, 141, 0.22);
+}
+
+/* .fsc-titlebox is pointer-events:none so the strip stays draggable through
+   it — the menu item has to opt back in. */
+.fsc-title-flip {
+  pointer-events: auto;
+  color: inherit;
+}
+
+.fsc-title-flip:focus-visible {
+  outline: 2px solid #ff2a8d;
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+
+.fsc-subtitle {
+  font-family: 'Syne', system-ui, sans-serif;
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 1em 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.fsc-subtitle-sep {
+  font-size: 0.7em;
+  opacity: 0.6;
+}
+
+.fsc-view-link {
+  color: #fff;
+  text-decoration: none;
+  pointer-events: auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.fsc-view-link:hover {
+  border-color: #ff2a8d;
+  color: #ffd9ec;
+}
+
+/* ---- arrows ---- */
+/* Micro-interaction: hover lifts and warms, press compresses, release springs
+   back. The overshoot on release is what stops these reading as default
+   buttons sitting on top of a 3D scene. */
+.fsc-arrow {
+  position: absolute;
+  bottom: 28px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 4, 20, 0.75);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 1.15rem;
+  cursor: pointer;
+  z-index: 6;
+  will-change: transform;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fsc-arrow:hover {
+  background: rgba(28, 10, 44, 0.9);
+  border-color: rgba(255, 42, 141, 0.45);
+  box-shadow: 0 10px 26px -8px rgba(255, 42, 141, 0.5);
+  transform: translateY(-3px);
+}
+
+.fsc-arrow:active {
+  transform: translateY(-1px) scale(0.9);
+  transition-duration: 0.08s;
+}
+
+.fsc-arrow:focus-visible {
+  outline: 2px solid #ff2a8d;
+  outline-offset: 3px;
+}
+
+.fsc-arrow-left {
+  left: 24px;
+}
+
+.fsc-arrow-right {
+  right: 24px;
+}
+
+/* ---- pagination ---- */
+/* bottom aligns the 7px dot row's centre with the arrows' centre
+   (28px + 46px/2 = 51px up → 51 - 3.5) */
+.fsc-pagination {
+  position: absolute;
+  bottom: 47.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 11px; /* 7px dots on ~18px centres */
+  z-index: 6;
+}
+
+.fsc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  will-change: transform;
+  transition:
+    background 0.25s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fsc-dot:hover {
+  background: #fff;
+  transform: scale(1.5);
+}
+
+.fsc-dot:active {
+  transform: scale(0.85);
+  transition-duration: 0.08s;
+}
+
+.fsc-dot:focus-visible {
+  outline: 2px solid #ff2a8d;
+  outline-offset: 3px;
+}
+
+.fsc-dot-active {
+  background: #fff;
+  /* thin ring at ~16px around the active dot */
+  outline: 1px solid rgba(255, 42, 141, 0.9);
+  outline-offset: 3.5px;
+  box-shadow: 0 0 12px rgba(255, 42, 141, 0.6);
+}
+
+/* ---- loading ---- */
+.fsc-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Syne', system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.fsc-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-top-color: #ff2a8d;
+  animation: fsc-spin 0.7s linear infinite;
+}
+
+@keyframes fsc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .fsc-arrow {
+    width: 38px;
+    height: 38px;
+    bottom: 22px;
+  }
+
+  .fsc-arrow-left {
+    left: 14px;
+  }
+
+  .fsc-arrow-right {
+    right: 14px;
+  }
+
+  /* same centring against the 38px-tall arrows at bottom 22px */
+  .fsc-pagination {
+    bottom: 37.5px;
+    gap: 8px;
+  }
+
+  /* the ghost layer is pure atmosphere and the least missed thing on a
+     small screen, where it mostly just costs a large blurred composite */
+  .fsc-ghost-title {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fsc-spinner {
+    animation-duration: 2s;
+  }
+
+  .fsc-arrow,
+  .fsc-dot {
+    transition-duration: 0.1s;
+  }
+}
