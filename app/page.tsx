@@ -9,16 +9,17 @@ export const metadata: Metadata = {
   keywords: [
     "SABRANG 2026",
     "Sabrang JKLU",
-    "Sabrang 2025",
+    "Sabrang JKLU 2026",
     "JK Lakshmipat University Fest",
     "JKLU Annual Fest",
-    "College Fest Jaipur",
+    "College Fest Jaipur 2026",
     "Cultural Fest Jaipur",
     "Technical Fest JKLU",
     "Sabrang Event Registration",
     "Panache Runway JKLU",
     "Step-Up Dance Battle",
     "Bandjam Concert",
+    "Jaipur Fest October 2026",
   ],
   alternates: {
     canonical: "https://sabrang.jklu.edu.in",
@@ -48,20 +49,22 @@ export const metadata: Metadata = {
   },
 };
 
-import IntroReveal from '@/components/effects/IntroReveal';
+import IntroReveal from "@/components/effects/IntroReveal";
 
 const festivalEventSchema = {
   "@context": "https://schema.org",
   "@type": "Festival",
   name: "Sabrang 2026",
-  alternateName: "Sabrang JKLU 2026",
+  alternateName: ["Sabrang JKLU 2026", "Sabrang JKLU", "JKLU Fest 2026"],
   description:
     "JK Lakshmipat University's premier annual cultural and technical festival featuring pro-shows, flagship competitions, dance battles, and live concerts.",
   url: "https://sabrang.jklu.edu.in",
-  startDate: "2026-11-06T09:00:00+05:30",
-  endDate: "2026-11-08T22:00:00+05:30",
+  startDate: "2026-10-23T09:00:00+05:30",
+  endDate: "2026-10-25T22:00:00+05:30",
   eventStatus: "https://schema.org/EventScheduled",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  inLanguage: "en-IN",
+  isAccessibleForFree: false,
   location: {
     "@type": "Place",
     name: "JK Lakshmipat University",
@@ -77,9 +80,14 @@ const festivalEventSchema = {
   organizer: {
     "@type": "EducationalOrganization",
     name: "JK Lakshmipat University",
+    alternateName: "JKLU",
     url: "https://jklu.edu.in",
   },
-  image: ["https://sabrang.jklu.edu.in/sabrang%20logo.png"],
+  audience: {
+    "@type": "Audience",
+    audienceType: "College Students",
+  },
+  image: ["https://sabrang.jklu.edu.in/sabrang-logo.png"],
   offers: {
     "@type": "Offer",
     url: "https://sabrang.jklu.edu.in/register",
@@ -90,10 +98,24 @@ const festivalEventSchema = {
   },
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sabrang.jklu.edu.in",
+    },
+  ],
+};
+
 export default function Home() {
   return (
     <>
       <JsonLd data={festivalEventSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <IntroReveal />
       <HomeClient />
     </>

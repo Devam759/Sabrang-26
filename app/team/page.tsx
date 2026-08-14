@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     "Gurseerat Kaur Sabrang",
     "Pratigya Bomb Sabrang",
     "JKLU Student Committees",
+    "Sabrang Leadership",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/team" },
   openGraph: {
@@ -21,6 +22,8 @@ export const metadata: Metadata = {
     description:
       "Meet the Organizing Heads and Core Committees behind Sabrang 2026 at JKLU.",
     url: "https://sabrang.jklu.edu.in/team",
+    siteName: "Sabrang 2026 - JKLU",
+    type: "website",
   },
 };
 
@@ -31,6 +34,7 @@ const teamSchema = {
   parentOrganization: {
     "@type": "EducationalOrganization",
     name: "JK Lakshmipat University",
+    url: "https://jklu.edu.in",
   },
   member: [
     { "@type": "Person", name: "Kartik Sharma", jobTitle: "Organizing Head" },
@@ -40,10 +44,30 @@ const teamSchema = {
   ],
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sabrang.jklu.edu.in",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Team",
+      item: "https://sabrang.jklu.edu.in/team",
+    },
+  ],
+};
+
 export default function TeamPage() {
   return (
     <>
       <JsonLd data={teamSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <TeamClient />
     </>
   );

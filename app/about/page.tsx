@@ -16,6 +16,8 @@ export const metadata: Metadata = {
     "JK Lakshmipat University Cultural Fest",
     "Sabrang History",
     "JKLU Jaipur Fest",
+    "What is Sabrang",
+    "Sabrang 2026 About",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/about" },
   openGraph: {
@@ -36,9 +38,30 @@ const aboutSchema = {
   mainEntity: {
     "@type": "EducationalOrganization",
     name: "JK Lakshmipat University",
+    alternateName: "JKLU",
     url: "https://jklu.edu.in",
   },
 };
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sabrang.jklu.edu.in",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "About",
+      item: "https://sabrang.jklu.edu.in/about",
+    },
+  ],
+};
+
 
 const PILLARS_ITEMS: AccordionGalleryItem[] = [
   {
@@ -95,6 +118,7 @@ export default function AboutPage() {
   return (
     <>
       <JsonLd data={aboutSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <div className="w-full bg-[#000000] text-white min-h-screen">
         {/* Immersive pinned hero */}
         <AboutHero />

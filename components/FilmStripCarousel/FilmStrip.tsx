@@ -102,7 +102,7 @@ export default function FilmStrip({
   const distortRef = useRef(0);
 
   const { size } = useThree();
-  const aspect = size.width / size.height;
+  const aspect = size.height > 0 ? size.width / size.height : 1;
   // How far out frames stay rendered, and therefore where they must have
   // faded to zero — capped at half the set so the wrap seam is never seen.
   const fadeSpan = Math.min(count / 2, bp.tail);

@@ -1,15 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import FilmStripCarousel from "@/components/FilmStripCarousel/FilmStripCarousel";
 import { NAV_PROJECTS } from "@/components/FilmStripCarousel/projects";
 import type { Project } from "@/components/FilmStripCarousel/types";
-
-const FilmStripCarousel = dynamic(
-  () => import("@/components/FilmStripCarousel/FilmStripCarousel"),
-  { ssr: false }
-);
 
 export default function MenuClient() {
   const router = useRouter();

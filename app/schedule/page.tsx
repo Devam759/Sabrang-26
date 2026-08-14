@@ -5,7 +5,7 @@ import ScheduleClient from "./ScheduleClient";
 export const metadata: Metadata = {
   title: "Event Schedule – Sabrang 2026",
   description:
-    "Complete 3-day timeline and event schedule for Sabrang 2026 at JK Lakshmipat University. Track workshops, prelims, finals, and pro-shows.",
+    "Complete 3-day timeline and event schedule for Sabrang 2026 at JK Lakshmipat University. Track workshops, prelims, finals, and pro-shows from October 23 to 25, 2026.",
   keywords: [
     "Sabrang 2026 Schedule",
     "Sabrang Event Timeline",
@@ -13,12 +13,15 @@ export const metadata: Metadata = {
     "Sabrang Day 2 Schedule",
     "Sabrang Day 3 Schedule",
     "JKLU Fest Dates",
+    "Sabrang October 2026 Dates",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/schedule" },
   openGraph: {
     title: "Event Schedule – Sabrang 2026",
-    description: "Complete 3-day event timeline for Sabrang 2026 at JKLU.",
+    description: "Complete 3-day event timeline for Sabrang 2026 at JKLU (Oct 23-25, 2026).",
     url: "https://sabrang.jklu.edu.in/schedule",
+    siteName: "Sabrang 2026 - JKLU",
+    type: "website",
   },
 };
 
@@ -28,13 +31,32 @@ const scheduleSchema = {
   name: "Sabrang 2026 Event Schedule",
   description:
     "Official 3-day event timeline for Sabrang 2026 at JK Lakshmipat University.",
-  startDate: "2026-11-06",
-  endDate: "2026-11-08",
+  startDate: "2026-10-23",
+  endDate: "2026-10-25",
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sabrang.jklu.edu.in",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Schedule",
+      item: "https://sabrang.jklu.edu.in/schedule",
+    },
+  ],
 };
 
 export default function SchedulePage() {
   const schedule = {
-    "Day 1 - November 6, 2026": [
+    "Day 1 - October 23, 2026": [
       {
         time: "9:00 AM",
         event: "Opening Ceremony",
@@ -78,7 +100,7 @@ export default function SchedulePage() {
         image: "/events_posters/DANCE_BATTLE.webp",
       },
     ],
-    "Day 2 - November 7, 2026": [
+    "Day 2 - October 24, 2026": [
       {
         time: "10:00 AM",
         event: "Business Quiz",
@@ -122,7 +144,7 @@ export default function SchedulePage() {
         image: "/events_posters/dumb.webp",
       },
     ],
-    "Day 3 - November 8, 2026": [
+    "Day 3 - October 25, 2026": [
       {
         time: "9:00 AM",
         event: "Art Exhibition",
@@ -167,9 +189,11 @@ export default function SchedulePage() {
       },
     ],
   };
+
   return (
     <>
       <JsonLd data={scheduleSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <main className="schedule-section-bg min-h-screen pt-24 md:pt-32 pb-24 md:pb-32 overflow-x-clip">
         {/* Hero */}
         <section className="text-center px-4 mb-16 md:mb-24">

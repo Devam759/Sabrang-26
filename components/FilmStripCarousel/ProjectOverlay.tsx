@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { FlippingWordSwap } from '@/components/ui/FlippingWordSwap';
 import { damp } from './carouselMath';
 import { MAX_VELOCITY } from './constants';
@@ -12,12 +11,6 @@ interface ProjectOverlayProps {
   sim: { position: number; velocity: number };
   expandRef: React.MutableRefObject<{ p: number }>;
 }
-
-const blurVariants = {
-  initial: { opacity: 0, filter: 'blur(10px)' },
-  animate: { opacity: 1, filter: 'blur(0px)' },
-  exit: { opacity: 0, filter: 'blur(10px)' },
-};
 
 /**
  * Title + subtitle, cross-fading with a blur when the active project changes,
@@ -83,10 +76,6 @@ export default function ProjectOverlay({
     return () => cancelAnimationFrame(raf);
   }, [reducedMotion, sim, expandRef]);
 
-  const transition = reducedMotion
-    ? { duration: 0 }
-    : { duration: 0.35, ease: 'easeOut' as const };
-
   // The heading is the one thing here that must not crossfade. It flips,
   // character by character, from the item leaving the centre to the one
   // arriving — so the title reads as the same object being re-lettered rather
@@ -126,44 +115,15 @@ export default function ProjectOverlay({
               word1={swap.from}
               word2={swap.to}
               swapped={armed}
+              duration={160}
+              stagger={10}
               className="fsc-title-flip"
               ariaLabel={`Go to ${project.title}`}
               onClick={() => onSelect(project)}
             />
           </h2>
-
-          {/* The subtitle fades rather than flips: it is a caption, not the
-              object being re-lettered. Keyed remount instead of AnimatePresence
-              so only one ever exists — two in flow would stack and shove the
-              line down mid-transition. */}
-          <motion.p
-            key={project.id}
-            className="fsc-subtitle"
-            variants={blurVariants}
-            initial="initial"
-            animate="animate"
-            transition={transition}
-          >
-            <span>{project.category}</span>
-            <span className="fsc-subtitle-sep">•</span>
-            <a
-              className="fsc-view-link"
-              href={project.href}
-              onClick={(e) => {
-                e.preventDefault();
-                onSelect(project);
-              }}
-            >
-              View project →
-            </a>
-          </motion.p>
         </div>
 
-        {/* FUTURE MARKDOWN/TEXT INJECTION POINT
-            activeIndex and activeProject are exposed here.
-            External code will inject parsed Markdown and custom text-reveal
-            animations. DO NOT replace this container with generated project
-            typography. */}
         <div id="text-overlay-placeholder" />
       </div>
     </>

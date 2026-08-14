@@ -1,6 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
-import { useTexture } from '@react-three/drei';
 import {
   coverFitTexture,
   createBackingMaterial,
@@ -10,8 +9,6 @@ import {
 import { FRAME_HEIGHT, FRAME_WIDTH } from './constants';
 import type { Project } from './types';
 
-// Everything the strip's useFrame loop animates, exposed as one handle so
-// no React state is involved per tick.
 export interface FrameHandle {
   group: THREE.Group;
   content: THREE.Group;
@@ -39,13 +36,32 @@ interface FilmFrameProps {
   onHover: (index: number | null) => void;
 }
 
-// One frame cell: image panel (custom shader) + film border (bump-mapped
-// standard material) + a dark backing 0.03 behind it faking rail thickness
-// + a contact shadow that appears when the frame is promoted.
-//
-// Border and backing materials are built per frame rather than cloned: each
-// needs its own onBeforeCompile uniform block to carry this frame's arc
-// length. The textures behind them are shared.
+// Global texture cache & non-blocking loader to eliminate Suspense delays completely
+const textureCache = new Map<string, THREE.Texture>();
+let sharedLoader: THREE.TextureLoader | null = null;
+let defaultPlaceholder: THREE.Texture | null = null;
+
+function getSharedLoader(): THREE.TextureLoader {
+  if (!sharedLoader) sharedLoader = new THREE.TextureLoader();
+  return sharedLoader;
+}
+
+function getPlaceholderTexture(): THREE.Texture {
+  if (!defaultPlaceholder && typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 4;
+    canvas.height = 4;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#14101e';
+      ctx.fillRect(0, 0, 4, 4);
+    }
+    defaultPlaceholder = new THREE.CanvasTexture(canvas);
+    defaultPlaceholder.colorSpace = THREE.SRGBColorSpace;
+  }
+  return defaultPlaceholder || new THREE.Texture();
+}
+
 export default function FilmFrame({
   project,
   index,
@@ -54,7 +70,37 @@ export default function FilmFrame({
   onFrameClick,
   onHover,
 }: FilmFrameProps) {
-  const texture = useTexture(project.image);
+  const [texture, setTexture] = useState<THREE.Texture>(() => {
+    return textureCache.get(project.image) || getPlaceholderTexture();
+  });
+
+  useEffect(() => {
+    if (textureCache.has(project.image)) {
+      setTexture(textureCache.get(project.image)!);
+      return;
+    }
+
+    let active = true;
+    const loader = getSharedLoader();
+    loader.load(
+      project.image,
+      (loaded) => {
+        loaded.colorSpace = THREE.SRGBColorSpace;
+        textureCache.set(project.image, loaded);
+        if (active) {
+          setTexture(loaded);
+        }
+      },
+      undefined,
+      () => {
+        // Fallback placeholder on network error
+      }
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [project.image]);
 
   const mats = useMemo(() => {
     coverFitTexture(texture);
@@ -84,7 +130,6 @@ export default function FilmFrame({
     [mats]
   );
 
-  // assemble the handle once the refs exist
   const refs = useMemo<Partial<FrameHandle>>(() => ({}), []);
   const tryRegister = () => {
     if (refs.group && refs.content && refs.imageMesh) {

@@ -73,9 +73,6 @@ export default function CreditsClient() {
               className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover border border-white/15 shrink-0"
             />
             <div className="space-y-2">
-              <span className="text-xs uppercase tracking-wider text-purple-400 font-bold px-3 py-1 rounded-full bg-purple-950/60 border border-purple-800/40 inline-block">
-                {devTeam[0].tag}
-              </span>
               <h3 className="text-3xl font-bold text-white">
                 {devTeam[0].name}
               </h3>
@@ -99,9 +96,6 @@ export default function CreditsClient() {
                 className="w-16 h-16 rounded-2xl object-cover border border-white/15 shrink-0"
               />
               <div className="space-y-1">
-                <span className="text-[10px] uppercase tracking-wider text-purple-400 font-bold px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-800/40 inline-block">
-                  {member.tag}
-                </span>
                 <h3 className="text-xl font-bold text-white">{member.name}</h3>
                 <p className="text-xs text-white/60 font-medium">
                   {member.role}
