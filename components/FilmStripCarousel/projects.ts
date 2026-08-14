@@ -1,4 +1,5 @@
 import type { Project } from './types';
+import { useTexture } from '@react-three/drei';
 // Covers live next to the component. They are pre-cropped to the film gate's
 // exact aspect (FRAME_WIDTH / FRAME_HEIGHT), so coverFitTexture is a no-op on
 // them — what you see in the file is what lands in the frame.
@@ -23,3 +24,14 @@ export const NAV_PROJECTS: Project[] = [
   { id: 'contact', title: 'Contact Us', category: 'Say Hello', description: 'Reach the organising team.', image: '/sabrang-live.png', href: '/contact' },
   { id: 'faq', title: 'FAQ', category: 'Answers', description: 'Everything commonly asked.', image: '/versevaad.jpg', href: '/faq' },
 ];
+
+// Preload all reel textures into GPU cache ahead of time
+if (typeof window !== 'undefined') {
+  NAV_PROJECTS.forEach((p) => {
+    if (p.image) {
+      try {
+        useTexture.preload(p.image);
+      } catch {}
+    }
+  });
+}

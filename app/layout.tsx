@@ -7,6 +7,7 @@ import SmoothScroll from "@/components/effects/SmoothScroll";
 import { InteractionProvider } from "@/components/InteractionContext";
 import "./globals.css";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,10 +16,11 @@ import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sabrang.jklu.edu.in"),
+  manifest: "/site.webmanifest",
   icons: {
     icon: [{ url: "/favicon.ico" }, { url: "/favicon.ico", sizes: "any" }],
     shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   title: {
     default: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
@@ -29,18 +31,22 @@ export const metadata: Metadata = {
   keywords: [
     "Sabrang 2026",
     "Sabrang JKLU",
+    "Sabrang JKLU 2026",
     "Sabrang",
     "JK Lakshmipat University Fest",
+    "JKLU Annual Fest",
     "JKLU Fest",
-    "College Fest Jaipur",
+    "College Fest Jaipur 2026",
     "Cultural Fest Jaipur",
     "Technical Fest JKLU",
     "Sabrang Registration",
     "JKLU Events",
+    "Jaipur College Fest October 2026",
   ],
   authors: [{ name: "JKLU Student Organizing Committee" }],
   creator: "JK Lakshmipat University",
   publisher: "JK Lakshmipat University",
+  category: "Cultural Festival",
   robots: {
     index: true,
     follow: true,
@@ -108,6 +114,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Script
+          defer
+          data-domain="sabrang.jklu.edu.in"
+          src="https://plausible.io/js/script.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+          strategy="afterInteractive"
+        />
         <JsonLd data={organizationSchema} />
         <InteractionProvider>
           <AuthProvider>
@@ -119,8 +131,7 @@ export default function RootLayout({
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
                 <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm">
-                  &copy; {new Date().getFullYear()} Sabrang Festival. All rights
-                  reserved.
+                  &copy; 2026 Sabrang Festival. All rights reserved.
                 </footer>
               </div>
             </SmoothScroll>

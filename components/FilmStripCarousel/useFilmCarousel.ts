@@ -76,7 +76,8 @@ export function useFilmCarousel(
           s.velocity = 0;
         }
       }
-      const ai = getActiveIndex(s.position, opts.current.count);
+      const targetPos = s.mode === 'snap' ? s.target : s.position;
+      const ai = getActiveIndex(targetPos, opts.current.count);
       if (ai !== activeRef.current) {
         activeRef.current = ai;
         setActiveIndex(ai);
@@ -115,7 +116,7 @@ export function useFilmCarousel(
       const dx = e.clientX - sim.lastX;
       const dtMs = now - sim.lastT;
       // pixel delta → carousel units against viewport width: 1:1 under pointer
-      const deltaUnits = (-dx * opts.current.sensitivity) / window.innerWidth;
+      const deltaUnits = (-dx * opts.current.sensitivity) / Math.max(300, window.innerWidth);
       sim.position += deltaUnits;
       if (dtMs > 0) {
         // velocity from pointer-time delta, lightly smoothed
@@ -124,7 +125,7 @@ export function useFilmCarousel(
       }
       sim.lastX = e.clientX;
       sim.lastT = now;
-      if (Math.abs(e.clientX - sim.dragStartX) > 5 && !sim.dragged) {
+      if (Math.abs(e.clientX - sim.dragStartX) > 3 && !sim.dragged) {
         sim.dragged = true;
         // Now that this is a drag and not a click, take the pointer so the
         // gesture survives leaving the element. Doing it here rather than on

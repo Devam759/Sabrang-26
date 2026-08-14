@@ -1,0 +1,21 @@
+{
+  "name": "Sabrang 2026 | JK Lakshmipat University",
+  "short_name": "Sabrang 2026",
+  "description": "JK Lakshmipat University's premier annual cultural and technical festival in Jaipur.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/sabrang-logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

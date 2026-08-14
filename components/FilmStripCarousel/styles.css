@@ -50,7 +50,7 @@
 /* ---- title ---- */
 .fsc-titlebox {
   position: absolute;
-  top: 7%;
+  top: 11%;
   left: 0;
   right: 0;
   text-align: center;
@@ -256,6 +256,14 @@
 }
 
 @media (max-width: 767px) {
+  .fsc-titlebox {
+    top: 78px;
+  }
+
+  .fsc-title {
+    font-size: clamp(2rem, 7.5vw, 3.2rem);
+  }
+
   .fsc-arrow {
     width: 38px;
     height: 38px;

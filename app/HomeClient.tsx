@@ -79,75 +79,86 @@ export default function HomeClient() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      const isMobile = window.innerWidth < 768;
+      const splitScrub = isMobile ? 0.35 : 0.6;
+      const splitY = isMobile ? 135 : 180;
+      const splitScale = isMobile ? 1.15 : 1.3;
+
       // ── HERO: split title apart on scroll ──
       gsap.to(".hero-top-half", {
-        yPercent: -180,
+        yPercent: -splitY,
         opacity: 0,
-        scale: 1.3,
-        ease: "power2.in",
+        scale: splitScale,
+        force3D: true,
+        ease: "power1.out",
         scrollTrigger: {
           trigger: heroRef.current,
           start: "top top",
-          end: "55% top",
-          scrub: 0.6,
+          end: isMobile ? "48% top" : "55% top",
+          scrub: splitScrub,
         },
       });
       gsap.to(".hero-bottom-half", {
-        yPercent: 180,
+        yPercent: splitY,
         opacity: 0,
-        scale: 1.3,
-        ease: "power2.in",
+        scale: splitScale,
+        force3D: true,
+        ease: "power1.out",
         scrollTrigger: {
           trigger: heroRef.current,
           start: "top top",
-          end: "55% top",
-          scrub: 0.6,
+          end: isMobile ? "48% top" : "55% top",
+          scrub: splitScrub,
         },
       });
       gsap.to(".hero-year-badge", {
         opacity: 0,
         scale: 0.5,
-        ease: "power2.in",
+        force3D: true,
+        ease: "power1.out",
         scrollTrigger: {
           trigger: heroRef.current,
           start: "top top",
-          end: "40% top",
-          scrub: 0.6,
+          end: "38% top",
+          scrub: splitScrub,
         },
       });
       gsap.to(".hero-scroll-hint", {
         opacity: 0,
-        y: -30,
+        y: -25,
+        force3D: true,
         scrollTrigger: {
           trigger: heroRef.current,
           start: "top top",
           end: "15% top",
-          scrub: 0.4,
+          scrub: 0.3,
         },
       });
 
       // Subtitle + CTA reveal after split
       gsap.from(".hero-reveal", {
         opacity: 0,
-        y: 80,
-        scale: 0.92,
-        ease: "power3.out",
+        y: isMobile ? 45 : 80,
+        scale: 0.94,
+        force3D: true,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: heroRef.current,
-          start: "35% top",
-          end: "65% top",
-          scrub: 0.8,
+          start: isMobile ? "30% top" : "35% top",
+          end: isMobile ? "58% top" : "65% top",
+          scrub: isMobile ? 0.4 : 0.8,
         },
       });
       gsap.from(".hero-cta-wrap", {
         opacity: 0,
-        y: 50,
-        ease: "power3.out",
+        y: 40,
+        force3D: true,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: heroRef.current,
-          start: "50% top",
-          end: "72% top",
-          scrub: 0.8,
+          start: isMobile ? "35% top" : "40% top",
+          end: isMobile ? "60% top" : "68% top",
+          scrub: isMobile ? 0.4 : 0.8,
         },
       });
 
@@ -289,24 +300,34 @@ export default function HomeClient() {
         >
           {/* Split title – top half */}
           <div
-            className="hero-top-half absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
-            style={{ clipPath: "inset(0% 0% 50% 0%)" }}
+            className="hero-top-half absolute inset-0 flex items-center justify-center z-20 pointer-events-none will-change-transform will-change-opacity transform-gpu"
+            style={{
+              clipPath: "inset(0% 0% 50% 0%)",
+              WebkitClipPath: "inset(0% 0% 50% 0%)",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            }}
           >
             <motion.h1
               className="text-[16vw] sm:text-[15vw] md:text-[14vw] font-black tracking-[-0.06em] uppercase text-white leading-[0.85]"
-              style={{ x, y, textShadow: "0 0 80px rgba(157,78,221,0.25)" }}
+              style={{ x, y, textShadow: "0 0 60px rgba(157,78,221,0.25)" }}
             >
               SABRANG
             </motion.h1>
           </div>
           {/* Split title – bottom half */}
           <div
-            className="hero-bottom-half absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
-            style={{ clipPath: "inset(50% 0% 0% 0%)" }}
+            className="hero-bottom-half absolute inset-0 flex items-center justify-center z-20 pointer-events-none will-change-transform will-change-opacity transform-gpu"
+            style={{
+              clipPath: "inset(50% 0% 0% 0%)",
+              WebkitClipPath: "inset(50% 0% 0% 0%)",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            }}
           >
             <motion.h1
               className="text-[16vw] sm:text-[15vw] md:text-[14vw] font-black tracking-[-0.06em] uppercase text-white leading-[0.85]"
-              style={{ x, y, textShadow: "0 0 80px rgba(157,78,221,0.25)" }}
+              style={{ x, y, textShadow: "0 0 60px rgba(157,78,221,0.25)" }}
             >
               SABRANG
             </motion.h1>
@@ -539,11 +560,11 @@ export default function HomeClient() {
               Begins
             </span>
           </h2>
-          <CountdownTimer targetDate="2026-11-15T00:00:00" />
+          <CountdownTimer targetDate="2026-10-23T00:00:00" />
           <div className="mt-12 sm:mt-20 flex items-center justify-center gap-3 sm:gap-5">
             <div className="w-8 sm:w-16 h-px bg-white/15" />
             <span className="text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.35em] text-white/25 uppercase font-light">
-              November 15–17, 2026
+              October 23–25, 2026
             </span>
             <div className="w-8 sm:w-16 h-px bg-white/15" />
           </div>

@@ -64,9 +64,9 @@ export const PANEL_LIGHT_DIR: readonly [number, number, number] = [0.6, 1.4, 6];
 // cameraZ pulled back ~20% from the original framing: the strip reads as an
 // object inside the viewport rather than filling it.
 export const BREAKPOINTS = {
-  desktop: { cameraZ: 9.6, fov: 34, tail: 9, sensitivity: 3.1 },
-  tablet: { cameraZ: 11, fov: 37, tail: 7, sensitivity: 3.1 },
-  mobile: { cameraZ: 8.6, fov: 45, tail: 5, sensitivity: 4.5 },
+  desktop: { cameraZ: 9.6, fov: 34, tail: 9, sensitivity: 1.95 },
+  tablet: { cameraZ: 11, fov: 37, tail: 7, sensitivity: 2.15 },
+  mobile: { cameraZ: 8.6, fov: 45, tail: 5, sensitivity: 2.29 },
 } as const;
 export type BreakpointName = keyof typeof BREAKPOINTS;
 
