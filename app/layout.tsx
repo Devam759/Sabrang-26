@@ -114,12 +114,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Script
-          defer
-          data-domain="sabrang.jklu.edu.in"
-          src="https://plausible.io/js/script.hash.outbound-links.pageview-props.revenue.tagged-events.js"
-          strategy="afterInteractive"
-        />
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            defer
+            data-domain="sabrang.jklu.edu.in"
+            src="https://plausible.io/js/script.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+            strategy="afterInteractive"
+          />
+        )}
         <JsonLd data={organizationSchema} />
         <InteractionProvider>
           <AuthProvider>

@@ -19,6 +19,7 @@ import {
 } from 'three';
 
 import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
+import MobileGallery from './MobileGallery';
 import { GALLERY_IMAGES } from '@/lib/constants';
 
 function CustomGalleryLoader() {
@@ -474,6 +475,16 @@ export default function GalleryClient() {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipElRef = useRef<HTMLDivElement>(null);
   const cursorElRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const [selected, setSelected] = useState<{
     index: number;
@@ -615,6 +626,10 @@ export default function GalleryClient() {
     const styleEl = document.getElementById('gallery-global-cursor-override');
     if (styleEl) styleEl.remove();
   }, [endDrag, onImageHoverEnd]);
+
+  if (isMobile === true) {
+    return <MobileGallery />;
+  }
 
   return (
     <div

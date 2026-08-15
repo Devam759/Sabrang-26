@@ -8,7 +8,6 @@ import aboutCover from './cover-images/about.png';
 import galleryCover from './cover-images/gallery.png';
 import sponsorsCover from './cover-images/sponsors.png';
 import teamCover from './cover-images/team.png';
-import creditsCover from './cover-images/credits.png';
 
 // The site's nav links expressed as film-strip projects.
 export const NAV_PROJECTS: Project[] = [
@@ -20,7 +19,6 @@ export const NAV_PROJECTS: Project[] = [
   { id: 'register', title: 'Registration', category: 'Join Us', description: 'Sign up to participate.', image: '/step-up.jpg', href: '/register' },
   { id: 'sponsors', title: 'Sponsors', category: 'Partners', description: 'The brands powering Sabrang.', image: sponsorsCover.src, href: '/sponsors' },
   { id: 'team', title: 'Our Team', category: 'The Crew', description: 'The people behind the festival.', image: teamCover.src, href: '/team' },
-  { id: 'credits', title: 'Tech Team Credits', category: 'Built By', description: 'The developers behind this site.', image: creditsCover.src, href: '/credits' },
   { id: 'contact', title: 'Contact Us', category: 'Say Hello', description: 'Reach the organising team.', image: '/sabrang-live.png', href: '/contact' },
   { id: 'faq', title: 'FAQ', category: 'Answers', description: 'Everything commonly asked.', image: '/versevaad.jpg', href: '/faq' },
 ];
