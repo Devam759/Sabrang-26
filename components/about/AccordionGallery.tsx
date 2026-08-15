@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import { gsap } from "gsap";
+import "./AccordionGallery.css";
 
 export interface AccordionGalleryItem {
   image: string;
   label: string;
   link?: string;
+  alt?: string;
   category?: string;
   desc?: string;
   id?: string | number;
@@ -16,12 +18,26 @@ export interface AccordionGalleryItem {
 export interface AccordionGalleryProps {
   items?: AccordionGalleryItem[];
   defaultIndex?: number;
-  expandRatio?: number; // e.g. 0.52 for 52% of total gallery container width
+  accentColor?: string;
+  overlayColor?: string;
+  textColor?: string;
+  height?: number;
+  gap?: number;
+  radius?: number;
+  expandRatio?: number;
+  orientation?: "horizontal" | "vertical";
+  duration?: number;
+  ease?: string;
+  parallax?: number;
+  tilt?: number;
+  stagger?: number;
   trigger?: "hover" | "click";
+  showLabels?: boolean;
+  grayscale?: boolean;
   className?: string;
 }
 
-const DEFAULT_SAMPLE_ITEMS: AccordionGalleryItem[] = [
+const DEFAULT_ITEMS: AccordionGalleryItem[] = [
   { image: "https://picsum.photos/id/1015/900/1200", label: "Canyon", link: "#" },
   { image: "https://picsum.photos/id/1018/900/1200", label: "Ridgeline", link: "#" },
   { image: "https://picsum.photos/id/1039/900/1200", label: "Falls", link: "#" },
@@ -30,189 +46,285 @@ const DEFAULT_SAMPLE_ITEMS: AccordionGalleryItem[] = [
 ];
 
 export default function AccordionGallery({
-  items = DEFAULT_SAMPLE_ITEMS,
+  items = DEFAULT_ITEMS,
   defaultIndex = 2,
+  accentColor = "#c084fc",
+  overlayColor = "#060010",
+  textColor = "#ffffff",
+  height = 500,
+  gap = 12,
+  radius = 20,
   expandRatio = 0.52,
+  orientation = "horizontal",
+  duration = 0.6,
+  ease = "power3.out",
+  parallax = 0.5,
+  tilt = 8,
+  stagger = 0.06,
   trigger = "hover",
+  showLabels = true,
+  grayscale = true,
   className = "",
 }: AccordionGalleryProps) {
-  const galleryItems = items && items.length > 0 ? items : DEFAULT_SAMPLE_ITEMS;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const panelRefs = useRef<(HTMLElement | null)[]>([]);
+  const mediaRefs = useRef<(HTMLElement | null)[]>([]);
+  const barRefs = useRef<(HTMLElement | null)[]>([]);
+  const textRefs = useRef<(HTMLElement | null)[]>([]);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const firstRunRef = useRef(true);
+  const mediaSizeRef = useRef(320);
 
-  const initialIndex = Math.min(
-    Math.max(0, defaultIndex),
-    galleryItems.length - 1,
+  const vertical = orientation === "vertical";
+  const count = items.length;
+  const [active, setActive] = useState(
+    Math.min(Math.max(defaultIndex, 0), count - 1)
   );
-  const [activeIndex, setActiveIndex] = useState<number>(initialIndex);
 
-  // Calculate flex grow ratios based on expandRatio:
-  // Active item ratio: expandRatio * 100 (e.g. 52)
-  // Collapsed item ratio: ((1 - expandRatio) * 100) / (galleryItems.length - 1)
-  const activeWeight = expandRatio * 100;
-  const collapsedWeight =
-    galleryItems.length > 1
-      ? ((1 - expandRatio) * 100) / (galleryItems.length - 1)
-      : activeWeight;
+  const prefersReduced =
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
+
+  const applyLayout = useCallback(
+    (animate: boolean) => {
+      const panels = panelRefs.current;
+      if (!panels.length) return;
+
+      const r = Math.min(Math.max(expandRatio, 0.2), 0.9);
+      const grow = count > 1 ? (r * (count - 1)) / (1 - r) : 1;
+      const mediaSize = mediaSizeRef.current;
+
+      tlRef.current?.kill();
+
+      const dur = animate && !prefersReduced ? duration : 0;
+      const tl = gsap.timeline();
+
+      panels.forEach((panel, i) => {
+        if (!panel) return;
+        const isActive = i === active;
+        const media = mediaRefs.current[i];
+        const bar = barRefs.current[i];
+        const text = textRefs.current[i];
+
+        const rot = isActive ? 0 : i < active ? tilt : -tilt;
+        const rotProp = vertical ? { rotateX: -rot } : { rotateY: rot };
+
+        tl.to(
+          panel,
+          {
+            flexGrow: isActive ? grow : 1,
+            ...rotProp,
+            duration: dur,
+            ease,
+          },
+          0
+        );
+
+        if (media) {
+          const drift = Math.max(-1.5, Math.min(1.5, active - i));
+          const shift = drift * parallax * mediaSize * 0.06;
+          const gray = grayscale ? (isActive ? 0 : 1) : 0;
+
+          tl.to(
+            media,
+            {
+              xPercent: -50,
+              yPercent: -50,
+              x: vertical ? 0 : isActive ? 0 : shift,
+              y: vertical ? (isActive ? 0 : shift) : 0,
+              "--ag-gray": gray,
+              "--ag-dim": isActive ? 0 : 0.35,
+              duration: dur,
+              ease,
+            },
+            0
+          );
+        }
+
+        if (showLabels && bar && text) {
+          if (isActive) {
+            tl.to(
+              [bar, text],
+              {
+                opacity: 1,
+                x: 0,
+                duration: dur,
+                ease,
+                stagger: prefersReduced ? 0 : stagger,
+              },
+              0
+            );
+          } else {
+            tl.to(
+              [bar, text],
+              {
+                opacity: 0,
+                x: -14,
+                duration: dur * 0.6,
+                ease,
+              },
+              0
+            );
+          }
+        }
+      });
+
+      tlRef.current = tl;
+    },
+    [
+      active,
+      count,
+      expandRatio,
+      duration,
+      ease,
+      vertical,
+      tilt,
+      parallax,
+      grayscale,
+      showLabels,
+      stagger,
+      prefersReduced,
+    ]
+  );
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const total = vertical ? rect.height : rect.width;
+      const usable = Math.max(total - gap * (count - 1), 120);
+      const size = Math.max(
+        140,
+        usable * Math.min(Math.max(expandRatio, 0.2), 0.9) * 1.22
+      );
+      mediaSizeRef.current = size;
+      el.style.setProperty("--ag-media-size", `${size}px`);
+      applyLayout(!firstRunRef.current);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [applyLayout, gap, count, expandRatio, vertical]);
+
+  useEffect(() => {
+    applyLayout(!firstRunRef.current);
+    firstRunRef.current = false;
+  }, [applyLayout]);
+
+  useEffect(
+    () => () => {
+      tlRef.current?.kill();
+    },
+    []
+  );
+
+  const handleEnter = (i: number) => {
+    if (trigger === "hover") setActive(i);
+  };
+
+  const handleClick = (i: number, e: React.MouseEvent) => {
+    if (i !== active) {
+      e.preventDefault();
+      setActive(i);
+    }
+  };
+
+  const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((i + 1) % count);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i - 1 + count) % count);
+    }
+  };
 
   return (
     <div
-      className={`relative w-full h-[540px] sm:h-[600px] flex flex-col md:flex-row gap-3 p-3 rounded-3xl bg-black/80 border border-white/15 backdrop-blur-2xl shadow-2xl overflow-hidden select-none ${className}`}
+      ref={rootRef}
+      className={`accordion-gallery${vertical ? " accordion-gallery--vertical" : ""}${className ? ` ${className}` : ""}`}
+      style={
+        {
+          "--ag-accent": accentColor,
+          "--ag-overlay": overlayColor,
+          "--ag-text": textColor,
+          "--ag-gap": `${gap}px`,
+          "--ag-radius": `${radius}px`,
+          height: vertical ? `${Math.round(height * 1.6)}px` : `${height}px`,
+        } as React.CSSProperties
+      }
+      role="list"
+      aria-label="Image accordion gallery"
     >
-      {galleryItems.map((item, index) => {
-        const isActive = index === activeIndex;
-        const currentWeight = isActive ? activeWeight : collapsedWeight;
+      {items.map((item, i) => {
+        const isActive = i === active;
+        const Tag = item.link && item.link !== "#" ? "a" : "div";
 
         return (
-          <div
-            key={item.id || item.label || index}
-            onMouseEnter={
-              trigger === "hover" ? () => setActiveIndex(index) : undefined
-            }
-            onClick={() => setActiveIndex(index)}
-            style={{
-              flexGrow: currentWeight,
-              flexShrink: 1,
-              flexBasis: "0%",
-              transition:
-                "flex-grow 600ms cubic-bezier(0.25, 1, 0.5, 1), opacity 500ms ease, border-color 500ms ease",
+          <Tag
+            key={item.id || item.label || i}
+            ref={(el: HTMLAnchorElement | HTMLDivElement | null) => {
+              panelRefs.current[i] = el;
             }}
-            className={`relative rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between p-5 sm:p-7 ${
-              isActive
-                ? "border border-purple-400/50 shadow-2xl ring-1 ring-purple-400/30 opacity-100"
-                : "border border-white/10 opacity-60 hover:opacity-90 hover:border-white/30"
-            }`}
+            className={`ag-panel${isActive ? " ag-panel--active" : ""}`}
+            style={{ borderRadius: `${radius}px` }}
+            href={item.link && item.link !== "#" ? item.link : undefined}
+            onClick={(e) => handleClick(i, e)}
+            onMouseEnter={() => handleEnter(i)}
+            onFocus={() => setActive(i)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+            role="listitem"
+            tabIndex={0}
+            aria-current={isActive ? "true" : undefined}
+            aria-label={item.label}
           >
-            {/* Background Image */}
-            <img
-              src={item.image}
-              alt={item.label}
-              className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out ${
-                isActive
-                  ? "scale-105 filter brightness-95"
-                  : "scale-100 filter brightness-40"
-              }`}
-            />
+            <span className="ag-panel__frame">
+              <span
+                className="ag-panel__media"
+                ref={(el) => {
+                  mediaRefs.current[i] = el;
+                }}
+              >
+                <img
+                  src={item.image}
+                  alt={item.alt || item.label || ""}
+                  draggable="false"
+                />
+              </span>
+              <span className="ag-panel__overlay" aria-hidden="true" />
+            </span>
 
-            {/* Gradient Overlay */}
-            <div
-              className={`absolute inset-0 transition-opacity duration-500 ${
-                isActive
-                  ? "bg-gradient-to-t from-black/90 via-black/40 to-transparent"
-                  : "bg-gradient-to-t from-black/90 via-black/70 to-black/30"
-              }`}
-            />
-
-            {/* Top Accent Glowing Border Line */}
-            <div
-              className={`absolute top-0 left-0 right-0 h-1 z-20 transition-all duration-500 ${
-                isActive
-                  ? "bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-100"
-                  : "bg-white/10 opacity-30"
-              }`}
-            />
-
-            {/* Active Card Content */}
-            {isActive ? (
-              <div className="relative z-20 h-full flex flex-col justify-between space-y-4">
-                {/* Top Category Badge & Index Counter */}
-                <div className="flex items-center justify-between">
-                  {item.category ? (
-                    <span className="text-xs font-mono px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-purple-400/30 text-purple-300 shadow-md">
-                      {item.category}
-                    </span>
-                  ) : (
-                    <span className="text-xs font-mono px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-slate-300">
-                      Pillars of Sabrang
-                    </span>
-                  )}
-
-                  <span className="text-xs font-mono font-bold text-white/70 bg-black/60 px-2.5 py-1 rounded-md border border-white/10">
-                    0{index + 1} / 0{galleryItems.length}
-                  </span>
-                </div>
-
-                {/* Bottom Main Title & Description */}
-                <div className="space-y-3 max-w-xl">
-                  <h3
-                    className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight leading-none drop-shadow-lg"
-                    style={{
-                      fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
+            {showLabels && (
+              <span className="ag-panel__label" aria-hidden="true">
+                <span
+                  className="ag-panel__bar"
+                  ref={(el) => {
+                    barRefs.current[i] = el;
+                  }}
+                />
+                <div className="flex flex-col">
+                  <span
+                    className="ag-panel__text"
+                    ref={(el) => {
+                      textRefs.current[i] = el;
                     }}
                   >
                     {item.label}
-                  </h3>
-
-                  {item.desc && (
-                    <p className="text-xs sm:text-sm md:text-base font-light text-slate-200 leading-relaxed">
-                      {item.desc}
-                    </p>
-                  )}
-
-                  {item.link && item.link !== "#" && (
-                    <div className="pt-2">
-                      {item.link.startsWith("http") ? (
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 text-white font-bold text-xs font-mono uppercase tracking-wider transition-all hover:scale-105 shadow-lg shadow-purple-500/25"
-                        >
-                          <span>Explore {item.label}</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14 5l7 7m0 0l-7 7m7-7H3"
-                            />
-                          </svg>
-                        </a>
-                      ) : (
-                        <Link
-                          href={item.link}
-                          className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 text-white font-bold text-xs font-mono uppercase tracking-wider transition-all hover:scale-105 shadow-lg shadow-purple-500/25"
-                        >
-                          <span>Explore {item.label}</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14 5l7 7m0 0l-7 7m7-7H3"
-                            />
-                          </svg>
-                        </Link>
-                      )}
-                    </div>
+                  </span>
+                  {item.category && isActive && (
+                    <span className="text-[11px] font-mono text-purple-300 tracking-wider">
+                      {item.category}
+                    </span>
                   )}
                 </div>
-              </div>
-            ) : (
-              /* Collapsed State */
-              <div className="relative z-20 h-full flex flex-row md:flex-col justify-between items-center md:items-start">
-                <div className="hidden md:block my-auto transform -rotate-90 origin-left text-xl font-black uppercase text-white/80 tracking-widest whitespace-nowrap">
-                  {item.label}
-                </div>
-
-                <div className="block md:hidden text-base font-black uppercase text-white/90 tracking-wider">
-                  {item.label}
-                </div>
-
-                <span className="text-sm font-mono font-bold text-white/50">
-                  0{index + 1}
-                </span>
-              </div>
+              </span>
             )}
-          </div>
+          </Tag>
         );
       })}
     </div>
