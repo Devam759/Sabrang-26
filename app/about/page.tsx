@@ -132,11 +132,6 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto space-y-8 relative z-10">
             {/* Section Header */}
             <div className="text-center space-y-3 max-w-2xl mx-auto">
-              <div className="inline-flex items-center space-x-2.5 text-purple-300 text-xs font-mono tracking-widest uppercase bg-purple-500/10 px-3.5 py-1.5 rounded-full border border-purple-500/20 shadow-lg shadow-purple-500/10">
-                <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
-                <span>PILLARS OF SABRANG</span>
-              </div>
-
               <h2
                 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
                 style={{ fontFamily: '"Syne", "Outfit", "Inter", sans-serif' }}
@@ -155,6 +150,20 @@ export default function AboutPage() {
               defaultIndex={2}
               expandRatio={0.52}
               trigger="hover"
+              accentColor="#c084fc"
+              overlayColor="#060010"
+              textColor="#ffffff"
+              grayscale={true}
+              showLabels={true}
+              duration={0.6}
+              ease="power3.out"
+              parallax={0.5}
+              tilt={8}
+              stagger={0.06}
+              height={520}
+              gap={12}
+              radius={20}
+              orientation="horizontal"
             />
           </div>
         </section>

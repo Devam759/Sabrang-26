@@ -33,7 +33,7 @@ export const WAVE_AMPLITUDE = 0.72;
 export const WAVE_LENGTH = 3.5;
 // The Z-roll: right end rides high, left end low. Flip sign if mirrored.
 // Smaller than it was — the wave now supplies most of the diagonal drama.
-export const GROUP_ROTATION_Z = 0.10;
+export const GROUP_ROTATION_Z = 0.02;
 export const GROUP_ROTATION_X = -0.03;
 // Perforation rhythm. 20 holes per cell rendered small and dense, which reads
 // as texture rather than as sprockets once the strip is more than a couple of
