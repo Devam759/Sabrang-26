@@ -224,7 +224,7 @@ export default function AccordionGallery({
   );
 
   const handleEnter = (i: number) => {
-    if (trigger === "hover") setActive(i);
+    if (trigger === "hover" && active !== i) setActive(i);
   };
 
   const handleClick = (i: number, e: React.MouseEvent) => {
@@ -276,7 +276,9 @@ export default function AccordionGallery({
             href={item.link && item.link !== "#" ? item.link : undefined}
             onClick={(e) => handleClick(i, e)}
             onMouseEnter={() => handleEnter(i)}
-            onFocus={() => setActive(i)}
+            onFocus={() => {
+              if (active !== i) setActive(i);
+            }}
             onKeyDown={(e) => handleKeyDown(i, e)}
             role="listitem"
             tabIndex={0}
@@ -293,6 +295,8 @@ export default function AccordionGallery({
                 <img
                   src={item.image}
                   alt={item.alt || item.label || ""}
+                  loading="lazy"
+                  decoding="async"
                   draggable="false"
                 />
               </span>
