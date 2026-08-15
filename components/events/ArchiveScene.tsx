@@ -25,6 +25,7 @@ import {
   useThree,
   type ThreeEvent,
 } from "@react-three/fiber";
+import { Grid } from "@react-three/drei";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { GalleryItem } from "@/lib/highlights-data";
@@ -721,6 +722,18 @@ export default function ArchiveScene({
         camera={{ position: [0, 0, 11], fov: 48 }}
       >
         <CameraRig pointerRef={pointerRef} />
+
+        <Grid
+          position={[0, -2.5, 0]}
+          infiniteGrid
+          fadeDistance={30}
+          cellColor="#312e81"
+          sectionColor="#4f46e5"
+          cellSize={0.6}
+          sectionSize={3}
+          cellThickness={0.5}
+          sectionThickness={1}
+        />
 
         {textures && (
           <ArchiveSphere

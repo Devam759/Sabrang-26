@@ -9,6 +9,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'DarkNexis';
+  src: url('/fonts/DarkNexis.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* Material Design 3 Inspired Palette */
   --color-primary: #004ac6;
@@ -49,6 +57,7 @@
   --font-h2: "Manrope", sans-serif;
   --font-h3: "Manrope", sans-serif;
   --font-body: "Inter", sans-serif;
+  --font-darknexis: "DarkNexis", sans-serif;
 }
 
 @layer base {
@@ -87,6 +96,21 @@
 
   .text-sabrang {
     @apply text-slate-900 font-black;
+  }
+
+  .text-neon-rgb {
+    text-shadow:
+      -2.5px 0px 0px rgba(255, 0, 0, 0.65),
+      2.5px 0px 0px rgba(0, 255, 0, 0.6),
+      4.5px 0px 0px rgba(0, 0, 255, 0.7);
+    transition: text-shadow 0.3s ease;
+  }
+
+  .text-neon-rgb:hover {
+    text-shadow:
+      -3.5px 0px 0px rgba(255, 0, 0, 0.85),
+      3.5px 0px 0px rgba(0, 255, 0, 0.8),
+      6.5px 0px 0px rgba(0, 0, 255, 0.9);
   }
 }
 
