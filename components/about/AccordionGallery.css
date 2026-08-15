@@ -58,6 +58,8 @@
   width: var(--ag-media-size);
   height: 100%;
   filter: grayscale(var(--ag-gray));
+  transform: translateZ(0);
+  backface-visibility: hidden;
   will-change: transform, filter;
 }
 

@@ -2,19 +2,7 @@
 
 /**
  * HeroColoursOverBlack — Volumetric Colorful Liquid Cloud & Smoke Background
- *
- * Art Direction:
- *   - Swirling, volumetric Sabrang liquid cloud & smoke streams bleeding through deep black.
- *   - Synchronized with Sabrang Home Palette:
- *       • #9d4edd (Sabrang Signature Purple)
- *       • #1f003f (Deep Violet)
- *       • #00ffff (Panache Cyan)
- *       • #ff00ff (Bandjam Magenta)
- *       • #ffff00 (Step-Up Yellow)
- *       • #ff0a54 (Glitch Hot Pink)
- *       • #2563eb (Sapphire Blue)
- *   - Pure pitch black negative space framing white SABRANG typography.
- *   - High performance 1-quad WebGL renderer with fluid mouse interaction.
+ * Optimized WebGL Renderer with Off-Screen Culling & Shader Math Performance Tweaks
  */
 
 import React, { useEffect, useMemo, useRef } from "react";
@@ -28,6 +16,9 @@ uniform vec2  uResolution;
 uniform float uTime;
 uniform vec2  uMouse;
 uniform float uScrollProgress;
+
+// Pre-computed rotation matrix constant (no trig math inside loop)
+const mat2 ROT = mat2(0.87758256, 0.47942554, -0.47942554, 0.87758256);
 
 // Fast 2D Noise & Domain Warped FBM
 float hash(vec2 p) {
@@ -51,10 +42,9 @@ float fbm(vec2 p) {
   float v = 0.0;
   float a = 0.5;
   vec2 shift = vec2(100.0);
-  mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 4; ++i) {
     v += a * noise(p);
-    p = rot * p * 2.0 + shift;
+    p = ROT * p * 2.0 + shift;
     a *= 0.5;
   }
   return v;
@@ -143,12 +133,22 @@ function FluidScreenQuad({
   const mouse = useRef({ x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 });
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.targetX = e.clientX / window.innerWidth;
-      mouse.current.targetY = 1.0 - e.clientY / window.innerHeight;
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+    const handleResize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
     };
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.current.targetX = e.clientX / (w || 1);
+      mouse.current.targetY = 1.0 - e.clientY / (h || 1);
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
   }, []);
 
   const uniforms = useMemo(
@@ -170,12 +170,21 @@ function FluidScreenQuad({
   useFrame((_, delta) => {
     if (!matRef.current) return;
 
+    const currentProgress = scrollProgress.current;
+    // Off-screen WebGL optimization: when user scrolls past hero section, pause frame updates
+    if (currentProgress >= 0.95) {
+      if (matRef.current.uniforms.uScrollProgress.value !== currentProgress) {
+        matRef.current.uniforms.uScrollProgress.value = currentProgress;
+      }
+      return;
+    }
+
     mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.05;
     mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.05;
 
     matRef.current.uniforms.uTime.value += delta;
     matRef.current.uniforms.uMouse.value.set(mouse.current.x, mouse.current.y);
-    matRef.current.uniforms.uScrollProgress.value = scrollProgress.current;
+    matRef.current.uniforms.uScrollProgress.value = currentProgress;
   });
 
   return (
@@ -198,6 +207,14 @@ export default function HeroColoursOverBlack({
 }: {
   scrollProgress: { current: number };
 }) {
+  const dpr = useMemo(() => {
+    if (typeof window === "undefined") return [1, 1] as [number, number];
+    const isMobile = window.innerWidth < 768;
+    const deviceDpr = window.devicePixelRatio || 1;
+    const cappedDpr = isMobile ? 1.0 : Math.min(deviceDpr, 1.25);
+    return [1, cappedDpr] as [number, number];
+  }, []);
+
   return (
     <div
       aria-hidden="true"
@@ -210,11 +227,7 @@ export default function HeroColoursOverBlack({
       }}
     >
       <Canvas
-        dpr={
-          typeof window !== "undefined" && window.innerWidth < 768
-            ? [1, 1]
-            : [1, 1.5]
-        }
+        dpr={dpr}
         performance={{ min: 0.8 }}
         camera={{ position: [0, 0, 1] }}
         gl={{
@@ -237,3 +250,4 @@ export default function HeroColoursOverBlack({
     </div>
   );
 }
+
