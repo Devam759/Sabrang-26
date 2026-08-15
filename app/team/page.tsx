@@ -37,10 +37,14 @@ const teamSchema = {
     url: "https://jklu.edu.in",
   },
   member: [
+    { "@type": "Person", name: "Anushka Pathak", jobTitle: "Faculty Coordinator" },
+    { "@type": "Person", name: "Richa Sharma", jobTitle: "Faculty Coordinator" },
+    { "@type": "Person", name: "Vice Chancellor", jobTitle: "Vice Chancellor" },
     { "@type": "Person", name: "Kartik Sharma", jobTitle: "Organizing Head" },
-    { "@type": "Person", name: "Rishika Singh", jobTitle: "Organizing Head" },
     { "@type": "Person", name: "Gurseerat Kaur", jobTitle: "Organizing Head" },
     { "@type": "Person", name: "Pratigya Bomb", jobTitle: "Organizing Head" },
+    { "@type": "Person", name: "Rishika Singh", jobTitle: "Organizing Head" },
+    { "@type": "Person", name: "Devam Gupta", jobTitle: "Tech & Support Core" },
   ],
 };
 

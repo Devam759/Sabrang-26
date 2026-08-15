@@ -36,6 +36,11 @@
   will-change: flex-grow, transform;
   -webkit-tap-highlight-color: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s ease;
+}
+
+.ag-panel--active {
+  border-color: rgba(168, 85, 247, 0.4);
 }
 
 .ag-panel:focus-visible {
@@ -50,17 +55,18 @@
 }
 
 .ag-panel__media {
-  --ag-gray: 1;
-  --ag-dim: 0.35;
   position: absolute;
   top: 50%;
   left: 50%;
   width: var(--ag-media-size);
   height: 100%;
-  filter: grayscale(var(--ag-gray));
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform, filter;
+  filter: grayscale(100%) brightness(0.6);
+  transition: filter 0.4s ease;
+  will-change: transform;
+}
+
+.ag-panel--active .ag-panel__media {
+  filter: grayscale(0%) brightness(1);
 }
 
 .accordion-gallery--vertical .ag-panel__media {
@@ -83,10 +89,15 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    transparent 35%,
-    color-mix(in srgb, var(--ag-overlay) 82%, transparent) 100%
-  ),
-  color-mix(in srgb, var(--ag-overlay) calc(var(--ag-dim, 0.35) * 100%), transparent);
+    transparent 30%,
+    rgba(6, 0, 16, 0.85) 100%
+  );
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
+}
+
+.ag-panel--active .ag-panel__overlay {
+  opacity: 0.3;
 }
 
 .ag-panel__label {
@@ -108,7 +119,7 @@
   border-radius: 3px;
   background: var(--ag-accent);
   opacity: 0;
-  box-shadow: 0 0 14px color-mix(in srgb, var(--ag-accent) 70%, transparent);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.7);
 }
 
 .ag-panel__text {
@@ -148,3 +159,4 @@
     will-change: auto;
   }
 }
+

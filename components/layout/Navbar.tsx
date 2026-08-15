@@ -123,11 +123,6 @@ export default function Navbar() {
               alt="Sabrang Logo"
               className="h-10 md:h-14 w-auto object-contain drop-shadow-2xl"
             />
-            <img
-              src="/past-sponsors/JK Tyre.png"
-              alt="JK Tyre Logo"
-              className="h-3.5 md:h-4.5 w-auto object-contain mt-0.5 drop-shadow-lg filter brightness-110"
-            />
           </Link>
         </div>
 
