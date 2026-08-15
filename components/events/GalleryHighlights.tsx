@@ -89,7 +89,7 @@ function ArchiveHeading({ className = "" }: { className?: string }) {
     <header className={`mx-auto max-w-6xl px-6 ${className}`}>
       <h1
         id="gallery-highlights-heading"
-        className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white"
+        className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white font-darknexis text-neon-rgb"
       >
         Events
       </h1>
@@ -124,7 +124,7 @@ function PosterDetail({
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${visible
-        ? "bg-black/90 backdrop-blur-md opacity-100"
+        ? "bg-black/40 backdrop-blur-sm opacity-100"
         : "bg-transparent opacity-0 pointer-events-none"
         }`}
       onClick={onClose}
@@ -160,7 +160,7 @@ function PosterDetail({
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">
             {item.category}
           </p>
-          <h3 className="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
+          <h3 className="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight text-white font-darknexis md:text-5xl text-neon-rgb">
             {item.title}
           </h3>
           <p className="mt-3 max-w-sm text-sm sm:text-base leading-relaxed text-slate-300">
@@ -312,105 +312,121 @@ export default function GalleryHighlights({
         // z-10 so the nav still floats over the dark.
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
-        {mode === "static" ? (
-          <>
-            <ArchiveHeading className="pt-16 md:pt-20" />
-            <StaticArchive items={items} />
-          </>
-        ) : (
-          /* One screen, heading included. The wheel turns the archive forever —
-             there is no track to run out of, so the gallery loops indefinitely. */
-          <div ref={stageRef} className="relative h-full">
-            <div className="h-full w-full overflow-hidden">
-              <div
-                role="group"
-                tabIndex={0}
-                onKeyDown={onKeyDown}
-                onWheel={onWheel}
-                aria-label="Festival photograph archive. Use the arrow keys to move between photographs."
-                className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400"
-              >
-                {mode === "webgl" && (
-                  <ArchiveScene
-                    items={items}
-                    active={active}
-                    onFocusChange={setFocusedIndex}
-                    onReady={onReady}
-                    focusRequestRef={focusRequestRef}
-                    onTileTap={(itemIndex) => {
-                      // If tapping the already-focused poster, expand it
-                      if (itemIndex === focusedIndex) {
-                        setExpandedItem(items[itemIndex]);
-                      }
-                    }}
-                  />
-                )}
-              </div>
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+            src="/videos/retrowave.mp4"
+          />
+          <div className="absolute inset-0 bg-[#07080f]/60 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
 
-              {/* Edges fall away into the dark so photographs recede rather than crop. */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(7,8,15,0.55)_72%,#07080f_100%)]"
-              />
+        <div className="relative z-10 h-full">
+          {mode === "static" ? (
+            <>
+              <ArchiveHeading className="pt-16 md:pt-20" />
+              <StaticArchive items={items} />
+            </>
+          ) : (
 
-              {/* Heading pinned to top, above the 3D canvas */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-20 md:pt-24">
-                <ArchiveHeading />
-              </div>
-
-              {/* METADATA — supports the imagery, never competes with it. */}
-              <div
-                aria-live="polite"
-                className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
-                  }`}
-              >
-                {/* Navigation Buttons: Bottom-Right on mobile, Centered on Desktop */}
-                <div className="absolute right-5 bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:bottom-12 flex items-center gap-2 sm:gap-3 md:gap-6 pointer-events-auto z-20">
-                  <button
-                    onClick={() => step(-1)}
-                    className="flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-white/15 bg-black/50 backdrop-blur-md text-white transition-all hover:bg-white/15 hover:border-white/30 active:scale-90"
-                    aria-label="Previous image"
-                  >
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-                  </button>
-                  
-                  <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3 text-xs sm:text-[13px] font-bold tracking-wider sm:tracking-[0.2em] font-mono select-none">
-                    <span className="text-white">{String(focusedIndex + 1).padStart(2, "0")}</span>
-                    <span className="text-white/25">/</span>
-                    <span className="text-white/45">{String(items.length).padStart(2, "0")}</span>
-                  </div>
-
-                  <button
-                    onClick={() => step(1)}
-                    className="flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-white/15 bg-black/50 backdrop-blur-md text-white transition-all hover:bg-white/15 hover:border-white/30 active:scale-90"
-                    aria-label="Next image"
-                  >
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-                  </button>
+            /* One screen, heading included. The wheel turns the archive forever —
+               there is no track to run out of, so the gallery loops indefinitely. */
+            <div ref={stageRef} className="relative h-full">
+              <div className="h-full w-full overflow-hidden">
+                <div
+                  role="group"
+                  tabIndex={0}
+                  onKeyDown={onKeyDown}
+                  onWheel={onWheel}
+                  aria-label="Festival photograph archive. Use the arrow keys to move between photographs."
+                  className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400"
+                >
+                  {mode === "webgl" && (
+                    <ArchiveScene
+                      items={items}
+                      active={active}
+                      onFocusChange={setFocusedIndex}
+                      onReady={onReady}
+                      focusRequestRef={focusRequestRef}
+                      onTileTap={(itemIndex) => {
+                        // If tapping the already-focused poster, expand it
+                        if (itemIndex === focusedIndex) {
+                          setExpandedItem(items[itemIndex]);
+                        }
+                      }}
+                    />
+                  )}
                 </div>
 
-                <div className="max-w-[48vw] sm:max-w-[50vw] md:max-w-[calc(50vw-4rem)]">
-                  <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white truncate">
-                    {focused.title}
-                  </h2>
-                  <p className="mt-0.5 sm:mt-1 max-w-md text-[11px] sm:text-xs md:text-sm font-medium leading-normal text-slate-300 line-clamp-1 truncate">
-                    {focused.description}
-                  </p>
+                {/* Edges fall away into the dark so photographs recede rather than crop. */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(7,8,15,0.55)_72%,#07080f_100%)]"
+                />
+
+                {/* Heading pinned to top, above the 3D canvas */}
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-20 md:pt-24">
+                  <ArchiveHeading />
+                </div>
+
+                {/* METADATA — supports the imagery, never competes with it. */}
+                <div
+                  aria-live="polite"
+                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
+                    }`}
+                >
+                  {/* Navigation Buttons: Bottom-Right on mobile, Centered on Desktop */}
+                  <div className="absolute right-5 bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:bottom-12 flex items-center gap-2 sm:gap-3 md:gap-6 pointer-events-auto z-20">
+                    <button
+                      onClick={() => step(-1)}
+                      className="flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-white/15 bg-black/50 backdrop-blur-md text-white transition-all hover:bg-white/15 hover:border-white/30 active:scale-90"
+                      aria-label="Previous image"
+                    >
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                    </button>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3 text-xs sm:text-[13px] font-bold tracking-wider sm:tracking-[0.2em] font-mono select-none">
+                      <span className="text-white">{String(focusedIndex + 1).padStart(2, "0")}</span>
+                      <span className="text-white/25">/</span>
+                      <span className="text-white/45">{String(items.length).padStart(2, "0")}</span>
+                    </div>
+
+                    <button
+                      onClick={() => step(1)}
+                      className="flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-white/15 bg-black/50 backdrop-blur-md text-white transition-all hover:bg-white/15 hover:border-white/30 active:scale-90"
+                      aria-label="Next image"
+                    >
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                    </button>
+                  </div>
+
+                  <div className="max-w-[48vw] sm:max-w-[50vw] md:max-w-[calc(50vw-4rem)]">
+                    <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white truncate font-darknexis text-neon-rgb">
+                      {focused.title}
+                    </h2>
+                    <p className="mt-0.5 sm:mt-1 max-w-md text-[11px] sm:text-xs md:text-sm font-medium leading-normal text-slate-300 line-clamp-1 truncate">
+                      {focused.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* The full archive, always in the accessibility tree even in WebGL mode. */}
-        <ul className="sr-only">
-          {items.map((item) => (
-            <li key={item.id}>
-              {item.title} — {item.category}, {item.venue}, {item.year}.{" "}
-              {item.alt}
-            </li>
-          ))}
-        </ul>
+          {/* The full archive, always in the accessibility tree even in WebGL mode. */}
+          <ul className="sr-only">
+            {items.map((item) => (
+              <li key={item.id}>
+                {item.title} — {item.category}, {item.venue}, {item.year}.{" "}
+                {item.alt}
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* Expanded poster detail overlay */}
