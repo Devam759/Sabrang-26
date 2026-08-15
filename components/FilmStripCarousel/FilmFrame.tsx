@@ -5,6 +5,7 @@ import {
   createBackingMaterial,
   createFilmBorderMaterial,
   createFilmPanelMaterial,
+  createReactiveBorderMaterial,
 } from './FilmMaterial';
 import { FRAME_HEIGHT, FRAME_WIDTH } from './constants';
 import type { Project } from './types';
@@ -14,6 +15,7 @@ export interface FrameHandle {
   content: THREE.Group;
   imageMesh: THREE.Mesh;
   imageMat: THREE.ShaderMaterial;
+  reactiveBorderMat: THREE.ShaderMaterial;
   borderMat: THREE.MeshStandardMaterial;
   backMat: THREE.MeshBasicMaterial;
   shadowMat: THREE.MeshBasicMaterial;
@@ -105,10 +107,12 @@ export default function FilmFrame({
   const mats = useMemo(() => {
     coverFitTexture(texture);
     const imageMat = createFilmPanelMaterial(texture);
+    const reactiveBorderMat = createReactiveBorderMaterial();
     (imageMat.uniforms.uRepeat.value as THREE.Vector2).copy(texture.repeat);
     (imageMat.uniforms.uOffset.value as THREE.Vector2).copy(texture.offset);
     return {
       imageMat,
+      reactiveBorderMat,
       borderMat: createFilmBorderMaterial(shared.filmTex),
       backMat: createBackingMaterial(shared.filmTex.map),
       shadowMat: new THREE.MeshBasicMaterial({
@@ -123,6 +127,7 @@ export default function FilmFrame({
   useEffect(
     () => () => {
       mats.imageMat.dispose();
+      mats.reactiveBorderMat.dispose();
       mats.borderMat.dispose();
       mats.backMat.dispose();
       mats.shadowMat.dispose();
@@ -144,15 +149,6 @@ export default function FilmFrame({
         refs.group = el ?? undefined;
         tryRegister();
       }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onFrameClick(index);
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        onHover(index);
-      }}
-      onPointerOut={() => onHover(null)}
     >
       <group
         ref={(el) => {
@@ -165,9 +161,19 @@ export default function FilmFrame({
           material={mats.shadowMat}
           position={[0, -0.55, -0.14]}
           scale={[FRAME_WIDTH * 1.6, FRAME_HEIGHT * 1.15, 1]}
+          raycast={() => null}
         />
-        <mesh geometry={shared.borderGeo} material={mats.backMat} position={[0, 0, -0.03]} />
-        <mesh geometry={shared.borderGeo} material={mats.borderMat} />
+        <mesh
+          geometry={shared.borderGeo}
+          material={mats.backMat}
+          position={[0, 0, -0.03]}
+          raycast={() => null}
+        />
+        <mesh
+          geometry={shared.borderGeo}
+          material={mats.borderMat}
+          raycast={() => null}
+        />
         <mesh
           ref={(el) => {
             refs.imageMesh = el ?? undefined;
@@ -176,7 +182,28 @@ export default function FilmFrame({
           geometry={shared.imageGeo}
           material={mats.imageMat}
           position={[0, 0, -0.008]}
-        />
+          onClick={(e) => {
+            if (e.nativeEvent && e.nativeEvent.isTrusted === false) return;
+            e.stopPropagation();
+            onFrameClick(index);
+          }}
+          onPointerEnter={(e) => {
+            if (e.nativeEvent && e.nativeEvent.isTrusted === false) return;
+            e.stopPropagation();
+            onHover(index);
+          }}
+          onPointerLeave={(e) => {
+            e.stopPropagation();
+            onHover(null);
+          }}
+        >
+          <mesh
+            geometry={shared.imageGeo}
+            material={mats.reactiveBorderMat}
+            position={[0, 0, 0.003]}
+            raycast={() => null}
+          />
+        </mesh>
       </group>
     </group>
   );

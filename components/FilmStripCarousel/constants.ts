@@ -64,7 +64,7 @@ export const PANEL_LIGHT_DIR: readonly [number, number, number] = [0.6, 1.4, 6];
 // cameraZ pulled back ~20% from the original framing: the strip reads as an
 // object inside the viewport rather than filling it.
 export const BREAKPOINTS = {
-  desktop: { cameraZ: 9.6, fov: 34, tail: 9, sensitivity: 1.95 },
+  desktop: { cameraZ: 8.2, fov: 34, tail: 9, sensitivity: 1.95 },
   tablet: { cameraZ: 11, fov: 37, tail: 7, sensitivity: 2.15 },
   mobile: { cameraZ: 8.6, fov: 45, tail: 5, sensitivity: 2.29 },
 } as const;
@@ -72,13 +72,12 @@ export type BreakpointName = keyof typeof BREAKPOINTS;
 
 // Physics (units are carousel frames; per-frame at 60fps, frame-rate
 // normalised in the integrator)
-export const MOMENTUM_DECAY = 0.92;
+export const MOMENTUM_DECAY = 0.955;
 export const SNAP_STIFFNESS = 0.08;
 export const SNAP_DAMPING = 0.75;
-export const FLICK_VELOCITY = 0.09; // units/frame above which release keeps momentum
-export const MOMENTUM_HANDOFF = 0.02; // below this, momentum hands off to the snap spring
-export const DRAG_CANCEL_FRACTION = 0.04; // drags under 4% of vw return to current frame
-export const MAX_VELOCITY = 0.35; // hard cap so a violent scroll can't blur past the set
+export const FLICK_VELOCITY = 0.005; // units/frame above which release keeps momentum for seamless gliding
+export const MOMENTUM_HANDOFF = 0.015; // below this, momentum hands off to the snap spring
+export const MAX_VELOCITY = 0.45; // cap for smooth high-speed glide
 export const WHEEL_SENSITIVITY = 0.00055; // wheel px → velocity injection
 
 // --- Active/hover frame promotion ----------------------------------------

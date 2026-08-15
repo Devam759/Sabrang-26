@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { getActiveIndex, wrapRelative } from './carouselMath';
 import {
-  DRAG_CANCEL_FRACTION,
   FLICK_VELOCITY,
   MAX_VELOCITY,
   MOMENTUM_DECAY,
@@ -140,23 +139,12 @@ export function useFilmCarousel(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (sim.mode !== 'drag') return;
       e.currentTarget.style.cursor = 'grab';
-      const totalPx = e.clientX - sim.dragStartX;
-      const start = Math.round(sim.dragStartPos);
-      if (Math.abs(totalPx) < DRAG_CANCEL_FRACTION * window.innerWidth) {
-        sim.target = start; // under threshold: return to current frame
-        sim.velocity = 0;
-        sim.mode = 'snap';
-      } else if (
-        !opts.current.reducedMotion &&
-        Math.abs(sim.velocity) > FLICK_VELOCITY
-      ) {
+      if (!opts.current.reducedMotion && Math.abs(sim.velocity) > FLICK_VELOCITY) {
         sim.velocity = clampVelocity(sim.velocity);
-        sim.mode = 'momentum'; // fast flick: keep integrating, snap later
+        sim.mode = 'momentum';
       } else {
-        // slow drag: advance at most one frame in the drag direction
-        let t = Math.round(sim.position);
-        if (t === start) t = start + Math.sign(sim.position - sim.dragStartPos);
-        sim.target = Math.max(start - 1, Math.min(start + 1, t));
+        sim.target = Math.round(sim.position);
+        sim.velocity = 0;
         sim.mode = 'snap';
       }
     },

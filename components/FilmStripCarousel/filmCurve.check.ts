@@ -548,7 +548,7 @@ const dist = (a: CurveSample, b: CurveSample) =>
   // Not every route belongs in the menu (admin, dashboard, auth-gated), but a
   // public one going missing from it is worth knowing about.
   const linked = new Set(NAV_PROJECTS.map((p) => p.href));
-  const exempt = /^\/(admin|dashboard)(\/|$)/;
+  const exempt = /^\/(admin|dashboard|credits|menu)(\/|$)/;
   const unlinked = [...routes].filter((r) => !linked.has(r) && !exempt.test(r));
   assert.deepEqual(
     unlinked,

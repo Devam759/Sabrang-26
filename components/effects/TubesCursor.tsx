@@ -130,20 +130,18 @@ export default function TubesCursor() {
         }
 
         frameCount++;
-        if (frameCount % 6 === 0) {
-          const targetEl =
-            document.elementFromPoint(currentPos.x, currentPos.y) || window;
+        if (frameCount % 6 === 0 && canvas) {
           const eventInit = {
             clientX: currentPos.x,
             clientY: currentPos.y,
             pageX: currentPos.x,
             pageY: currentPos.y,
-            bubbles: true,
+            bubbles: false,
             cancelable: true,
           };
 
-          targetEl.dispatchEvent(new PointerEvent("pointermove", eventInit));
-          targetEl.dispatchEvent(new MouseEvent("mousemove", eventInit));
+          canvas.dispatchEvent(new PointerEvent("pointermove", eventInit));
+          canvas.dispatchEvent(new MouseEvent("mousemove", eventInit));
         }
 
         animFrameId = requestAnimationFrame(wander);
