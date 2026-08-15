@@ -35,6 +35,7 @@ export interface AccordionGalleryProps {
   showLabels?: boolean;
   grayscale?: boolean;
   className?: string;
+  onItemClick?: (item: AccordionGalleryItem, index: number) => void;
 }
 
 const DEFAULT_ITEMS: AccordionGalleryItem[] = [
@@ -65,6 +66,7 @@ export default function AccordionGallery({
   showLabels = true,
   grayscale = true,
   className = "",
+  onItemClick,
 }: AccordionGalleryProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRefs = useRef<(HTMLElement | null)[]>([]);
@@ -124,7 +126,6 @@ export default function AccordionGallery({
         if (media) {
           const drift = Math.max(-1.5, Math.min(1.5, active - i));
           const shift = drift * parallax * mediaSize * 0.06;
-          const gray = grayscale ? (isActive ? 0 : 1) : 0;
 
           tl.to(
             media,
@@ -133,8 +134,6 @@ export default function AccordionGallery({
               yPercent: -50,
               x: vertical ? 0 : isActive ? 0 : shift,
               y: vertical ? (isActive ? 0 : shift) : 0,
-              "--ag-gray": gray,
-              "--ag-dim": isActive ? 0 : 0.35,
               duration: dur,
               ease,
             },
@@ -228,14 +227,16 @@ export default function AccordionGallery({
   };
 
   const handleClick = (i: number, e: React.MouseEvent) => {
-    if (i !== active) {
-      e.preventDefault();
-      setActive(i);
-    }
+    e.preventDefault();
+    setActive(i);
+    onItemClick?.(items[i], i);
   };
 
   const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onItemClick?.(items[i], i);
+    } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
       e.preventDefault();
       setActive((i + 1) % count);
     } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {

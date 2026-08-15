@@ -101,9 +101,10 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
 
   const [activePlane, setActivePlane] = useState<number | null>(null);
   const prevActivePlane = usePrevious(activePlane);
-  const { viewport } = useThree();
+  const { viewport, gl } = useThree();
 
   const [isMobile, setIsMobile] = useState(false);
+  const isCardHovered = useRef(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -128,6 +129,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
   const isDown = useRef(false);
   const speedWheel = 0.008;
   const speedDrag = -0.035;
+  const autoPlaySpeed = 0.018; // Calmer, slower steady automatic drift velocity
   const oldProgress = useRef(4.6875);
   const speed = useRef(0);
 
@@ -186,8 +188,14 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     }
   };
 
-  /* RAF with Seamless Infinite Scroll */
-  useFrame(() => {
+  /* RAF with Seamless Infinite Auto-Scroll */
+  useFrame((_, delta) => {
+    // Automatically advance slider ONLY when no card is opened, no card is hovered, and not dragging
+    if (activePlane === null && !isCardHovered.current && !isDown.current) {
+      const dt = Math.min(delta, 0.033);
+      progress.current += autoPlaySpeed * (dt * 60);
+    }
+
     $items.forEach((item, index) =>
       displayItems(item, index, oldProgress.current),
     );
@@ -324,6 +332,10 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
               key={item.image + i}
               item={item}
               index={i}
+              isMobile={isMobile}
+              onHoverChange={(hovered) => {
+                isCardHovered.current = hovered;
+              }}
             />
           );
         })}

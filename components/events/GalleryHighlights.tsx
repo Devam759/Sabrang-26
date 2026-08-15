@@ -16,6 +16,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
+import PosterDetailModal from "./PosterDetailModal";
 
 const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
 
@@ -61,8 +62,9 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-            }`}
+          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
         />
       )}
 
@@ -94,86 +96,6 @@ function ArchiveHeading({ className = "" }: { className?: string }) {
         Events
       </h1>
     </header>
-  );
-}
-
-/**
- * Full-screen detail overlay — poster on the left, info on the right.
- * Shown when the user taps the currently focused poster.
- */
-function PosterDetail({
-  item,
-  onClose,
-}: {
-  item: GalleryItem;
-  onClose: () => void;
-}) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    // Trigger enter animation on next frame
-    requestAnimationFrame(() => setVisible(true));
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${visible
-        ? "bg-black/40 backdrop-blur-sm opacity-100"
-        : "bg-transparent opacity-0 pointer-events-none"
-        }`}
-      onClick={onClose}
-    >
-      <div
-        className={`relative my-auto flex max-h-[90vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-500 overflow-y-auto p-4 sm:p-6 bg-neutral-950/90 border border-white/10 rounded-2xl ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
-          }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors z-20 min-h-[44px] min-w-[44px] flex items-center justify-center"
-        >
-          ✕ Close
-        </button>
-
-        {/* Poster image */}
-        <div className="relative flex-shrink-0 w-full md:w-[320px] lg:w-[380px] overflow-hidden rounded-xl shadow-2xl shadow-indigo-500/10 ring-1 ring-white/10 mt-6 md:mt-0">
-          <Image
-            src={item.image}
-            alt={item.alt}
-            width={380}
-            height={540}
-            sizes="(max-width: 768px) 100vw, 380px"
-            className="w-full h-auto object-cover"
-            priority
-          />
-        </div>
-
-        {/* Info panel */}
-        <div className="flex flex-col justify-center py-2 md:py-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">
-            {item.category}
-          </p>
-          <h3 className="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight text-white font-darknexis md:text-5xl text-neon-rgb">
-            {item.title}
-          </h3>
-          <p className="mt-3 max-w-sm text-sm sm:text-base leading-relaxed text-slate-300">
-            {item.description}
-          </p>
-          <div className="mt-5 flex items-center gap-3 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-            <span>{item.venue}</span>
-            <span className="h-1 w-1 rounded-full bg-slate-600" />
-            <span>Sabrang {item.year}</span>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -237,29 +159,18 @@ export default function GalleryHighlights({
   );
 
   /**
-   * The wheel advances the archive one photograph per gesture — it never maps
-   * a raw delta onto rotation. Doing that meant a trackpad's inertia dumped
-   * thousands of pixels at once and the gallery spun; every event also moved
-   * the sphere by a hard jump, which is what read as stutter. Now the wheel
-   * only picks the next photograph and the scene's existing snap eases onto it.
-   *
-   * The threshold rejects trackpad jitter, the cooldown stops a single flick's
-   * inertia from becoming five cards, and the idle reset keeps a slow scroll
-   * from accumulating across unrelated gestures.
+   * The wheel advances the archive one photograph per gesture.
    */
-  // We add lastAbsDelta to detect velocity spikes (new physical swipes during inertia)
   const wheelRef = useRef({ delta: 0, eventAt: 0, stepAt: 0, stepsInBurst: 0, lastAbsDelta: 0 });
 
   const onWheel = useCallback(
     (event: React.WheelEvent<HTMLDivElement>) => {
-      // deltaMode 1 is lines, 2 is pages — normalise both to something pixel-ish.
       const scale =
         event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
       const wheel = wheelRef.current;
       const now = event.timeStamp;
       const absDelta = Math.abs(event.deltaY * scale);
 
-      // A gap of >75ms between events OR a massive spike in velocity indicates a new physical swipe.
       if (now - wheel.eventAt > 75 || absDelta > wheel.lastAbsDelta * 4 + 20) {
         wheel.delta = 0;
         wheel.stepsInBurst = 0;
@@ -267,13 +178,11 @@ export default function GalleryHighlights({
       wheel.eventAt = now;
       wheel.lastAbsDelta = absDelta;
 
-      // Capped at 2 steps per swipe to strictly prevent overshoot.
       if (wheel.stepsInBurst >= 2) {
         wheel.delta = 0;
         return;
       }
 
-      // Accumulate delta but don't step if we are on cooldown.
       wheel.delta += event.deltaY * scale;
 
       if (now - wheel.stepAt < 250) return;
@@ -307,9 +216,6 @@ export default function GalleryHighlights({
     <>
       <section
         aria-labelledby="gallery-highlights-heading"
-        // One viewport, no page scroll: the chamber fills the screen and the wheel
-        // turns the archive instead of moving the document. Below the navbar's
-        // z-10 so the nav still floats over the dark.
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -332,9 +238,6 @@ export default function GalleryHighlights({
               <StaticArchive items={items} />
             </>
           ) : (
-
-            /* One screen, heading included. The wheel turns the archive forever —
-               there is no track to run out of, so the gallery loops indefinitely. */
             <div ref={stageRef} className="relative h-full">
               <div className="h-full w-full overflow-hidden">
                 <div
@@ -353,7 +256,6 @@ export default function GalleryHighlights({
                       onReady={onReady}
                       focusRequestRef={focusRequestRef}
                       onTileTap={(itemIndex) => {
-                        // If tapping the already-focused poster, expand it
                         if (itemIndex === focusedIndex) {
                           setExpandedItem(items[itemIndex]);
                         }
@@ -373,11 +275,12 @@ export default function GalleryHighlights({
                   <ArchiveHeading />
                 </div>
 
-                {/* METADATA — supports the imagery, never competes with it. */}
+                {/* METADATA */}
                 <div
                   aria-live="polite"
-                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
-                    }`}
+                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${
+                    ready ? "opacity-100" : "opacity-0"
+                  }`}
                 >
                   {/* Navigation Buttons: Bottom-Right on mobile, Centered on Desktop */}
                   <div className="absolute right-5 bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:bottom-12 flex items-center gap-2 sm:gap-3 md:gap-6 pointer-events-auto z-20">
@@ -431,7 +334,7 @@ export default function GalleryHighlights({
 
       {/* Expanded poster detail overlay */}
       {expandedItem && (
-        <PosterDetail
+        <PosterDetailModal
           item={expandedItem}
           onClose={() => setExpandedItem(null)}
         />

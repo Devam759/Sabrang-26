@@ -36,7 +36,7 @@ const EVENTS = [
     num: "03",
     title: "STEP-UP",
     subtitle: "THE MOVEMENT",
-    desc: "Synchronized tactical dance battles. Flawless execution required. No mercy on the floor.",
+    desc: "Premier solo dance showdown. Technical mastery, freestyle finesse, and electric expression.",
     image: "/step-up.jpg",
     state: "tertiary" as const,
   },

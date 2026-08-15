@@ -55,11 +55,19 @@ export default function TeamClient() {
   ];
 
   const rawMembers = [
+    // University Leadership & Mentors
+    { name: "Anushka Pathak", role: "Faculty Coordinator" },
+    { name: "Richa Sharma", role: "Faculty Coordinator" },
+    { name: "Vice Chancellor", role: "Vice Chancellor" },
+
     // Organizing Heads
     { name: "Kartik Sharma", role: "Organizing Head" },
-    { name: "Rishika Singh", role: "Organizing Head" },
     { name: "Gurseerat Kaur", role: "Organizing Head" },
     { name: "Pratigya Bomb", role: "Organizing Head" },
+    { name: "Rishika Singh", role: "Organizing Head" },
+
+    // Tech & Support
+    { name: "Devam Gupta", role: "Tech & Support Core" },
 
     // Core Members
     { name: "Tanik Gupta", role: "Discipline Core" },
@@ -73,7 +81,6 @@ export default function TeamClient() {
     { name: "Aadhya Mittal", role: "Events Core" },
     { name: "Devansh Srivastava", role: "Events Core" },
     { name: "Jheel Jain", role: "Events Core" },
-    { name: "Devam Gupta", role: "Tech & Support Core" },
     { name: "Satvik Agrawal", role: "Internal Arrangements Core" },
     { name: "Asmit Sharma", role: "Internal Arrangements Core" },
     { name: "Kunal Kasliwal", role: "Transport Core" },

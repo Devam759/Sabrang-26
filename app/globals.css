@@ -173,10 +173,11 @@ body::-webkit-scrollbar {
 }
 
 /* ── Credits page: zero out global main/footer so the fixed full-screen component owns the viewport ── */
-/* Hide footer on credits & gallery pages */
+/* Hide footer on credits, gallery & about pages */
 .credits-layout-escape~footer,
 body:has(.cc-root) footer,
-body:has(.gallery-container) footer {
+body:has(.gallery-container) footer,
+body:has(.about-page-root) footer {
   display: none !important;
 }
 

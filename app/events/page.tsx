@@ -5,18 +5,18 @@ import JsonLd from "@/components/seo/JsonLd";
 export const metadata: Metadata = {
   title: "Events & Competitions – Sabrang 2026",
   description:
-    "Explore all flagship events, competitions, pro-shows, Panache runway, Step-Up dance battles, Versevaad, Echoes of Noor, and Bandjam concerts at Sabrang 2026 JKLU.",
+    "Explore all flagship events, competitions, pro-shows, Panache runway, Sync group dance, Step-Up solo dance, Versevaad, Echoes of Noor, and Bandjam concerts at Sabrang 2026 JKLU.",
   keywords: [
     "Sabrang Events",
     "Sabrang 2026 Competitions",
     "Panache Runway JKLU",
-    "Step-Up Dance Battle",
+    "Sync Group Dance",
+    "Step-Up Solo Dance",
     "Bandjam Contest",
     "Pro Shows Sabrang",
     "JKLU Fest Events",
     "Versevaad Sabrang",
     "Echoes of Noor",
-    "Dance Battle JKLU",
     "Sabrang 2026 Schedule Events",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/events" },
@@ -44,37 +44,37 @@ const eventsSchema = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "BANDJAM – Battle of the Bands",
-      description:
-        "Live musical competition featuring top college bands in head-to-head rock and fusion battles.",
-    },
-    {
-      "@type": "ListItem",
-      position: 3,
-      name: "STEP-UP – Group Dance Battle",
-      description:
-        "Synchronized group dance competition featuring power-packed choreography and explosive energy.",
-    },
-    {
-      "@type": "ListItem",
-      position: 4,
-      name: "VERSEVAAD – Literary Debates & Slam",
-      description:
-        "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
-    },
-    {
-      "@type": "ListItem",
-      position: 5,
       name: "ECHOES OF NOOR – Sufi Night & Acoustics",
       description:
         "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances.",
     },
     {
       "@type": "ListItem",
-      position: 6,
-      name: "DANCE BATTLES – Solo & Street Dance",
+      position: 3,
+      name: "SYNC – Group Dance Showdown",
       description:
-        "High-octane solo and duo street dance battles featuring hip-hop, popping, locking, and freestyle showdowns.",
+        "Synchronized group dance competition featuring power-packed choreography, thematic storytelling, and explosive energy.",
+    },
+    {
+      "@type": "ListItem",
+      position: 4,
+      name: "STEP-UP – Solo Dance Competition",
+      description:
+        "High-octane solo dance competition featuring technical mastery, freestyle finesse, and individual stage expression.",
+    },
+    {
+      "@type": "ListItem",
+      position: 5,
+      name: "VERSEVAAD – Literary Debates & Slam",
+      description:
+        "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
+    },
+    {
+      "@type": "ListItem",
+      position: 6,
+      name: "BANDJAM – Battle of the Bands",
+      description:
+        "Live musical competition featuring top college bands in head-to-head rock and fusion battles.",
     },
   ],
 };

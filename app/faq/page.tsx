@@ -90,7 +90,7 @@ const faqSchema = {
       name: "What flagship events are featured at Sabrang 2026?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sabrang 2026 features flagship events including PANACHE (fashion runway), BANDJAM (battle of the bands), STEP-UP (group dance battle), VERSEVAAD (literary debates & slam), ECHOES OF NOOR (Sufi night & acoustics), and solo Dance Battles.",
+        text: "Sabrang 2026 features flagship events including PANACHE (fashion runway), ECHOES OF NOOR (Sufi night & acoustics), SYNC (group dance showdown), STEP-UP (solo dance competition), VERSEVAAD (literary debates & slam), and BANDJAM (battle of the bands).",
       },
     },
     {
