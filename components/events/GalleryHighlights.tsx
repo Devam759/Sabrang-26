@@ -16,10 +16,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
-<<<<<<< HEAD
 import { createWheelGesture } from "@/lib/gestureStepper";
-=======
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import PosterDetailModal from "./PosterDetailModal";
 
 const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
@@ -166,7 +163,6 @@ export default function GalleryHighlights({
   );
 
   /**
-<<<<<<< HEAD
    * One gesture, one photograph — a hard flick and a gentle nudge both advance
    * exactly one, so the archive never overshoots what the user aimed at.
    *
@@ -184,41 +180,6 @@ export default function GalleryHighlights({
       stepperRef.current ??= createWheelGesture(window.innerHeight);
       const dir = stepperRef.current(event);
       if (dir !== 0) step(dir);
-=======
-   * The wheel advances the archive one photograph per gesture.
-   */
-  const wheelRef = useRef({ delta: 0, eventAt: 0, stepAt: 0, stepsInBurst: 0, lastAbsDelta: 0 });
-
-  const onWheel = useCallback(
-    (event: React.WheelEvent<HTMLDivElement>) => {
-      const scale =
-        event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
-      const wheel = wheelRef.current;
-      const now = event.timeStamp;
-      const absDelta = Math.abs(event.deltaY * scale);
-
-      if (now - wheel.eventAt > 75 || absDelta > wheel.lastAbsDelta * 4 + 20) {
-        wheel.delta = 0;
-        wheel.stepsInBurst = 0;
-      }
-      wheel.eventAt = now;
-      wheel.lastAbsDelta = absDelta;
-
-      if (wheel.stepsInBurst >= 2) {
-        wheel.delta = 0;
-        return;
-      }
-
-      wheel.delta += event.deltaY * scale;
-
-      if (now - wheel.stepAt < 250) return;
-      if (Math.abs(wheel.delta) < 40) return;
-
-      step(Math.sign(wheel.delta));
-      wheel.stepsInBurst++;
-      wheel.delta = 0;
-      wheel.stepAt = now;
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     },
     [step],
   );
@@ -246,25 +207,12 @@ export default function GalleryHighlights({
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-<<<<<<< HEAD
           {/* Was a 13.5MB retrowave loop under two darkening overlays. The
               overlays left it a dim magenta-to-navy wash, which these two
               gradients paint outright — and they cost no decode on a page that
               is already running a WebGL archive. */}
           <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#1b1035_0%,#120c26_45%,#07080f_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_12%,rgba(236,72,153,0.16)_0%,transparent_58%)]" />
-=======
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-cover"
-            src="/videos/retrowave.mp4"
-          />
-          <div className="absolute inset-0 bg-[#07080f]/60 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-black/40" />
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
         </div>
 
         <div className="relative z-10 h-full">
