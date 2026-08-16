@@ -16,9 +16,14 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import dynamic from "next/dynamic";
 import Prism from "./Prism";
 import ThemeInstallation from "./ThemeInstallation";
 import SabrangPillarsCanvas, { SABRANG_PILLARS } from "./SabrangPillarsCanvas";
+
+const HeroColoursOverBlack = dynamic(() => import("./HeroColoursOverBlack"), {
+  ssr: false,
+});
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,14 +84,18 @@ export default function AboutSections() {
   const [activePillarId, setActivePillarId] = useState<string | null>(null);
 
   return (
-    <div className="w-full bg-[#030206] text-white selection:bg-purple-500 selection:text-white overflow-hidden">
+    <div className="relative w-full bg-[#030206]/70 backdrop-blur-sm text-white selection:bg-purple-500 selection:text-white overflow-hidden">
+      {/* Persistent Three.js Volumetric Liquid Color Cloud & Smoke Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
+        <HeroColoursOverBlack />
+      </div>
       
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 02 — THE FOUR PILLARS OF SABRANG (Central Light System)   */}
       {/* ───────────────────────────────────────────────────────────────── */}
       <section
         id="four-pillars"
-        className="relative w-full py-20 sm:py-28 px-6 sm:px-12 md:px-20 bg-[#030206] text-white overflow-hidden select-none border-b border-white/10"
+        className="relative w-full py-20 sm:py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/75 backdrop-blur-sm text-white overflow-hidden select-none border-b border-white/10"
       >
         {/* Central Canvas System */}
         <div className="absolute inset-0 z-1 pointer-events-none">
@@ -174,7 +183,7 @@ export default function AboutSections() {
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 05 — BEYOND THE COMPETITIONS (Space Between Wavelengths)  */}
       {/* ───────────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206] border-t border-white/10 overflow-hidden">
+      <section className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/75 backdrop-blur-sm border-t border-white/10 overflow-hidden">
         {/* Ambient atmospheric backlight blobs */}
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <div className="absolute top-10 left-10 w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] opacity-25 blur-[140px]"
@@ -244,7 +253,7 @@ export default function AboutSections() {
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 06 — THE FINAL RECOMBINATION & STATEMENT                   */}
       {/* ───────────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-36 px-6 text-center bg-[#030206] border-t border-white/10 overflow-hidden">
+      <section className="relative w-full py-36 px-6 text-center bg-[#030206]/75 backdrop-blur-sm border-t border-white/10 overflow-hidden">
         {/* Ambient atmospheric backlight blobs */}
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[900px] max-h-[900px] opacity-30 blur-[170px]"
