@@ -44,11 +44,7 @@ const EVENTS = [
     title: "STEP-UP",
     subtitle: "THE MOVEMENT",
     desc: "Premier solo dance showdown. Technical mastery, freestyle finesse, and electric expression.",
-<<<<<<< HEAD
     image: "/menu-scroll-covers/step-up.jpg",
-=======
-    image: "/step-up.jpg",
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     state: "tertiary" as const,
   },
 ];

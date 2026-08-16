@@ -115,13 +115,8 @@ export default function ProjectOverlay({
               word1={swap.from}
               word2={swap.to}
               swapped={armed}
-<<<<<<< HEAD
               duration={350}
               stagger={25}
-=======
-              duration={160}
-              stagger={10}
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
               className="fsc-title-flip"
               ariaLabel={`Go to ${project.title}`}
               onClick={() => onSelect(project)}

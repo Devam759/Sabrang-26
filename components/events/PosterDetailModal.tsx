@@ -77,13 +77,9 @@ export default function PosterDetailModal({
             sizes="(max-width: 768px) 100vw, 380px"
             className="w-full object-cover"
             style={{ width: "100%", height: "auto" }}
-<<<<<<< HEAD
             loading="eager"
             fetchPriority="high"
 
-=======
-            priority
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
           />
         </div>
 
