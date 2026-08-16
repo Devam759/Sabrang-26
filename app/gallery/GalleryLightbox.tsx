@@ -186,16 +186,6 @@ export default function GalleryLightbox({
         animate={{ opacity: closing ? 0 : 1 }}
         transition={{ duration: 0.3, delay: closing ? 0 : 0.18 }}
       >
-        <div className="absolute left-5 top-6 md:left-10 md:top-9">
-          <p className="text-sm font-black uppercase tracking-[0.3em] text-white/90 md:text-base">
-            {image.title}
-          </p>
-          <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-white/40">
-            {String(index + 1).padStart(2, "0")} /{" "}
-            {String(images.length).padStart(2, "0")}
-          </p>
-        </div>
-
         <button
           ref={closeButtonRef}
           type="button"
@@ -255,10 +245,6 @@ export default function GalleryLightbox({
             />
           </svg>
         </button>
-
-        <p className="absolute inset-x-0 bottom-7 text-center text-[10px] uppercase tracking-[0.3em] text-white/30">
-          Esc to close
-        </p>
       </motion.div>
     </div>
   );

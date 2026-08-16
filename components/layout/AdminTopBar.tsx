@@ -74,6 +74,10 @@ export default function AdminTopBar() {
         </button>
         <div className="h-8 w-8 rounded-lg bg-primary-container overflow-hidden border border-outline-variant ml-2">
           {user?.photoURL ? (
+            // Plain img: the auth provider's avatar CDN already serves a sized
+            // thumbnail, and routing it through the optimizer would mean
+            // whitelisting an external host for a 32px image on an admin page.
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               alt="Admin Profile"
               className="w-full h-full object-cover"

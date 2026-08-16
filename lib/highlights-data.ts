@@ -49,24 +49,24 @@ export const galleryItems: GalleryItem[] = [
   {
     id: 3,
     image: "/events_posters/DANCE_BATTLE.webp",
-    title: "Dance Battle",
-    category: "Dance",
+    title: "Sync",
+    category: "Group Dance",
     venue: "Main Stage",
     year: 2025,
-    alt: "Two dancers in motion during a high-energy Dance Battle face-off.",
+    alt: "Synchronized dance crews in motion during the Sync group dance showdown.",
     description:
-      "High-energy dance crews go head-to-head in an explosive showcase of choreography and freestyle moves. Prize pool up to ₹35,000.",
+      "The flagship group dance choreography battle — synchronized crews go head-to-head with power-packed choreography, thematic storytelling, and explosive energy. Prize pool up to ₹35,000.",
   },
   {
     id: 4,
     image: "/events_posters/STEPUP.webp",
     title: "Step-Up",
-    category: "Dance",
+    category: "Solo Dance",
     venue: "Main Stage",
     year: 2025,
-    alt: "A solo dancer striking a pose at Step-Up, the solo dance competition.",
+    alt: "A solo dancer striking a pose at Step-Up, the premier solo dance competition.",
     description:
-      "Solo performers command the stage with technical mastery and artistic expression in this electrifying solo dance showdown. Prize pool up to ₹17,000.",
+      "The premier solo dance competition — individual performers command the stage with technical mastery, freestyle finesse, and electric personal expression. Prize pool up to ₹17,000.",
   },
   {
     id: 5,

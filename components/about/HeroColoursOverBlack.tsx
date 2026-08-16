@@ -2,19 +2,8 @@
 
 /**
  * HeroColoursOverBlack — Volumetric Colorful Liquid Cloud & Smoke Background
- *
- * Art Direction:
- *   - Swirling, volumetric Sabrang liquid cloud & smoke streams bleeding through deep black.
- *   - Synchronized with Sabrang Home Palette:
- *       • #9d4edd (Sabrang Signature Purple)
- *       • #1f003f (Deep Violet)
- *       • #00ffff (Panache Cyan)
- *       • #ff00ff (Bandjam Magenta)
- *       • #ffff00 (Step-Up Yellow)
- *       • #ff0a54 (Glitch Hot Pink)
- *       • #2563eb (Sapphire Blue)
- *   - Pure pitch black negative space framing white SABRANG typography.
- *   - High performance 1-quad WebGL renderer with fluid mouse interaction.
+ * Supports "blue" (Hero) and "purple" (Pillars of Sabrang) palettes.
+ * Optimized for silky-smooth 60+ FPS rendering across all devices.
  */
 
 import React, { useEffect, useMemo, useRef } from "react";
@@ -22,14 +11,18 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 const FRAGMENT_SHADER = /* glsl */ `
-precision highp float;
+precision mediump float;
 
 uniform vec2  uResolution;
 uniform float uTime;
 uniform vec2  uMouse;
 uniform float uScrollProgress;
+uniform float uIsPurple;
 
-// Fast 2D Noise & Domain Warped FBM
+// Pre-computed rotation matrix constant (no trig math inside loop)
+const mat2 ROT = mat2(0.87758256, 0.47942554, -0.47942554, 0.87758256);
+
+// Fast 2D Hash & Noise
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -47,14 +40,14 @@ float noise(vec2 p) {
   return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
+// 3-octave FBM for blazing fast GPU execution
 float fbm(vec2 p) {
   float v = 0.0;
   float a = 0.5;
   vec2 shift = vec2(100.0);
-  mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 3; ++i) {
     v += a * noise(p);
-    p = rot * p * 2.0 + shift;
+    p = ROT * p * 2.0 + shift;
     a *= 0.5;
   }
   return v;
@@ -64,60 +57,80 @@ void main() {
   vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / min(uResolution.x, uResolution.y);
 
   // Interactive mouse fluid offset
-  vec2 mouseOffset = (uMouse - 0.5) * 0.28;
-  uv += mouseOffset * (1.2 - length(uv));
+  vec2 mouseOffset = (uMouse - 0.5) * 0.25;
+  uv += mouseOffset * (1.1 - length(uv));
 
-  // Multi-layered fluid domain warping (creates swirling colorful smoke & cloud volumes)
-  vec2 q = vec2(0.0);
-  q.x = fbm(uv * 1.3 + vec2(0.0, uTime * 0.04));
-  q.y = fbm(uv * 1.3 + vec2(5.2, uTime * 0.032));
+  // Multi-layered fluid domain warping (fast 3-octave FBM)
+  vec2 q = vec2(
+    fbm(uv * 1.3 + vec2(0.0, uTime * 0.04)),
+    fbm(uv * 1.3 + vec2(5.2, uTime * 0.032))
+  );
 
-  vec2 r = vec2(0.0);
-  r.x = fbm(uv * 1.6 + 3.2 * q + vec2(1.7, uTime * 0.05 + 9.2));
-  r.y = fbm(uv * 1.6 + 3.2 * q + vec2(8.3, uTime * 0.04 + 2.8));
+  vec2 r = vec2(
+    fbm(uv * 1.5 + 3.0 * q + vec2(1.7, uTime * 0.05 + 9.2)),
+    fbm(uv * 1.5 + 3.0 * q + vec2(8.3, uTime * 0.04 + 2.8))
+  );
 
-  float f = fbm(uv * 1.4 + 3.0 * r);
+  float f = fbm(uv * 1.3 + 2.8 * r);
 
-  // ── Home Page Synced Sabrang Palette ──────────────────────────────────────
-  vec3 cSabrangPurple = vec3(0.616, 0.306, 0.867); // #9d4edd (Signature Purple)
-  vec3 cDeepViolet    = vec3(0.122, 0.000, 0.247); // #1f003f (Deep Cosmic Dark)
-  vec3 cCyan          = vec3(0.000, 1.000, 1.000); // #00ffff (Panache Cyan)
-  vec3 cMagenta       = vec3(1.000, 0.000, 1.000); // #ff00ff (Bandjam Magenta)
-  vec3 cYellow        = vec3(1.000, 1.000, 0.000); // #ffff00 (Step-Up Yellow)
-  vec3 cHotPink       = vec3(1.000, 0.039, 0.329); // #ff0a54 (Glitch Hot Pink)
-  vec3 cSapphire      = vec3(0.145, 0.388, 0.922); // #2563eb (Sapphire Blue)
+  // ── Blue Palette ──────────────────────────────────────────────────────────
+  vec3 cDarkVoid_Blue   = vec3(0.010, 0.040, 0.120); // Deep Navy Void
+  vec3 cMid_Blue        = vec3(0.030, 0.120, 0.350); // Midnight Blue
+  vec3 cDeep_Blue       = vec3(0.060, 0.320, 0.780); // Deep Sapphire
+  vec3 cElectric_Blue   = vec3(0.020, 0.580, 1.000); // Electric Blue Ribbon
+  vec3 cEdge_Blue       = vec3(0.000, 0.820, 0.980); // Cyan Edge Highlight
+  vec3 cAccent_Blue     = vec3(0.080, 0.025, 0.220); // Subtle Violet Depth
 
-  // Rich multi-color blending across cloud swirls matching Home Page identity
-  float t1 = clamp(q.x * 1.5, 0.0, 1.0);
-  float t2 = clamp(r.x * 1.4, 0.0, 1.0);
-  float t3 = clamp(q.y * 1.3, 0.0, 1.0);
-  float t4 = clamp(r.y * 1.2, 0.0, 1.0);
+  // ── Purple Palette (Sabrang Signature Royal Purple / Neon Orchid) ─────────
+  vec3 cDarkVoid_Purple = vec3(0.060, 0.012, 0.140); // Deep Violet Void
+  vec3 cMid_Purple      = vec3(0.240, 0.050, 0.480); // Midnight Violet
+  vec3 cDeep_Purple     = vec3(0.620, 0.160, 0.920); // Royal Sabrang Purple (#9d4edd)
+  vec3 cElectric_Purple = vec3(0.850, 0.320, 1.000); // Electric Neon Orchid Ribbon
+  vec3 cEdge_Purple     = vec3(1.000, 0.280, 0.850); // Vivid Magenta Pink Rim
+  vec3 cAccent_Purple   = vec3(0.150, 0.420, 0.950); // Sapphire Depth Accent
 
-  vec3 col = mix(cDeepViolet, cSabrangPurple, t1);
-  col = mix(col, cCyan, t2);
-  col = mix(col, cMagenta, t3);
-  col = mix(col, cHotPink, t4);
-  col = mix(col, cSapphire, sin(f * 3.14 + uTime * 0.15) * 0.5 + 0.5);
+  // Interpolate palette based on uIsPurple
+  vec3 cBlack        = vec3(0.000, 0.000, 0.000);
+  vec3 cDarkNavy     = mix(cDarkVoid_Blue, cDarkVoid_Purple, uIsPurple);
+  vec3 cMidnightBlue = mix(cMid_Blue, cMid_Purple, uIsPurple);
+  vec3 cDeepSapphire = mix(cDeep_Blue, cDeep_Purple, uIsPurple);
+  vec3 cElectricBlue = mix(cElectric_Blue, cElectric_Purple, uIsPurple);
+  vec3 cCyanGlow     = mix(cEdge_Blue, cEdge_Purple, uIsPurple);
+  vec3 cCosmicViolet = mix(cAccent_Blue, cAccent_Purple, uIsPurple);
 
-  // Electric yellow highlights along turbulent cloud edges
-  float yellowAccent = smoothstep(0.44, 0.58, sin(f * 5.2 + uTime * 0.22));
-  col = mix(col, cYellow, yellowAccent * 0.35);
+  // Rich fluid domain dynamics
+  float t1 = clamp(q.x * 1.6 + 0.1, 0.0, 1.0);
+  float t2 = clamp(r.x * 1.5 + 0.1, 0.0, 1.0);
+  float t3 = clamp(q.y * 1.4, 0.0, 1.0);
 
-  // Volumetric cloud density & softness
-  float cloudVolume = pow(f, 1.35) * 2.0;
-  vec3 finalColor = col * cloudVolume;
+  // Blend from deep void into base colors
+  vec3 col = mix(cDarkNavy, cMidnightBlue, t1);
+  col = mix(col, cCosmicViolet, t3 * 0.35);
+  col = mix(col, cDeepSapphire, t2 * 0.95);
 
-  // Asymmetric Editorial Framing:
-  // Controlled dark space behind central SABRANG text
-  float distFromCenter = length(uv * vec2(0.82, 1.38));
-  float centerCleanMask = smoothstep(0.28, 0.95, distFromCenter);
+  // Sharp electric crest highlights along swirling fluid currents
+  float crest = smoothstep(0.38, 0.65, sin(f * 4.2 + uTime * 0.18));
+  col = mix(col, cElectricBlue, crest * 0.85);
 
-  // Frame the text while letting surrounding colorful clouds swell around it
-  finalColor *= mix(0.10, 1.0, centerCleanMask);
+  // Crisp luminous edge rim
+  float rim = smoothstep(0.52, 0.70, sin(f * 6.5 + uTime * 0.24));
+  col = mix(col, cCyanGlow, rim * 0.45);
 
-  // Smooth scroll fade out
-  float scrollFade = clamp(1.0 - (uScrollProgress - 0.55) / 0.25, 0.0, 1.0);
-  finalColor *= scrollFade;
+  // Enhanced fluid plume visibility & presence over deep black negative space
+  float cloudDensity = smoothstep(0.16, 0.70, f);
+  cloudDensity = pow(cloudDensity, 1.2) * 1.4;
+  vec3 finalColor = mix(cBlack, col, clamp(cloudDensity, 0.0, 1.0));
+
+  // Balanced center fade for sharp typography readability with visible fluid
+  float distFromCenter = length(uv * vec2(0.80, 1.30));
+  float centerFade = smoothstep(0.15, 0.85, distFromCenter);
+  finalColor *= mix(0.60, 1.0, centerFade);
+
+  // Smooth scroll fade out (only if scroll progress is actively tracked)
+  if (uScrollProgress > 0.0) {
+    float scrollFade = clamp(1.0 - (uScrollProgress - 0.55) / 0.25, 0.0, 1.0);
+    finalColor *= scrollFade;
+  }
 
   gl_FragColor = vec4(finalColor, 1.0);
 }
@@ -133,8 +146,10 @@ void main() {
 
 function FluidScreenQuad({
   scrollProgress,
+  palette = "blue",
 }: {
-  scrollProgress: { current: number };
+  scrollProgress?: { current: number };
+  palette?: "blue" | "purple";
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
@@ -143,9 +158,16 @@ function FluidScreenQuad({
   const mouse = useRef({ x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 });
 
   useEffect(() => {
+    let ticking = false;
     const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.targetX = e.clientX / window.innerWidth;
-      mouse.current.targetY = 1.0 - e.clientY / window.innerHeight;
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          mouse.current.targetX = e.clientX / window.innerWidth;
+          mouse.current.targetY = 1.0 - e.clientY / window.innerHeight;
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
@@ -154,28 +176,31 @@ function FluidScreenQuad({
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uResolution: { value: new THREE.Vector2(Math.max(size.width, 1), Math.max(size.height, 1)) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uScrollProgress: { value: 0 },
+      uIsPurple: { value: palette === "purple" ? 1.0 : 0.0 },
     }),
-    [size.width, size.height],
+    [],
   );
 
-  useEffect(() => {
-    if (matRef.current) {
-      matRef.current.uniforms.uResolution.value.set(size.width, size.height);
-    }
-  }, [size.width, size.height]);
-
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!matRef.current) return;
 
-    mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.05;
-    mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.05;
+    const prog = scrollProgress ? scrollProgress.current : 0;
+    if (scrollProgress && prog > 0.95) return;
 
-    matRef.current.uniforms.uTime.value += delta;
+    if (state.size.width > 0 && state.size.height > 0) {
+      matRef.current.uniforms.uResolution.value.set(state.size.width, state.size.height);
+    }
+
+    mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.08;
+    mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.08;
+
+    matRef.current.uniforms.uTime.value += Math.min(delta, 0.033);
     matRef.current.uniforms.uMouse.value.set(mouse.current.x, mouse.current.y);
-    matRef.current.uniforms.uScrollProgress.value = scrollProgress.current;
+    matRef.current.uniforms.uScrollProgress.value = prog;
+    matRef.current.uniforms.uIsPurple.value = palette === "purple" ? 1.0 : 0.0;
   });
 
   return (
@@ -193,11 +218,15 @@ function FluidScreenQuad({
   );
 }
 
+export interface HeroColoursOverBlackProps {
+  scrollProgress?: { current: number };
+  palette?: "blue" | "purple";
+}
+
 export default function HeroColoursOverBlack({
   scrollProgress,
-}: {
-  scrollProgress: { current: number };
-}) {
+  palette = "blue",
+}: HeroColoursOverBlackProps) {
   return (
     <div
       aria-hidden="true"
@@ -210,11 +239,7 @@ export default function HeroColoursOverBlack({
       }}
     >
       <Canvas
-        dpr={
-          typeof window !== "undefined" && window.innerWidth < 768
-            ? [1, 1]
-            : [1, 1.5]
-        }
+        dpr={1}
         performance={{ min: 0.8 }}
         camera={{ position: [0, 0, 1] }}
         gl={{
@@ -232,7 +257,7 @@ export default function HeroColoursOverBlack({
         }}
         style={{ width: "100%", height: "100%" }}
       >
-        <FluidScreenQuad scrollProgress={scrollProgress} />
+        <FluidScreenQuad scrollProgress={scrollProgress} palette={palette} />
       </Canvas>
     </div>
   );

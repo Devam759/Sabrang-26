@@ -47,8 +47,12 @@ export default function Environment({
   // a hair every time the window changes. filmCurve.check.ts asserts the
   // overscan actually covers the rig's worst-case excursion.
   const scale = useMemo(() => {
-    const h = 2 * Math.tan((fov * Math.PI) / 360) * (cameraZ - ENV_PLANE_Z) * ENV_OVERSCAN;
-    return [h * (size.width / size.height), h, 1] as [number, number, number];
+    const w = size.width || 1;
+    const h = size.height || 1;
+    const aspect = h > 0 ? w / h : 1;
+    const heightCalc = 2 * Math.tan((fov * Math.PI) / 360) * (cameraZ - ENV_PLANE_Z) * ENV_OVERSCAN;
+    const validH = isFinite(heightCalc) && heightCalc > 0 ? heightCalc : 10;
+    return [validH * aspect, validH, 1] as [number, number, number];
   }, [cameraZ, fov, size]);
 
   const smooth = useRef({ vel: 0, glow: 0, px: 0, py: 0 });
@@ -61,18 +65,17 @@ export default function Environment({
     const vNorm = THREE.MathUtils.clamp(sim.velocity / MAX_VELOCITY, -1, 1);
     s.vel = damp(s.vel, vNorm, ENV_GLOW_LAMBDA, dt);
     s.glow = damp(s.glow, Math.abs(vNorm), ENV_GLOW_LAMBDA, dt);
-    // background layers lag the cursor more than the camera does — that lag
-    // is most of what sells the parallax as depth rather than as sliding
-    s.px = damp(s.px, state.pointer.x, 1.8, dt);
-    s.py = damp(s.py, state.pointer.y, 1.8, dt);
+    s.px = damp(s.px, state.pointer.x || 0, 1.8, dt);
+    s.py = damp(s.py, state.pointer.y || 0, 1.8, dt);
 
     u.uTime.value = state.clock.elapsedTime;
     (u.uPointer.value as THREE.Vector2).set(-s.px, s.py);
     u.uVel.value = s.vel;
     u.uGlow.value = s.glow;
-    u.uExpand.value = expandRef.current.p;
-    u.uIntro.value = introRef.current;
-    u.uAspect.value = size.width / size.height;
+    u.uExpand.value = expandRef.current.p || 0;
+    u.uIntro.value = introRef.current || 0;
+    const aspect = size.height > 0 ? size.width / size.height : 1;
+    u.uAspect.value = isFinite(aspect) && aspect > 0 ? aspect : 1;
   });
 
   return (

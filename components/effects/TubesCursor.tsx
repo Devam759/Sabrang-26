@@ -9,7 +9,8 @@ if (typeof window !== "undefined") {
     if (
       typeof args[0] === "string" &&
       (args[0].includes("Multiple instances of Three.js") ||
-        args[0].includes("THREE.Clock"))
+        args[0].includes("THREE.Clock") ||
+        args[0].includes("THREE.BufferGeometry.computeBoundingSphere"))
     ) {
       return;
     }
@@ -61,6 +62,11 @@ export default function TubesCursor() {
           tubes: {
             colors: FIXED_TUBE_COLORS,
             count: 16,
+            // Each tube is a chain of points that lerp toward the one ahead,
+            // so tail lifetime ≈ tubularSegments / 60fps. Library defaults
+            // (32–128) ran ~0.5–2.1s; 12–42 lands the longest tail at ~0.7s.
+            minTubularSegments: 12,
+            maxTubularSegments: 42,
             minRadius: 0.005,
             maxRadius: 0.02,
             noise: 0.03,
@@ -94,7 +100,6 @@ export default function TubesCursor() {
       if (isIdle) return;
       isIdle = true;
 
-      let frameCount = 0;
       const wander = () => {
         if (!isIdle) return;
 
@@ -128,21 +133,21 @@ export default function TubesCursor() {
           angle = -angle;
         }
 
-        frameCount++;
-        if (frameCount % 6 === 0) {
-          const targetEl =
-            document.elementFromPoint(currentPos.x, currentPos.y) || window;
+        // Emit every frame. Throttling to every 6th made the tube jump up to
+        // ~27px at a time, which is what read as a jittery cursor while idle —
+        // dispatching two events costs nothing next to the render it drives.
+        if (canvas) {
           const eventInit = {
             clientX: currentPos.x,
             clientY: currentPos.y,
             pageX: currentPos.x,
             pageY: currentPos.y,
-            bubbles: true,
+            bubbles: false,
             cancelable: true,
           };
 
-          targetEl.dispatchEvent(new PointerEvent("pointermove", eventInit));
-          targetEl.dispatchEvent(new MouseEvent("mousemove", eventInit));
+          canvas.dispatchEvent(new PointerEvent("pointermove", eventInit));
+          canvas.dispatchEvent(new MouseEvent("mousemove", eventInit));
         }
 
         animFrameId = requestAnimationFrame(wander);
