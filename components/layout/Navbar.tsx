@@ -153,6 +153,7 @@ export default function Navbar() {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation menu"
             aria-expanded={isOpen}
+            data-open={isOpen || undefined}
             className="sm-toggle-btn"
             style={{
               position: "relative",
@@ -160,47 +161,29 @@ export default function Navbar() {
               display: "flex",
               alignItems: "center",
               gap: "0.5rem",
-              padding: "0.6rem 1.2rem",
-              background: "rgba(255, 255, 255, 0.08)",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              borderRadius: "9999px",
+              padding: "0.6rem 0.4rem",
+              background: "transparent",
+              border: "none",
               color: "#ffffff",
+              textShadow: "0 2px 12px rgba(0, 0, 0, 0.65)",
               fontFamily: "'Space Mono', monospace",
               fontSize: "0.75rem",
               fontWeight: 700,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               cursor: "pointer",
-              backdropFilter: "blur(8px)",
             }}
           >
             <span>{isOpen ? "CLOSE" : "MENU"}</span>
             {/* Drawn, not typed: these used to be ☰/✕ glyphs in 'Space Mono', a
                 font nothing here loads, so the icon rendered or vanished purely on
-                what the OS fallback happened to have. */}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              {isOpen ? (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </>
-              ) : (
-                <>
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </>
-              )}
-            </svg>
+                what the OS fallback happened to have. Bars morph via CSS off
+                data-open — see .sm-icon in StaggeredMenu.css. */}
+            <span className="sm-icon" aria-hidden>
+              <span className="sm-icon-line" />
+              <span className="sm-icon-line" />
+              <span className="sm-icon-line" />
+            </span>
           </button>
         </div>
       </header>
@@ -285,6 +268,15 @@ export default function Navbar() {
                 )}
               </motion.div>
             )}
+
+            <motion.p
+              variants={PANEL_ITEM}
+              initial="hidden"
+              animate="visible"
+              className="sm-tagline pointer-events-none absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-center"
+            >
+              Where every shade finds its own spectrum
+            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
