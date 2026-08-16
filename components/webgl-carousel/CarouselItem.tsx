@@ -114,9 +114,9 @@ const CarouselItem = ({
       <Html
         position={[
           isMobile
-            ? -(Math.min(width, viewport.width || 2) / 2) + 0.08
-            : -width / 2 + 0.05,
-          -height / 2 + 0.05,
+            ? -(Math.min(width || 1, (viewport.width && Number.isFinite(viewport.width)) ? viewport.width : 2) / 2) + 0.08
+            : -(width || 0.72) / 2 + 0.05,
+          -(height || 1.8) / 2 + 0.05,
           0.02,
         ]}
         pointerEvents="none"
@@ -152,7 +152,16 @@ const CarouselItem = ({
 
       {isCloseActive ? (
         <mesh position={[0, 0, 0.01]} onClick={handleClose}>
-          <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
+          <planeGeometry
+            args={[
+              viewport.width && Number.isFinite(viewport.width) && viewport.width > 0
+                ? viewport.width
+                : 10,
+              viewport.height && Number.isFinite(viewport.height) && viewport.height > 0
+                ? viewport.height
+                : 10,
+            ]}
+          />
           <meshBasicMaterial transparent={true} opacity={0} color={"red"} />
         </mesh>
       ) : null}

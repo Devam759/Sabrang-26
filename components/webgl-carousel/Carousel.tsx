@@ -83,11 +83,17 @@ function Background() {
     }
   });
 
+  const width =
+    viewport.width && Number.isFinite(viewport.width) && viewport.width > 0
+      ? viewport.width
+      : 10;
+  const height =
+    viewport.height && Number.isFinite(viewport.height) && viewport.height > 0
+      ? viewport.height
+      : 10;
+
   return (
-    <mesh
-      position={[0, 0, -3]}
-      scale={[(viewport.width || 1) * 2.5, (viewport.height || 1) * 2.5, 1]}
-    >
+    <mesh position={[0, 0, -3]} scale={[width * 2.5, height * 2.5, 1]}>
       <planeGeometry />
       {/* @ts-ignore */}
       <minimalBackgroundMaterial ref={materialRef} depthWrite={false} />
@@ -144,6 +150,9 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     index: number,
     progressVal: number,
   ) => {
+    const itemCount = items.length;
+    if (itemCount === 0) return;
+
     const cardWidth = isMobile
       ? widthVariantsMobile[index % widthVariantsMobile.length]
       : planeSettings.width;
@@ -152,39 +161,45 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       : heightVariantsDesktop[index % heightVariantsDesktop.length];
 
     if (activePlane === index) {
-      item.position.x = THREE.MathUtils.lerp(item.position.x, 0, 0.15);
-      item.position.y = THREE.MathUtils.lerp(item.position.y, 0, 0.15);
+      const curX = Number.isFinite(item.position.x) ? item.position.x : 0;
+      const curY = Number.isFinite(item.position.y) ? item.position.y : 0;
+      item.position.x = THREE.MathUtils.lerp(curX, 0, 0.15);
+      item.position.y = THREE.MathUtils.lerp(curY, 0, 0.15);
       return;
     }
 
     if (isMobile) {
       // Mobile: Vertical flow (top to bottom) with horizontal cards
       const itemSpacing = cardHeight + planeSettings.gap;
-      const totalHeight = $items.length * itemSpacing;
+      const totalHeight = itemCount * itemSpacing;
+      if (totalHeight <= 0 || !Number.isFinite(totalHeight)) return;
       const halfTotalY = totalHeight / 2;
 
-      let rawY = -index * itemSpacing + (progressVal / 100) * totalHeight;
+      const safeProgress = Number.isFinite(progressVal) ? progressVal : 0;
+      let rawY = -index * itemSpacing + (safeProgress / 100) * totalHeight;
       let y =
         ((((rawY + halfTotalY) % totalHeight) + totalHeight) % totalHeight) -
         halfTotalY;
 
       item.position.x = 0;
-      item.position.y = y;
+      item.position.y = Number.isFinite(y) ? y : 0;
     } else {
       // Desktop: Horizontal flow (left to right) with vertical cards
       const itemSpacing = cardWidth + planeSettings.gap;
-      const totalWidth = $items.length * itemSpacing;
+      const totalWidth = itemCount * itemSpacing;
+      if (totalWidth <= 0 || !Number.isFinite(totalWidth)) return;
       const halfTotalX = totalWidth / 2;
 
-      let rawX = index * itemSpacing - (progressVal / 100) * totalWidth;
+      const safeProgress = Number.isFinite(progressVal) ? progressVal : 0;
+      let rawX = index * itemSpacing - (safeProgress / 100) * totalWidth;
       let x =
         ((((rawX + halfTotalX) % totalWidth) + totalWidth) % totalWidth) -
         halfTotalX;
 
       const y = 0.75 - cardHeight / 2;
 
-      item.position.x = x;
-      item.position.y = y;
+      item.position.x = Number.isFinite(x) ? x : 0;
+      item.position.y = Number.isFinite(y) ? y : 0;
     }
   };
 
@@ -199,16 +214,21 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     $items.forEach((item, index) =>
       displayItems(item, index, oldProgress.current),
     );
+    const diff = Math.abs(oldProgress.current - progress.current);
     speed.current = lerp(
-      speed.current,
-      Math.abs(oldProgress.current - progress.current),
+      Number.isFinite(speed.current) ? speed.current : 0,
+      Number.isFinite(diff) ? diff : 0,
       0.1,
     );
 
-    oldProgress.current = lerp(oldProgress.current, progress.current, 0.1);
+    oldProgress.current = lerp(
+      Number.isFinite(oldProgress.current) ? oldProgress.current : 0,
+      Number.isFinite(progress.current) ? progress.current : 0,
+      0.1,
+    );
 
     if ($post.current) {
-      $post.current.thickness = Math.min(0.25, speed.current);
+      $post.current.thickness = Math.min(0.25, Number.isFinite(speed.current) ? speed.current : 0);
     }
   });
 
@@ -285,17 +305,19 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
 
   /* Click sync */
   useEffect(() => {
-    if (!$items || $items.length === 0) return;
+    if (items.length <= 1) return;
     if (
       activePlane !== null &&
       (prevActivePlane === null || prevActivePlane === undefined)
     ) {
-      progress.current = (activePlane / ($items.length - 1)) * 100;
+      progress.current = (activePlane / (items.length - 1)) * 100;
     }
-  }, [activePlane, $items, prevActivePlane]);
+  }, [activePlane, items.length, prevActivePlane]);
 
   /* Render Plane Events */
   const renderPlaneEvents = () => {
+    const vpW = viewport.width && Number.isFinite(viewport.width) && viewport.width > 0 ? viewport.width : 10;
+    const vpH = viewport.height && Number.isFinite(viewport.height) && viewport.height > 0 ? viewport.height : 10;
     return (
       <mesh
         position={[0, 0, -0.01]}
@@ -306,7 +328,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
         onPointerLeave={handleUp}
         onPointerCancel={handleUp}
       >
-        <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
+        <planeGeometry args={[vpW, vpH]} />
         <meshBasicMaterial transparent={true} opacity={0} />
       </mesh>
     );
