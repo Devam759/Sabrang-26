@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import ContactForm from "@/components/forms/ContactForm";
-import CursorGrid from "@/components/ui/CursorGrid";
+import ContactBackground from "./ContactBackground";
 import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
 
 if (typeof window !== "undefined") {
@@ -70,37 +70,22 @@ export default function ContactClient() {
 
   return (
     <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden" ref={containerRef}>
-      {/* Dynamic CursorGrid Interactive Background */}
-      <div className="fixed inset-0 z-0 opacity-70 pointer-events-none overflow-hidden">
-        <CursorGrid
-          cellSize={70}
-          color="#D946EF"
-          radius={160}
-          falloff="smooth"
-          holdTime={400}
-          fadeDuration={800}
-          lineWidth={1.2}
-          maxOpacity={0.85}
-          fillOpacity={0.05}
-          gridOpacity={0.08}
-          cellRadius={8}
-          clickPulse={true}
-          pulseSpeed={600}
-        />
-      </div>
+      {/* WebGL Contact Background */}
+      <ContactBackground />
 
+      {/* Temporarily hidden so the user can see only the background effect */}
       <div className="relative z-10 max-w-6xl mx-auto space-y-12 md:space-y-16">
         {/* Hero Header (Framer Motion for smooth initial load) */}
         <motion.section 
-          className="text-center space-y-4 pt-4 md:pt-8"
+          className="text-center space-y-4 pt-4 md:pt-12"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight uppercase">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-white to-cyan-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]">
             Contact Us
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-white/70 max-w-2xl mx-auto px-4">
+          <p className="text-sm sm:text-base md:text-lg text-cyan-100 max-w-2xl mx-auto px-4 font-medium uppercase tracking-widest">
             Have questions or want to collaborate? Connect with the organizing
             team of {SITE_CONFIG.name}.
           </p>
@@ -109,72 +94,17 @@ export default function ContactClient() {
         {/* Organizing Heads Grid (GSAP Scrub) */}
         <section className="space-y-6 md:space-y-8 gsap-stagger-container">
           <div className="text-center space-y-2 gsap-reveal">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight uppercase">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight uppercase italic drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
               Organizing Heads
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {ORGANIZING_HEADS.map((head, idx) => (
-              <div
-                key={idx}
-                className="bg-neutral-900/80 backdrop-blur-md border border-white/10 hover:border-white/30 rounded-2xl p-5 md:p-6 flex flex-col justify-between space-y-5 md:space-y-6 transition-all duration-300 hover:scale-[1.02] shadow-xl group gsap-stagger-card"
-              >
-                <div className="space-y-3">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                    <svg
-                      className="w-5 h-5 md:w-6 md:h-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                      {head.name}
-                    </h3>
-                    <span className="text-[10px] md:text-xs font-semibold text-purple-400 uppercase tracking-wider">
-                      {head.role || "Organizing Head"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-white/10">
-                  <a
-                    href={`tel:${head.phone}`}
-                    className="flex items-center gap-2.5 text-xs md:text-sm font-semibold text-white/90 hover:text-indigo-400 transition-colors min-h-[44px]"
-                  >
-                    <svg
-                      className="w-4 h-4 text-indigo-400 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      />
-                    </svg>
-                    <span>{head.displayPhone}</span>
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
+          <OrganizingHeadsGallery />
         </section>
 
         {/* Email Callout Section (GSAP Scrub) */}
-        <section className="bg-gradient-to-r from-neutral-900/90 via-neutral-900/90 to-neutral-800/90 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 md:p-12 text-center space-y-4 shadow-2xl gsap-reveal mx-2 sm:mx-0">
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto">
+        <section className="bg-black/60 backdrop-blur-md border border-white/10 border-l-4 border-l-cyan-500 p-6 sm:p-8 md:p-12 text-center space-y-4 shadow-[0_0_30px_rgba(0,255,255,0.15)] gsap-reveal mx-2 sm:mx-0">
+          <div className="w-12 h-12 md:w-14 md:h-14 bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
             <svg
               className="w-6 h-6 md:w-7 md:h-7"
               fill="none"
@@ -205,22 +135,22 @@ export default function ContactClient() {
         {/* Form & Venue Section (GSAP Scrub) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
           {/* Send Us A Message Form */}
-          <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 md:p-8 space-y-6 shadow-xl gsap-reveal mx-2 sm:mx-0">
-            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">
+          <div className="bg-black/60 backdrop-blur-md border border-white/10 border-r-2 border-r-pink-500 p-5 md:p-8 space-y-6 shadow-[0_0_30px_rgba(236,72,153,0.15)] gsap-reveal mx-2 sm:mx-0">
+            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase italic">
               Send Us A Message
             </h2>
             <ContactForm />
           </div>
 
           {/* Venue & Location Details */}
-          <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 md:p-8 space-y-6 shadow-xl gsap-reveal mx-2 sm:mx-0">
-            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase">
+          <div className="bg-black/60 backdrop-blur-md border border-white/10 border-l-2 border-l-cyan-500 p-5 md:p-8 space-y-6 shadow-[0_0_30px_rgba(0,255,255,0.15)] gsap-reveal mx-2 sm:mx-0">
+            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase italic">
               Festival Venue
             </h2>
 
-            <div className="space-y-4 text-white/80 text-xs sm:text-sm md:text-base leading-relaxed">
+            <div className="space-y-4 text-white/80 text-xs sm:text-sm md:text-base leading-relaxed font-medium">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0 mt-0.5">
                   <svg
                     className="w-4 h-4 md:w-5 md:h-5"
                     fill="none"
@@ -241,7 +171,7 @@ export default function ContactClient() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-sm md:text-base">
+                  <h3 className="font-bold text-white text-sm md:text-base uppercase tracking-wider">
                     {SITE_CONFIG.university.name}
                   </h3>
                   <p className="text-white/60">Mahapura, Ajmer Road</p>
@@ -255,11 +185,11 @@ export default function ContactClient() {
                 href="https://maps.google.com/?q=JK+Lakshmipat+University+Jaipur"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all border border-white/10"
+                className="inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 bg-cyan-500/10 hover:bg-cyan-500/30 text-white font-bold text-[10px] md:text-xs uppercase tracking-widest transition-all border border-cyan-500/30 hover:border-cyan-400"
               >
                 <span>View On Google Maps</span>
                 <svg
-                  className="w-3 h-3 md:w-4 md:h-4 text-purple-400"
+                  className="w-3 h-3 md:w-4 md:h-4 text-cyan-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -279,4 +209,94 @@ export default function ContactClient() {
     </div>
   );
 }
+
+const OrganizingHeadsGallery = () => {
+  const [activeCard, setActiveCard] = useState<number | null>(0);
+  const backgrounds = [
+    "/gallery/43.webp",
+    "/gallery/87.webp",
+    "/gallery/96.webp",
+    "/gallery/48.webp"
+  ];
+
+  return (
+    <div className="flex w-full h-[300px] md:h-[400px] items-stretch justify-start lg:justify-center gap-2 md:gap-4 gsap-reveal overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
+      {ORGANIZING_HEADS.map((head, index) => (
+        <motion.div
+          key={index}
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className={`relative cursor-pointer overflow-hidden rounded-2xl bg-black/60 border border-cyan-500/30 shrink-0 ${
+            activeCard === index ? "w-[300px] md:w-[400px]" : "w-[3.5rem]"
+          }`}
+          onClick={() => setActiveCard(index)}
+          onHoverStart={() => setActiveCard(index)}
+        >
+          <img
+            src={backgrounds[index]}
+            className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity hover:opacity-80 transition-opacity"
+            alt={head.name}
+          />
+          <AnimatePresence>
+            {activeCard === index && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"
+              />
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {activeCard !== index && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none"
+              >
+                <p className="whitespace-nowrap -rotate-90 text-xs font-mono font-bold text-cyan-400/50 uppercase tracking-widest">
+                  {head.name}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {activeCard === index && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.2 }}
+                className="absolute inset-0 flex flex-col justify-end p-4 md:p-6"
+              >
+                <div className="flex flex-col gap-2 relative z-10">
+                  <h3 className="text-xl md:text-3xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
+                    {head.name}
+                  </h3>
+                  <p className="text-pink-400 font-mono text-[10px] md:text-xs uppercase tracking-widest">
+                    {head.role || "Organizing Head"}
+                  </p>
+                  <a
+                    href={`tel:${head.phone}`}
+                    className="mt-2 inline-flex w-fit items-center gap-2 px-3 py-2 bg-cyan-500/10 hover:bg-cyan-500/30 text-white font-bold text-[10px] uppercase tracking-widest transition-all border border-cyan-500/30 hover:border-cyan-400 rounded-lg backdrop-blur-md"
+                  >
+                    <svg className="w-3 h-3 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span>{head.displayPhone}</span>
+                  </a>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
