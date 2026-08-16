@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CURSOR_TRAIL_COLORS } from "@/lib/constants";
+import {
+  CURSOR_TRAIL_COLORS,
+  CURSOR_TRAIL_IDLE_MS,
+  CURSOR_TRAIL_MAX_SEGMENTS,
+  CURSOR_TRAIL_MIN_SEGMENTS,
+} from "@/lib/constants";
 
 if (typeof window !== "undefined") {
   const origWarn = console.warn;
@@ -62,11 +67,8 @@ export default function TubesCursor() {
           tubes: {
             colors: FIXED_TUBE_COLORS,
             count: 16,
-            // Each tube is a chain of points that lerp toward the one ahead,
-            // so tail lifetime ≈ tubularSegments / 60fps. Library defaults
-            // (32–128) ran ~0.5–2.1s; 12–42 lands the longest tail at ~0.7s.
-            minTubularSegments: 12,
-            maxTubularSegments: 42,
+            minTubularSegments: CURSOR_TRAIL_MIN_SEGMENTS,
+            maxTubularSegments: CURSOR_TRAIL_MAX_SEGMENTS,
             minRadius: 0.005,
             maxRadius: 0.02,
             noise: 0.03,
@@ -169,7 +171,7 @@ export default function TubesCursor() {
       if (idleTimer) clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
         startRandomWander();
-      }, 1200);
+      }, CURSOR_TRAIL_IDLE_MS);
     };
 
     const handleUserMouseMove = (e: MouseEvent) => {
