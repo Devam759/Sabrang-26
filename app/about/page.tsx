@@ -122,14 +122,19 @@ export default function AboutPage() {
       <JsonLd data={aboutSchema} />
       <JsonLd data={breadcrumbSchema} />
       <div className="w-full bg-[#000000] text-white min-h-screen">
-        {/* 1. Immersive 3D pinned hero & story reveal */}
-        <AboutHero />
 
-        {/* 2. Structured Content Blocks: Four Pillars & Prism Theme Installation */}
-        <AboutSections />
+        {/* 1. Immersive 3D pinned hero & story reveal */}
+        <div className="relative z-10">
+          <AboutHero />
+        </div>
+
+        {/* 2. Structured Content Blocks: Identity, Theme Manifesto, Stats, Pro-Show & Beyond Competitions */}
+        <div className="relative z-10">
+          <AboutSections />
+        </div>
 
         {/* 3. Flagship Showdowns (Pillars of Sabrang Accordion Showcase) */}
-        <section className="relative w-full bg-[#030206] text-white py-24 px-4 sm:px-8 md:px-16 border-t border-white/10 z-30 overflow-hidden">
+        <section className="relative w-full bg-[#030206]/75 backdrop-blur-sm text-white py-24 px-4 sm:px-8 md:px-16 border-t border-white/10 z-30 overflow-hidden">
           {/* Background Ambient Glows */}
           <div className="absolute top-10 right-10 w-[650px] h-[650px] bg-purple-600/20 rounded-full blur-[170px] pointer-events-none" />
           <div className="absolute bottom-10 left-10 w-[700px] h-[700px] bg-cyan-500/20 rounded-full blur-[190px] pointer-events-none" />

@@ -188,7 +188,6 @@ function FluidScreenQuad({
     if (!matRef.current) return;
 
     const prog = scrollProgress ? scrollProgress.current : 0;
-    if (scrollProgress && prog > 0.95) return;
 
     if (state.size.width > 0 && state.size.height > 0) {
       matRef.current.uniforms.uResolution.value.set(state.size.width, state.size.height);
