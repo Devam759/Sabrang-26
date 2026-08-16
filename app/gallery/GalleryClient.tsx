@@ -183,7 +183,7 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
 
   return (
     <mesh ref={meshRef} position={[0, 0, -6.5]}>
-      <planeGeometry args={[45, 45, 32, 32]} />
+      <planeGeometry args={[45, 45, 96, 96]} />
       <shaderMaterial
         attach="material"
         args={[
@@ -221,6 +221,7 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
               uniform float uLineWidth;
               uniform float uTime;
               uniform float uScrollSpeed;
+              uniform vec2 uCenter;
 
               float gridLine(float coord, float width) {
                 float f = fract(coord);
@@ -232,13 +233,26 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
                 vec2 uv = vUv * uGridScale;
                 uv.y += uTime * uScrollSpeed * uGridScale;
 
-                float gx = gridLine(uv.x, uLineWidth);
-                float gy = gridLine(uv.y, uLineWidth);
-                float g = max(gx, gy);
+                float fine = max(gridLine(uv.x, uLineWidth), gridLine(uv.y, uLineWidth));
+                // Every 5th line is drawn brighter — the flat single-density grid read
+                // as noise; a coarse tier gives the eye something to sit on.
+                vec2 cuv = uv / 5.0;
+                float coarse = max(gridLine(cuv.x, uLineWidth), gridLine(cuv.y, uLineWidth));
 
-                vec3 base = vec3(0.0);
-                vec3 line = vec3(0.16, 0.13, 0.22);
-                gl_FragColor = vec4(mix(base, line, g), 1.0);
+                // Fade out well before the plane's border so it never ends on a hard edge.
+                float edgeFade = 1.0 - smoothstep(0.18, 0.48, distance(vUv, vec2(0.5)));
+                // Light well that trails the pointer, matching the vertex dent.
+                float well = exp(-distance(vUv, uCenter) * 5.5);
+                float lit = edgeFade * (0.35 + well * 1.1);
+
+                vec3 base = mix(vec3(0.0), vec3(0.045, 0.025, 0.085), well * edgeFade);
+                vec3 fineCol = vec3(0.13, 0.11, 0.19);
+                vec3 coarseCol = mix(vec3(0.10, 0.30, 0.45), vec3(0.32, 0.15, 0.52), vUv.y);
+
+                vec3 col = base;
+                col = mix(col, fineCol, clamp(fine * lit * 0.7, 0.0, 1.0));
+                col = mix(col, coarseCol, clamp(coarse * lit, 0.0, 1.0));
+                gl_FragColor = vec4(col, 1.0);
               }
             `,
             side: DoubleSide,
@@ -253,7 +267,6 @@ function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2
 
 function GalleryTileMesh({
   src,
-  title,
   theta,
   radius,
   texIndex,
@@ -262,11 +275,10 @@ function GalleryTileMesh({
   onTileClick,
 }: {
   src: string;
-  title: string;
   theta: number;
   radius: number;
   texIndex: number;
-  onHoverStart: (title: string, e: ThreeEvent<PointerEvent>) => void;
+  onHoverStart: () => void;
   onHoverEnd: () => void;
   onTileClick: (index: number, e: ThreeEvent<MouseEvent>, mesh: Mesh, tex: Texture | null) => void;
 }) {
@@ -293,7 +305,7 @@ function GalleryTileMesh({
       rotation={[0, Math.PI / 2 - theta, 0]}
       onPointerOver={(e) => {
         e.stopPropagation();
-        onHoverStart(title, e);
+        onHoverStart();
       }}
       onPointerOut={(e) => {
         e.stopPropagation();
@@ -338,7 +350,7 @@ function ImageTube({
   naturalDirRef: React.RefObject<number>;
   tubeAngleRef: React.RefObject<number>;
   rotationSpeedScaleTargetRef: React.RefObject<number>;
-  onHoverStart: (projectName: string, event: ThreeEvent<PointerEvent>) => void;
+  onHoverStart: () => void;
   onHoverEnd: () => void;
   onImageSelect: (selection: {
     index: number;
@@ -473,7 +485,6 @@ function ImageTube({
               <GalleryTileMesh
                 key={col}
                 src={IMAGES[texIndex].src}
-                title={IMAGES[texIndex].title}
                 theta={theta}
                 radius={radius}
                 texIndex={texIndex}
@@ -506,7 +517,6 @@ function ResponsiveGalleryCamera() {
 
 export default function GalleryClient() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const tooltipElRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -556,28 +566,6 @@ export default function GalleryClient() {
   viewerOpenRef.current = !!selected;
 
   const targetCenterUv = useRef(new Vector2(0.5, 0.5));
-  const hoveredProjectRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    let animId: number;
-    const updateDOM = () => {
-      if (tooltipElRef.current) {
-        const text = hoveredProjectRef.current;
-        if (text && !viewerOpenRef.current) {
-          if (tooltipElRef.current.textContent !== text) {
-            tooltipElRef.current.textContent = text;
-          }
-          tooltipElRef.current.style.opacity = '1';
-        } else {
-          tooltipElRef.current.style.opacity = '0';
-        }
-      }
-
-      animId = requestAnimationFrame(updateDOM);
-    };
-    animId = requestAnimationFrame(updateDOM);
-    return () => cancelAnimationFrame(animId);
-  }, []);
 
   const onWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
     if (viewerOpenRef.current) return;
@@ -587,13 +575,11 @@ export default function GalleryClient() {
     if (dy !== 0) tubeNaturalDir.current = dy < 0 ? -1 : 1;
   }, []);
 
-  const onImageHoverStart = useCallback((projectName: string, _event: ThreeEvent<PointerEvent>) => {
-    hoveredProjectRef.current = projectName;
+  const onImageHoverStart = useCallback(() => {
     rotationSpeedScaleTarget.current = 0.25;
   }, []);
 
   const onImageHoverEnd = useCallback(() => {
-    hoveredProjectRef.current = null;
     rotationSpeedScaleTarget.current = 1;
   }, []);
 
@@ -607,7 +593,6 @@ export default function GalleryClient() {
       if (pointerMovedRef.current) return;
       setSelected(selection);
       rotationSpeedScaleTarget.current = 0;
-      hoveredProjectRef.current = null;
     },
     [],
   );
@@ -707,17 +692,10 @@ export default function GalleryClient() {
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_75%,#000_100%)]"
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_center,transparent_0%,transparent_58%,#000_100%)]"
       />
 
       <h1 className="sr-only">Gallery</h1>
-
-      {/* Floating Hover Title HUD (RAF updated) */}
-      <div
-        ref={tooltipElRef}
-        aria-hidden
-        className="pointer-events-none fixed top-12 left-1/2 -translate-x-1/2 z-30 font-mono text-xs tracking-[0.3em] uppercase text-cyan-400 bg-black/80 backdrop-blur-md px-6 py-2 border border-cyan-500/30 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.25)] opacity-0 transition-opacity duration-200"
-      />
 
       <CustomGalleryLoader />
 
