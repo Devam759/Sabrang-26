@@ -14,8 +14,17 @@ import CarouselControls from './CarouselControls';
 import Pagination from './Pagination';
 import ProjectOverlay from './ProjectOverlay';
 import { useFilmCarousel } from './useFilmCarousel';
+<<<<<<< HEAD
 import { BREAKPOINTS, PANEL_LIGHT_DIR, type BreakpointName } from './constants';
 import { createWheelStepper } from '@/lib/wheelStepper';
+=======
+import {
+  BREAKPOINTS,
+  PANEL_LIGHT_DIR,
+  WHEEL_SENSITIVITY,
+  type BreakpointName,
+} from './constants';
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import type { Project } from './types';
 import './styles.css';
 

@@ -87,7 +87,11 @@ const festivalEventSchema = {
     "@type": "Audience",
     audienceType: "College Students",
   },
+<<<<<<< HEAD
   image: ["https://sabrang.jklu.edu.in/sabrang-logo/sabrang-logo.png"],
+=======
+  image: ["https://sabrang.jklu.edu.in/sabrang-logo.png"],
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   offers: {
     "@type": "Offer",
     url: "https://sabrang.jklu.edu.in/register",
