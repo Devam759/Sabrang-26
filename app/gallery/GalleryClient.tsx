@@ -10,6 +10,7 @@ import {
   LinearFilter,
   Mesh,
   Object3D,
+  PlaneGeometry,
   ShaderMaterial,
   SRGBColorSpace,
   Texture,
@@ -26,10 +27,22 @@ function CustomGalleryLoader() {
   const { active, progress } = useProgress();
   const [show, setShow] = useState(true);
 
+<<<<<<< HEAD
+  // Hide once the textures are actually in, not on a fixed timer — otherwise a
+  // slow connection is shown an empty black tube. The long delay is a bail-out
+  // if the loading manager never reports; it restarts on every progress tick,
+  // so it only fires once loading has genuinely stalled.
+  useEffect(() => {
+    const loaded = !active && progress >= 100;
+    const timer = setTimeout(() => setShow(false), loaded ? 400 : 6000);
+    return () => clearTimeout(timer);
+  }, [active, progress]);
+=======
   useEffect(() => {
     const timer = setTimeout(() => setShow(false), 500);
     return () => clearTimeout(timer);
   }, []);
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 
   return (
     <AnimatePresence>
@@ -87,8 +100,71 @@ const TILE_CORNERS: ReadonlyArray<readonly [number, number]> = [
   [-0.5, 0.5],
 ];
 
+<<<<<<< HEAD
+const TILE_W = 0.95;
+const TILE_H = 1;
+const TILE_GEOMETRY = new PlaneGeometry(TILE_W, TILE_H);
+
+const textureLoader = new TextureLoader();
+// Keyed by src and holding the in-flight promise, not the finished texture: the
+// tube mounts 150 meshes over 50 distinct images, so caching only on completion
+// let every image be requested three times over.
+const textureCache = new Map<string, Promise<Texture>>();
+
+// The source webps are ~600KB each and a tile never covers more than ~400px of
+// screen. Fetching all 50 at full size is 30MB of stalled requests, which is why
+// the tube came up black; Next's built-in optimiser cuts that by ~15x.
+// q must be one of next.config's `images.qualities` — anything else is a 400.
+const optimized = (src: string, w: number) =>
+  `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
+
+// The lightbox goes full-screen, so it gets a real resolution rather than the
+// tube's thumbnail — but still optimised, or clicking a tile would stall on a
+// fresh 600KB original that nothing has warmed the cache with.
+const LIGHTBOX_IMAGES = GALLERY_IMAGES.map((image) => ({
+  ...image,
+  src: optimized(image.src, 1920),
+}));
+
+function loadTile(src: string): Promise<Texture> {
+  const cached = textureCache.get(src);
+  if (cached) return cached;
+
+  const pending = new Promise<Texture>((resolve, reject) => {
+    textureLoader.load(optimized(src, 640), resolve, undefined, reject);
+  }).then((tex) => {
+    tex.colorSpace = SRGBColorSpace;
+    tex.minFilter = LinearFilter;
+    tex.magFilter = LinearFilter;
+    tex.generateMipmaps = false;
+    tex.anisotropy = 4;
+    tex.wrapS = ClampToEdgeWrapping;
+    tex.wrapT = ClampToEdgeWrapping;
+
+    // Cover-fit the image into the tile without distorting it.
+    const img = tex.image as { width?: number; height?: number } | undefined;
+    if (img?.width && img?.height) {
+      const imgAspect = img.width / img.height;
+      const target = TILE_W / TILE_H;
+      if (imgAspect > target) {
+        tex.repeat.set(target / imgAspect, 1);
+        tex.offset.set((1 - target / imgAspect) / 2, 0);
+      } else {
+        tex.repeat.set(1, imgAspect / target);
+        tex.offset.set(0, (1 - imgAspect / target) / 2);
+      }
+    }
+    tex.needsUpdate = true;
+    return tex;
+  });
+
+  textureCache.set(src, pending);
+  return pending;
+}
+=======
 const textureCache = new Map<string, Texture>();
 const textureLoader = new TextureLoader();
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 
 /* ---------------------------------------------------------------- grid plane */
 
@@ -192,8 +268,11 @@ function GalleryTileMesh({
   title,
   theta,
   radius,
+<<<<<<< HEAD
+=======
   tileW,
   tileH,
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   texIndex,
   onHoverStart,
   onHoverEnd,
@@ -203,13 +282,37 @@ function GalleryTileMesh({
   title: string;
   theta: number;
   radius: number;
+<<<<<<< HEAD
+=======
   tileW: number;
   tileH: number;
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   texIndex: number;
   onHoverStart: (title: string, e: ThreeEvent<PointerEvent>) => void;
   onHoverEnd: () => void;
   onTileClick: (index: number, e: ThreeEvent<MouseEvent>, mesh: Mesh, tex: Texture | null) => void;
 }) {
+<<<<<<< HEAD
+  const [texture, setTexture] = useState<Texture | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    loadTile(src)
+      .then((tex) => {
+        if (isMounted) setTexture(tex);
+      })
+      .catch(() => {
+        // graceful network fallback — the tile keeps its placeholder colour
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [src]);
+
+  return (
+    <mesh
+      geometry={TILE_GEOMETRY}
+=======
   const [texture, setTexture] = useState<Texture | null>(() => textureCache.get(src) || null);
 
   useEffect(() => {
@@ -259,6 +362,7 @@ function GalleryTileMesh({
 
   return (
     <mesh
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
       position={[Math.cos(theta) * radius, 0, Math.sin(theta) * radius]}
       rotation={[0, Math.PI / 2 - theta, 0]}
       onPointerOver={(e) => {
@@ -274,12 +378,28 @@ function GalleryTileMesh({
         onTileClick(texIndex, e, e.object as Mesh, texture);
       }}
     >
+<<<<<<< HEAD
+      {/* The key is load-bearing: a material compiled without a map keeps its
+          no-texture shader when one is assigned later, so every late tile came up
+          flat. Remounting on arrival gets a material built with the map — and
+          sidesteps the reused-instance bug where the dropped `color` prop stuck at
+          black and multiplied the textures away. DoubleSide because the far arc of
+          the tube is back-facing and culling it leaves half the grid empty. */}
+      <meshBasicMaterial
+        key={texture ? 'textured' : 'placeholder'}
+        map={texture}
+        color={texture ? '#ffffff' : '#160e26'}
+        toneMapped={false}
+        side={DoubleSide}
+      />
+=======
       <planeGeometry args={[tileW, tileH]} />
       {texture ? (
         <meshBasicMaterial map={texture} />
       ) : (
         <meshBasicMaterial color="#160e26" />
       )}
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     </mesh>
   );
 }
@@ -317,8 +437,11 @@ function ImageTube({
   const rotationSpeedScale = useRef(1);
 
   const radius = 4;
+<<<<<<< HEAD
+=======
   const tileW = 0.95;
   const tileH = 1;
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   const ySpacing = 2.7;
   const baseSpeed = 0.25;
   const loopHeight = ROWS * ySpacing;
@@ -357,7 +480,11 @@ function ImageTube({
       let maxY = -Infinity;
 
       for (const [cx, cy] of TILE_CORNERS) {
+<<<<<<< HEAD
+        point.set(cx * TILE_W, cy * TILE_H, 0).applyMatrix4(mesh.matrixWorld).project(camera);
+=======
         point.set(cx * tileW, cy * tileH, 0).applyMatrix4(mesh.matrixWorld).project(camera);
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
         const x = (point.x * 0.5 + 0.5) * size.width;
         const y = (-point.y * 0.5 + 0.5) * size.height;
         minX = Math.min(minX, x);
@@ -368,7 +495,7 @@ function ImageTube({
 
       return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     },
-    [camera, size.width, size.height, tileW, tileH],
+    [camera, size.width, size.height],
   );
 
   const onTileClick = useCallback(
@@ -441,8 +568,11 @@ function ImageTube({
                 title={IMAGES[texIndex].title}
                 theta={theta}
                 radius={radius}
+<<<<<<< HEAD
+=======
                 tileW={tileW}
                 tileH={tileH}
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                 texIndex={texIndex}
                 onHoverStart={onHoverStart}
                 onHoverEnd={onHoverEnd}
@@ -474,7 +604,10 @@ function ResponsiveGalleryCamera() {
 export default function GalleryClient() {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipElRef = useRef<HTMLDivElement>(null);
+<<<<<<< HEAD
+=======
   const cursorElRef = useRef<HTMLDivElement>(null);
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -486,6 +619,26 @@ export default function GalleryClient() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+<<<<<<< HEAD
+  // The layout's footer makes the document ~70px taller than the viewport, and the
+  // wheel feeds the tube without preventing the default scroll — so one flick both
+  // spun the tube and scrolled the page, which tripped the navbar's hide-on-scroll
+  // and took the menu button away. The gallery is a fixed scene; it never scrolls.
+  useEffect(() => {
+    // MobileGallery is a scrolling grid, so the lock is desktop-only.
+    if (isMobile !== false) return;
+    const { documentElement, body } = document;
+    const previous = [documentElement.style.overflow, body.style.overflow] as const;
+    documentElement.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    return () => {
+      documentElement.style.overflow = previous[0];
+      body.style.overflow = previous[1];
+    };
+  }, [isMobile]);
+
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   const [selected, setSelected] = useState<{
     index: number;
     aspect: number;
@@ -508,13 +661,30 @@ export default function GalleryClient() {
 
   const targetCenterUv = useRef(new Vector2(0.5, 0.5));
   const hoveredProjectRef = useRef<string | null>(null);
+<<<<<<< HEAD
+=======
   const cursorTarget = useRef({ x: 0, y: 0 });
   const cursorCurrent = useRef({ x: 0, y: 0 });
   const cursorActive = useRef(false);
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 
   useEffect(() => {
     let animId: number;
     const updateDOM = () => {
+<<<<<<< HEAD
+      if (tooltipElRef.current) {
+        const text = hoveredProjectRef.current;
+        if (text && !viewerOpenRef.current) {
+          if (tooltipElRef.current.textContent !== text) {
+            tooltipElRef.current.textContent = text;
+          }
+          tooltipElRef.current.style.opacity = '1';
+        } else {
+          tooltipElRef.current.style.opacity = '0';
+        }
+      }
+
+=======
       if (cursorActive.current && cursorElRef.current) {
         cursorCurrent.current.x += (cursorTarget.current.x - cursorCurrent.current.x) * 0.2;
         cursorCurrent.current.y += (cursorTarget.current.y - cursorCurrent.current.y) * 0.2;
@@ -533,6 +703,7 @@ export default function GalleryClient() {
         }
       }
 
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
       animId = requestAnimationFrame(updateDOM);
     };
     animId = requestAnimationFrame(updateDOM);
@@ -585,8 +756,11 @@ export default function GalleryClient() {
       pointerMovedRef.current = true;
     }
 
+<<<<<<< HEAD
+=======
     cursorTarget.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     // Touch drag stands in for the wheel, feeding the same motion system.
     if (dragPointerId.current === event.pointerId) {
       const dy = dragLastY.current - event.clientY;
@@ -619,12 +793,14 @@ export default function GalleryClient() {
 
   const onPointerLeave = useCallback(() => {
     targetCenterUv.current.set(0.5, 0.5);
-    cursorActive.current = false;
     endDrag();
     onImageHoverEnd();
+<<<<<<< HEAD
+=======
 
     const styleEl = document.getElementById('gallery-global-cursor-override');
     if (styleEl) styleEl.remove();
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   }, [endDrag, onImageHoverEnd]);
 
   if (isMobile === true) {
@@ -690,7 +866,11 @@ export default function GalleryClient() {
       {/* DOM-rendered lightbox */}
       {selected && (
         <GalleryLightbox
+<<<<<<< HEAD
+          images={LIGHTBOX_IMAGES}
+=======
           images={GALLERY_IMAGES}
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
           index={selected.index}
           aspect={selected.aspect}
           origin={selected.rect}

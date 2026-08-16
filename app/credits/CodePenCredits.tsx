@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 
@@ -377,12 +378,17 @@ export default function CodePenCredits() {
               {[0, 1, 2, 3].map((b) => (
                 <div key={b} className="cc-box-left">
                   {devTeam.map((m, i) => (
-                    <img
+                    <Image
                       key={i}
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+<<<<<<< HEAD
+                      fill
+                      sizes="250px"
+=======
                       decoding="sync"
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                       loading="eager"
                       style={{
                         visibility: i === 0 ? "visible" : "hidden",
@@ -410,12 +416,17 @@ export default function CodePenCredits() {
               {[0, 1, 2, 3].map((b) => (
                 <div key={b} className="cc-box-right-marquee">
                   {devTeam.map((m, i) => (
-                    <img
+                    <Image
                       key={i}
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+<<<<<<< HEAD
+                      fill
+                      sizes="250px"
+=======
                       decoding="sync"
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                       loading="eager"
                       style={{
                         visibility: i === 0 ? "visible" : "hidden",
@@ -454,16 +465,26 @@ export default function CodePenCredits() {
           <div className="cc-center-card-halo" />
           <div className="cc-center-box">
             {devTeam.map((m, i) => (
-              <img
+              <Image
                 key={i}
                 src={m.avatar}
                 alt={m.name}
+<<<<<<< HEAD
+                fill
+                sizes="320px"
+                loading="eager"
+                style={{
+                  visibility: i === 0 ? "visible" : "hidden",
+                  willChange: "clip-path, transform",
+                  zIndex: 1
+=======
                 decoding="sync"
                 loading="eager"
                 style={{ 
                   visibility: i === 0 ? "visible" : "hidden", 
                   willChange: "clip-path, transform",
                   zIndex: 1 
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                 }}
               />
             ))}

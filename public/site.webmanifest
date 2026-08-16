@@ -8,12 +8,20 @@
   "theme_color": "#000000",
   "icons": [
     {
+<<<<<<< HEAD
+      "src": "/sabrang-logo/favicon.ico",
+=======
       "src": "/favicon.ico",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
+<<<<<<< HEAD
+      "src": "/sabrang-logo/sabrang-logo.png",
+=======
       "src": "/sabrang-logo.png",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
       "type": "image/png",
       "sizes": "512x512"
     }

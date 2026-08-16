@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 const CARDS_DATA = [
   {
@@ -51,10 +52,12 @@ export default function FestivalFloatingCards() {
           <div className="relative h-40 md:h-48 w-full rounded-xl overflow-hidden mb-3">
             {/* Fallback & Image */}
             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-900 to-purple-800 animate-pulse" />
-            <img
+            <Image
               src={card.img}
               alt={card.title}
-              className="absolute inset-0 w-full h-full object-cover rounded-xl"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-cover rounded-xl"
               onError={(e) => {
                 // If image load fails, hide image element gracefully
                 (e.target as HTMLElement).style.display = "none";

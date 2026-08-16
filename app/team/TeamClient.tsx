@@ -124,7 +124,7 @@ export default function TeamClient() {
       return "/team-carousel/Satvik.png";
 
     // Fallback to JKLU logo for those we don't have photos for
-    return "/white_jklu_logo.png";
+    return "/sabrang-logo/white_jklu_logo.png";
   }
 
   const carouselMembers = rawMembers.map((member) => ({

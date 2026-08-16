@@ -78,7 +78,13 @@ export const SNAP_DAMPING = 0.75;
 export const FLICK_VELOCITY = 0.005; // units/frame above which release keeps momentum for seamless gliding
 export const MOMENTUM_HANDOFF = 0.015; // below this, momentum hands off to the snap spring
 export const MAX_VELOCITY = 0.45; // cap for smooth high-speed glide
+<<<<<<< HEAD
+// Wheel input is normalised into whole notches by lib/wheelStepper, which the
+// events archive shares; a notch is then aimed at a landing frame by glideBy,
+// so the reel still travels on momentum. Its tunables live with that module.
+=======
 export const WHEEL_SENSITIVITY = 0.00055; // wheel px → velocity injection
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 
 // --- Active/hover frame promotion ----------------------------------------
 // The selected cell reads as forward through DEPTH AND LIGHT, not scale.

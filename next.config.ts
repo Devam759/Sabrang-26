@@ -5,7 +5,9 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: process.env.VERCEL ? undefined : 'standalone',
   images: {
-    qualities: [75, 85],
+    // Every value the app actually passes to next/image. A quality outside this
+    // list is a 400, not a fallback — 65 silently blanked the whole mobile gallery.
+    qualities: [65, 75, 85, 90],
   },
   allowedDevOrigins: [
     'localhost',

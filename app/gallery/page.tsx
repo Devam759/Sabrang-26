@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import GalleryClient from "./GalleryClient";
 import JsonLd from "@/components/seo/JsonLd";
+<<<<<<< HEAD
+import SubtleFooter from "@/components/layout/SubtleFooter";
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 
 export const metadata: Metadata = {
   title: "Gallery – Sabrang 2026 | JKLU Cultural Fest",
@@ -67,6 +71,7 @@ export default function GalleryPage() {
       <JsonLd data={gallerySchema} />
       <JsonLd data={breadcrumbSchema} />
       <GalleryClient />
+      <SubtleFooter />
     </>
   );
 }

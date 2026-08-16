@@ -166,7 +166,13 @@ export default function MobileGallery() {
                     fill
                     sizes="(max-width: 640px) 100vw, 600px"
                     quality={85}
+<<<<<<< HEAD
+                    loading="eager"
+                    fetchPriority="high"
+
+=======
                     priority
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                     className="object-contain rounded-lg shadow-2xl pointer-events-none"
                   />
                 </motion.div>

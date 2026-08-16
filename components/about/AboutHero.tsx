@@ -502,12 +502,14 @@ export default function AboutHero() {
               }}
             >
               <Image
-                src="/sabrang-live.png"
+                src="/menu-scroll-covers/sabrang-live.png"
                 alt="Sabrang Live Concert Performance"
                 fill
                 sizes="(max-width: 768px) 90vw, 45vw"
                 style={{ objectFit: "cover" }}
-                priority
+                loading="eager"
+                fetchPriority="high"
+
               />
               <div
                 style={{
