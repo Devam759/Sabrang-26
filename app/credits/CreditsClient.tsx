@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function CreditsClient() {
   const devTeam = [
     {
@@ -67,9 +69,12 @@ export default function CreditsClient() {
         {/* Lead Member */}
         {devTeam.length > 0 && (
           <div className="group w-full max-w-2xl rounded-3xl bg-neutral-900 border border-white/10 p-8 flex flex-col sm:flex-row items-center gap-6 shadow-xl hover:border-purple-500/40 transition-all duration-300 hover:scale-[1.02] text-center sm:text-left">
-            <img
+            <Image
               src={devTeam[0].avatar}
               alt={devTeam[0].name}
+              width={128}
+              height={128}
+              sizes="(max-width: 640px) 96px, 128px"
               className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover border border-white/15 shrink-0"
             />
             <div className="space-y-2">
@@ -90,9 +95,11 @@ export default function CreditsClient() {
               key={idx}
               className="group rounded-3xl bg-neutral-900 border border-white/10 p-6 flex items-center gap-5 shadow-xl hover:border-purple-500/40 transition-all duration-300 hover:scale-[1.02]"
             >
-              <img
+              <Image
                 src={member.avatar}
                 alt={member.name}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-2xl object-cover border border-white/15 shrink-0"
               />
               <div className="space-y-1">

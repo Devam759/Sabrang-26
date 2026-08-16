@@ -16,6 +16,10 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
+<<<<<<< HEAD
+import { createWheelGesture } from "@/lib/gestureStepper";
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import PosterDetailModal from "./PosterDetailModal";
 
 const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
@@ -151,7 +155,10 @@ export default function GalleryHighlights({
 
   const step = useCallback(
     (delta: number) => {
-      const next = (focusedIndex + delta + items.length) % items.length;
+      // Positive modulo: a fast trackpad flick can deliver a delta larger than
+      // the archive, and `(i + delta + len) % len` goes negative past that,
+      // indexing off the end of the array.
+      const next = ((((focusedIndex + delta) % items.length) + items.length) % items.length);
       setFocusedIndex(next);
       focusRequestRef.current?.(next);
     },
@@ -159,6 +166,25 @@ export default function GalleryHighlights({
   );
 
   /**
+<<<<<<< HEAD
+   * One gesture, one photograph — a hard flick and a gentle nudge both advance
+   * exactly one, so the archive never overshoots what the user aimed at.
+   *
+   * Distance-based stepping is wrong for this surface. A mouse notch is a fixed
+   * 100px so it looks fine, but a trackpad swipe is whatever distance the
+   * fingers covered plus a long inertia tail, so the same flick that moved one
+   * photograph on a mouse moved a handful here. lib/gestureStepper keys off
+   * gesture BOUNDARIES instead of distance, which is also why it ports to touch
+   * unchanged: a swipe's dy feeds the same core.
+   */
+  const stepperRef = useRef<ReturnType<typeof createWheelGesture> | null>(null);
+
+  const onWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      stepperRef.current ??= createWheelGesture(window.innerHeight);
+      const dir = stepperRef.current(event);
+      if (dir !== 0) step(dir);
+=======
    * The wheel advances the archive one photograph per gesture.
    */
   const wheelRef = useRef({ delta: 0, eventAt: 0, stepAt: 0, stepsInBurst: 0, lastAbsDelta: 0 });
@@ -192,6 +218,7 @@ export default function GalleryHighlights({
       wheel.stepsInBurst++;
       wheel.delta = 0;
       wheel.stepAt = now;
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     },
     [step],
   );
@@ -219,6 +246,14 @@ export default function GalleryHighlights({
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+<<<<<<< HEAD
+          {/* Was a 13.5MB retrowave loop under two darkening overlays. The
+              overlays left it a dim magenta-to-navy wash, which these two
+              gradients paint outright — and they cost no decode on a page that
+              is already running a WebGL archive. */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#1b1035_0%,#120c26_45%,#07080f_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_12%,rgba(236,72,153,0.16)_0%,transparent_58%)]" />
+=======
           <video
             autoPlay
             loop
@@ -229,6 +264,7 @@ export default function GalleryHighlights({
           />
           <div className="absolute inset-0 bg-[#07080f]/60 mix-blend-multiply" />
           <div className="absolute inset-0 bg-black/40" />
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
         </div>
 
         <div className="relative z-10 h-full">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
@@ -115,9 +116,11 @@ export default function AdminSidebar() {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col p-6 gap-2 z-40">
       <div className="flex items-center gap-3 mb-8 px-2">
-        <img
-          src="/sabrang-logo.png"
+        <Image
+          src="/sabrang-logo/sabrang-logo.png"
           alt="Sabrang Logo"
+          width={36}
+          height={36}
           className="w-9 h-9 object-contain"
         />
         <div className="flex flex-col">

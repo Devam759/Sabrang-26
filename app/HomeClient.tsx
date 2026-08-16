@@ -3,17 +3,24 @@
 import { useRef, useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ThreeBackground from "@/components/effects/ThreeBackground";
+import dynamic from "next/dynamic";
 import { useInteraction } from "@/components/InteractionContext";
 import CountdownTimer from "@/components/home/CountdownTimer";
 import FloatingParticles from "@/components/home/FloatingParticles";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
+import Image from "next/image";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
+
+// Decorative WebGL layer — keeps three.js/r3f out of the homepage entry bundle.
+const ThreeBackground = dynamic(
+  () => import("@/components/effects/ThreeBackground"),
+  { ssr: false }
+);
 
 const EVENTS = [
   {
@@ -21,7 +28,7 @@ const EVENTS = [
     title: "PANACHE",
     subtitle: "THE RUNWAY",
     desc: "The ultimate fashion showdown. Assert dominance on the runway with style that speaks volumes.",
-    image: "/panache-runway.png",
+    image: "/menu-scroll-covers/panache-runway.png",
     state: "primary" as const,
   },
   {
@@ -29,7 +36,7 @@ const EVENTS = [
     title: "BANDJAM",
     subtitle: "THE SOUND",
     desc: "Pure sonic warfare under the open sky. The battle of the bands — raw, unfiltered, electric.",
-    image: "/sabrang-live.png",
+    image: "/menu-scroll-covers/sabrang-live.png",
     state: "secondary" as const,
   },
   {
@@ -37,7 +44,11 @@ const EVENTS = [
     title: "STEP-UP",
     subtitle: "THE MOVEMENT",
     desc: "Premier solo dance showdown. Technical mastery, freestyle finesse, and electric expression.",
+<<<<<<< HEAD
+    image: "/menu-scroll-covers/step-up.jpg",
+=======
     image: "/step-up.jpg",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     state: "tertiary" as const,
   },
 ];
@@ -495,10 +506,12 @@ export default function HomeClient() {
                   {/* Image */}
                   <div className="w-full md:w-1/2 relative overflow-hidden aspect-[16/10] sm:aspect-[4/3] rounded-xl sm:rounded-none">
                     <div className="ev-img absolute inset-0 w-full h-[125%] -top-[12%]">
-                      <img
+                      <Image
                         src={ev.image}
                         alt={ev.title}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                     </div>

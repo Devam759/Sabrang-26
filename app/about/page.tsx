@@ -67,7 +67,11 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Panache",
     category: "Fashion & High Art",
     desc: "The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.",
+<<<<<<< HEAD
+    image: "/menu-scroll-covers/panache-runway.png",
+=======
     image: "/panache-runway.png",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     link: "/events",
   },
   {
@@ -75,7 +79,11 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Echoes of Noor",
     category: "Sufi Night & Acoustics",
     desc: "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.",
+<<<<<<< HEAD
+    image: "/menu-scroll-covers/echos-of-noor.png",
+=======
     image: "/echos-of-noor.png",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     link: "/events",
   },
   {
@@ -83,7 +91,11 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Sync",
     category: "Group Dance Showdown",
     desc: "Flawless synchronized group choreography battles featuring power-packed movement, thematic storytelling, and explosive stage energy.",
+<<<<<<< HEAD
+    image: "/menu-scroll-covers/dance-battle.png",
+=======
     image: "/dance-battle.png",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     link: "/events",
   },
   {
@@ -91,7 +103,11 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Step Up",
     category: "Solo Dance Competition",
     desc: "The premier solo dance competition celebrating technical mastery, freestyle finesse, and electric personal stage expression.",
+<<<<<<< HEAD
+    image: "/menu-scroll-covers/step-up.jpg",
+=======
     image: "/step-up.jpg",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     link: "/events",
   },
   {
@@ -99,7 +115,11 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Versevaad",
     category: "Literary Debates & Slam",
     desc: "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
+<<<<<<< HEAD
+    image: "/menu-scroll-covers/versevaad.jpg",
+=======
     image: "/versevaad.jpg",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     link: "/events",
   },
   {

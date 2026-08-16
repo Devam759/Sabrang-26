@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+<<<<<<< HEAD
+import Image from "next/image";
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
@@ -118,9 +122,16 @@ export default function Navbar() {
             href="/"
             className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95"
           >
-            <img
-              src="/sabrang-logo.png"
+            <Image
+              src="/sabrang-logo/sabrang-logo.png"
               alt="Sabrang Logo"
+<<<<<<< HEAD
+              width={70}
+              height={56}
+              loading="eager"
+              fetchPriority="high"
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
               className="h-10 md:h-14 w-auto object-contain drop-shadow-2xl"
             />
           </Link>
@@ -135,9 +146,14 @@ export default function Navbar() {
               isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
-            <img
-              src="/white_jklu_logo.png"
+            <Image
+              src="/sabrang-logo/white_jklu_logo.png"
               alt="JKLU Logo"
+<<<<<<< HEAD
+              width={46}
+              height={40}
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
               className="h-8 md:h-10 w-auto object-contain drop-shadow-xl"
             />
           </a>
@@ -168,7 +184,36 @@ export default function Navbar() {
             }}
           >
             <span>{isOpen ? "CLOSE" : "MENU"}</span>
+<<<<<<< HEAD
+            {/* Drawn, not typed: these used to be ☰/✕ glyphs in 'Space Mono', a
+                font nothing here loads, so the icon rendered or vanished purely on
+                what the OS fallback happened to have. */}
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              {isOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </>
+              ) : (
+                <>
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </>
+              )}
+            </svg>
+=======
             <span>{isOpen ? "✕" : "☰"}</span>
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
           </button>
         </div>
       </header>

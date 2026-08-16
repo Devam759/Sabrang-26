@@ -8,10 +8,10 @@ export const SITE_CONFIG = {
     name: "JK Lakshmipat University",
     shortName: "JKLU",
     url: "https://jklu.edu.in",
-    logo: "/white_jklu_logo.png",
+    logo: "/sabrang-logo/white_jklu_logo.png",
   },
   logos: {
-    sabrang: "/sabrang-logo.png",
+    sabrang: "/sabrang-logo/sabrang-logo.png",
     jkTyre: "/past-sponsors/JK Tyre.png",
   },
   loaderDurationMs: 6000,

@@ -53,7 +53,7 @@ const REALMS: RealmItem[] = [
     badgeBg: "bg-cyan-500/20 text-cyan-300 border-cyan-400/40",
     accentText: "text-cyan-300",
     btnGradient: "from-cyan-600 via-sky-600 to-blue-600 shadow-cyan-600/40",
-    image: "/panache-runway.png",
+    image: "/menu-scroll-covers/panache-runway.png",
     eventsCount: "12+ Runway Shows",
     highlights: [
       "◆ Haute Couture Runway",
@@ -76,7 +76,7 @@ const REALMS: RealmItem[] = [
     accentText: "text-amber-300",
     btnGradient:
       "from-amber-500 via-yellow-500 to-orange-600 shadow-amber-500/40",
-    image: "/versevaad.jpg",
+    image: "/menu-scroll-covers/versevaad.jpg",
     eventsCount: "10+ Literary Stages",
     highlights: [
       "🎤 Spoken Word Slam",
@@ -99,7 +99,7 @@ const REALMS: RealmItem[] = [
     accentText: "text-purple-300",
     btnGradient:
       "from-purple-600 via-violet-600 to-pink-600 shadow-purple-600/40",
-    image: "/echos-of-noor.png",
+    image: "/menu-scroll-covers/echos-of-noor.png",
     eventsCount: "Soulful Live Night",
     highlights: [
       "✦ Sufi & Classical Night",
@@ -296,7 +296,9 @@ export default function SabrangSpectrumReel() {
                 sizes="(max-width: 1200px) 100vw, 1200px"
                 quality={90}
                 className="object-cover filter brightness-[0.55] scale-105 transition-transform duration-1000"
-                priority={true}
+                loading="eager"
+                fetchPriority="high"
+
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30" />
             </div>

@@ -584,6 +584,24 @@ const dist = (a: CurveSample, b: CurveSample) =>
     body('onPointerMove').includes('setPointerCapture'),
     'nothing captures the pointer once a drag starts — a drag leaving the element will stick'
   );
+
+  // A drag belongs to one pointer. Without the id check, ANY pointermove
+  // reaching the element steers the strip and can reach the capture call — a
+  // second finger hijacks the first one's drag, and a synthetic PointerEvent
+  // (pointerId 0, no live pointer) makes setPointerCapture throw NotFoundError
+  // and takes the menu down. That last one shipped once; it read as a random
+  // NotFoundError nowhere near its cause.
+  assert.ok(
+    body('onPointerDown').includes('sim.pointerId = e.pointerId'),
+    'onPointerDown no longer records the drag pointer id — onPointerMove cannot tell whose move it is'
+  );
+  for (const name of ['onPointerMove', 'endDrag']) {
+    assert.match(
+      body(name),
+      /e\.pointerId !== sim\.pointerId/,
+      `${name} acts on pointer events from any pointer, including synthetic ones (pointerId 0) — setPointerCapture will throw NotFoundError`
+    );
+  }
 }
 
 // --- 14. the scene compositor is well formed and fully wired ---------------

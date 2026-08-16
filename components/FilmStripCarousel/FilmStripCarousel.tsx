@@ -14,12 +14,17 @@ import CarouselControls from './CarouselControls';
 import Pagination from './Pagination';
 import ProjectOverlay from './ProjectOverlay';
 import { useFilmCarousel } from './useFilmCarousel';
+<<<<<<< HEAD
+import { BREAKPOINTS, PANEL_LIGHT_DIR, type BreakpointName } from './constants';
+import { createWheelStepper } from '@/lib/wheelStepper';
+=======
 import {
   BREAKPOINTS,
   PANEL_LIGHT_DIR,
   WHEEL_SENSITIVITY,
   type BreakpointName,
 } from './constants';
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import type { Project } from './types';
 import './styles.css';
 
@@ -79,7 +84,7 @@ export default function FilmStripCarousel({
     activeIndex,
     activeRef,
     goToNearest,
-    nudgeVelocity,
+    glideBy,
     next,
     prev,
     handlers,
@@ -172,15 +177,15 @@ export default function FilmStripCarousel({
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    const stepper = createWheelStepper(window.innerHeight);
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (expandRef.current.index !== null) cancelExpand();
-      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      nudgeVelocity(d * WHEEL_SENSITIVITY);
+      glideBy(stepper(e));
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [nudgeVelocity, cancelExpand]);
+  }, [glideBy, cancelExpand]);
 
   const prevAndCancel = useCallback(() => { cancelExpand(); prev(); }, [cancelExpand, prev]);
   const nextAndCancel = useCallback(() => { cancelExpand(); next(); }, [cancelExpand, next]);
