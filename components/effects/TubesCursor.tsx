@@ -133,15 +133,10 @@ export default function TubesCursor() {
           angle = -angle;
         }
 
-<<<<<<< HEAD
         // Emit every frame. Throttling to every 6th made the tube jump up to
         // ~27px at a time, which is what read as a jittery cursor while idle —
         // dispatching two events costs nothing next to the render it drives.
         if (canvas) {
-=======
-        frameCount++;
-        if (frameCount % 6 === 0 && canvas) {
->>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
           const eventInit = {
             clientX: currentPos.x,
             clientY: currentPos.y,
