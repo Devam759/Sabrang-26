@@ -20,6 +20,8 @@ interface CarouselItemProps {
   setActivePlane: (index: number | null) => void;
   activePlane: number | null;
   item: CarouselItemData;
+  isMobile?: boolean;
+  onHoverChange?: (isHovered: boolean) => void;
 }
 
 const CarouselItem = ({
@@ -29,6 +31,8 @@ const CarouselItem = ({
   setActivePlane,
   activePlane,
   item,
+  isMobile = false,
+  onHoverChange,
 }: CarouselItemProps) => {
   const $root = useRef<THREE.Group>(null);
   const [hover, setHover] = useState(false);
@@ -76,6 +80,7 @@ const CarouselItem = ({
     if (!isActive) return;
     setActivePlane(null);
     setHover(false);
+    onHoverChange?.(false);
     if (timeoutID.current) clearTimeout(timeoutID.current);
     timeoutID.current = setTimeout(() => {
       setCloseActive(false);
@@ -88,8 +93,16 @@ const CarouselItem = ({
       onClick={() => {
         setActivePlane(index);
       }}
-      onPointerEnter={() => setHover(true)}
-      onPointerLeave={() => setHover(false)}
+      onPointerEnter={(e) => {
+        e.stopPropagation();
+        setHover(true);
+        onHoverChange?.(true);
+      }}
+      onPointerLeave={(e) => {
+        e.stopPropagation();
+        setHover(false);
+        onHoverChange?.(false);
+      }}
     >
       <Plane
         width={width}
@@ -100,19 +113,20 @@ const CarouselItem = ({
 
       <Html
         position={[
-          -width / 2 + 0.05,
-          -height / 2 + 0.05,
-          activePlane !== null ? -0.05 : 0.005,
+          isMobile
+            ? -(Math.min(width || 1, (viewport.width && Number.isFinite(viewport.width)) ? viewport.width : 2) / 2) + 0.08
+            : -(width || 0.72) / 2 + 0.05,
+          -(height || 1.8) / 2 + 0.05,
+          0.02,
         ]}
-        zIndexRange={activePlane !== null ? [-50, -100] : [100, 0]}
         pointerEvents="none"
         style={{
           userSelect: "none",
-          transition: "all 0.3s ease",
-          opacity: hover ? 1 : 0.85,
+          pointerEvents: "none",
+          transition: "opacity 0.3s ease",
+          opacity: activePlane !== null ? 0 : hover ? 1 : 0.9,
           transform: "translate(0, -100%)",
-          mixBlendMode: "difference",
-          zIndex: activePlane !== null ? -1 : 10,
+          zIndex: 30,
         }}
       >
         <div
@@ -120,12 +134,14 @@ const CarouselItem = ({
             writingMode: "vertical-rl",
             transform: "rotate(180deg)",
             color: "#ffffff",
-            fontSize: "14px",
+            fontSize: isMobile ? "12px" : "14px",
             fontWeight: "900",
             textTransform: "uppercase",
-            letterSpacing: "0.22em",
+            letterSpacing: isMobile ? "0.16em" : "0.22em",
             fontFamily: "system-ui, -apple-system, sans-serif",
             whiteSpace: "nowrap",
+            textShadow:
+              "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 4px rgba(0, 0, 0, 0.9)",
           }}
         >
           {item.role === "Organizing Head"
@@ -136,7 +152,16 @@ const CarouselItem = ({
 
       {isCloseActive ? (
         <mesh position={[0, 0, 0.01]} onClick={handleClose}>
-          <planeGeometry args={[viewport.width || 1, viewport.height || 1]} />
+          <planeGeometry
+            args={[
+              viewport.width && Number.isFinite(viewport.width) && viewport.width > 0
+                ? viewport.width
+                : 10,
+              viewport.height && Number.isFinite(viewport.height) && viewport.height > 0
+                ? viewport.height
+                : 10,
+            ]}
+          />
           <meshBasicMaterial transparent={true} opacity={0} color={"red"} />
         </mesh>
       ) : null}

@@ -5,8 +5,10 @@ import TubesCursor from "@/components/effects/TubesCursor";
 import CursorFollower from "@/components/effects/CursorFollower";
 import SmoothScroll from "@/components/effects/SmoothScroll";
 import { InteractionProvider } from "@/components/InteractionContext";
+import Link from "next/link";
 import "./globals.css";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,10 +17,11 @@ import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sabrang.jklu.edu.in"),
+  manifest: "/site.webmanifest",
   icons: {
-    icon: [{ url: "/favicon.ico" }, { url: "/favicon.ico", sizes: "any" }],
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: [{ url: "/sabrang-logo/favicon.ico" }, { url: "/sabrang-logo/favicon.ico", sizes: "any" }],
+    shortcut: "/sabrang-logo/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   title: {
     default: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
@@ -29,18 +32,22 @@ export const metadata: Metadata = {
   keywords: [
     "Sabrang 2026",
     "Sabrang JKLU",
+    "Sabrang JKLU 2026",
     "Sabrang",
     "JK Lakshmipat University Fest",
+    "JKLU Annual Fest",
     "JKLU Fest",
-    "College Fest Jaipur",
+    "College Fest Jaipur 2026",
     "Cultural Fest Jaipur",
     "Technical Fest JKLU",
     "Sabrang Registration",
     "JKLU Events",
+    "Jaipur College Fest October 2026",
   ],
   authors: [{ name: "JKLU Student Organizing Committee" }],
   creator: "JK Lakshmipat University",
   publisher: "JK Lakshmipat University",
+  category: "Cultural Festival",
   robots: {
     index: true,
     follow: true,
@@ -62,7 +69,7 @@ export const metadata: Metadata = {
       "SABRANG 2026 - JK Lakshmipat University's premier annual fest. Experience Sabrang JKLU with star-studded nights and thrilling competitions.",
     images: [
       {
-        url: "/sabrang-logo.png",
+        url: "/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 - JK Lakshmipat University Annual Cultural Fest",
@@ -74,7 +81,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual cultural & technical fest.",
-    images: ["/sabrang-logo.png"],
+    images: ["/sabrang-logo/sabrang-logo.png"],
   },
 };
 
@@ -84,7 +91,7 @@ const organizationSchema = {
   name: "JK Lakshmipat University",
   alternateName: "JKLU",
   url: "https://jklu.edu.in",
-  logo: "https://sabrang.jklu.edu.in/white_jklu_logo.png",
+  logo: "https://sabrang.jklu.edu.in/sabrang-logo/white_jklu_logo.png",
   sameAs: [
     "https://www.facebook.com/jklakshmipatuniversity",
     "https://www.instagram.com/jklakshmipatuniversity",
@@ -108,6 +115,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            defer
+            data-domain="sabrang.jklu.edu.in"
+            src="https://plausible.io/js/script.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+            strategy="afterInteractive"
+          />
+        )}
         <JsonLd data={organizationSchema} />
         <InteractionProvider>
           <AuthProvider>
@@ -118,9 +133,17 @@ export default function RootLayout({
               <div className="min-h-screen flex flex-col bg-black text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
-                <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm">
-                  &copy; {new Date().getFullYear()} Sabrang Festival. All rights
-                  reserved.
+                <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
+                  <span>&copy; 2026 Sabrang Festival. All rights reserved.</span>
+                  <span className="hidden sm:inline text-white/20">•</span>
+                  <Link
+                    href="/credits"
+                    className="inline-flex items-center gap-1.5 text-white/70 hover:text-purple-400 transition-colors group font-medium"
+                  >
+                    <span>Made with</span>
+                    <span className="text-red-500 group-hover:scale-125 transition-transform inline-block">❤️</span>
+                    <span>by Tech Team</span>
+                  </Link>
                 </footer>
               </div>
             </SmoothScroll>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useAspect } from "@react-three/drei";
 import * as THREE from "three";
@@ -34,8 +34,8 @@ void main() {
   vec2 uv = vUv;
   
   // Object-fit: cover logic
-  float aspectResolution = uResolution.x / uResolution.y;
-  float aspectVideo = uVideoResolution.x / uVideoResolution.y;
+  float aspectResolution = uResolution.x / max(1.0, uResolution.y);
+  float aspectVideo = uVideoResolution.x / max(1.0, uVideoResolution.y);
   
   if (aspectResolution > aspectVideo) {
     uv.y = uv.y * (aspectVideo / aspectResolution) + (1.0 - (aspectVideo / aspectResolution)) / 2.0;
@@ -58,25 +58,29 @@ void main() {
   }
 
   // AGGRESSIVE GLITCH (Velocity + Hover Spikes)
-  float totalGlitch = max(uVelocity, uGlitchMultiplier);
-  if (totalGlitch > 0.05) {
-    float glitchOffset = rand(vec2(floor(uv.y * 15.0), uTime)) * totalGlitch * 0.5;
-    if (rand(vec2(uTime, uv.y)) > 0.6) { // higher probability of glitch when triggered
-      uv.x += glitchOffset;
-      uv.y += glitchOffset * 0.1;
+  float totalGlitch = max(uVelocity * 0.8, uGlitchMultiplier);
+  
+  if (totalGlitch > 0.01) {
+    float block = floor(uv.y * 15.0);
+    float noise = rand(vec2(block, floor(uTime * 24.0)));
+    
+    if (noise > 0.6) {
+      uv.x += (rand(vec2(uTime, block)) - 0.5) * 0.15 * totalGlitch;
     }
   }
+
+  // RGB Split / Chromatic Aberration
+  float splitOffset = 0.003 + totalGlitch * 0.035;
+  vec4 colorR = texture2D(tVideo, uv + vec2(splitOffset, 0.0));
+  vec4 colorG = texture2D(tVideo, uv);
+  vec4 colorB = texture2D(tVideo, uv - vec2(splitOffset, 0.0));
   
-  // Chromatic Aberration
-  float caSpread = totalGlitch * 0.05;
-  float r = texture2D(tVideo, vec2(uv.x + caSpread, uv.y)).r;
-  float g = texture2D(tVideo, uv).g;
-  float b = texture2D(tVideo, vec2(uv.x - caSpread, uv.y)).b;
+  vec3 videoColor = vec3(colorR.r, colorG.g, colorB.b);
   
-  vec3 texColor = vec3(r, g, b);
-  vec3 mappedColor = texColor;
+  // Atmospheric Tint & Color Grading
+  vec3 mappedColor = videoColor * vec3(0.6, 0.45, 0.85); // Neon Night base tint
   
-  // Aggressive Color Mix
+  // Dynamically map hover states to vibrant festival accents
   vec3 finalColor = mix(mappedColor, mappedColor * uHoverColor * 3.0, uTintMix);
   
   // Brightness Flash during glitch
@@ -89,6 +93,8 @@ void main() {
 function VideoBackground() {
   const { hoverState } = useInteraction();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const textureRef = useRef<THREE.VideoTexture | null>(null);
   const lastScrollY = useRef(0);
   const scrollVelocity = useRef(0);
   const glitchIntensity = useRef(0);
@@ -96,74 +102,110 @@ function VideoBackground() {
 
   const scale = useAspect(1920, 1080, 1);
 
-  useEffect(() => {
-    const video = document.createElement("video");
-    video.src = "/background.mp4";
-    video.crossOrigin = "Anonymous";
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.autoplay = true;
-    video.style.display = "none";
-    document.body.appendChild(video);
+  const { shaderMat, video, texture } = useMemo(() => {
+    let vid: HTMLVideoElement | null = null;
+    let tex: THREE.VideoTexture | null = null;
 
-    video
-      .play()
-      .then(() => {
-        const texture = new THREE.VideoTexture(video);
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.format = THREE.RGBAFormat;
-        if (materialRef.current)
-          materialRef.current.uniforms.tVideo.value = texture;
-      })
-      .catch((e) => console.warn(e));
+    if (typeof document !== "undefined") {
+      vid = document.createElement("video");
+      vid.src = "/background.mp4";
+      vid.crossOrigin = "anonymous";
+      vid.loop = true;
+      vid.muted = true;
+      vid.defaultMuted = true;
+      vid.autoplay = true;
+      vid.playsInline = true;
+      vid.preload = "auto";
+      vid.setAttribute("muted", "");
+      vid.setAttribute("playsinline", "");
+      vid.setAttribute("webkit-playsinline", "");
+      vid.style.display = "none";
+      document.body.appendChild(vid);
+
+      tex = new THREE.VideoTexture(vid);
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.format = THREE.RGBAFormat;
+      tex.colorSpace = THREE.SRGBColorSpace;
+    }
+
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: videoVertex,
+      fragmentShader: videoFragment,
+      uniforms: {
+        tVideo: { value: tex },
+        uTime: { value: 0 },
+        uTintMix: { value: 0 },
+        uVelocity: { value: 0 },
+        uGlitchMultiplier: { value: 0 },
+        uMouse: { value: new THREE.Vector2(0, 0) },
+        uHoverColor: { value: new THREE.Color("#ff0a54") },
+        uResolution: { value: new THREE.Vector2(1920, 1080) },
+        uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
+      },
+      depthWrite: false,
+    });
+
+    return { shaderMat: mat, video: vid, texture: tex };
+  }, []);
+
+  useEffect(() => {
+    videoRef.current = video;
+    textureRef.current = texture;
+    materialRef.current = shaderMat;
+
+    if (!video) return;
+
+    const tryPlay = () => {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay policy fallback on user interaction
+        });
+      }
+    };
+
+    video.addEventListener("loadeddata", () => {
+      if (textureRef.current) textureRef.current.needsUpdate = true;
+      tryPlay();
+    });
+
+    tryPlay();
+
+    const onInteraction = () => {
+      if (video && video.paused) {
+        tryPlay();
+      }
+    };
+
+    window.addEventListener("click", onInteraction, { passive: true });
+    window.addEventListener("touchstart", onInteraction, { passive: true });
+    window.addEventListener("scroll", onInteraction, { passive: true });
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       scrollVelocity.current = Math.abs(currentScrollY - lastScrollY.current);
       lastScrollY.current = currentScrollY;
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("click", onInteraction);
+      window.removeEventListener("touchstart", onInteraction);
+      window.removeEventListener("scroll", onInteraction);
       video.pause();
       if (video.parentNode) video.parentNode.removeChild(video);
+      texture?.dispose();
+      shaderMat.dispose();
     };
-  }, []);
-
-  const shaderMat = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: videoVertex,
-        fragmentShader: videoFragment,
-        uniforms: {
-          tVideo: { value: null },
-          uTime: { value: 0 },
-          uTintMix: { value: 0 },
-          uVelocity: { value: 0 },
-          uGlitchMultiplier: { value: 0 },
-          uMouse: { value: new THREE.Vector2(0, 0) },
-          uHoverColor: { value: new THREE.Color("#ff0a54") },
-          uResolution: { value: new THREE.Vector2(1920, 1080) }, // fallback
-          uVideoResolution: { value: new THREE.Vector2(1920, 1080) },
-        },
-        depthWrite: false,
-      }),
-    [],
-  );
-
-  useEffect(() => {
-    materialRef.current = shaderMat;
-    return () => shaderMat.dispose();
-  }, [shaderMat]);
+  }, [video, texture, shaderMat]);
 
   // Trigger glitch spike on hover state change
   useEffect(() => {
     if (hoverState !== lastHoverState.current) {
       if (hoverState !== "idle") {
-        glitchIntensity.current = 1.0; // Huge glitch spike
+        glitchIntensity.current = 1.0;
       }
       lastHoverState.current = hoverState;
     }
@@ -173,8 +215,11 @@ function VideoBackground() {
     if (!materialRef.current) return;
     const mat = materialRef.current;
     mat.uniforms.uTime.value = state.clock.elapsedTime;
-
     mat.uniforms.uResolution.value.set(state.size.width, state.size.height);
+
+    if (videoRef.current && videoRef.current.readyState >= 2 && textureRef.current) {
+      textureRef.current.needsUpdate = true;
+    }
 
     // Decay velocity
     scrollVelocity.current = THREE.MathUtils.lerp(
@@ -248,7 +293,13 @@ export default function ThreeBackground() {
     <div className="fixed inset-0 z-0 w-full h-full bg-[#030005] pointer-events-none overflow-hidden">
       <Canvas
         camera={{ position: [0, 0, 10], fov: 45 }}
+        dpr={[1, 1.25]}
         gl={{ antialias: false, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => {
+          gl.domElement?.addEventListener("webglcontextlost", (e) =>
+            e.preventDefault()
+          );
+        }}
       >
         <VideoBackground />
       </Canvas>

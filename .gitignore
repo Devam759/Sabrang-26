@@ -28,6 +28,8 @@ next-env.d.ts
 # IDE & Editor
 .vscode/
 .idea/
+.impeccable/
+.gemini/
 *.swp
 *.swo
 *~
@@ -109,3 +111,4 @@ pids
 
 # Excluded folders
 AGENTS.md
+CLAUDE.md

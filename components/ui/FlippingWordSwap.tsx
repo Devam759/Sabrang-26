@@ -80,7 +80,7 @@ export function FlippingWordSwap({
     ).matches;
     const resolvedDuration = prefersReducedMotion
       ? 0
-      : Math.max(180, duration) / 1000;
+      : Math.max(80, duration) / 1000;
     const resolvedStagger = prefersReducedMotion
       ? 0
       : Math.max(0, stagger) / 1000;

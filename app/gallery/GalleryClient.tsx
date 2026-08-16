@@ -1,49 +1,87 @@
 "use client";
 
-import { Loader, useTexture } from "@react-three/drei";
+import { useProgress } from '@react-three/drei';
+import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Canvas,
-  type ThreeEvent,
-  useFrame,
-  useThree,
-} from "@react-three/fiber";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
+  ClampToEdgeWrapping,
   DoubleSide,
+  LinearFilter,
   Mesh,
   Object3D,
+  PlaneGeometry,
   ShaderMaterial,
   SRGBColorSpace,
   Texture,
+  TextureLoader,
   Vector2,
   Vector3,
-} from "three";
+} from 'three';
 
-import GalleryLightbox, { type OriginRect } from "./GalleryLightbox";
+import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
+import MobileGallery from './MobileGallery';
+import { GALLERY_IMAGES } from '@/lib/constants';
 
-const IMAGES: Array<{ src: string; title: string }> = [
-  { src: "/team-carousel/Aditya Nayak.png", title: "Aditya Nayak" },
-  { src: "/team-carousel/Ambika Dalmia.png", title: "Ambika Dalmia" },
-  { src: "/team-carousel/Aryan.png", title: "Aryan" },
-  { src: "/team-carousel/Ashlesha Sharma.png", title: "Ashlesha Sharma" },
-  { src: "/team-carousel/Daksh kumar.png", title: "Daksh Kumar" },
-  {
-    src: "/team-carousel/Devansh Srivastava.png",
-    title: "Devansh Srivastava",
-  },
-  { src: "/team-carousel/Manan.png", title: "Manan" },
-  { src: "/team-carousel/Naman Shukla.png", title: "Naman Shukla" },
-  { src: "/team-carousel/Rashi.png", title: "Rashi" },
-  { src: "/team-carousel/Roshan jangir.png", title: "Roshan Jangir" },
-  { src: "/team-carousel/Satvik.png", title: "Satvik" },
-];
+function CustomGalleryLoader() {
+  const { active, progress } = useProgress();
+  const [show, setShow] = useState(true);
+
+  // Hide once the textures are actually in, not on a fixed timer — otherwise a
+  // slow connection is shown an empty black tube. The long delay is a bail-out
+  // if the loading manager never reports; it restarts on every progress tick,
+  // so it only fires once loading has genuinely stalled.
+  useEffect(() => {
+    const loaded = !active && progress >= 100;
+    const timer = setTimeout(() => setShow(false), loaded ? 400 : 6000);
+    return () => clearTimeout(timer);
+  }, [active, progress]);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0, filter: 'blur(16px)', scale: 1.04 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md"
+        >
+          {/* Ambient luminous glow */}
+          <div className="absolute h-80 w-80 rounded-full bg-purple-600/15 blur-[120px] animate-pulse" />
+          <div className="absolute h-64 w-64 rounded-full bg-cyan-500/15 blur-[90px]" />
+
+          {/* Cyber HUD loading console */}
+          <div className="relative flex flex-col items-center space-y-7">
+            <div className="relative flex h-20 w-20 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-white/10" />
+              <div className="absolute inset-0 rounded-full border border-transparent border-t-cyan-400 border-r-purple-500 animate-spin" />
+              <span className="font-mono text-xs font-black tracking-wider text-white">
+                {Math.round(progress > 0 ? progress : 100)}%
+              </span>
+            </div>
+
+            <div className="text-center space-y-2.5">
+              <p className="text-[11px] font-mono tracking-[0.35em] text-cyan-400/90 uppercase font-semibold">
+                LOADING ARCHIVE
+              </p>
+              <div className="h-[3px] w-52 overflow-hidden rounded-full bg-white/10">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_12px_rgba(56,189,248,0.8)]"
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ ease: 'easeOut', duration: 0.4 }}
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+const CYLINDER_IMAGES = GALLERY_IMAGES.slice(0, 50);
+const IMAGES = CYLINDER_IMAGES;
 
 const ROWS = 5;
 const COLS = 10;
@@ -55,13 +93,70 @@ const TILE_CORNERS: ReadonlyArray<readonly [number, number]> = [
   [-0.5, 0.5],
 ];
 
+const TILE_W = 0.95;
+const TILE_H = 1;
+const TILE_GEOMETRY = new PlaneGeometry(TILE_W, TILE_H);
+
+const textureLoader = new TextureLoader();
+// Keyed by src and holding the in-flight promise, not the finished texture: the
+// tube mounts 150 meshes over 50 distinct images, so caching only on completion
+// let every image be requested three times over.
+const textureCache = new Map<string, Promise<Texture>>();
+
+// The source webps are ~600KB each and a tile never covers more than ~400px of
+// screen. Fetching all 50 at full size is 30MB of stalled requests, which is why
+// the tube came up black; Next's built-in optimiser cuts that by ~15x.
+// q must be one of next.config's `images.qualities` — anything else is a 400.
+const optimized = (src: string, w: number) =>
+  `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
+
+// The lightbox goes full-screen, so it gets a real resolution rather than the
+// tube's thumbnail — but still optimised, or clicking a tile would stall on a
+// fresh 600KB original that nothing has warmed the cache with.
+const LIGHTBOX_IMAGES = GALLERY_IMAGES.map((image) => ({
+  ...image,
+  src: optimized(image.src, 1920),
+}));
+
+function loadTile(src: string): Promise<Texture> {
+  const cached = textureCache.get(src);
+  if (cached) return cached;
+
+  const pending = new Promise<Texture>((resolve, reject) => {
+    textureLoader.load(optimized(src, 640), resolve, undefined, reject);
+  }).then((tex) => {
+    tex.colorSpace = SRGBColorSpace;
+    tex.minFilter = LinearFilter;
+    tex.magFilter = LinearFilter;
+    tex.generateMipmaps = false;
+    tex.anisotropy = 4;
+    tex.wrapS = ClampToEdgeWrapping;
+    tex.wrapT = ClampToEdgeWrapping;
+
+    // Cover-fit the image into the tile without distorting it.
+    const img = tex.image as { width?: number; height?: number } | undefined;
+    if (img?.width && img?.height) {
+      const imgAspect = img.width / img.height;
+      const target = TILE_W / TILE_H;
+      if (imgAspect > target) {
+        tex.repeat.set(target / imgAspect, 1);
+        tex.offset.set((1 - target / imgAspect) / 2, 0);
+      } else {
+        tex.repeat.set(1, imgAspect / target);
+        tex.offset.set(0, (1 - imgAspect / target) / 2);
+      }
+    }
+    tex.needsUpdate = true;
+    return tex;
+  });
+
+  textureCache.set(src, pending);
+  return pending;
+}
+
 /* ---------------------------------------------------------------- grid plane */
 
-function GridPlane({
-  targetCenterUv,
-}: {
-  targetCenterUv: React.RefObject<Vector2>;
-}) {
+function GridPlane({ targetCenterUv }: { targetCenterUv: React.RefObject<Vector2> }) {
   const meshRef = useRef<Mesh>(null);
   const uniforms = useMemo(
     () => ({
@@ -83,15 +178,12 @@ function GridPlane({
     if (!mesh) return;
     const material = mesh.material as ShaderMaterial;
     material.uniforms.uTime.value = state.clock.getElapsedTime();
-    (material.uniforms.uCenter.value as Vector2).lerp(
-      targetCenterUv.current,
-      0.08,
-    );
+    (material.uniforms.uCenter.value as Vector2).lerp(targetCenterUv.current, 0.08);
   });
 
   return (
     <mesh ref={meshRef} position={[0, 0, -6.5]}>
-      <planeGeometry args={[45, 45, 512, 512]} />
+      <planeGeometry args={[45, 45, 32, 32]} />
       <shaderMaterial
         attach="material"
         args={[
@@ -113,12 +205,11 @@ function GridPlane({
 
                 float dEdge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
                 float edgeMask = 1.0 - smoothstep(0.0, uEdgeWidth, dEdge);
+                p.z += edgeMask * uEdgeAmp;
 
                 float dCenter = distance(vUv, uCenter);
                 float centerMask = 1.0 - smoothstep(0.0, uCenterRadius, dCenter);
-
-                float zOffset = edgeMask * uEdgeAmp + centerMask * uCenterAmp;
-                p.z += zOffset;
+                p.z -= centerMask * uCenterAmp;
 
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
               }
@@ -132,13 +223,15 @@ function GridPlane({
               uniform float uScrollSpeed;
 
               float gridLine(float coord, float width) {
-                float fw = fwidth(coord);
-                float p = abs(fract(coord - 0.5) - 0.5);
-                return 1.0 - smoothstep(width * fw, (width + 1.0) * fw, p);
+                float f = fract(coord);
+                float df = fwidth(coord);
+                return 1.0 - smoothstep(0.0, width * df, f) * smoothstep(0.0, width * df, 1.0 - f);
               }
 
               void main() {
-                vec2 uv = (vUv + vec2(uTime * uScrollSpeed, 0.0)) * uGridScale;
+                vec2 uv = vUv * uGridScale;
+                uv.y += uTime * uScrollSpeed * uGridScale;
+
                 float gx = gridLine(uv.x, uLineWidth);
                 float gy = gridLine(uv.y, uLineWidth);
                 float g = max(gx, gy);
@@ -156,6 +249,78 @@ function GridPlane({
   );
 }
 
+/* ----------------------------------------------------------- gallery tile mesh */
+
+function GalleryTileMesh({
+  src,
+  title,
+  theta,
+  radius,
+  texIndex,
+  onHoverStart,
+  onHoverEnd,
+  onTileClick,
+}: {
+  src: string;
+  title: string;
+  theta: number;
+  radius: number;
+  texIndex: number;
+  onHoverStart: (title: string, e: ThreeEvent<PointerEvent>) => void;
+  onHoverEnd: () => void;
+  onTileClick: (index: number, e: ThreeEvent<MouseEvent>, mesh: Mesh, tex: Texture | null) => void;
+}) {
+  const [texture, setTexture] = useState<Texture | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    loadTile(src)
+      .then((tex) => {
+        if (isMounted) setTexture(tex);
+      })
+      .catch(() => {
+        // graceful network fallback — the tile keeps its placeholder colour
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [src]);
+
+  return (
+    <mesh
+      geometry={TILE_GEOMETRY}
+      position={[Math.cos(theta) * radius, 0, Math.sin(theta) * radius]}
+      rotation={[0, Math.PI / 2 - theta, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        onHoverStart(title, e);
+      }}
+      onPointerOut={(e) => {
+        e.stopPropagation();
+        onHoverEnd();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onTileClick(texIndex, e, e.object as Mesh, texture);
+      }}
+    >
+      {/* The key is load-bearing: a material compiled without a map keeps its
+          no-texture shader when one is assigned later, so every late tile came up
+          flat. Remounting on arrival gets a material built with the map — and
+          sidesteps the reused-instance bug where the dropped `color` prop stuck at
+          black and multiplied the textures away. DoubleSide because the far arc of
+          the tube is back-facing and culling it leaves half the grid empty. */}
+      <meshBasicMaterial
+        key={texture ? 'textured' : 'placeholder'}
+        map={texture}
+        color={texture ? '#ffffff' : '#160e26'}
+        toneMapped={false}
+        side={DoubleSide}
+      />
+    </mesh>
+  );
+}
+
 /* ----------------------------------------------------------------- image tube */
 
 function ImageTube({
@@ -165,7 +330,6 @@ function ImageTube({
   tubeAngleRef,
   rotationSpeedScaleTargetRef,
   onHoverStart,
-  onHoverMove,
   onHoverEnd,
   onImageSelect,
 }: {
@@ -175,7 +339,6 @@ function ImageTube({
   tubeAngleRef: React.RefObject<number>;
   rotationSpeedScaleTargetRef: React.RefObject<number>;
   onHoverStart: (projectName: string, event: ThreeEvent<PointerEvent>) => void;
-  onHoverMove: (event: ThreeEvent<PointerEvent>) => void;
   onHoverEnd: () => void;
   onImageSelect: (selection: {
     index: number;
@@ -191,45 +354,16 @@ function ImageTube({
   const rotationSpeedScale = useRef(1);
 
   const radius = 4;
-  const tileW = 0.95;
-  const tileH = 1;
-
-  const textures = useTexture(
-    IMAGES.map((i) => i.src),
-    (loaded) => {
-      const list = (Array.isArray(loaded) ? loaded : [loaded]) as Texture[];
-      list.forEach((t) => {
-        t.colorSpace = SRGBColorSpace;
-        const img = t.image as any;
-        if (img && img.width && img.height) {
-          const imageAspect = img.width / img.height;
-          const planeAspect = tileW / tileH;
-          if (imageAspect > planeAspect) {
-            t.repeat.set(planeAspect / imageAspect, 1);
-            t.offset.set((1 - planeAspect / imageAspect) / 2, 0);
-          } else {
-            t.repeat.set(1, imageAspect / planeAspect);
-            t.offset.set(0, (1 - imageAspect / planeAspect) / 2);
-          }
-        }
-      });
-    },
-  ) as Texture[];
-
-  const { camera, size } = useThree();
-
   const ySpacing = 2.7;
   const baseSpeed = 0.25;
   const loopHeight = ROWS * ySpacing;
   const totalRows = ROWS * 3;
 
+  const { camera, size } = useThree();
+
   // Rows near the bottom of the tube spin a touch faster, which reads as depth.
   const rowSpeed = useMemo(
-    () =>
-      Array.from(
-        { length: ROWS },
-        (_, r) => 0.65 + (ROWS <= 1 ? 0 : r / (ROWS - 1)) * 0.9,
-      ),
+    () => Array.from({ length: ROWS }, (_, r) => 0.65 + (ROWS <= 1 ? 0 : r / (ROWS - 1)) * 0.9),
     [],
   );
 
@@ -258,10 +392,7 @@ function ImageTube({
       let maxY = -Infinity;
 
       for (const [cx, cy] of TILE_CORNERS) {
-        point
-          .set(cx * tileW, cy * tileH, 0)
-          .applyMatrix4(mesh.matrixWorld)
-          .project(camera);
+        point.set(cx * TILE_W, cy * TILE_H, 0).applyMatrix4(mesh.matrixWorld).project(camera);
         const x = (point.x * 0.5 + 0.5) * size.width;
         const y = (-point.y * 0.5 + 0.5) * size.height;
         minX = Math.min(minX, x);
@@ -272,16 +403,13 @@ function ImageTube({
 
       return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     },
-    [camera, size.width, size.height, tileW, tileH],
+    [camera, size.width, size.height],
   );
 
   const onTileClick = useCallback(
-    (texIndex: number, event: ThreeEvent<MouseEvent>) => {
-      const mesh = event.object as Mesh;
-      const image = textures[texIndex]?.image as
-        { width?: number; height?: number } | undefined;
-      const aspect =
-        image?.width && image?.height ? image.width / image.height : 1;
+    (texIndex: number, event: ThreeEvent<MouseEvent>, mesh: Mesh, tex: Texture | null) => {
+      const image = tex?.image as { width?: number; height?: number } | undefined;
+      const aspect = image?.width && image?.height ? image.width / image.height : 1;
       onImageSelect({
         index: texIndex,
         aspect,
@@ -289,12 +417,11 @@ function ImageTube({
         remeasure: () => measureTile(mesh),
       });
     },
-    [measureTile, onImageSelect, textures],
+    [measureTile, onImageSelect],
   );
 
   useFrame((_state, dt) => {
-    scrollCurrent.current +=
-      (scrollTargetRef.current - scrollCurrent.current) * 0.12;
+    scrollCurrent.current += (scrollTargetRef.current - scrollCurrent.current) * 0.22;
 
     // Reposition both current and target together, so the loop never jumps.
     if (scrollCurrent.current > loopHeight / 2) {
@@ -306,18 +433,16 @@ function ImageTube({
     }
 
     spinVelocityRef.current *= Math.pow(0.92, dt * 60);
-    spinVelocityRef.current = Math.max(
-      -2.0,
-      Math.min(2.0, spinVelocityRef.current),
-    );
+    spinVelocityRef.current = Math.max(-2.0, Math.min(2.0, spinVelocityRef.current));
 
     rotationSpeedScale.current +=
       (rotationSpeedScaleTargetRef.current - rotationSpeedScale.current) * 0.12;
 
     // Scaling dt slows the whole system consistently, inertia included.
     const scaledDt = dt * rotationSpeedScale.current;
-    angle.current +=
-      (naturalDirRef.current * baseSpeed + spinVelocityRef.current) * scaledDt;
+    angle.current =
+      (angle.current + (naturalDirRef.current * baseSpeed + spinVelocityRef.current) * scaledDt) %
+      (Math.PI * 2);
     tubeAngleRef.current = angle.current;
 
     const group = groupRef.current;
@@ -345,38 +470,17 @@ function ImageTube({
             const texIndex = (baseRow * COLS + col) % IMAGES.length;
 
             return (
-              <mesh
+              <GalleryTileMesh
                 key={col}
-                position={[
-                  Math.cos(theta) * radius,
-                  0,
-                  Math.sin(theta) * radius,
-                ]}
-                rotation={[0, -(theta + Math.PI / 2), 0]}
-                onPointerOver={(e) => {
-                  e.stopPropagation();
-                  onHoverStart(IMAGES[texIndex].title, e);
-                }}
-                onPointerMove={(e) => {
-                  e.stopPropagation();
-                  onHoverMove(e);
-                }}
-                onPointerOut={(e) => {
-                  e.stopPropagation();
-                  onHoverEnd();
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTileClick(texIndex, e);
-                }}
-              >
-                <planeGeometry args={[tileW, tileH]} />
-                <meshBasicMaterial
-                  map={textures[texIndex]}
-                  toneMapped={false}
-                  side={DoubleSide}
-                />
-              </mesh>
+                src={IMAGES[texIndex].src}
+                title={IMAGES[texIndex].title}
+                theta={theta}
+                radius={radius}
+                texIndex={texIndex}
+                onHoverStart={onHoverStart}
+                onHoverEnd={onHoverEnd}
+                onTileClick={onTileClick}
+              />
             );
           })}
         </group>
@@ -385,140 +489,112 @@ function ImageTube({
   );
 }
 
-/* ----------------------------------------------------------------- the scene */
+/* --------------------------------------------------------------------- page */
+
+function ResponsiveGalleryCamera() {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const isSmallMobile = size.width < 480;
+    const isMobile = size.width < 768;
+    const targetZ = isSmallMobile ? 8.6 : isMobile ? 7.8 : 7.2;
+    camera.position.set(0, 0, targetZ);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+  }, [camera, size.width]);
+  return null;
+}
 
 export default function GalleryClient() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipElRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
-  const targetCenterUv = useRef(new Vector2(0.5, 0.5));
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // The layout's footer makes the document ~70px taller than the viewport, and the
+  // wheel feeds the tube without preventing the default scroll — so one flick both
+  // spun the tube and scrolled the page, which tripped the navbar's hide-on-scroll
+  // and took the menu button away. The gallery is a fixed scene; it never scrolls.
+  useEffect(() => {
+    // MobileGallery is a scrolling grid, so the lock is desktop-only.
+    if (isMobile !== false) return;
+    const { documentElement, body } = document;
+    const previous = [documentElement.style.overflow, body.style.overflow] as const;
+    documentElement.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    return () => {
+      documentElement.style.overflow = previous[0];
+      body.style.overflow = previous[1];
+    };
+  }, [isMobile]);
+
+  const [selected, setSelected] = useState<{
+    index: number;
+    aspect: number;
+    rect: OriginRect;
+    remeasure: () => OriginRect | null;
+  } | null>(null);
+
   const tubeScrollTarget = useRef(0);
   const tubeSpinVelocity = useRef(0);
   const tubeNaturalDir = useRef(1);
   const tubeAngle = useRef(0);
   const rotationSpeedScaleTarget = useRef(1);
 
-  const [hoveredProject, setHoveredProject] = useState<string | null>(null);
-
-  const [selected, setSelected] = useState<{
-    index: number;
-    aspect: number;
-    rect: OriginRect;
-  } | null>(null);
-  const viewerOpen = selected !== null;
-  const viewerOpenRef = useRef(false);
-  const remeasureOriginRef = useRef<(() => OriginRect | null) | null>(null);
-  // A touch swipe also fires a three.js click; only a near-stationary tap opens the viewer.
-  const pointerMovedRef = useRef(false);
-
-  const tooltipElRef = useRef<HTMLDivElement | null>(null);
-  const tooltipTarget = useRef({ x: 0, y: 0 });
-  const tooltipCurrent = useRef({ x: 0, y: 0 });
-
-  const cursorElRef = useRef<HTMLDivElement | null>(null);
-  const cursorTarget = useRef({ x: 0, y: 0 });
-  const cursorCurrent = useRef({ x: 0, y: 0 });
-  const cursorActive = useRef(false);
-
   const dragPointerId = useRef<number | null>(null);
   const dragLastY = useRef(0);
   const dragStart = useRef({ x: 0, y: 0 });
+  const pointerMovedRef = useRef(false);
+  const viewerOpenRef = useRef(false);
+  viewerOpenRef.current = !!selected;
+
+  const targetCenterUv = useRef(new Vector2(0.5, 0.5));
+  const hoveredProjectRef = useRef<string | null>(null);
 
   useEffect(() => {
-    return () => {
-      const styleEl = document.getElementById("gallery-global-cursor-override");
-      if (styleEl) styleEl.remove();
-    };
-  }, []);
-
-  // Tooltip + cursor are animated outside React, so hovering never re-renders.
-  useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      const tip = tooltipElRef.current;
-      if (tip) {
-        tooltipCurrent.current.x +=
-          (tooltipTarget.current.x - tooltipCurrent.current.x) * 0.18;
-        tooltipCurrent.current.y +=
-          (tooltipTarget.current.y - tooltipCurrent.current.y) * 0.18;
-        tip.style.transform = `translate3d(${(tooltipCurrent.current.x + 12).toFixed(2)}px, ${(
-          tooltipCurrent.current.y - 18
-        ).toFixed(2)}px, 0)`;
+    let animId: number;
+    const updateDOM = () => {
+      if (tooltipElRef.current) {
+        const text = hoveredProjectRef.current;
+        if (text && !viewerOpenRef.current) {
+          if (tooltipElRef.current.textContent !== text) {
+            tooltipElRef.current.textContent = text;
+          }
+          tooltipElRef.current.style.opacity = '1';
+        } else {
+          tooltipElRef.current.style.opacity = '0';
+        }
       }
 
-      const dot = cursorElRef.current;
-      if (dot) {
-        cursorCurrent.current.x +=
-          (cursorTarget.current.x - cursorCurrent.current.x) * 0.14;
-        cursorCurrent.current.y +=
-          (cursorTarget.current.y - cursorCurrent.current.y) * 0.14;
-        dot.style.transform = `translate3d(${(cursorCurrent.current.x + 8).toFixed(2)}px, ${(
-          cursorCurrent.current.y + 8
-        ).toFixed(2)}px, 0) translate(-50%, -50%)`;
-        dot.style.opacity = cursorActive.current ? "1" : "0";
-      }
-
-      raf = requestAnimationFrame(tick);
+      animId = requestAnimationFrame(updateDOM);
     };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    animId = requestAnimationFrame(updateDOM);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
-  // React's onWheel is passive, so the page would scroll under the tube.
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      if (viewerOpenRef.current) return;
-      tubeScrollTarget.current += event.deltaY * 0.002;
-      tubeSpinVelocity.current += event.deltaY * 0.004;
-      if (event.deltaY !== 0)
-        tubeNaturalDir.current = event.deltaY < 0 ? -1 : 1;
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+  const onWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+    if (viewerOpenRef.current) return;
+    const dy = event.deltaY;
+    tubeScrollTarget.current += dy * 0.004;
+    tubeSpinVelocity.current += dy * 0.006;
+    if (dy !== 0) tubeNaturalDir.current = dy < 0 ? -1 : 1;
   }, []);
 
-  const setTooltipFromClientPoint = useCallback(
-    (clientX: number, clientY: number) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      tooltipTarget.current = { x: clientX - rect.left, y: clientY - rect.top };
-    },
-    [],
-  );
-
-  const onImageHoverStart = useCallback(
-    (projectName: string, event: ThreeEvent<PointerEvent>) => {
-      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-      setHoveredProject(projectName);
-      setTooltipFromClientPoint(
-        event.nativeEvent.clientX,
-        event.nativeEvent.clientY,
-      );
-      tooltipCurrent.current = { ...tooltipTarget.current };
-      rotationSpeedScaleTarget.current = 0.35;
-    },
-    [setTooltipFromClientPoint],
-  );
-
-  const onImageHoverMove = useCallback(
-    (event: ThreeEvent<PointerEvent>) => {
-      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-      setTooltipFromClientPoint(
-        event.nativeEvent.clientX,
-        event.nativeEvent.clientY,
-      );
-    },
-    [setTooltipFromClientPoint],
-  );
+  const onImageHoverStart = useCallback((projectName: string, _event: ThreeEvent<PointerEvent>) => {
+    hoveredProjectRef.current = projectName;
+    rotationSpeedScaleTarget.current = 0.25;
+  }, []);
 
   const onImageHoverEnd = useCallback(() => {
-    setHoveredProject(null);
-    if (!viewerOpenRef.current) rotationSpeedScaleTarget.current = 1;
+    hoveredProjectRef.current = null;
+    rotationSpeedScaleTarget.current = 1;
   }, []);
 
   const onImageSelect = useCallback(
@@ -528,115 +604,52 @@ export default function GalleryClient() {
       rect: OriginRect;
       remeasure: () => OriginRect | null;
     }) => {
-      if (viewerOpenRef.current || pointerMovedRef.current) return;
-
-      viewerOpenRef.current = true;
-      remeasureOriginRef.current = selection.remeasure;
-      // Ease the tube to a halt so the tile stays put behind the viewer.
+      if (pointerMovedRef.current) return;
+      setSelected(selection);
       rotationSpeedScaleTarget.current = 0;
-      tubeSpinVelocity.current = 0;
-      cursorActive.current = false;
-      setHoveredProject(null);
-      setSelected({
-        index: selection.index,
-        aspect: selection.aspect,
-        rect: selection.rect,
-      });
+      hoveredProjectRef.current = null;
     },
     [],
   );
 
-  const onViewerClose = useCallback(() => {
-    viewerOpenRef.current = false;
-    remeasureOriginRef.current = null;
-    rotationSpeedScaleTarget.current = 1;
-    setSelected(null);
+  const onPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    if (viewerOpenRef.current) return;
+
+    if (
+      Math.abs(event.clientX - dragStart.current.x) > 10 ||
+      Math.abs(event.clientY - dragStart.current.y) > 10
+    ) {
+      pointerMovedRef.current = true;
+    }
+
+    // Touch drag stands in for the wheel, feeding the same motion system.
+    if (dragPointerId.current === event.pointerId) {
+      const dy = dragLastY.current - event.clientY;
+      const dx = dragStart.current.x - event.clientX;
+      dragLastY.current = event.clientY;
+      tubeScrollTarget.current += dy * 0.0065;
+      tubeSpinVelocity.current += dy * 0.01 + (dx > 0 ? 0.006 : -0.006);
+      if (dy !== 0) tubeNaturalDir.current = dy < 0 ? -1 : 1;
+    }
+
+    const nx = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    const ny = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
+
+    const strength = 0.4;
+    targetCenterUv.current.set(0.5 + (nx - 0.5) * strength, 0.5 + (1 - ny - 0.5) * strength);
   }, []);
 
-  const remeasureOrigin = useCallback(
-    () => remeasureOriginRef.current?.() ?? null,
-    [],
-  );
-
-  const onPointerEnter = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-      const rect = event.currentTarget.getBoundingClientRect();
-      cursorTarget.current = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      };
-      cursorCurrent.current = { ...cursorTarget.current };
-      cursorActive.current = true;
-
-      let styleEl = document.getElementById("gallery-global-cursor-override");
-      if (!styleEl) {
-        styleEl = document.createElement("style");
-        styleEl.id = "gallery-global-cursor-override";
-        document.head.appendChild(styleEl);
-      }
-      styleEl.innerHTML = ".custom-cursor-circle { opacity: 0 !important; }";
-    },
-    [],
-  );
-
-  const onPointerMove = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.nativeEvent && !event.nativeEvent.isTrusted) return;
-      const rect = event.currentTarget.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      if (viewerOpenRef.current) return;
-
-      if (
-        Math.abs(event.clientX - dragStart.current.x) > 10 ||
-        Math.abs(event.clientY - dragStart.current.y) > 10
-      ) {
-        pointerMovedRef.current = true;
-      }
-
-      cursorTarget.current = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      };
-
-      // Touch drag stands in for the wheel, feeding the same motion system.
-      if (dragPointerId.current === event.pointerId) {
-        const dy = dragLastY.current - event.clientY;
-        dragLastY.current = event.clientY;
-        tubeScrollTarget.current += dy * 0.01;
-        tubeSpinVelocity.current += dy * 0.02;
-        if (dy !== 0) tubeNaturalDir.current = dy < 0 ? -1 : 1;
-      }
-
-      const nx = Math.min(
-        1,
-        Math.max(0, (event.clientX - rect.left) / rect.width),
-      );
-      const ny = Math.min(
-        1,
-        Math.max(0, (event.clientY - rect.top) / rect.height),
-      );
-
-      const strength = 0.4;
-      targetCenterUv.current.set(
-        0.5 + (nx - 0.5) * strength,
-        0.5 + (1 - ny - 0.5) * strength,
-      );
-    },
-    [],
-  );
-
-  const onPointerDown = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      pointerMovedRef.current = false;
-      dragStart.current = { x: event.clientX, y: event.clientY };
-      if (event.pointerType === "mouse" || viewerOpenRef.current) return;
-      dragPointerId.current = event.pointerId;
-      dragLastY.current = event.clientY;
-      event.currentTarget.setPointerCapture(event.pointerId);
-    },
-    [],
-  );
+  const onPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    pointerMovedRef.current = false;
+    dragStart.current = { x: event.clientX, y: event.clientY };
+    if (event.pointerType === 'mouse' || viewerOpenRef.current) return;
+    dragPointerId.current = event.pointerId;
+    dragLastY.current = event.clientY;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, []);
 
   const endDrag = useCallback(() => {
     dragPointerId.current = null;
@@ -644,24 +657,19 @@ export default function GalleryClient() {
 
   const onPointerLeave = useCallback(() => {
     targetCenterUv.current.set(0.5, 0.5);
-    cursorActive.current = false;
     endDrag();
     onImageHoverEnd();
-
-    const styleEl = document.getElementById("gallery-global-cursor-override");
-    if (styleEl) {
-      styleEl.innerHTML = "";
-    }
   }, [endDrag, onImageHoverEnd]);
 
+  if (isMobile === true) {
+    return <MobileGallery />;
+  }
+
   return (
-    // Full-bleed: cancels the layout container's padding and horizontal gutter.
     <div
       ref={containerRef}
-      className={`gallery-container relative left-1/2 h-screen min-h-screen w-screen -translate-x-1/2 touch-none overflow-hidden bg-black ${
-        viewerOpen ? "cursor-auto" : "cursor-none"
-      }`}
-      onPointerEnter={onPointerEnter}
+      className="relative h-screen w-screen overflow-hidden bg-black text-white select-none touch-none"
+      onWheel={onWheel}
       onPointerMove={onPointerMove}
       onPointerDown={onPointerDown}
       onPointerUp={endDrag}
@@ -671,17 +679,16 @@ export default function GalleryClient() {
       <Canvas
         className="absolute inset-0"
         camera={{ position: [0, 0, 6.5], fov: 50 }}
+        dpr={[1, 1.5]}
+        gl={{ powerPreference: 'high-performance', antialias: false }}
         onCreated={({ camera }) => camera.lookAt(0, 0, 0)}
       >
         <Suspense fallback={null}>
+          <ResponsiveGalleryCamera />
           <ambientLight intensity={0.8} />
           <directionalLight position={[5, 8, 5]} intensity={1.5} />
-          <directionalLight
-            position={[-5, -5, -5]}
-            intensity={0.5}
-            color="#4f46e5"
-          />
-          <hemisphereLight args={["#ffffff", "#111827", 0.8]} />
+          <directionalLight position={[-5, -5, -5]} intensity={0.5} color="#4f46e5" />
+          <hemisphereLight args={['#ffffff', '#111827', 0.8]} />
 
           <GridPlane targetCenterUv={targetCenterUv} />
 
@@ -692,7 +699,6 @@ export default function GalleryClient() {
             tubeAngleRef={tubeAngle}
             rotationSpeedScaleTargetRef={rotationSpeedScaleTarget}
             onHoverStart={onImageHoverStart}
-            onHoverMove={onImageHoverMove}
             onHoverEnd={onImageHoverEnd}
             onImageSelect={onImageSelect}
           />
@@ -706,39 +712,33 @@ export default function GalleryClient() {
 
       <h1 className="sr-only">Gallery</h1>
 
-      {hoveredProject && !viewerOpen && (
-        <div
-          ref={tooltipElRef}
-          role="status"
-          aria-live="polite"
-          className="pointer-events-none absolute left-0 top-0 z-20 select-none whitespace-nowrap rounded-lg border border-white/20 bg-black/70 px-2.5 py-2 text-xs leading-none text-white/90"
-        >
-          {hoveredProject}
-        </div>
-      )}
-
+      {/* Floating Hover Title HUD (RAF updated) */}
       <div
+        ref={tooltipElRef}
         aria-hidden
-        className="pointer-events-none absolute left-0 top-0 z-30 h-[18px] w-[18px] rounded-full bg-white/90 opacity-0 mix-blend-difference transition-opacity duration-150 will-change-transform"
-        ref={cursorElRef}
+        className="pointer-events-none fixed top-12 left-1/2 -translate-x-1/2 z-30 font-mono text-xs tracking-[0.3em] uppercase text-cyan-400 bg-black/80 backdrop-blur-md px-6 py-2 border border-cyan-500/30 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.25)] opacity-0 transition-opacity duration-200"
       />
 
+      <CustomGalleryLoader />
+
+      {/* DOM-rendered lightbox */}
       {selected && (
         <GalleryLightbox
-          images={IMAGES}
+          images={LIGHTBOX_IMAGES}
           index={selected.index}
           aspect={selected.aspect}
           origin={selected.rect}
           containerRef={containerRef}
-          measureOrigin={remeasureOrigin}
-          onIndexChange={(next) =>
-            setSelected((current) => current && { ...current, index: next })
-          }
-          onClose={onViewerClose}
+          measureOrigin={selected.remeasure}
+          onIndexChange={(nextIndex) => {
+            setSelected((prev) => (prev ? { ...prev, index: nextIndex } : null));
+          }}
+          onClose={() => {
+            setSelected(null);
+            rotationSpeedScaleTarget.current = 1;
+          }}
         />
       )}
-
-      <Loader />
     </div>
   );
 }

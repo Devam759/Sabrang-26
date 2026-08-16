@@ -51,7 +51,7 @@ export interface ExpandState {
 
 interface FilmStripProps {
   projects: Project[];
-  sim: { position: number; velocity: number };
+  sim: { position: number; velocity: number; dragged?: boolean; mode?: string };
   step: (dt: number) => void;
   activeRef: React.MutableRefObject<number>;
   // only `tail` now — the expansion reads the live camera's own fov/position
@@ -97,12 +97,13 @@ export default function FilmStrip({
   const stripRef = useRef<THREE.Group>(null);
   const handles = useRef<(FrameHandle | null)[]>([]);
   const hoverRef = useRef<number | null>(null);
+  const hoverVal = useRef(new Float32Array(count)).current;
   const promote = useRef(new Float32Array(count)).current;
   const promoteVel = useRef(new Float32Array(count)).current;
   const distortRef = useRef(0);
 
   const { size } = useThree();
-  const aspect = size.width / size.height;
+  const aspect = size.height > 0 ? size.width / size.height : 1;
   // How far out frames stay rendered, and therefore where they must have
   // faded to zero — capped at half the set so the wrap seam is never seen.
   const fadeSpan = Math.min(count / 2, bp.tail);
@@ -132,12 +133,23 @@ export default function FilmStrip({
   const register = useCallback((index: number, handle: FrameHandle | null) => {
     handles.current[index] = handle;
   }, []);
-  const onHover = useCallback((index: number | null) => {
-    hoverRef.current = index;
-  }, []);
+
+  const onHover = useCallback(
+    (index: number | null) => {
+      if (sim.dragged) {
+        hoverRef.current = null;
+        return;
+      }
+      hoverRef.current = index;
+    },
+    [sim]
+  );
 
   useFrame((state, rawDt) => {
     step(rawDt);
+    if (sim.dragged) {
+      hoverRef.current = null;
+    }
     const dt = Math.min(rawDt, 0.05);
     const pos = sim.position;
 
@@ -197,6 +209,12 @@ export default function FilmStrip({
       // the vertex shaders re-derive the exact curve from this arc length
       setFilmCurveS0(h.borderMat, s);
       setFilmCurveS0(h.backMat, s);
+      setFilmCurveS0(h.reactiveBorderMat, s);
+
+      // Smooth hover interpolation for border reaction
+      const targetHov = hoverRef.current === i ? 1.0 : 0.0;
+      hoverVal[i] = reducedMotion ? targetHov : damp(hoverVal[i], targetHov, 14, dt);
+      const hov = hoverVal[i];
 
       // Promotion: driven by CONTINUOUS distance from centre, not by the
       // rounded active index. `i === active` flips the whole target from 0 to
@@ -258,6 +276,12 @@ export default function FilmStrip({
       u.uVelocity.value = distort;
       h.borderMat.opacity = alpha;
       h.backMat.opacity = alpha;
+
+      const rbU = h.reactiveBorderMat.uniforms;
+      rbU.uS0.value = s;
+      rbU.uHover.value = hov;
+      rbU.uAlpha.value = alpha;
+      rbU.uFlatten.value = isExpanding ? ex.p : 0;
 
       // cinematic expansion: the image panel detaches from its film cell and
       // lerps to a camera-facing fullscreen pose, flattening as it goes. The

@@ -2,72 +2,79 @@ import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://sabrang.jklu.edu.in";
-  const currentDate = new Date().toISOString();
+  // Fixed date — update this when content changes significantly
+  const lastUpdated = "2026-08-14T00:00:00.000Z";
 
   return [
     {
       url: baseUrl,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "daily",
       priority: 1.0,
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/events`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "daily",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/schedule`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "daily",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/register`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "daily",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/team`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/gallery`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
       url: `${baseUrl}/sponsors`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${baseUrl}/faq`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
       url: `${baseUrl}/contact`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
+      url: `${baseUrl}/menu`,
+      lastModified: lastUpdated,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/credits`,
-      lastModified: currentDate,
+      lastModified: lastUpdated,
       changeFrequency: "monthly",
       priority: 0.5,
     },

@@ -33,7 +33,7 @@ export const WAVE_AMPLITUDE = 0.72;
 export const WAVE_LENGTH = 3.5;
 // The Z-roll: right end rides high, left end low. Flip sign if mirrored.
 // Smaller than it was — the wave now supplies most of the diagonal drama.
-export const GROUP_ROTATION_Z = 0.10;
+export const GROUP_ROTATION_Z = 0.02;
 export const GROUP_ROTATION_X = -0.03;
 // Perforation rhythm. 20 holes per cell rendered small and dense, which reads
 // as texture rather than as sprockets once the strip is more than a couple of
@@ -64,22 +64,23 @@ export const PANEL_LIGHT_DIR: readonly [number, number, number] = [0.6, 1.4, 6];
 // cameraZ pulled back ~20% from the original framing: the strip reads as an
 // object inside the viewport rather than filling it.
 export const BREAKPOINTS = {
-  desktop: { cameraZ: 9.6, fov: 34, tail: 9, sensitivity: 3.1 },
-  tablet: { cameraZ: 11, fov: 37, tail: 7, sensitivity: 3.1 },
-  mobile: { cameraZ: 8.6, fov: 45, tail: 5, sensitivity: 4.5 },
+  desktop: { cameraZ: 8.2, fov: 34, tail: 9, sensitivity: 1.95 },
+  tablet: { cameraZ: 11, fov: 37, tail: 7, sensitivity: 2.15 },
+  mobile: { cameraZ: 8.6, fov: 45, tail: 5, sensitivity: 2.29 },
 } as const;
 export type BreakpointName = keyof typeof BREAKPOINTS;
 
 // Physics (units are carousel frames; per-frame at 60fps, frame-rate
 // normalised in the integrator)
-export const MOMENTUM_DECAY = 0.92;
+export const MOMENTUM_DECAY = 0.955;
 export const SNAP_STIFFNESS = 0.08;
 export const SNAP_DAMPING = 0.75;
-export const FLICK_VELOCITY = 0.09; // units/frame above which release keeps momentum
-export const MOMENTUM_HANDOFF = 0.02; // below this, momentum hands off to the snap spring
-export const DRAG_CANCEL_FRACTION = 0.04; // drags under 4% of vw return to current frame
-export const MAX_VELOCITY = 0.35; // hard cap so a violent scroll can't blur past the set
-export const WHEEL_SENSITIVITY = 0.00055; // wheel px → velocity injection
+export const FLICK_VELOCITY = 0.005; // units/frame above which release keeps momentum for seamless gliding
+export const MOMENTUM_HANDOFF = 0.015; // below this, momentum hands off to the snap spring
+export const MAX_VELOCITY = 0.45; // cap for smooth high-speed glide
+// Wheel input is normalised into whole notches by lib/wheelStepper, which the
+// events archive shares; a notch is then aimed at a landing frame by glideBy,
+// so the reel still travels on momentum. Its tunables live with that module.
 
 // --- Active/hover frame promotion ----------------------------------------
 // The selected cell reads as forward through DEPTH AND LIGHT, not scale.

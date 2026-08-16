@@ -336,6 +336,10 @@ export const LogoLoop = memo(
             {item.node}
           </span>
         ) : (
+          // Plain img: callers supply their own src/srcSet/sizes for arbitrary
+          // logos, and the marquee measures the rendered nodes itself — next/image
+          // would override the caller's srcSet and demand known dimensions.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.src}
             srcSet={item.srcSet}
