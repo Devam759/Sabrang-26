@@ -148,16 +148,12 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   const panelRef = useRef<HTMLElement | null>(null);
   const preLayersRef = useRef<HTMLDivElement | null>(null);
   const preLayerElsRef = useRef<HTMLElement[]>([]);
-  const plusHRef = useRef<HTMLSpanElement | null>(null);
-  const plusVRef = useRef<HTMLSpanElement | null>(null);
-  const iconRef = useRef<HTMLSpanElement | null>(null);
   const textInnerRef = useRef<HTMLSpanElement | null>(null);
   const textWrapRef = useRef<HTMLSpanElement | null>(null);
   const [textLines, setTextLines] = useState<string[]>(['Menu', 'Close']);
 
   const openTlRef = useRef<gsap.core.Timeline | null>(null);
   const closeTweenRef = useRef<gsap.core.Tween | null>(null);
-  const spinTweenRef = useRef<gsap.core.Tween | null>(null);
   const textCycleAnimRef = useRef<gsap.core.Tween | null>(null);
   const colorTweenRef = useRef<gsap.core.Tween | null>(null);
   const toggleBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -184,11 +180,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     const ctx = gsap.context(() => {
       const panel = panelRef.current;
       const preContainer = preLayersRef.current;
-      const plusH = plusHRef.current;
-      const plusV = plusVRef.current;
-      const icon = iconRef.current;
       const textInner = textInnerRef.current;
-      if (!panel || !plusH || !plusV || !icon || !textInner) return;
+      if (!panel || !textInner) return;
 
       let preLayers: HTMLElement[] = [];
       if (preContainer) {
@@ -201,9 +194,6 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       if (preContainer) {
         gsap.set(preContainer, { xPercent: 0, opacity: 1 });
       }
-      gsap.set(plusH, { transformOrigin: '50% 50%', rotate: 0 });
-      gsap.set(plusV, { transformOrigin: '50% 50%', rotate: 90 });
-      gsap.set(icon, { rotate: 0, transformOrigin: '50% 50%' });
       gsap.set(textInner, { yPercent: 0 });
       if (toggleBtnRef.current)
         gsap.set(toggleBtnRef.current, { color: menuButtonColor });
@@ -319,27 +309,6 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     });
   }, [position]);
 
-  const animateIcon = useCallback((opening: boolean) => {
-    const icon = iconRef.current;
-    if (!icon) return;
-    spinTweenRef.current?.kill();
-    if (opening) {
-      spinTweenRef.current = gsap.to(icon, {
-        rotate: 225,
-        duration: 0.7,
-        ease: 'back.out(1.7)',
-        overwrite: 'auto',
-      });
-    } else {
-      spinTweenRef.current = gsap.to(icon, {
-        rotate: 0,
-        duration: 0.35,
-        ease: 'power3.inOut',
-        overwrite: 'auto',
-      });
-    }
-  }, []);
-
   const animateColor = useCallback(
     (opening: boolean) => {
       const btn = toggleBtnRef.current;
@@ -412,13 +381,11 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       onMenuClose?.();
       playClose();
     }
-    animateIcon(target);
     animateColor(target);
     animateText(target);
   }, [
     playOpen,
     playClose,
-    animateIcon,
     animateColor,
     animateText,
     onMenuOpen,
@@ -431,11 +398,10 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       setOpen(false);
       onMenuClose?.();
       playClose();
-      animateIcon(false);
       animateColor(false);
       animateText(false);
     }
-  }, [playClose, animateIcon, animateColor, animateText, onMenuClose]);
+  }, [playClose, animateColor, animateText, onMenuClose]);
 
   useEffect(() => {
     if (!closeOnClickAway || !open) return;
@@ -558,9 +524,10 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
                 ))}
               </span>
             </span>
-            <span ref={iconRef} className="sm-icon" aria-hidden="true">
-              <span ref={plusHRef} className="sm-icon-line" />
-              <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />
+            <span className="sm-icon" aria-hidden="true">
+              <span className="sm-icon-line" />
+              <span className="sm-icon-line" />
+              <span className="sm-icon-line" />
             </span>
           </button>
         </div>
