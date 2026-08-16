@@ -8,7 +8,10 @@ import React, {
   useState,
 } from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import Image from 'next/image';
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import { gsap } from 'gsap';
 import './StaggeredMenu.css';
 
@@ -130,7 +133,11 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   displaySocials = false,
   displayItemNumbering = false,
   className,
+<<<<<<< HEAD
   logoUrl = '/sabrang-logo/sabrang-logo.png',
+=======
+  logoUrl = '/sabrang-logo.png',
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
   customLogo,
   headerExtra,
   extraPanelContent,
@@ -523,12 +530,20 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
             customLogo
           ) : (
             <Link href="/">
+<<<<<<< HEAD
               <Image
+=======
+              <img
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                 src={logoUrl}
                 alt="Sabrang Logo"
                 className="sm-logo-img"
                 draggable={false}
+<<<<<<< HEAD
                 width={40}
+=======
+                width={110}
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                 height={32}
               />
             </Link>

@@ -19,8 +19,13 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sabrang.jklu.edu.in"),
   manifest: "/site.webmanifest",
   icons: {
+<<<<<<< HEAD
     icon: [{ url: "/sabrang-logo/favicon.ico" }, { url: "/sabrang-logo/favicon.ico", sizes: "any" }],
     shortcut: "/sabrang-logo/favicon.ico",
+=======
+    icon: [{ url: "/favicon.ico" }, { url: "/favicon.ico", sizes: "any" }],
+    shortcut: "/favicon.ico",
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
     apple: "/apple-touch-icon.png",
   },
   title: {

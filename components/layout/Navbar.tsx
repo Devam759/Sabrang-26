@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+<<<<<<< HEAD
 import Image from "next/image";
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
@@ -122,10 +125,13 @@ export default function Navbar() {
             <Image
               src="/sabrang-logo/sabrang-logo.png"
               alt="Sabrang Logo"
+<<<<<<< HEAD
               width={70}
               height={56}
               loading="eager"
               fetchPriority="high"
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
               className="h-10 md:h-14 w-auto object-contain drop-shadow-2xl"
             />
           </Link>
@@ -143,8 +149,11 @@ export default function Navbar() {
             <Image
               src="/sabrang-logo/white_jklu_logo.png"
               alt="JKLU Logo"
+<<<<<<< HEAD
               width={46}
               height={40}
+=======
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
               className="h-8 md:h-10 w-auto object-contain drop-shadow-xl"
             />
           </a>
@@ -175,6 +184,7 @@ export default function Navbar() {
             }}
           >
             <span>{isOpen ? "CLOSE" : "MENU"}</span>
+<<<<<<< HEAD
             {/* Drawn, not typed: these used to be ☰/✕ glyphs in 'Space Mono', a
                 font nothing here loads, so the icon rendered or vanished purely on
                 what the OS fallback happened to have. */}
@@ -201,6 +211,9 @@ export default function Navbar() {
                 </>
               )}
             </svg>
+=======
+            <span>{isOpen ? "✕" : "☰"}</span>
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
           </button>
         </div>
       </header>

@@ -383,8 +383,12 @@ export default function CodePenCredits() {
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+<<<<<<< HEAD
                       fill
                       sizes="250px"
+=======
+                      decoding="sync"
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                       loading="eager"
                       style={{
                         visibility: i === 0 ? "visible" : "hidden",
@@ -417,8 +421,12 @@ export default function CodePenCredits() {
                       className={imgCls(i)}
                       src={m.avatar}
                       alt=""
+<<<<<<< HEAD
                       fill
                       sizes="250px"
+=======
+                      decoding="sync"
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                       loading="eager"
                       style={{
                         visibility: i === 0 ? "visible" : "hidden",
@@ -461,6 +469,7 @@ export default function CodePenCredits() {
                 key={i}
                 src={m.avatar}
                 alt={m.name}
+<<<<<<< HEAD
                 fill
                 sizes="320px"
                 loading="eager"
@@ -468,6 +477,14 @@ export default function CodePenCredits() {
                   visibility: i === 0 ? "visible" : "hidden",
                   willChange: "clip-path, transform",
                   zIndex: 1
+=======
+                decoding="sync"
+                loading="eager"
+                style={{ 
+                  visibility: i === 0 ? "visible" : "hidden", 
+                  willChange: "clip-path, transform",
+                  zIndex: 1 
+>>>>>>> 968839f771d847688d4fe2b18f6c13b8f23dcca6
                 }}
               />
             ))}
