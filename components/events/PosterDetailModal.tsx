@@ -49,14 +49,26 @@ export default function PosterDetailModal({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors z-20 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+          type="button"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-white/20 bg-black/70 backdrop-blur-md text-white/80 hover:text-white hover:border-white/40 hover:bg-white/15 active:scale-90 transition-all shadow-lg cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
           aria-label="Close modal"
         >
-          ✕ Close
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
 
         {/* Poster image */}
-        <div className="relative flex-shrink-0 w-full md:w-[320px] lg:w-[380px] overflow-hidden rounded-xl shadow-2xl shadow-indigo-500/10 ring-1 ring-white/10 mt-6 md:mt-0">
+        <div className="relative flex-shrink-0 w-full md:w-[320px] lg:w-[380px] overflow-hidden rounded-xl shadow-2xl shadow-indigo-500/10 ring-1 ring-white/10 mt-0">
           <Image
             src={item.image}
             alt={item.alt || item.title}
