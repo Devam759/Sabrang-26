@@ -429,18 +429,17 @@ export default function AboutHero() {
               margin: "26px 0 0",
               opacity: 0,
               fontFamily: '"Inter", sans-serif',
-              fontWeight: 500,
+              fontWeight: 600,
               fontSize: "clamp(0.55rem, 1vw, 0.75rem)",
               letterSpacing: "0.36em",
-              color: "rgba(255,255,255,0.78)",
+              color: "rgba(255,255,255,0.85)",
               textShadow: "0 2px 10px rgba(0,0,0,0.9)",
               textTransform: "uppercase",
               whiteSpace: "nowrap",
               userSelect: "none",
             }}
           >
-            ALL SHADES OF CREATIVITY&nbsp;&nbsp;·&nbsp;&nbsp;JKLU
-            JAIPUR&nbsp;&nbsp;·&nbsp;&nbsp;2026
+            SHADES &amp; COLORS OF LIGHT&nbsp;&nbsp;·&nbsp;&nbsp;JKLU JAIPUR&nbsp;&nbsp;·&nbsp;&nbsp;OCT 2026
           </p>
         </div>
 
@@ -539,11 +538,11 @@ export default function AboutHero() {
                   fontFamily: "monospace",
                   fontSize: "clamp(0.58rem, 0.9vw, 0.72rem)",
                   letterSpacing: "0.28em",
-                  color: "rgba(255,255,255,0.48)",
+                  color: "rgba(56,189,248,0.9)",
                   textTransform: "uppercase",
                 }}
               >
-                Sabrang · About
+                SINCE 2011 · 15TH EDITION HEROIC LEGACY
               </p>
 
               <h2
@@ -553,7 +552,7 @@ export default function AboutHero() {
                   opacity: 0,
                   fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
                   fontWeight: 800,
-                  fontSize: "clamp(2.0rem, 3.8vw, 3.6rem)",
+                  fontSize: "clamp(1.8rem, 3.5vw, 3.2rem)",
                   letterSpacing: "-0.02em",
                   color: "#ffffff",
                   lineHeight: 1.1,
@@ -561,7 +560,7 @@ export default function AboutHero() {
                   textShadow: "0 4px 24px rgba(0,0,0,0.95)",
                 }}
               >
-                About Sabrang
+                Sabrang 2026
               </h2>
 
               <p
@@ -572,17 +571,14 @@ export default function AboutHero() {
                   fontFamily: '"Inter", sans-serif',
                   fontWeight: 400,
                   fontSize: "clamp(0.85rem, 1.15vw, 1.02rem)",
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(255,255,255,0.88)",
                   lineHeight: 1.68,
-                  maxWidth: "46ch",
+                  maxWidth: "48ch",
                 }}
               >
-                Sabrang isn't just a fest — it's an explosion of talent,
-                creativity, and cosmic energy. Over three thrilling days, JKLU
-                transforms into a universe of music, dance, art, technology, and
-                pure celebration. With a massive prize pool, flagship events,
-                celebrity performances, and non-stop entertainment, Sabrang is
-                where memories are made and legends are born.
+                Sabrang is JK Lakshmipat University's flagship annual techno-cultural-management-design 
+                festival. Since 2011, Sabrang has grown into a premier national platform bringing together over 
+                2,000 participants across 50+ universities for three exhilarating days of innovation, high-energy competitions, and star-studded evening performances.
               </p>
 
               <div
