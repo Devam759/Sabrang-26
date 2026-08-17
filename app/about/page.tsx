@@ -1,7 +1,11 @@
 import React from "react";
 import type { Metadata } from "next";
 import AboutHero from "@/components/about/AboutHero";
-import AboutSections from "@/components/about/AboutSections";
+import {
+  CoreSpectrumsSection,
+  AboutContentSections,
+} from "@/components/about/AboutSections";
+import ThemeInstallation from "@/components/about/ThemeInstallation";
 import AccordionGallery, {
   AccordionGalleryItem,
 } from "@/components/about/AccordionGallery";
@@ -123,14 +127,24 @@ export default function AboutPage() {
       <JsonLd data={breadcrumbSchema} />
       <div className="w-full bg-[#000000] text-white min-h-screen">
 
-        {/* 1. Immersive 3D pinned hero & story reveal */}
+        {/* 1. Immersive 3D pinned hero & story reveal (Ends with "What is Sabrang / Sabrang 2026") */}
         <div className="relative z-10">
           <AboutHero />
         </div>
 
-        {/* 2. Structured Content Blocks: Identity, Theme Manifesto, Stats, Pro-Show & Beyond Competitions */}
+        {/* 2. THE CORE SPECTRUMS (Section 02 - Four Pillars) directly after "What is Sabrang" */}
         <div className="relative z-10">
-          <AboutSections />
+          <CoreSpectrumsSection />
+        </div>
+
+        {/* 3. THEME INSTALLATION — OPTICAL PRISM & DISPERSION (STANDALONE PINNED TIMELINE) */}
+        <div className="relative z-20">
+          <ThemeInstallation />
+        </div>
+
+        {/* 4. Structured Content Blocks: Why Sabrang OP, Beyond Competitions, Recombination */}
+        <div className="relative z-10">
+          <AboutContentSections />
         </div>
 
         {/* 3. Flagship Showdowns (Pillars of Sabrang Accordion Showcase) */}
