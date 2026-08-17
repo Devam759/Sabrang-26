@@ -1,14 +1,14 @@
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import InitialLoader from "@/components/effects/InitialLoader";
-import TubesCursor from "@/components/effects/TubesCursor";
 import CursorFollower from "@/components/effects/CursorFollower";
 import SmoothScroll from "@/components/effects/SmoothScroll";
 import { InteractionProvider } from "@/components/InteractionContext";
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
@@ -107,21 +107,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className}`}>
         <JsonLd data={organizationSchema} />
         <InteractionProvider>
           <AuthProvider>
             <SmoothScroll>
-              <TubesCursor />
               <CursorFollower />
               <InitialLoader />
-              <div className="min-h-screen flex flex-col bg-black text-white overflow-x-clip">
+              <div className="min-h-screen flex flex-col text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
-                <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm">
-                  &copy; {new Date().getFullYear()} Sabrang Festival. All rights
-                  reserved.
-                </footer>
               </div>
             </SmoothScroll>
           </AuthProvider>
