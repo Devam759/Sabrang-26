@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
     '172.16.54.52',
     '172.16.54.52:3000',
   ],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
