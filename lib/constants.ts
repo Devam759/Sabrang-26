@@ -22,6 +22,7 @@ export interface OrganizingHead {
   phone: string;
   displayPhone: string;
   role?: string;
+  image?: string;
 }
 
 export const ORGANIZING_HEADS: OrganizingHead[] = [
@@ -34,6 +35,7 @@ export const ORGANIZING_HEADS: OrganizingHead[] = [
     name: "Rishika Singh",
     phone: "+917300118679",
     displayPhone: "+91 73001 18679",
+    image: "/Team NAme/Rishika OH .webp",
   },
   {
     name: "Gurseerat Kaur",
