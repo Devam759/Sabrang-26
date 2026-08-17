@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
@@ -118,15 +119,14 @@ export default function Navbar() {
             href="/"
             className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95"
           >
-            <img
-              src="/sabrang-logo.png"
+            <Image
+              src="/sabrang-logo/sabrang-logo.png"
               alt="Sabrang Logo"
+              width={70}
+              height={56}
+              loading="eager"
+              fetchPriority="high"
               className="h-10 md:h-14 w-auto object-contain drop-shadow-2xl"
-            />
-            <img
-              src="/past-sponsors/JK Tyre.png"
-              alt="JK Tyre Logo"
-              className="h-3.5 md:h-4.5 w-auto object-contain mt-0.5 drop-shadow-lg filter brightness-110"
             />
           </Link>
         </div>
@@ -140,9 +140,11 @@ export default function Navbar() {
               isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
-            <img
-              src="/white_jklu_logo.png"
+            <Image
+              src="/sabrang-logo/white_jklu_logo.png"
               alt="JKLU Logo"
+              width={46}
+              height={40}
               className="h-8 md:h-10 w-auto object-contain drop-shadow-xl"
             />
           </a>
@@ -151,6 +153,7 @@ export default function Navbar() {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation menu"
             aria-expanded={isOpen}
+            data-open={isOpen || undefined}
             className="sm-toggle-btn"
             style={{
               position: "relative",
@@ -158,22 +161,29 @@ export default function Navbar() {
               display: "flex",
               alignItems: "center",
               gap: "0.5rem",
-              padding: "0.6rem 1.2rem",
-              background: "rgba(255, 255, 255, 0.08)",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              borderRadius: "9999px",
+              padding: "0.6rem 0.4rem",
+              background: "transparent",
+              border: "none",
               color: "#ffffff",
+              textShadow: "0 2px 12px rgba(0, 0, 0, 0.65)",
               fontFamily: "'Space Mono', monospace",
               fontSize: "0.75rem",
               fontWeight: 700,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               cursor: "pointer",
-              backdropFilter: "blur(8px)",
             }}
           >
             <span>{isOpen ? "CLOSE" : "MENU"}</span>
-            <span>{isOpen ? "✕" : "☰"}</span>
+            {/* Drawn, not typed: these used to be ☰/✕ glyphs in 'Space Mono', a
+                font nothing here loads, so the icon rendered or vanished purely on
+                what the OS fallback happened to have. Bars morph via CSS off
+                data-open — see .sm-icon in StaggeredMenu.css. */}
+            <span className="sm-icon" aria-hidden>
+              <span className="sm-icon-line" />
+              <span className="sm-icon-line" />
+              <span className="sm-icon-line" />
+            </span>
           </button>
         </div>
       </header>
@@ -258,6 +268,15 @@ export default function Navbar() {
                 )}
               </motion.div>
             )}
+
+            <motion.p
+              variants={PANEL_ITEM}
+              initial="hidden"
+              animate="visible"
+              className="sm-tagline pointer-events-none absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-center"
+            >
+              Where every shade finds its own spectrum
+            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>

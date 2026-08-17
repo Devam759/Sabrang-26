@@ -55,9 +55,13 @@ export default function TeamClient() {
   ];
 
   const rawMembers = [
+    // University Leadership & Mentors
+    { name: "Anushka Pathak", role: "Faculty Coordinator" },
+    { name: "Richa Sharma", role: "Faculty Coordinator" },
+    { name: "Vice Chancellor", role: "Vice Chancellor" },
+
     // Organizing Heads
     { name: "Kartik Sharma", role: "Organizing Head" },
-    { name: "Rishika Singh", role: "Organizing Head" },
     { name: "Gurseerat Kaur", role: "Organizing Head" },
     { 
       name: "Pratigya Bomb", 
@@ -65,6 +69,19 @@ export default function TeamClient() {
       links: {
         email: "mailto:pratigyabomb@jklu.edu.in",
         linkedin: "https://www.linkedin.com/in/pratigya-bomb-295857349?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+      }
+    },
+    { name: "Rishika Singh", role: "Organizing Head" },
+
+    // Tech & Support
+    { 
+      name: "Devam Gupta", 
+      role: "Tech & Support Core",
+      links: {
+        email: "mailto:devamgupta@jklu.edu.in",
+        instagram: "https://www.instagram.com/who.is.devam/?hl=en",
+        linkedin: "https://www.linkedin.com/in/devam-gupta/",
+        github: "https://github.com/Devam759"
       }
     },
 
@@ -102,16 +119,6 @@ export default function TeamClient() {
       }
     },
     { name: "Jheel Jain", role: "Events Core" },
-    { 
-      name: "Devam Gupta", 
-      role: "Tech & Support Core",
-      links: {
-        email: "mailto:devamgupta@jklu.edu.in",
-        instagram: "https://www.instagram.com/who.is.devam/?hl=en",
-        linkedin: "https://www.linkedin.com/in/devam-gupta/",
-        github: "https://github.com/Devam759"
-      }
-    },
     { 
       name: "Satvik Agrawal", 
       role: "Internal Arrangements Core",
@@ -251,7 +258,7 @@ export default function TeamClient() {
     if (normalized.includes("laksh")) return "/Team NAme/laksh.webp";
 
     // Fallback to JKLU logo for those we don't have photos for
-    return "/white_jklu_logo.png";
+    return "/sabrang-logo/white_jklu_logo.png";
   }
 
   const carouselMembers = rawMembers.map((member) => ({

@@ -23,8 +23,19 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
     if ($mesh.current && $mesh.current.material) {
       const mat = $mesh.current.material as THREE.ShaderMaterial;
 
-      mat.uniforms.uZoomScale.value.x = viewport.width / width;
-      mat.uniforms.uZoomScale.value.y = viewport.height / height;
+      const vpW =
+        viewport.width && Number.isFinite(viewport.width) && viewport.width > 0
+          ? viewport.width
+          : 1;
+      const vpH =
+        viewport.height && Number.isFinite(viewport.height) && viewport.height > 0
+          ? viewport.height
+          : 1;
+      const safeW = width && Number.isFinite(width) && width > 0 ? width : 0.72;
+      const safeH = height && Number.isFinite(height) && height > 0 ? height : 1.8;
+
+      mat.uniforms.uZoomScale.value.x = vpW / safeW;
+      mat.uniforms.uZoomScale.value.y = vpH / safeH;
 
       gsap.to(mat.uniforms.uProgress, {
         value: active ? 1 : 0,
@@ -33,8 +44,8 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
       });
 
       gsap.to(mat.uniforms.uRes.value, {
-        x: active ? viewport.width : width,
-        y: active ? viewport.height : height,
+        x: active ? vpW : safeW,
+        y: active ? vpH : safeH,
         duration: 2.5,
         ease: "power3.out",
       });

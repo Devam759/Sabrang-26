@@ -40,7 +40,7 @@ const menuPageSchema = {
   hasPart: [
     { "@type": "WebPage", name: "Home", url: "https://sabrang.jklu.edu.in/" },
     { "@type": "WebPage", name: "About", url: "https://sabrang.jklu.edu.in/about" },
-    { "@type": "WebPage", name: "Events", url: "https://sabrang.jklu.edu.in/events" },
+    { "@type": "Events", name: "Events", url: "https://sabrang.jklu.edu.in/events" },
     { "@type": "WebPage", name: "Schedule", url: "https://sabrang.jklu.edu.in/schedule" },
     { "@type": "WebPage", name: "Gallery", url: "https://sabrang.jklu.edu.in/gallery" },
     { "@type": "WebPage", name: "Sponsors", url: "https://sabrang.jklu.edu.in/sponsors" },
@@ -49,10 +49,30 @@ const menuPageSchema = {
   ],
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sabrang.jklu.edu.in",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Menu",
+      item: "https://sabrang.jklu.edu.in/menu",
+    },
+  ],
+};
+
 export default function MenuPage() {
   return (
     <>
       <JsonLd data={menuPageSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <MenuClient />
     </>
   );

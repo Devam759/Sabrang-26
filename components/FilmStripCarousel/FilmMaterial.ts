@@ -387,6 +387,59 @@ export function createFilmPanelMaterial(texture: THREE.Texture): THREE.ShaderMat
   });
 }
 
+const reactiveBorderVertex = /* glsl */ `
+${CURVE_GLSL}
+uniform float uFlatten;
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  vec3 pos = mix(filmPosition(position.x, position.y), vec3(position.x, position.y, 0.0), uFlatten);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+}
+`;
+
+const reactiveBorderFragment = /* glsl */ `
+uniform float uHover;
+uniform float uAlpha;
+varying vec2 vUv;
+void main() {
+  if (uHover < 0.002) discard;
+  // Convert UVs to uniform physical dimension
+  vec2 d = min(vUv, 1.0 - vUv);
+  float edgeX = d.x * ${(FRAME_WIDTH).toFixed(4)};
+  float edgeY = d.y * ${(FRAME_HEIGHT).toFixed(4)};
+  float dist = min(edgeX, edgeY);
+
+  // Sharp, crisp 2px card frame border stroke
+  float stroke = (1.0 - smoothstep(0.018, 0.026, dist)) * smoothstep(0.000, 0.004, dist);
+  // Refined edge highlight
+  float rim = (1.0 - smoothstep(0.0, 0.045, dist)) * 0.30;
+
+  float alpha = (stroke * 1.9 + rim) * uHover * uAlpha;
+  if (alpha < 0.004) discard;
+
+  // Clean luminous card frame border
+  vec3 borderColor = mix(vec3(1.0, 1.0, 1.0), vec3(1.0, 0.88, 0.52), 0.25);
+  gl_FragColor = vec4(borderColor, alpha);
+}
+`;
+
+export function createReactiveBorderMaterial(): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    vertexShader: reactiveBorderVertex,
+    fragmentShader: reactiveBorderFragment,
+    uniforms: {
+      uS0: { value: 0 },
+      uFlatten: { value: 0 },
+      uHover: { value: 0 },
+      uAlpha: { value: 1 },
+    },
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+}
+
 // Cover-fit a texture into the 4:3 image window — no letterbox, no stretch.
 export function coverFitTexture(tex: THREE.Texture): void {
   tex.colorSpace = THREE.SRGBColorSpace;

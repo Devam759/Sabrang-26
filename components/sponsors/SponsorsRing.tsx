@@ -87,20 +87,13 @@ export default function SponsorsRing() {
           transition={{ duration: 1.5, ease: "easeOut" }}
           className="absolute inset-0 z-0 pointer-events-none"
         >
-          <video 
-            src="/cyberpunk-city.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover object-center opacity-90"
-          />
-          {/* Rich Gradient Overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1E0B36]/80 via-transparent to-[#030005] mix-blend-multiply" />
-          
-          {/* Very Evident Purple Sexy Tint */}
-          <div className="absolute inset-0 bg-purple-600/50 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-purple-900/40" />
+          {/* This sat on a 40MB city loop that every one of the tint layers
+              below then multiplied down to a purple-black wash — a gradient
+              paints that wash directly, for nothing. The multiply tints went
+              with it: with no footage underneath they only crush to black. */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#1E0B36_0%,#2A1052_35%,#170A30_70%,#030005_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_38%,rgba(147,51,234,0.30)_0%,transparent_62%)]" />
+
           {/* Cinematic Vignette */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#030005_100%)] opacity-90" />
           

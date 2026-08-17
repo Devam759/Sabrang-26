@@ -1,9 +1,8 @@
 // All interaction state lives in refs — no React state during a drag.
 // React state is only activeIndex, pushed when the integer actually changes.
 import { useCallback, useRef, useState } from 'react';
-import { getActiveIndex, wrapRelative } from './carouselMath';
+import { getActiveIndex, glideDistance, glideVelocity, wrapRelative } from './carouselMath';
 import {
-  DRAG_CANCEL_FRACTION,
   FLICK_VELOCITY,
   MAX_VELOCITY,
   MOMENTUM_DECAY,
@@ -19,12 +18,12 @@ interface SimState {
   target: number;
   velocity: number; // units per 60fps-frame
   mode: 'snap' | 'drag' | 'momentum';
+  pointerId: number; // the pointer that owns the current drag; -1 when idle
   dragStartPos: number;
   dragStartX: number;
   lastX: number;
   lastT: number;
   dragged: boolean; // true once pointer moved enough to suppress the click
-  wheelAccum: number; // reduced-motion wheel accumulator
 }
 
 export function useFilmCarousel(
@@ -37,12 +36,12 @@ export function useFilmCarousel(
     target: 0,
     velocity: 0,
     mode: 'snap',
+    pointerId: -1,
     dragStartPos: 0,
     dragStartX: 0,
     lastX: 0,
     lastT: 0,
     dragged: false,
-    wheelAccum: 0,
   }).current;
   const activeRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -76,7 +75,8 @@ export function useFilmCarousel(
           s.velocity = 0;
         }
       }
-      const ai = getActiveIndex(s.position, opts.current.count);
+      const targetPos = s.mode === 'snap' ? s.target : s.position;
+      const ai = getActiveIndex(targetPos, opts.current.count);
       if (ai !== activeRef.current) {
         activeRef.current = ai;
         setActiveIndex(ai);
@@ -97,6 +97,7 @@ export function useFilmCarousel(
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       sim.mode = 'drag';
+      sim.pointerId = e.pointerId;
       sim.dragStartPos = sim.position;
       sim.dragStartX = e.clientX;
       sim.lastX = e.clientX;
@@ -108,14 +109,23 @@ export function useFilmCarousel(
     [sim]
   );
 
+  // A drag belongs to exactly ONE pointer, and only that pointer may move it.
+  //
+  // Without the id check, any pointermove reaching this element steers the strip
+  // and can reach setPointerCapture() below. A second finger therefore hijacks a
+  // drag the first one started, jumping the strip to its own clientX. It also
+  // guards the capture call: a constructed PointerEvent carries pointerId 0,
+  // which belongs to no live pointer, so capturing it throws NotFoundError and
+  // takes the whole menu down — the site's idle cursor effect used to dispatch
+  // exactly that before TubesCursor was scoped to its own canvas.
   const onPointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (sim.mode !== 'drag') return;
+      if (sim.mode !== 'drag' || e.pointerId !== sim.pointerId) return;
       const now = performance.now();
       const dx = e.clientX - sim.lastX;
       const dtMs = now - sim.lastT;
       // pixel delta → carousel units against viewport width: 1:1 under pointer
-      const deltaUnits = (-dx * opts.current.sensitivity) / window.innerWidth;
+      const deltaUnits = (-dx * opts.current.sensitivity) / Math.max(300, window.innerWidth);
       sim.position += deltaUnits;
       if (dtMs > 0) {
         // velocity from pointer-time delta, lightly smoothed
@@ -124,7 +134,7 @@ export function useFilmCarousel(
       }
       sim.lastX = e.clientX;
       sim.lastT = now;
-      if (Math.abs(e.clientX - sim.dragStartX) > 5 && !sim.dragged) {
+      if (Math.abs(e.clientX - sim.dragStartX) > 3 && !sim.dragged) {
         sim.dragged = true;
         // Now that this is a drag and not a click, take the pointer so the
         // gesture survives leaving the element. Doing it here rather than on
@@ -137,49 +147,54 @@ export function useFilmCarousel(
 
   const endDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (sim.mode !== 'drag') return;
+      if (sim.mode !== 'drag' || e.pointerId !== sim.pointerId) return;
+      sim.pointerId = -1;
       e.currentTarget.style.cursor = 'grab';
-      const totalPx = e.clientX - sim.dragStartX;
-      const start = Math.round(sim.dragStartPos);
-      if (Math.abs(totalPx) < DRAG_CANCEL_FRACTION * window.innerWidth) {
-        sim.target = start; // under threshold: return to current frame
-        sim.velocity = 0;
-        sim.mode = 'snap';
-      } else if (
-        !opts.current.reducedMotion &&
-        Math.abs(sim.velocity) > FLICK_VELOCITY
-      ) {
+      if (!opts.current.reducedMotion && Math.abs(sim.velocity) > FLICK_VELOCITY) {
         sim.velocity = clampVelocity(sim.velocity);
-        sim.mode = 'momentum'; // fast flick: keep integrating, snap later
+        sim.mode = 'momentum';
       } else {
-        // slow drag: advance at most one frame in the drag direction
-        let t = Math.round(sim.position);
-        if (t === start) t = start + Math.sign(sim.position - sim.dragStartPos);
-        sim.target = Math.max(start - 1, Math.min(start + 1, t));
+        sim.target = Math.round(sim.position);
+        sim.velocity = 0;
         sim.mode = 'snap';
       }
     },
     [sim]
   );
 
-  // Wheel/trackpad input feeds the same velocity accumulator as drag release.
-  // Reduced motion: accumulate deltas and step whole frames through the snap
-  // spring instead of building inertia.
-  const nudgeVelocity = useCallback(
-    (dv: number) => {
+  // Wheel input rides the momentum glide, same as a drag release — the inertia
+  // is the point. What changed is where it aims: rather than adding a fixed
+  // velocity per event, this solves for the velocity that brings the glide to
+  // rest exactly `steps` frames past wherever it was already going to stop.
+  //
+  // A momentum glide from velocity v covers v / (1 - MOMENTUM_DECAY) before it
+  // hands off to the snap spring, so that sum inverts cleanly. Aiming at a
+  // landing point instead of piling on velocity is what removes the two bugs:
+  // travel no longer depends on how many events a browser split one notch into,
+  // nor on how much of the previous notch's momentum had yet to decay.
+  const glideBy = useCallback(
+    (steps: number) => {
       const s = sim;
-      if (s.mode === 'drag') return;
+      if (s.mode === 'drag' || steps === 0) return;
+
       if (opts.current.reducedMotion) {
-        s.wheelAccum += dv;
-        if (Math.abs(s.wheelAccum) > 0.15) {
-          const base = s.mode === 'snap' ? s.target : s.position;
-          s.target = Math.round(base) + Math.sign(s.wheelAccum);
-          s.mode = 'snap';
-          s.wheelAccum = 0;
-        }
+        const base = s.mode === 'snap' ? s.target : s.position;
+        s.target = Math.round(base) + steps;
+        s.mode = 'snap';
         return;
       }
-      s.velocity = clampVelocity(s.velocity + dv);
+
+      // Where the reel comes to rest if nothing else touches it.
+      const rest =
+        s.mode === 'momentum'
+          ? s.position + glideDistance(s.velocity)
+          : s.mode === 'snap'
+            ? s.target
+            : s.position;
+
+      // Clamping only shortens the lookahead on a frantic scroll; the glide
+      // still ends on a whole frame, and the next event re-aims from there.
+      s.velocity = clampVelocity(glideVelocity(s.position, rest, steps));
       s.mode = 'momentum';
     },
     [sim]
@@ -194,8 +209,12 @@ export function useFilmCarousel(
     [sim]
   );
 
+  // Advance exactly one frame. Chaining off `target` rather than `position`
+  // while snapping is what makes repeated calls additive instead of racing the
+  // spring — two fast wheel notches land two frames along, never one or three.
   const shift = useCallback(
     (dir: 1 | -1) => {
+      if (sim.mode === 'drag') return;
       const base = sim.mode === 'snap' ? sim.target : sim.position;
       sim.target = Math.round(base) + dir;
       sim.mode = 'snap';
@@ -209,7 +228,7 @@ export function useFilmCarousel(
     activeIndex,
     activeRef,
     goToNearest,
-    nudgeVelocity,
+    glideBy,
     next: useCallback(() => shift(1), [shift]),
     prev: useCallback(() => shift(-1), [shift]),
     handlers: {

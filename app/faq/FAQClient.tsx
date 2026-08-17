@@ -1,7 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 import CursorGrid from "@/components/ui/CursorGrid";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const faqs = [
   {
@@ -92,10 +100,64 @@ const faqs = [
 ];
 
 export default function FAQClient() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Reveal for single sections
+    const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
+
+    revealElements.forEach((el) => {
+      gsap.fromTo(
+        el,
+        {
+          opacity: 0,
+          y: 40, // reduced translation for mobile
+          scale: 0.98, // smoother scale on mobile
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 95%",
+            end: "top 70%",
+            scrub: 1,
+          },
+        }
+      );
+    });
+
+    // Staggered reveal for FAQ items
+    const faqCards = gsap.utils.toArray<HTMLElement>('.gsap-faq-card');
+    if (faqCards.length > 0) {
+      gsap.fromTo(
+        faqCards,
+        {
+          opacity: 0,
+          x: -20, // reduced translation for mobile
+        },
+        {
+          opacity: 1,
+          x: 0,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".gsap-faq-container",
+            start: "top 90%",
+            end: "bottom 85%",
+            scrub: 1.5,
+          },
+        }
+      );
+    }
+  }, { scope: containerRef });
+
   return (
-    <div className="relative min-h-screen py-12 px-4">
-      {/* Dynamic CursorGrid Interactive Background - Full Screen Stretch */}
-      <div className="fixed inset-0 z-0 opacity-70 pointer-events-none w-screen h-screen overflow-hidden">
+    <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0a0a0a] to-black" ref={containerRef}>
+      {/* Dynamic CursorGrid Interactive Background */}
+      <div className="fixed inset-0 z-0 opacity-70 pointer-events-none overflow-hidden">
         <CursorGrid
           cellSize={70}
           color="#D946EF"
@@ -113,33 +175,41 @@ export default function FAQClient() {
         />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto space-y-12">
+      <div className="relative z-10 max-w-4xl mx-auto space-y-12 md:space-y-16">
         {/* Hero Header */}
-        <section className="text-center space-y-4 pt-4">
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight uppercase">
+        <motion.section 
+          className="text-center space-y-4 pt-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <div className="inline-block px-4 py-1.5 mb-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold text-xs md:text-sm tracking-widest uppercase">
+            Help Center
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-white tracking-tight uppercase drop-shadow-lg">
             FAQ
           </h1>
-          <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto">
-            Got questions? We've got answers!
+          <p className="text-sm sm:text-base md:text-xl text-white/70 max-w-2xl mx-auto font-medium px-4">
+            Got questions? We've got answers! Explore the most commonly asked queries below.
           </p>
-        </section>
+        </motion.section>
 
         {/* FAQs */}
-        <section className="space-y-4">
+        <section className="space-y-4 gsap-faq-container">
           {faqs.map((faq, index) => (
             <details
               key={index}
-              className="group bg-neutral-900/80 backdrop-blur-md border border-white/10 hover:border-white/30 rounded-2xl overflow-hidden transition-all duration-300"
+              className="group bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-indigo-500/30 rounded-2xl overflow-hidden transition-all duration-300 shadow-xl gsap-faq-card"
             >
-              <summary className="flex justify-between items-center cursor-pointer p-6 hover:bg-white/5 transition-colors list-none">
-                <h3 className="text-lg font-bold text-white pr-4">
+              <summary className="flex justify-between items-center cursor-pointer p-5 md:p-6 hover:bg-indigo-500/5 transition-colors list-none">
+                <h3 className="text-base md:text-lg font-bold text-white/90 group-hover:text-white pr-4 transition-colors">
                   {faq.question}
                 </h3>
-                <span className="text-2xl text-indigo-400 font-bold transition-transform group-open:rotate-45 flex-shrink-0">
+                <span className="text-xl md:text-2xl text-indigo-400 font-bold transition-transform group-open:rotate-45 flex-shrink-0 bg-indigo-500/10 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center">
                   +
                 </span>
               </summary>
-              <div className="px-6 pb-6 text-white/70 leading-relaxed border-t border-white/10 pt-4">
+              <div className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-white/60 leading-relaxed border-t border-white/5 pt-4 bg-black/20">
                 {faq.answer}
               </div>
             </details>
@@ -147,19 +217,30 @@ export default function FAQClient() {
         </section>
 
         {/* Still have questions */}
-        <section className="bg-gradient-to-r from-neutral-900/90 via-neutral-900/90 to-neutral-800/90 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center space-y-6 shadow-2xl">
-          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">
-            Still Have Questions?
-          </h2>
-          <p className="text-white/70">
-            Can't find what you're looking for? Feel free to reach out to us!
-          </p>
-          <a
-            href="/contact"
-            className="inline-block px-8 py-3 rounded-xl bg-white text-neutral-900 font-bold hover:bg-neutral-200 transition-colors"
-          >
-            Contact Us
-          </a>
+        <section className="bg-gradient-to-br from-indigo-900/40 via-neutral-900/90 to-purple-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-10 md:p-14 text-center space-y-6 shadow-2xl relative overflow-hidden gsap-reveal">
+          {/* Decorative blur elements inside the card */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none rounded-3xl">
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/30 rounded-full blur-[80px]" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/30 rounded-full blur-[80px]" />
+          </div>
+
+          <div className="relative z-10 space-y-4 md:space-y-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight">
+              Still Have Questions?
+            </h2>
+            <p className="text-sm md:text-lg text-white/70 max-w-lg mx-auto">
+              Can't find what you're looking for? Feel free to reach out to our support team!
+            </p>
+            <a
+              href="/contact"
+              className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-xl bg-white text-neutral-900 text-sm md:text-base font-black uppercase tracking-wider hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.2)] md:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_rgba(255,255,255,0.5)]"
+            >
+              <span>Contact Us</span>
+              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+          </div>
         </section>
       </div>
     </div>
