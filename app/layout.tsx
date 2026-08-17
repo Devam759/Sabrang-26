@@ -1,3 +1,4 @@
+import "@/lib/suppress-three-logs";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import InitialLoader from "@/components/effects/InitialLoader";
