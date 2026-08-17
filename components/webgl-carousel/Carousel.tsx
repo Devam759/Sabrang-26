@@ -20,7 +20,7 @@ const heightVariantsDesktop = [
   1.8, 2.0, 1.75, 1.95, 1.85, 2.05, 1.78, 1.9, 1.82, 1.98,
 ];
 const widthVariantsMobile = [
-  1.8, 2.0, 1.75, 1.95, 1.85, 2.05, 1.78, 1.9, 1.82, 1.98,
+  1.3, 1.4, 1.25, 1.45, 1.35, 1.5, 1.28, 1.4, 1.32, 1.48,
 ];
 
 /* GSAP Defaults */
@@ -146,7 +146,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       ? widthVariantsMobile[index % widthVariantsMobile.length]
       : planeSettings.width;
     const cardHeight = isMobile
-      ? 0.85
+      ? 0.7
       : heightVariantsDesktop[index % heightVariantsDesktop.length];
 
     if (activePlane === index) {
@@ -313,7 +313,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
             ? widthVariantsMobile[i % widthVariantsMobile.length]
             : planeSettings.width;
           const cardHeight = isMobile
-            ? 0.85
+            ? 0.7
             : heightVariantsDesktop[i % heightVariantsDesktop.length];
           return (
             <CarouselItem

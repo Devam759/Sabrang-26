@@ -302,14 +302,14 @@ export default function FilmStripCarousel({
             expandRef={expandRef}
             reducedMotion={reducedMotion}
           />
-          {/* Lighting hierarchy: a violet-tinted ambient that ties the film to
+          {/* Lighting hierarchy: a dark navy/ink ambient that ties the film to
               the environment's base tone, a warm key near the camera axis
               (uLightDir in the panel shader matches this direction), and a
-              magenta rim from behind-left so the sprocket rails catch an edge
+              subtle gold/coral rim from behind-left so the sprocket rails catch an edge
               and the strip reads as having a lit silhouette. */}
-          <ambientLight color="#6b4b9e" intensity={0.55} />
-          <directionalLight position={PANEL_LIGHT_DIR} intensity={2.0} color="#fff4e6" />
-          <directionalLight position={[-4, 1.2, -3]} intensity={0.9} color="#ff2a8d" />
+          <ambientLight color="#17263D" intensity={0.8} />
+          <directionalLight position={PANEL_LIGHT_DIR} intensity={2.0} color="#F3EFE5" />
+          <directionalLight position={[-4, 1.2, -3]} intensity={1.2} color="#F5C84B" />
           <Environment
             sim={sim}
             expandRef={expandRef}
