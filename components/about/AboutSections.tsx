@@ -161,51 +161,7 @@ export function CoreSpectrumsSection() {
                   }}
                 />
 
-                {/* Watermark Pillar Number */}
-                <span
-                  className="absolute top-3 right-4 font-mono font-black text-6xl select-none pointer-events-none transition-all duration-500"
-                  style={{
-                    color: p.color,
-                    opacity: isActive ? 0.25 : 0.08,
-                    transform: isActive ? "scale(1.08)" : "scale(1)",
-                  }}
-                >
-                  {p.number}
-                </span>
-
-                <div>
-                  {/* Header: Badge + Glowing Status Beacon */}
-                  <div className="flex items-center justify-between mb-6 relative z-10">
-                    <span
-                      className="text-[10px] font-mono font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full border transition-all duration-300"
-                      style={{
-                        borderColor: `${p.color}50`,
-                        color: p.color,
-                        background: `${p.color}15`,
-                        boxShadow: isActive ? `0 0 12px ${p.color}30` : "none",
-                      }}
-                    >
-                      PILLAR {p.number}
-                    </span>
-
-                    {/* Integrated Dot Beacon */}
-                    <div className="relative flex items-center justify-center">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300"
-                        style={{
-                          background: p.color,
-                          boxShadow: `0 0 12px ${p.color}`,
-                          transform: isActive ? "scale(1.25)" : "scale(1)",
-                        }}
-                      />
-                      {isActive && (
-                        <span
-                          className="absolute w-5 h-5 rounded-full animate-ping opacity-60 pointer-events-none"
-                          style={{ background: p.color }}
-                        />
-                      )}
-                    </div>
-                  </div>
+                <div className="pt-2">
 
                   {/* Pillar Title & Subtitle */}
                   <h3
@@ -250,44 +206,44 @@ export function CoreSpectrumsSection() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BESPOKE EDITORIAL OP METRICS DATA
+// BESPOKE EDITORIAL OP METRICS DATA (VERIFIED CONTENT SPECIFICATION)
 // ─────────────────────────────────────────────────────────────────────────────
 const OP_SPECS = [
   {
     num: "01",
-    stat: "15,000+",
-    keyword: "FOOTFALL CONVERGENCE",
+    stat: "50–60+",
+    keyword: "COLLEGES NATIONALLY",
     accent: "#22d3ee",
-    role: "National Attendance",
-    details: "Over 50+ premier Indian universities descending onto Jaipur for 72 continuous hours of cross-domain rivalry and concert crowds.",
-    tags: ["50+ UNIVERSITIES", "CAMPUS-WIDE PULSE", "PAN-INDIA TEAMS"],
+    role: "National Turnout",
+    details: "Over 2,000+ registered delegates and university teams from 50–60+ colleges across India descending on Jaipur for 3 days of multi-disciplinary rivalry.",
+    tags: ["50–60+ COLLEGES", "2,000+ DELEGATES", "3 DAYS DURATION"],
   },
   {
     num: "02",
-    stat: "₹3.5L+",
-    keyword: "BOUNTY ESCROW",
+    stat: "₹3,00,000+",
+    keyword: "VERIFIED CASH POOL",
     accent: "#a855f7",
-    role: "Direct Prize Pool",
-    details: "Certified cash awards, official mementos, industry seed incubation opportunities, and national championship titles across flagship arenas.",
-    tags: ["VERIFIED BOUNTY", "INSTANT DISBURSEMENT", "SPONSORED GRANTS"],
+    role: "Championship Bounty",
+    details: "Direct cash rewards, certified trophies, and national championship titles contested across marquee technical, cultural, management, and design arenas.",
+    tags: ["₹3,00,000+ POOL", "VERIFIED BOUNTY", "OFFICIAL MEMENTOS"],
   },
   {
     num: "03",
-    stat: "30+",
-    keyword: "MARQUEE ARENAS",
+    stat: "4-IN-1",
+    keyword: "CROSS-DOMAIN FEST",
     accent: "#f59e0b",
-    role: "Competitive Arenas",
-    details: "High-fashion couture runways, battle of the rock bands, midnight street dance battles, AI hackathons, and mock stock markets.",
+    role: "Techno · Cultural · Management · Design",
+    details: "A rare national convergence of 4 pillars under one festival: from Panache fashion runway and Band Jam to AI coding duels, VerseVaad, and Seal the Deal.",
     tags: ["PANACHE RUNWAY", "BAND JAM", "TECH HACKATHON", "VERSEVAAD"],
   },
   {
     num: "04",
-    stat: "STAR",
-    keyword: "HEADLINER PRO-SHOWS",
+    stat: "SINCE 2011",
+    keyword: "HEROIC 15-YR LEGACY",
     accent: "#ec4899",
-    role: "Evening Concerts",
-    details: "Volumetric laser mainstages, Bollywood playback sensations, headlining EDM DJs, and open-air acoustic Sufi nights under the stars.",
-    tags: ["EDM NIGHT", "CELEBRITY ARTISTS", "ACOUSTIC SUFI", "LASER MAINSTAGE"],
+    role: "Headliners & Pro-Nites",
+    details: "15 editions of pioneering campus culture at JKLU, celebrated with headlining live celebrity concerts, high-energy DJ nights, and open-air acoustic Sufi performances.",
+    tags: ["RUNNING SINCE 2011", "LIVE CONCERTS", "DJ NIGHTS", "SUFI ACOUSTICS"],
   },
 ];
 
@@ -326,7 +282,7 @@ export function AboutContentSections() {
             <div className="flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
               <span className="text-[11px] font-mono uppercase tracking-[0.35em] text-cyan-400">
-                04 // THE FESTIVAL METRICS &amp; IMPACT
+                04 // SCALE, IMPACT &amp; PULSE
               </span>
             </div>
             <h2
@@ -337,10 +293,10 @@ export function AboutContentSections() {
                 textShadow: "0 0 30px rgba(255,255,255,0.7), 0 0 60px rgba(34,211,238,0.4)",
               }}
             >
-              Why Is Sabrang <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">OP?</span>
+              The Sabrang <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">Phenomenon</span>
             </h2>
             <p className="text-slate-400 text-xs sm:text-sm font-light max-w-xl leading-relaxed pt-1">
-              An unyielding collision of massive national turnout, life-changing bounties, and unscripted midnight concert energy.
+              A 3-day techno-cultural-management-design immersion at JK Lakshmipat University — uniting national talent, high stakes, and unforgettable pro-nites.
             </p>
           </div>
 
@@ -377,7 +333,7 @@ export function AboutContentSections() {
                     <div className="flex items-center justify-between pl-3">
                       <div>
                         <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-400 block mb-1">
-                          METRIC {spec.num} · {spec.role}
+                          {spec.role}
                         </span>
                         <h4
                           className="text-lg sm:text-xl font-bold uppercase text-white tracking-tight"
@@ -412,31 +368,18 @@ export function AboutContentSections() {
                 }}
               />
 
-              {/* Watermark Stat Number in Background */}
-              <span
-                className="absolute -bottom-6 -right-6 font-mono font-black text-8xl sm:text-9xl select-none pointer-events-none opacity-10 transition-all duration-500"
-                style={{ color: activeSpec.accent }}
-              >
-                {activeSpec.stat}
-              </span>
-
-              {/* Plaque Header: Monospace Spec Header */}
-              <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-6">
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-slate-400 block">
-                    VERIFIED PROTOCOL // {activeSpec.num}
-                  </span>
-                  <span
-                    className="text-xs font-mono font-bold uppercase tracking-widest mt-1 block"
-                    style={{ color: activeSpec.accent }}
-                  >
-                    {activeSpec.role}
-                  </span>
-                </div>
+              {/* Plaque Header: Clean minimal status */}
+              <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-5">
+                <span
+                  className="text-xs font-mono font-bold uppercase tracking-widest block"
+                  style={{ color: activeSpec.accent }}
+                >
+                  {activeSpec.keyword}
+                </span>
 
                 <div className="flex items-center gap-2">
                   <span
-                    className="w-2.5 h-2.5 rounded-full animate-ping"
+                    className="w-2 h-2 rounded-full animate-ping"
                     style={{ background: activeSpec.accent }}
                   />
                   <span
@@ -447,7 +390,7 @@ export function AboutContentSections() {
                       background: `${activeSpec.accent}15`,
                     }}
                   >
-                    ACTIVE SPEC
+                    {activeSpec.role}
                   </span>
                 </div>
               </div>
