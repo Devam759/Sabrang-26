@@ -2,16 +2,16 @@ import "@/lib/suppress-three-logs";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import InitialLoader from "@/components/effects/InitialLoader";
+import TubesCursor from "@/components/effects/TubesCursor";
 import CursorFollower from "@/components/effects/CursorFollower";
 import SmoothScroll from "@/components/effects/SmoothScroll";
 import { InteractionProvider } from "@/components/InteractionContext";
 import Link from "next/link";
 import "./globals.css";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
+const inter = Inter({ subsets: ["latin"] });
 
 import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
@@ -115,7 +115,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className}`}>
+      <body className={inter.className}>
         {process.env.NODE_ENV === "production" && (
           <Script
             defer
@@ -128,9 +128,10 @@ export default function RootLayout({
         <InteractionProvider>
           <AuthProvider>
             <SmoothScroll>
+              <TubesCursor />
               <CursorFollower />
               <InitialLoader />
-              <div className="min-h-screen flex flex-col text-white overflow-x-clip">
+              <div className="min-h-screen flex flex-col bg-black text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
                 <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
