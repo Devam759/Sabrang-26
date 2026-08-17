@@ -102,7 +102,16 @@ export default function TeamClient() {
       }
     },
     { name: "Jheel Jain", role: "Events Core" },
-    { name: "Devam Gupta", role: "Tech & Support Core" },
+    { 
+      name: "Devam Gupta", 
+      role: "Tech & Support Core",
+      links: {
+        email: "mailto:devamgupta@jklu.edu.in",
+        instagram: "https://www.instagram.com/who.is.devam/?hl=en",
+        linkedin: "https://www.linkedin.com/in/devam-gupta/",
+        github: "https://github.com/Devam759"
+      }
+    },
     { 
       name: "Satvik Agrawal", 
       role: "Internal Arrangements Core",
