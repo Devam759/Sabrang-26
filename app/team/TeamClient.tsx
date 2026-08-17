@@ -63,199 +63,65 @@ export default function TeamClient() {
     // Organizing Heads
     { name: "Kartik Sharma", role: "Organizing Head" },
     { name: "Gurseerat Kaur", role: "Organizing Head" },
-    { 
-      name: "Pratigya Bomb", 
-      role: "Organizing Head",
-      links: {
-        email: "mailto:pratigyabomb@jklu.edu.in",
-        linkedin: "https://www.linkedin.com/in/pratigya-bomb-295857349?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-      }
-    },
+    { name: "Pratigya Bomb", role: "Organizing Head" },
     { name: "Rishika Singh", role: "Organizing Head" },
 
     // Tech & Support
-    { 
-      name: "Devam Gupta", 
-      role: "Tech & Support Core",
-      links: {
-        email: "mailto:devamgupta@jklu.edu.in",
-        instagram: "https://www.instagram.com/who.is.devam/?hl=en",
-        linkedin: "https://www.linkedin.com/in/devam-gupta/",
-        github: "https://github.com/Devam759"
-      }
-    },
+    { name: "Devam Gupta", role: "Tech & Support Core" },
 
     // Core Members
     { name: "Tanik Gupta", role: "Discipline Core" },
-    { 
-      name: "Saumya Puri", 
-      role: "Discipline Core",
-      links: {
-        email: "mailto:saumyapuri14@gmail.com",
-        linkedin: "http://www.linkedin.com/in/saumyapuri14"
-      }
-    },
+    { name: "Saumya Puri", role: "Discipline Core" },
     { name: "Aayush", role: "Design Core" },
-    { 
-      name: "Abhirama Shreyas", 
-      role: "Decor Core",
-      links: {
-        email: "mailto:abhiramakarthikeyasreyastuttagunta@jklu.edu.in",
-        instagram: "https://www.instagram.com/abhiram__sreyas?igsh=MWl5M2Rtdm1nM2xneg%3D%3D&utm_source=qr",
-        linkedin: "https://www.linkedin.com/in/abhiram-sreyas-a1747238a?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-      }
-    },
+    { name: "Abhirama Shreyas", role: "Decor Core" },
     { name: "Mahi Tripathi", role: "Decor Core" },
     { name: "Vaibhav Sharma", role: "Media & Report Core" },
     { name: "Kartik Singh", role: "Photography Core" },
     { name: "Roshan Jangir", role: "Photography Core" },
     { name: "Aadhya Mittal", role: "Events Core" },
-    { 
-      name: "Devansh Srivastava", 
-      role: "Events Core",
-      links: {
-        email: "mailto:devansh@jklu.edu.in",
-        linkedin: "https://www.linkedin.com/in/devansh-srivastava-vk18"
-      }
-    },
+    { name: "Devansh Srivastava", role: "Events Core" },
     { name: "Jheel Jain", role: "Events Core" },
-    { 
-      name: "Satvik Agrawal", 
-      role: "Internal Arrangements Core",
-      links: {
-        email: "mailto:satvikagrawal@jklu.edu.in",
-        instagram: "https://www.instagram.com/satvik__oo7_/",
-        linkedin: "https://www.linkedin.com/in/satvik-agrawal1104/",
-        github: "https://github.com/Satvik1131"
-      }
-    },
+    { name: "Satvik Agrawal", role: "Internal Arrangements Core" },
     { name: "Asmit Sharma", role: "Internal Arrangements Core" },
-    { 
-      name: "Kunal Kasliwal", 
-      role: "Transport Core",
-      links: {
-        email: "mailto:kunalkasliwal@jklu.edu.in",
-        instagram: "https://www.instagram.com/kunalkasliwal14",
-        linkedin: "https://www.linkedin.com/in/kunalkasliwal?utm_source=share_via&utm_content=profile&utm_medium=member_android"
-      }
-    },
-    { 
-      name: "Manan Lala", 
-      role: "Transport Core",
-      links: {
-        email: "mailto:mananlala@jklu.edu.in",
-        linkedin: "http://www.linkedin.com/in/manan-lala-a3a094320"
-      }
-    },
-    { 
-      name: "Aditya Nayak", 
-      role: "Social Media Core",
-      links: {
-        instagram: "https://www.instagram.com/_nayak_1913?igsh=MXBpNHNyNmcyY3lkMw==",
-        linkedin: "http://www.linkedin.com/in/adityanayak13",
-        github: "https://github.com/AdityaNayak13",
-        email: "mailto:adityanayak@jklu.edu.in",
-        website: "https://drive.google.com/open?id=1RZ6JawWfvzH8xE54bdaoxrXURElSRibc"
-      }
-    },
-    { 
-      name: "Aryan Gupta", 
-      role: "Social Media Core",
-      links: {
-        email: "mailto:aryangupta2024@jklu.edu.in",
-        instagram: "https://www.instagram.com/itz_aryan_30",
-        linkedin: "https://www.linkedin.com/in/aryan-gupta-30dec2006"
-      }
-    },
-    { 
-      name: "Ashlesha Sharma", 
-      role: "Prize & Certificates Core",
-      links: {
-        email: "mailto:ashleshasharma@jklu.edu.in",
-        linkedin: "https://www.linkedin.com/in/ashlesha-sharma?utm_source=share_via&utm_content=profile&utm_medium=member_android"
-      }
-    },
-    { 
-      name: "Ambika Dalmia", 
-      role: "Hospitality Core",
-      links: {
-        email: "mailto:ambikadalmia@jklu.edu.in",
-        linkedin: "https://www.linkedin.com/in/ambika-dalmia-310762247?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-      }
-    },
-    { 
-      name: "Khushi Soni", 
-      role: "Hospitality Core",
-      links: {
-        email: "mailto:khushisoni@jklu.edu.in",
-        linkedin: "https://www.linkedin.com/in/khushi-soni--ks0906"
-      }
-    },
-    { 
-      name: "Naman Shukla", 
-      role: "Stage & Venue Core",
-      links: {
-        email: "mailto:namanshukla@jklu.edu.in",
-        instagram: "https://www.instagram.com/heyyynaman?igsh=MWJtOTdoeW5kM3J4eg%3D%3D&utm_source=qr",
-        linkedin: "https://www.linkedin.com/in/naman-shukla-87ba40325?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-      }
-    },
-    { 
-      name: "Diksha Shekhawat", 
-      role: "Stage & Venue Core",
-      links: {
-        email: "mailto:dikshashekhawat@jklu.edu.in",
-        linkedin: "https://www.linkedin.com/in/diksha-shekhawat-082643322/"
-      }
-    },
+    { name: "Kunal Kasliwal", role: "Transport Core" },
+    { name: "Manan Lala", role: "Transport Core" },
+    { name: "Aditya Nayak", role: "Social Media Core" },
+    { name: "Aryan Gupta", role: "Social Media Core" },
+    { name: "Ashlesha Sharma", role: "Prize & Certificates Core" },
+    { name: "Ambika Dalmia", role: "Hospitality Core" },
+    { name: "Khushi Soni", role: "Hospitality Core" },
+    { name: "Naman Shukla", role: "Stage & Venue Core" },
+    { name: "Diksha Shekhawat", role: "Stage & Venue Core" },
     { name: "Jayash Gahlot", role: "Registrations Core" },
-    { 
-      name: "Ankit Joshi", 
-      role: "Registrations Core",
-      links: {
-        email: "mailto:ankitjoshi@jklu.edu.in",
-        instagram: "https://www.instagram.com/pandat.02/",
-        github: "https://github.com/ankit1439"
-      }
-    },
+    { name: "Ankit Joshi", role: "Registrations Core" },
     { name: "Gaurang Tak", role: "Sponsorship & Promotions Core" },
-    { 
-      name: "Daksh Kumar", 
-      role: "Anchoring Core",
-      links: {
-        email: "mailto:dakshkumar@jklu.edu.in",
-        instagram: "https://www.instagram.com/dakshkkumar",
-        linkedin: "https://www.linkedin.com/in/dakshkkumar",
-        github: "https://github.com/dakshkkumar"
-      }
-    },
+    { name: "Daksh Kumar", role: "Anchoring Core" },
     { name: "Laksh Sharma", role: "Anchoring Core" },
   ];
 
   function getMemberImage(name: string): string {
     const normalized = name.toLowerCase().trim();
-    if (normalized.includes("aditya nayak")) return "/Team NAme/Aditya Nayak.webp";
-    if (normalized.includes("ambika dalmia")) return "/Team NAme/Ambika Dalmia.webp";
-    if (normalized.includes("aryan") || normalized.includes("aryan gupta")) return "/Team NAme/Aryan.webp";
-    if (normalized.includes("ashlesha sharma")) return "/Team NAme/Ashlesha Sharma.webp";
-    if (normalized.includes("daksh kumar")) return "/Team NAme/Daksh kumar.webp";
-    if (normalized.includes("devam")) return "/Team NAme/Devam.webp";
-    if (normalized.includes("devansh")) return "/Team NAme/devansh.webp";
-    if (normalized.includes("diksha")) return "/Team NAme/Diksha.webp";
-    if (normalized.includes("gurseerat")) return "/Team NAme/Gurseerat OH.webp";
-    if (normalized.includes("kartik") && normalized.includes("singh")) return "/Team NAme/Kartik Chaudhary.webp";
-    if (normalized.includes("khushi")) return "/Team NAme/Khushii.webp";
-    if (normalized.includes("kunal")) return "/Team NAme/Kunal.webp";
-    if (normalized.includes("manan")) return "/Team NAme/Manan.webp";
-    if (normalized.includes("naman shukla")) return "/Team NAme/Naman Shukla.webp";
-    if (normalized.includes("rishika")) return "/Team NAme/Rishika OH .webp";
-    if (normalized.includes("roshan")) return "/Team NAme/Roshan jangir .webp";
-    if (normalized.includes("satvik")) return "/Team NAme/Satvik.webp";
-    if (normalized.includes("saumya")) return "/Team NAme/Saumya.webp";
-    if (normalized.includes("abhiram")) return "/Team NAme/abhiram.webp";
-    if (normalized.includes("ankit")) return "/Team NAme/ankit.webp";
-    if (normalized.includes("asmit")) return "/Team NAme/asmit.webp";
-    if (normalized.includes("laksh")) return "/Team NAme/laksh.webp";
+    if (normalized.includes("aditya nayak"))
+      return "/team-carousel/Aditya Nayak.png";
+    if (normalized.includes("ambika dalmia"))
+      return "/team-carousel/Ambika Dalmia.png";
+    if (normalized.includes("aryan gupta") || normalized === "aryan")
+      return "/team-carousel/Aryan.png";
+    if (normalized.includes("ashlesha sharma"))
+      return "/team-carousel/Ashlesha Sharma.png";
+    if (normalized.includes("daksh kumar"))
+      return "/team-carousel/Daksh kumar.png";
+    if (normalized.includes("devansh srivastava"))
+      return "/team-carousel/Devansh Srivastava.png";
+    if (normalized.includes("manan lala") || normalized === "manan")
+      return "/team-carousel/Manan.png";
+    if (normalized.includes("naman shukla"))
+      return "/team-carousel/Naman Shukla.png";
+    if (normalized.includes("rashi")) return "/team-carousel/Rashi.png";
+    if (normalized.includes("roshan jangir"))
+      return "/team-carousel/Roshan jangir.png";
+    if (normalized.includes("satvik agrawal") || normalized === "satvik")
+      return "/team-carousel/Satvik.png";
 
     // Fallback to JKLU logo for those we don't have photos for
     return "/sabrang-logo/white_jklu_logo.png";
@@ -265,7 +131,6 @@ export default function TeamClient() {
     image: getMemberImage(member.name),
     name: member.name,
     role: member.role,
-    links: (member as any).links,
   }));
 
   return (
