@@ -94,19 +94,19 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
       if (!ctx) return;
       time += 0.012;
 
-      // Determine progress value: external ref (for high-fps scroll scrub) or state prop (default 0.65)
-      const p = progressRef && progressRef.current > 0 ? progressRef.current : (progress || 0.65);
+      // Determine progress value: external ref (for high-fps scroll scrub) or prop
+      const p = progressRef ? progressRef.current : progress;
 
       ctx.clearRect(0, 0, W, H);
 
       const cx = W * 0.5;
       const cy = H * 0.5;
 
-      // ── MOMENT 01: DARKNESS & MONOLITH SOURCE ──
-      const sourceX = W * 0.2;
+      // ── MOMENT 01: MONOLITH LIGHT SOURCE ──
+      const sourceX = W * 0.18;
       const sourceY = cy;
 
-      const sourceAlpha = Math.min(1, Math.max(0, (0.25 - p) / 0.25));
+      const sourceAlpha = p < 0.85 ? Math.min(1, Math.max(0.4, (0.85 - p) / 0.2)) : Math.max(0, 1 - (p - 0.85) / 0.15);
       const pulseRadius = 6 + Math.sin(time * 2.5) * 2;
 
       // Deep atmospheric background gradient
@@ -125,16 +125,16 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
           0,
           sourceX,
           sourceY,
-          120
+          130
         );
         lightGlow.addColorStop(0, `rgba(255, 255, 255, ${0.95 * sourceAlpha})`);
-        lightGlow.addColorStop(0.15, `rgba(220, 240, 255, ${0.6 * sourceAlpha})`);
-        lightGlow.addColorStop(0.4, `rgba(160, 200, 255, ${0.15 * sourceAlpha})`);
+        lightGlow.addColorStop(0.15, `rgba(220, 240, 255, ${0.65 * sourceAlpha})`);
+        lightGlow.addColorStop(0.4, `rgba(160, 200, 255, ${0.2 * sourceAlpha})`);
         lightGlow.addColorStop(1, "rgba(0,0,0,0)");
 
         ctx.fillStyle = lightGlow;
         ctx.beginPath();
-        ctx.arc(sourceX, sourceY, 120, 0, Math.PI * 2);
+        ctx.arc(sourceX, sourceY, 130, 0, Math.PI * 2);
         ctx.fill();
 
         // Core dot
@@ -145,78 +145,74 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
       }
 
       // ── MOMENT 02: BEAM PROPAGATION ──
-      const prismX = W * 0.48;
+      const prismX = W * 0.46;
       const prismY = cy;
 
-      if (p > 0.12) {
-        const beamProgress = Math.min(1, (p - 0.12) / 0.28);
-        const currentBeamX = sourceX + (prismX - sourceX) * beamProgress;
-        const beamFade = p > 0.75 ? Math.max(0, 1 - (p - 0.75) / 0.2) : 1;
+      const beamProgress = Math.min(1, Math.max(0, p / 0.25));
+      const currentBeamX = sourceX + (prismX - sourceX) * beamProgress;
+      const beamFade = p > 0.85 ? Math.max(0, 1 - (p - 0.85) / 0.15) : 1;
 
-        if (beamProgress > 0 && beamFade > 0) {
-          // Primary Volumetric Light Shaft
-          const shaftGrad = ctx.createLinearGradient(sourceX, sourceY, currentBeamX, prismY);
-          shaftGrad.addColorStop(0, `rgba(255, 255, 255, ${0.9 * beamFade})`);
-          shaftGrad.addColorStop(0.7, `rgba(240, 248, 255, ${0.7 * beamFade})`);
-          shaftGrad.addColorStop(1, `rgba(255, 255, 255, ${0.95 * beamFade})`);
+      if (beamProgress > 0 && beamFade > 0) {
+        // Primary Volumetric Light Shaft
+        const shaftGrad = ctx.createLinearGradient(sourceX, sourceY, currentBeamX, prismY);
+        shaftGrad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * beamFade})`);
+        shaftGrad.addColorStop(0.7, `rgba(240, 248, 255, ${0.8 * beamFade})`);
+        shaftGrad.addColorStop(1, `rgba(255, 255, 255, ${0.98 * beamFade})`);
 
-          // Soft volumetric beam glow width
-          ctx.save();
-          ctx.lineWidth = 4 + Math.sin(time * 3) * 1;
-          ctx.strokeStyle = shaftGrad;
-          ctx.shadowColor = "rgba(200, 230, 255, 0.8)";
-          ctx.shadowBlur = 24;
-          ctx.beginPath();
-          ctx.moveTo(sourceX, sourceY);
-          ctx.lineTo(currentBeamX, prismY);
-          ctx.stroke();
-          ctx.restore();
-
-          // Core tight laser center line
-          ctx.save();
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${beamFade})`;
-          ctx.beginPath();
-          ctx.moveTo(sourceX, sourceY);
-          ctx.lineTo(currentBeamX, prismY);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-
-      // Faint Optical Glass Boundary at Prism position
-      if (p > 0.25 && p < 0.85) {
-        const prismAlpha = Math.min(1, (p - 0.25) / 0.15) * Math.max(0, 1 - (p - 0.75) / 0.1);
+        // Soft volumetric beam glow width
         ctx.save();
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 * prismAlpha})`;
-        ctx.lineWidth = 1;
-        ctx.shadowColor = "rgba(255, 255, 255, 0.3)";
-        ctx.shadowBlur = 10;
-
-        // Draw elegant optical prism silhouette
+        ctx.lineWidth = 5 + Math.sin(time * 3) * 1;
+        ctx.strokeStyle = shaftGrad;
+        ctx.shadowColor = "rgba(200, 230, 255, 0.85)";
+        ctx.shadowBlur = 28;
         ctx.beginPath();
-        const pSize = 42;
-        ctx.moveTo(prismX, prismY - pSize);
-        ctx.lineTo(prismX + pSize * 0.86, prismY + pSize * 0.5);
-        ctx.lineTo(prismX - pSize * 0.86, prismY + pSize * 0.5);
-        ctx.closePath();
+        ctx.moveTo(sourceX, sourceY);
+        ctx.lineTo(currentBeamX, prismY);
         ctx.stroke();
+        ctx.restore();
 
-        // Soft glass interior sheen
-        const prismSheen = ctx.createLinearGradient(prismX - 20, prismY - 20, prismX + 20, prismY + 20);
-        prismSheen.addColorStop(0, `rgba(255, 255, 255, ${0.04 * prismAlpha})`);
-        prismSheen.addColorStop(0.5, `rgba(180, 220, 255, ${0.08 * prismAlpha})`);
-        prismSheen.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = prismSheen;
-        ctx.fill();
+        // Core tight laser center line
+        ctx.save();
+        ctx.lineWidth = 2.0;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${beamFade})`;
+        ctx.beginPath();
+        ctx.moveTo(sourceX, sourceY);
+        ctx.lineTo(currentBeamX, prismY);
+        ctx.stroke();
         ctx.restore();
       }
 
-      // ── MOMENT 03: REFRACTION & SPECTRAL DISPERSION ──
-      const targetX = W * 0.82;
+      // Optical Glass Boundary at Prism position
+      const prismAlpha = Math.min(1, Math.max(0.2, p / 0.2)) * Math.max(0, 1 - (p - 0.85) / 0.15);
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.25 * prismAlpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+      ctx.shadowBlur = 16;
 
-      if (p > 0.35) {
-        const refractProgress = Math.min(1, (p - 0.35) / 0.4);
+      // Draw optical prism silhouette
+      ctx.beginPath();
+      const pSize = 45;
+      ctx.moveTo(prismX, prismY - pSize);
+      ctx.lineTo(prismX + pSize * 0.86, prismY + pSize * 0.5);
+      ctx.lineTo(prismX - pSize * 0.86, prismY + pSize * 0.5);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Soft glass interior sheen
+      const prismSheen = ctx.createLinearGradient(prismX - 20, prismY - 20, prismX + 20, prismY + 20);
+      prismSheen.addColorStop(0, `rgba(255, 255, 255, ${0.1 * prismAlpha})`);
+      prismSheen.addColorStop(0.5, `rgba(180, 220, 255, ${0.2 * prismAlpha})`);
+      prismSheen.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = prismSheen;
+      ctx.fill();
+      ctx.restore();
+
+      // ── MOMENT 03: REFRACTION & SPECTRAL DISPERSION ──
+      const targetX = W * 0.85;
+
+      if (p > 0.10) {
+        const refractProgress = Math.min(1, Math.max(0, (p - 0.10) / 0.55));
         const convergeProgress = p > 0.72 ? Math.min(1, (p - 0.72) / 0.22) : 0;
 
         SPECTRUM_RAYS.forEach((ray, index) => {
@@ -235,7 +231,7 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
           const rayGrad = ctx.createLinearGradient(prismX, prismY, endX, endY);
           rayGrad.addColorStop(0, `rgba(255, 255, 255, ${0.9 * rayAlpha})`);
           rayGrad.addColorStop(0.25, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.85 * rayAlpha})`);
-          rayGrad.addColorStop(0.85, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.4 * rayAlpha})`);
+          rayGrad.addColorStop(0.85, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.45 * rayAlpha})`);
           rayGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
 
           ctx.lineWidth = 2 + (1 - convergeProgress) * 1.5;
@@ -252,7 +248,7 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
           ctx.stroke();
 
           // Floating Light Tip Glow
-          if (refractProgress > 0.2) {
+          if (refractProgress > 0.15) {
             const tipGlow = ctx.createRadialGradient(endX, endY, 0, endX, endY, 35 * refractProgress);
             tipGlow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.4 * rayAlpha})`);
             tipGlow.addColorStop(1, "rgba(0,0,0,0)");
@@ -264,19 +260,19 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
           ctx.restore();
 
           // ── FLOATING DISCIPLINE TEXT EMBEDDED IN LIGHT PATH ──
-          if (refractProgress > 0.4 && convergeProgress < 0.7) {
+          if (refractProgress > 0.25 && convergeProgress < 0.8) {
             const textX = prismX + (endX - prismX) * 0.65;
             const textY = prismY + (endY - prismY) * 0.65;
 
             const labelFade = Math.min(
               1,
-              Math.max(0, (refractProgress - 0.3) / 0.3)
+              Math.max(0, (refractProgress - 0.2) / 0.3)
             ) * (1 - convergeProgress * 1.5);
 
             if (labelFade > 0.01) {
               ctx.save();
               ctx.font = "900 10px 'Syne', sans-serif";
-              ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.9 * labelFade})`;
+              ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.95 * labelFade})`;
               ctx.shadowColor = ray.color;
               ctx.shadowBlur = 12 * labelFade;
               ctx.textAlign = "left";

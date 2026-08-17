@@ -1,14 +1,11 @@
 "use client";
 
 /**
- * SabrangPillarsCanvas — Central Light & 4 Emerging Wavelengths
+ * SabrangPillarsCanvas — Central Light & Emerging Wavelengths to Card Dots
  * 
  * Section 02 Visual System:
- * A unified central light source branches into 4 distinct scroll-reactive wavelengths:
- * 1. TECHNO & INNOVATION (Cyan Wavelength)
- * 2. CULTURAL & PERFORMING (Purple Wavelength)
- * 3. MANAGEMENT & STRATEGY (Amber Wavelength)
- * 4. DESIGN & EXPRESSION (Pink Wavelength)
+ * A unified central light source branches into 4 distinct light rays that connect
+ * directly to the colored dots on top of each Pillar Card.
  */
 
 import React, { useEffect, useRef, useState } from "react";
@@ -20,8 +17,9 @@ export interface PillarData {
   subtitle: string;
   description: string;
   color: string;
-  angle: number; // in degrees relative to central point
+  defaultRatioX: number; // fallback relative X position
   keyword: string;
+  image?: string;
 }
 
 export const SABRANG_PILLARS: PillarData[] = [
@@ -32,8 +30,9 @@ export const SABRANG_PILLARS: PillarData[] = [
     subtitle: "Technical Genius & Code",
     description: "National hackathons, robotics arenas, AI showdowns, and high-stakes coding duels.",
     color: "#22d3ee",
-    angle: -45,
+    defaultRatioX: 0.15,
     keyword: "TECHNICAL GENIUS",
+    image: "/versevaad.jpg",
   },
   {
     id: "cultural",
@@ -42,8 +41,9 @@ export const SABRANG_PILLARS: PillarData[] = [
     subtitle: "Artistic Rebellion & Stage",
     description: "Live band clashes, battle of the dance troupes, fashion runways, and mainstage concerts.",
     color: "#a855f7",
-    angle: -15,
+    defaultRatioX: 0.38,
     keyword: "ARTISTIC REBELLION",
+    image: "/dance-battle.png",
   },
   {
     id: "management",
@@ -52,8 +52,9 @@ export const SABRANG_PILLARS: PillarData[] = [
     subtitle: "Business Vision & Pitch",
     description: "B-plan pitching, stock market simulations, crisis management, and executive leadership.",
     color: "#f59e0b",
-    angle: 15,
+    defaultRatioX: 0.62,
     keyword: "STRATEGIC VISION",
+    image: "/sabrang-live.png",
   },
   {
     id: "design",
@@ -62,8 +63,9 @@ export const SABRANG_PILLARS: PillarData[] = [
     subtitle: "Visual Arts & Aesthetics",
     description: "UI/UX sprint challenges, fine art installations, multimedia storytelling, and digital craft.",
     color: "#ec4899",
-    angle: 45,
+    defaultRatioX: 0.85,
     keyword: "CREATIVE AESTHETICS",
+    image: "/panache-runway.png",
   },
 ];
 
@@ -78,15 +80,17 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 export interface SabrangPillarsCanvasProps {
-  progressRef: React.MutableRefObject<number>;
+  progressRef?: React.MutableRefObject<number>;
   activePillarId?: string | null;
   onHoverPillar?: (id: string | null) => void;
+  dotTargets?: { [key: string]: { x: number; y: number } };
 }
 
 export default function SabrangPillarsCanvas({
   progressRef,
   activePillarId = null,
   onHoverPillar,
+  dotTargets,
 }: SabrangPillarsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -125,50 +129,31 @@ export default function SabrangPillarsCanvas({
 
       ctx.clearRect(0, 0, W, H);
 
+      // Position central light source top-center
       const cx = W * 0.5;
-      const cy = H * 0.5;
+      const cy = H * 0.16;
 
-      // ── CENTRAL UNIFIED LIGHT CORE ──
       const activeId = activePillarId || hoveredId;
       const isIsolated = Boolean(activeId);
 
-      // Core pulse
-      const pulse = Math.sin(time * 2.5) * 3;
-      const coreRadius = 24 + pulse;
-
-      // Draw central light aura
-      const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 140);
-      coreGlow.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-      coreGlow.addColorStop(0.2, "rgba(200, 230, 255, 0.6)");
-      coreGlow.addColorStop(0.5, "rgba(168, 85, 247, 0.2)");
-      coreGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-      ctx.fillStyle = coreGlow;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 140, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Core solid point
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(cx, cy, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // ── 4 EMERGING WAVELENGTHS ──
-      const maxDist = Math.min(W, H) * 0.38;
-
+      // ── 4 RAY PATHS EMANATING DIRECTLY TO CARD DOTS ──
       SABRANG_PILLARS.forEach((pillar, i) => {
-        // Individual pillar emergence thresholds: smooth emergence across scrub progress
         const startP = i * 0.12;
         const emergence = Math.min(1, Math.max(0, (p - startP) / 0.25));
 
         if (emergence <= 0.01) return;
 
-        const rad = (pillar.angle * Math.PI) / 180;
-        const currentDist = maxDist * emergence;
+        // Exact dot target coordinates or fallback ratio
+        const destX = dotTargets && dotTargets[pillar.id]
+          ? dotTargets[pillar.id].x
+          : W * pillar.defaultRatioX;
 
-        const endX = cx + Math.cos(rad) * currentDist;
-        const endY = cy + Math.sin(rad) * currentDist;
+        const destY = dotTargets && dotTargets[pillar.id]
+          ? dotTargets[pillar.id].y
+          : H * 0.52;
+
+        const currentX = cx + (destX - cx) * emergence;
+        const currentY = cy + (destY - cy) * emergence;
 
         const isThisActive = activeId === pillar.id;
         const alphaMultiplier = isIsolated ? (isThisActive ? 1.0 : 0.15) : 0.85;
@@ -177,42 +162,36 @@ export default function SabrangPillarsCanvas({
 
         // Draw light path vector
         ctx.save();
-        const beamGrad = ctx.createLinearGradient(cx, cy, endX, endY);
-        beamGrad.addColorStop(0, `rgba(255, 255, 255, ${0.9 * alphaMultiplier})`);
-        beamGrad.addColorStop(0.4, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.8 * alphaMultiplier})`);
-        beamGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.1 * alphaMultiplier})`);
+        const beamGrad = ctx.createLinearGradient(cx, cy, currentX, currentY);
+        beamGrad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * alphaMultiplier})`);
+        beamGrad.addColorStop(0.35, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.85 * alphaMultiplier})`);
+        beamGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.3 * alphaMultiplier})`);
 
-        ctx.lineWidth = isThisActive ? 4 : 2;
+        ctx.lineWidth = isThisActive ? 4.5 : 2.5;
         ctx.strokeStyle = beamGrad;
         ctx.shadowColor = pillar.color;
-        ctx.shadowBlur = isThisActive ? 28 : 14;
+        ctx.shadowBlur = isThisActive ? 30 : 14;
 
         ctx.beginPath();
         ctx.moveTo(cx, cy);
-        
-        // Curved wave line
-        const midX = cx + (endX - cx) * 0.5 + Math.sin(time * 2 + i) * 8;
-        const midY = cy + (endY - cy) * 0.5 + Math.cos(time * 2 + i) * 8;
-        ctx.quadraticCurveTo(midX, midY, endX, endY);
+
+        // Curve vector cleanly to the card dot
+        const midX = cx + (currentX - cx) * 0.5 + Math.sin(time * 2 + i) * 5;
+        const midY = cy + (currentY - cy) * 0.5 + Math.cos(time * 2 + i) * 5;
+        ctx.quadraticCurveTo(midX, midY, currentX, currentY);
         ctx.stroke();
         ctx.restore();
 
-        // Tip node glow
-        if (emergence > 0.5) {
+        // Target dot connector soft aura
+        if (emergence > 0.4) {
           ctx.save();
-          const nodeGlow = ctx.createRadialGradient(endX, endY, 0, endX, endY, isThisActive ? 45 : 25);
-          nodeGlow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.9 * alphaMultiplier})`);
+          const nodeGlow = ctx.createRadialGradient(currentX, currentY, 0, currentX, currentY, isThisActive ? 40 : 22);
+          nodeGlow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.95 * alphaMultiplier})`);
           nodeGlow.addColorStop(1, "rgba(0,0,0,0)");
 
           ctx.fillStyle = nodeGlow;
           ctx.beginPath();
-          ctx.arc(endX, endY, isThisActive ? 45 : 25, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Core node point
-          ctx.fillStyle = `rgba(255, 255, 255, ${alphaMultiplier})`;
-          ctx.beginPath();
-          ctx.arc(endX, endY, isThisActive ? 6 : 4, 0, Math.PI * 2);
+          ctx.arc(currentX, currentY, isThisActive ? 40 : 22, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
@@ -227,7 +206,7 @@ export default function SabrangPillarsCanvas({
       cancelAnimationFrame(animRef.current);
       ro.disconnect();
     };
-  }, [activePillarId, hoveredId, progressRef]);
+  }, [activePillarId, hoveredId, progressRef, dotTargets]);
 
   return (
     <canvas

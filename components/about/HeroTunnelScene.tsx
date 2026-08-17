@@ -147,7 +147,7 @@ function buildTunnel(n: number): {
 function TunnelScene({
   scrollProgress,
 }: {
-  scrollProgress: { current: number };
+  scrollProgress?: { current: number };
 }) {
   const { camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
@@ -194,24 +194,17 @@ function TunnelScene({
 
   // Per-frame: update camera + tunnel rotation + particle opacity
   useFrame((_, delta) => {
-    const p = scrollProgress.current; // 0 → 1
+    const p = scrollProgress ? scrollProgress.current : 0.2;
+    mat.uniforms.uOpacity.value = 0.85;
 
-    // Particle opacity: full until 58% scroll, then fades to 0 by 82%
-    const opacity = THREE.MathUtils.clamp(1 - (p - 0.58) / 0.24, 0, 1);
-    mat.uniforms.uOpacity.value = opacity;
-
-    // GPU Optimization: Hide mesh and skip rotation when particle opacity reaches 0
     if (groupRef.current) {
-      const isVisible = opacity > 0.001;
-      groupRef.current.visible = isVisible;
-      if (!isVisible) return; // Skip GPU draw call completely when scrolled past hero
-
-      groupRef.current.rotation.z += delta * (0.022 + p * 0.02);
+      groupRef.current.visible = true;
+      groupRef.current.rotation.z += delta * (0.022 + Math.min(p, 1) * 0.02);
     }
 
     // Camera flies through the tunnel along Z
     const cam = camera as THREE.PerspectiveCamera;
-    cam.position.z = THREE.MathUtils.lerp(18, -8, p);
+    cam.position.z = THREE.MathUtils.lerp(18, -8, Math.min(p, 1));
   });
 
   return (
@@ -225,7 +218,7 @@ function TunnelScene({
 export default function HeroTunnelScene({
   scrollProgress,
 }: {
-  scrollProgress: { current: number };
+  scrollProgress?: { current: number };
 }) {
   return (
     <div

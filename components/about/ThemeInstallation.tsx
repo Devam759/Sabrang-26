@@ -35,56 +35,34 @@ export default function ThemeInstallation() {
     if (!section || !trigger) return;
 
     const ctx = gsap.context(() => {
-      // Pin section throughout a tight, natural scroll narrative
-      ScrollTrigger.create({
-        trigger: trigger,
-        start: "top top",
-        end: "+=120%",
-        pin: true,
-        pinSpacing: true,
-        scrub: 0.5,
-        onUpdate: (self) => {
-          progressRef.current = self.progress;
-        },
-      });
-
-      // Phase 1 Overlay (Theme Title & Initial Light)
-      gsap.timeline({
+      // Single Master Pinned Timeline — 100% Synchronized with Prism Optics
+      const master = gsap.timeline({
         scrollTrigger: {
           trigger: trigger,
           start: "top top",
-          end: "top+=40% top",
+          end: "+=150%",
+          pin: true,
+          pinSpacing: true,
           scrub: 0.5,
+          onUpdate: (self) => {
+            progressRef.current = self.progress;
+          },
         },
-      })
-        .fromTo(p1Ref.current, { opacity: 1, y: 0 }, { opacity: 1, y: 0, duration: 0.2 })
-        .to(p1Ref.current, { opacity: 0, y: -20, duration: 0.2 }, "+=0.1");
+      });
 
-      // Phase 2 Overlay (Light Refraction & Story)
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: trigger,
-          start: "top+=25% top",
-          end: "top+=75% top",
-          scrub: 0.5,
-        },
-      })
-        .fromTo(p2Ref.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.2 })
-        .to(p2Ref.current, { opacity: 0, y: -20, duration: 0.2 }, "+=0.15");
+      // ── PHASE 1 OVERLAY (0.0 to 0.30): Title & Initial White Beam ──
+      master
+        .fromTo(p1Ref.current, { opacity: 1, y: 0 }, { opacity: 1, y: 0, duration: 0.25 }, 0)
+        .to(p1Ref.current, { opacity: 0, y: -20, duration: 0.12 }, 0.28);
 
-      // Phase 3 Overlay (Sabrang Convergence & Poster Manifesto)
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: trigger,
-          start: "top+=65% top",
-          end: "top+=115% top",
-          scrub: 0.5,
-        },
-      }).fromTo(
-        p3Ref.current,
-        { opacity: 0, scale: 0.96, y: 20 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.3 }
-      );
+      // ── PHASE 2 OVERLAY (0.30 to 0.68): Refraction & 7 Spectral Rays ──
+      master
+        .fromTo(p2Ref.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.18 }, 0.32)
+        .to(p2Ref.current, { opacity: 0, y: -20, duration: 0.12 }, 0.64);
+
+      // ── PHASE 3 OVERLAY (0.68 to 1.0): Sabrang Convergence ──
+      master
+        .fromTo(p3Ref.current, { opacity: 0, scale: 0.95, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.22 }, 0.68);
     }, section);
 
     return () => ctx.revert();
