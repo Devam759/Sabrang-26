@@ -11,13 +11,6 @@ export interface CarouselItemData {
   image: string;
   name?: string;
   role?: string;
-  links?: {
-    instagram?: string;
-    linkedin?: string;
-    github?: string;
-    email?: string;
-    website?: string;
-  };
 }
 
 interface CarouselItemProps {
