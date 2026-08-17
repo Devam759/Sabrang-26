@@ -183,6 +183,11 @@ export default function WebGLCarousel({
   className = "w-full h-[70vh]",
 }: WebGLCarouselProps) {
   const [activeItem, setActiveItem] = useState<CarouselItemData | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (activeItem) {
@@ -206,18 +211,21 @@ export default function WebGLCarousel({
         </h1>
       </div>
 
-      <Canvas
-        style={{ touchAction: "none" }}
-        gl={{ alpha: true, antialias: true }}
-        onCreated={({ gl }) => {
-          gl.setClearColor(0x000000, 0);
-        }}
-        camera={{ position: [0, 0, 3.6], fov: 45 }}
-      >
-        <Suspense fallback={null}>
-          <Carousel items={items} onActiveItemChange={setActiveItem} />
-        </Suspense>
-      </Canvas>
+      {isMounted && (
+        <Canvas
+          style={{ touchAction: "none" }}
+          dpr={[1, 2]}
+          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+          onCreated={({ gl }) => {
+            gl.setClearColor(0x000000, 0);
+          }}
+          camera={{ position: [0, 0, 3.6], fov: 45 }}
+        >
+          <Suspense fallback={null}>
+            <Carousel items={items} onActiveItemChange={setActiveItem} />
+          </Suspense>
+        </Canvas>
+      )}
 
       {/* Overlay caption when an item is expanded */}
       {activeItem && <OpenedNameOverlay item={activeItem} />}

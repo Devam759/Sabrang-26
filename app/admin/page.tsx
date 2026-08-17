@@ -267,6 +267,10 @@ export default function AdminDashboard() {
           {/* Live QR Scanner Card */}
           <div className="relative overflow-hidden bg-inverse-surface rounded-xl p-6 card-shadow text-on-primary-container h-[26rem] flex flex-col justify-between group">
             <div className="absolute inset-0 opacity-20 pointer-events-none transition-transform duration-700 group-hover:scale-110">
+              {/* Plain img: Unsplash already resizes this decorative backdrop to
+                  the requested width via URL params, so the optimizer would add
+                  a whitelisted external host for no gain. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="w-full h-full object-cover grayscale"
                 src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800"

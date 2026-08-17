@@ -21,7 +21,7 @@ A modern, high-performance web application built for **Sabrang 2026** — managi
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Graphics & WebGL**: `ogl`, `three`, `threejs-components`
 - **Backend & Database**: Firebase Auth, Cloud Firestore, Firebase Admin SDK
-- **Animation & Utilities**: `framer-motion`, `gsap`, `animejs`, `zod`
+- **Animation & Utilities**: `framer-motion`, `gsap`, `lenis`, `zod`
 
 ---
 

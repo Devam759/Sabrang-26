@@ -121,6 +121,10 @@ export default function Dashboard() {
                 className="bg-neutral-900/90 sm:bg-white rounded-2xl shadow-md border border-white/10 sm:border-slate-200 p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6"
               >
                 <div className="flex-shrink-0 flex flex-col items-center justify-center p-3 border border-white/10 sm:border-slate-200 rounded-xl bg-neutral-950 sm:bg-slate-50">
+                  {/* Plain img: qrDataUrl is a client-generated data: URI, which
+                      the image optimizer cannot process — next/image would only
+                      add a wrapper and an `unoptimized` escape hatch. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={reg.qrDataUrl}
                     alt="QR Code"

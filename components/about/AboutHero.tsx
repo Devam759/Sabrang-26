@@ -223,7 +223,7 @@ export default function AboutHero() {
           start: "top top",
           end: "bottom bottom",
           pin: stage,
-          scrub: 1.0, // 1s inertia momentum matching Shopify reference
+          scrub: true, // Synced seamlessly with Lenis smooth scroll
           anticipatePin: 1,
           onUpdate: (self) => {
             scrollProgressRef.current = self.progress;
@@ -336,6 +336,7 @@ export default function AboutHero() {
           height: "100vh",
           overflow: "hidden",
           background: "#000000",
+          contain: "paint",
         }}
       >
         {/* Layer 0: Three.js "Colours Over Black" 3D Fluid Ribbon Sculpture background */}
@@ -343,7 +344,7 @@ export default function AboutHero() {
           <HeroColoursOverBlack scrollProgress={scrollProgressRef} />
         </div>
 
-        {/* Layer 1: Deep atmospheric texture — subtle noise fog */}
+        {/* Layer 1: Deep atmospheric texture — soft edge vignette */}
         <div
           aria-hidden="true"
           style={{
@@ -351,41 +352,8 @@ export default function AboutHero() {
             inset: 0,
             zIndex: 2,
             pointerEvents: "none",
-            background: `
-              radial-gradient(ellipse 50% 40% at 15% 25%, rgba(255,20,60,0.04) 0%, transparent 70%),
-              radial-gradient(ellipse 45% 35% at 85% 20%, rgba(100,0,255,0.04) 0%, transparent 70%),
-              radial-gradient(ellipse 40% 45% at 80% 80%, rgba(0,200,255,0.03) 0%, transparent 70%),
-              radial-gradient(ellipse 50% 40% at 20% 75%, rgba(255,140,0,0.03) 0%, transparent 70%)
-            `,
-          }}
-        />
-
-        {/* Layer 2: Deep cinematic vignette — keeps black dominant */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 3,
-            pointerEvents: "none",
             background:
-              "radial-gradient(ellipse 65% 55% at 50% 50%, transparent 10%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.92) 100%)",
-          }}
-        />
-
-        {/* Layer 3: Film grain overlay */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 4,
-            pointerEvents: "none",
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-            backgroundSize: "220px 220px",
-            mixBlendMode: "overlay",
-            opacity: 0.72,
+              "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 60%, rgba(0,0,0,0.55) 100%)",
           }}
         />
 
@@ -442,7 +410,7 @@ export default function AboutHero() {
                     display: "inline-block",
                     color: "#ffffff",
                     textShadow:
-                      "0 0 20px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.7), 0 0 85px rgba(168, 85, 247, 0.55), 0 0 120px rgba(236, 72, 153, 0.4), 0 8px 36px rgba(0,0,0,0.95)",
+                      "0 0 24px rgba(255, 255, 255, 0.8), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
                     transformStyle: "preserve-3d",
                     backfaceVisibility: "hidden",
                     willChange: "transform, opacity",
@@ -461,18 +429,17 @@ export default function AboutHero() {
               margin: "26px 0 0",
               opacity: 0,
               fontFamily: '"Inter", sans-serif',
-              fontWeight: 500,
+              fontWeight: 600,
               fontSize: "clamp(0.55rem, 1vw, 0.75rem)",
               letterSpacing: "0.36em",
-              color: "rgba(255,255,255,0.78)",
+              color: "rgba(255,255,255,0.85)",
               textShadow: "0 2px 10px rgba(0,0,0,0.9)",
               textTransform: "uppercase",
               whiteSpace: "nowrap",
               userSelect: "none",
             }}
           >
-            ALL SHADES OF CREATIVITY&nbsp;&nbsp;·&nbsp;&nbsp;JKLU
-            JAIPUR&nbsp;&nbsp;·&nbsp;&nbsp;2026
+            SHADES &amp; COLORS OF LIGHT&nbsp;&nbsp;·&nbsp;&nbsp;JKLU JAIPUR&nbsp;&nbsp;·&nbsp;&nbsp;OCT 2026
           </p>
         </div>
 
@@ -534,12 +501,14 @@ export default function AboutHero() {
               }}
             >
               <Image
-                src="/sabrang-live.png"
+                src="/menu-scroll-covers/sabrang-live.png"
                 alt="Sabrang Live Concert Performance"
                 fill
                 sizes="(max-width: 768px) 90vw, 45vw"
                 style={{ objectFit: "cover" }}
-                priority
+                loading="eager"
+                fetchPriority="high"
+
               />
               <div
                 style={{
@@ -569,11 +538,11 @@ export default function AboutHero() {
                   fontFamily: "monospace",
                   fontSize: "clamp(0.58rem, 0.9vw, 0.72rem)",
                   letterSpacing: "0.28em",
-                  color: "rgba(255,255,255,0.48)",
+                  color: "rgba(56,189,248,0.9)",
                   textTransform: "uppercase",
                 }}
               >
-                Sabrang · About
+                SINCE 2011 · 15TH EDITION HEROIC LEGACY
               </p>
 
               <h2
@@ -583,7 +552,7 @@ export default function AboutHero() {
                   opacity: 0,
                   fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
                   fontWeight: 800,
-                  fontSize: "clamp(2.0rem, 3.8vw, 3.6rem)",
+                  fontSize: "clamp(1.8rem, 3.5vw, 3.2rem)",
                   letterSpacing: "-0.02em",
                   color: "#ffffff",
                   lineHeight: 1.1,
@@ -591,7 +560,7 @@ export default function AboutHero() {
                   textShadow: "0 4px 24px rgba(0,0,0,0.95)",
                 }}
               >
-                About Sabrang
+                Sabrang 2026
               </h2>
 
               <p
@@ -602,17 +571,14 @@ export default function AboutHero() {
                   fontFamily: '"Inter", sans-serif',
                   fontWeight: 400,
                   fontSize: "clamp(0.85rem, 1.15vw, 1.02rem)",
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(255,255,255,0.88)",
                   lineHeight: 1.68,
-                  maxWidth: "46ch",
+                  maxWidth: "48ch",
                 }}
               >
-                Sabrang isn't just a fest — it's an explosion of talent,
-                creativity, and cosmic energy. Over three thrilling days, JKLU
-                transforms into a universe of music, dance, art, technology, and
-                pure celebration. With a massive prize pool, flagship events,
-                celebrity performances, and non-stop entertainment, Sabrang is
-                where memories are made and legends are born.
+                Sabrang is JK Lakshmipat University's flagship annual techno-cultural-management-design 
+                festival. Since 2011, Sabrang has grown into a premier national platform bringing together over 
+                2,000 participants across 50+ universities for three exhilarating days of innovation, high-energy competitions, and star-studded evening performances.
               </p>
 
               <div

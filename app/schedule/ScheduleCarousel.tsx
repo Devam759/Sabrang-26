@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import "./ScheduleCarousel.css";
 
 type ScheduleEvent = {
@@ -207,9 +208,11 @@ export default function ScheduleCarousel({ events }: ScheduleCarouselProps) {
                     <div className="event-card-media">
                       {evt.image ? (
                         <>
-                          <img 
-                            src={evt.image} 
+                          <Image
+                            src={evt.image}
                             alt={evt.event}
+                            fill
+                            sizes="(max-width: 768px) 90vw, 40vw"
                           />
                           <div className="media-overlay" />
                         </>

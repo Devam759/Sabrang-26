@@ -1,10 +1,34 @@
 // Pure carousel math. No R3F imports — unit-testable.
 import {
   CURVE_THETA_MAX,
+  MOMENTUM_DECAY,
   RADIUS,
   WAVE_AMPLITUDE,
   WAVE_LENGTH,
 } from './constants';
+
+// --- Momentum glide ------------------------------------------------------
+// A glide adds v each frame while v decays geometrically, so the distance it
+// still has to run is the sum of that series: v + vd + vd² + … = v / (1 - d).
+// Having it in closed form is what lets a wheel notch aim at a landing point
+// rather than just shove velocity in and hope.
+export function glideDistance(velocity: number): number {
+  return velocity / (1 - MOMENTUM_DECAY);
+}
+
+/**
+ * Velocity that brings a glide to rest exactly `steps` frames past where it is
+ * already headed — the inverse of glideDistance.
+ *
+ * Aiming at a landing point is what makes the wheel deterministic: the result
+ * depends only on the current position and the intended destination, never on
+ * how many events a browser split one notch into or on how much of the previous
+ * notch's momentum has yet to decay. Those two were exactly what let one notch
+ * travel two frames.
+ */
+export function glideVelocity(position: number, rest: number, steps: number): number {
+  return (Math.round(rest) + steps - position) * (1 - MOMENTUM_DECAY);
+}
 
 // Shortest signed distance across n items, wrapped into [-n/2, n/2).
 // This is what makes the last→first wrap invisible: we never reset position,

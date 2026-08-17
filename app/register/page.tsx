@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     "Sabrang Registration Form",
     "JKLU Fest Registration",
     "Sabrang Participant Signup",
+    "Sabrang 2026 Passes",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/register" },
   openGraph: {
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
     description:
       "Create your account and register for Sabrang 2026 flagship competitions and pro-shows.",
     url: "https://sabrang.jklu.edu.in/register",
+    siteName: "Sabrang 2026 - JKLU",
+    type: "website",
   },
 };
 
@@ -34,10 +37,30 @@ const registerSchema = {
   },
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://sabrang.jklu.edu.in",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Register",
+      item: "https://sabrang.jklu.edu.in/register",
+    },
+  ],
+};
+
 export default function RegisterPage() {
   return (
     <>
       <JsonLd data={registerSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <RegisterClient />
     </>
   );
