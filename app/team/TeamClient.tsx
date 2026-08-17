@@ -234,28 +234,28 @@ export default function TeamClient() {
 
   function getMemberImage(name: string): string {
     const normalized = name.toLowerCase().trim();
-    if (normalized.includes("aditya nayak")) return "/Team NAme/Aditya Nayak.webp";
-    if (normalized.includes("ambika dalmia")) return "/Team NAme/Ambika Dalmia.webp";
-    if (normalized.includes("aryan") || normalized.includes("aryan gupta")) return "/Team NAme/Aryan.webp";
-    if (normalized.includes("ashlesha sharma")) return "/Team NAme/Ashlesha Sharma.webp";
-    if (normalized.includes("daksh kumar")) return "/Team NAme/Daksh kumar.webp";
-    if (normalized.includes("devam")) return "/Team NAme/Devam.webp";
-    if (normalized.includes("devansh")) return "/Team NAme/devansh.webp";
-    if (normalized.includes("diksha")) return "/Team NAme/Diksha.webp";
-    if (normalized.includes("gurseerat")) return "/Team NAme/Gurseerat OH.webp";
-    if (normalized.includes("kartik") && normalized.includes("singh")) return "/Team NAme/Kartik Chaudhary.webp";
-    if (normalized.includes("khushi")) return "/Team NAme/Khushii.webp";
-    if (normalized.includes("kunal")) return "/Team NAme/Kunal.webp";
-    if (normalized.includes("manan")) return "/Team NAme/Manan.webp";
-    if (normalized.includes("naman shukla")) return "/Team NAme/Naman Shukla.webp";
-    if (normalized.includes("rishika")) return "/Team NAme/Rishika OH .webp";
-    if (normalized.includes("roshan")) return "/Team NAme/Roshan jangir .webp";
-    if (normalized.includes("satvik")) return "/Team NAme/Satvik.webp";
-    if (normalized.includes("saumya")) return "/Team NAme/Saumya.webp";
-    if (normalized.includes("abhiram")) return "/Team NAme/abhiram.webp";
-    if (normalized.includes("ankit")) return "/Team NAme/ankit.webp";
-    if (normalized.includes("asmit")) return "/Team NAme/asmit.webp";
-    if (normalized.includes("laksh")) return "/Team NAme/laksh.webp";
+    if (normalized.includes("aditya nayak")) return "/team-images/aditya-nayak.webp";
+    if (normalized.includes("ambika dalmia")) return "/team-images/ambika-dalmia.webp";
+    if (normalized.includes("aryan") || normalized.includes("aryan gupta")) return "/team-images/aryan.webp";
+    if (normalized.includes("ashlesha sharma")) return "/team-images/ashlesha-sharma.webp";
+    if (normalized.includes("daksh kumar")) return "/team-images/daksh-kumar.webp";
+    if (normalized.includes("devam")) return "/team-images/devam.webp";
+    if (normalized.includes("devansh")) return "/team-images/devansh.webp";
+    if (normalized.includes("diksha")) return "/team-images/diksha.webp";
+    if (normalized.includes("gurseerat")) return "/team-images/gurseerat-oh.webp";
+    if (normalized.includes("kartik") && normalized.includes("singh")) return "/team-images/kartik-chaudhary.webp";
+    if (normalized.includes("khushi")) return "/team-images/khushii.webp";
+    if (normalized.includes("kunal")) return "/team-images/kunal.webp";
+    if (normalized.includes("manan")) return "/team-images/manan.webp";
+    if (normalized.includes("naman shukla")) return "/team-images/naman-shukla.webp";
+    if (normalized.includes("rishika")) return "/team-images/rishika-oh.webp";
+    if (normalized.includes("roshan")) return "/team-images/roshan-jangir.webp";
+    if (normalized.includes("satvik")) return "/team-images/satvik.webp";
+    if (normalized.includes("saumya")) return "/team-images/saumya.webp";
+    if (normalized.includes("abhiram")) return "/team-images/abhiram.webp";
+    if (normalized.includes("ankit")) return "/team-images/ankit.webp";
+    if (normalized.includes("asmit")) return "/team-images/asmit.webp";
+    if (normalized.includes("laksh")) return "/team-images/laksh.webp";
 
     // Fallback to JKLU logo for those we don't have photos for
     return "/sabrang-logo/white_jklu_logo.png";
