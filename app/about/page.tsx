@@ -95,7 +95,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Band Jam",
     category: "Music · Infrared Sonic Blast",
     desc: "Pure sonic warfare under the open sky — head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
-    image: "/events_posters/BANDJAM.webp",
+    image: "/sabrang-live.png",
     link: "/events",
   },
   {
@@ -164,7 +164,7 @@ export default function AboutPage() {
               accentColor="#c084fc"
               overlayColor="#060010"
               textColor="#ffffff"
-              grayscale={true}
+              grayscale={false}
               showLabels={true}
               duration={0.6}
               ease="power3.out"

@@ -14,6 +14,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import dynamic from "next/dynamic";
@@ -21,7 +22,7 @@ import Prism from "./Prism";
 import ThemeInstallation from "./ThemeInstallation";
 import SabrangPillarsCanvas, { SABRANG_PILLARS } from "./SabrangPillarsCanvas";
 
-const HeroColoursOverBlack = dynamic(() => import("./HeroColoursOverBlack"), {
+const HeroTunnelScene = dynamic(() => import("./HeroTunnelScene"), {
   ssr: false,
 });
 
@@ -82,12 +83,43 @@ const SPECTRUM_EVENTS = [
 export default function AboutSections() {
   const pillarsProgressRef = useRef(1);
   const [activePillarId, setActivePillarId] = useState<string | null>(null);
+  const dotRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
+  const [dotTargets, setDotTargets] = useState<{ [key: string]: { x: number; y: number } }>({});
+
+  useEffect(() => {
+    function updateDotPositions() {
+      const section = document.getElementById("four-pillars");
+      if (!section) return;
+      const secRect = section.getBoundingClientRect();
+      const newTargets: { [key: string]: { x: number; y: number } } = {};
+
+      Object.entries(dotRefs.current).forEach(([id, el]) => {
+        if (el) {
+          const r = el.getBoundingClientRect();
+          newTargets[id] = {
+            x: r.left + r.width / 2 - secRect.left,
+            y: r.top + r.height / 2 - secRect.top,
+          };
+        }
+      });
+
+      setDotTargets(newTargets);
+    }
+
+    updateDotPositions();
+    const timer = setTimeout(updateDotPositions, 100);
+    window.addEventListener("resize", updateDotPositions);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateDotPositions);
+    };
+  }, []);
 
   return (
     <div className="relative w-full bg-[#030206]/70 backdrop-blur-sm text-white selection:bg-purple-500 selection:text-white overflow-hidden">
-      {/* Persistent Three.js Volumetric Liquid Color Cloud & Smoke Background */}
+      {/* Persistent Three.js 3D Particle Tunnel Background Scene */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
-        <HeroColoursOverBlack />
+        <HeroTunnelScene />
       </div>
       
       {/* ───────────────────────────────────────────────────────────────── */}
@@ -103,30 +135,34 @@ export default function AboutSections() {
             progressRef={pillarsProgressRef}
             activePillarId={activePillarId}
             onHoverPillar={setActivePillarId}
+            dotTargets={dotTargets}
           />
         </div>
 
         <div className="max-w-6xl mx-auto space-y-12 relative z-10">
           {/* Section Heading */}
-          <div className="space-y-3 max-w-xl">
-            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-purple-400 block">
+          <div className="space-y-4 max-w-2xl">
+            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-400 block">
               02 · THE FOUNDATION
             </span>
             <h2
-              className="text-3xl sm:text-5xl font-light uppercase text-white tracking-tight leading-none"
-              style={{ fontFamily: '"Syne", sans-serif' }}
+              className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
+              style={{
+                fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
+                fontWeight: 850,
+                color: "#ffffff",
+                textShadow:
+                  "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
+              }}
             >
-              The Four Pillars <br />
-              <span className="font-bold text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text">
-                of Sabrang
-              </span>
+              The Core Spectrums
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm font-light leading-relaxed">
+            <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed pt-1">
               Four distinct forces emerging from the same unified core. Hover or tap to isolate each wavelength.
             </p>
           </div>
 
-          {/* Interactive Pillar Cards Grid */}
+          {/* Interactive Architectural Glass Monolith Pillars */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
             {SABRANG_PILLARS.map((p) => {
               const isActive = activePillarId === p.id;
@@ -135,42 +171,122 @@ export default function AboutSections() {
                   key={p.id}
                   onMouseEnter={() => setActivePillarId(p.id)}
                   onMouseLeave={() => setActivePillarId(null)}
-                  className={`p-6 rounded-3xl border transition-all duration-500 cursor-pointer backdrop-blur-2xl ${
+                  className={`group relative min-h-[340px] flex flex-col justify-between p-7 rounded-2xl border transition-all duration-500 cursor-pointer backdrop-blur-2xl overflow-hidden ${
                     isActive
-                      ? "bg-white/[0.08] border-white/40 shadow-[0_0_30px_rgba(168,85,247,0.3)] -translate-y-2"
-                      : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                      ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02] border-white/40 -translate-y-3"
+                      : "bg-gradient-to-b from-white/[0.04] to-white/[0.01] border-white/10 hover:border-white/25 hover:-translate-y-1.5"
                   }`}
+                  style={{
+                    boxShadow: isActive
+                      ? `0 20px 45px ${p.color}35, inset 0 1px 0 rgba(255,255,255,0.3)`
+                      : "none",
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <span
-                      className="text-xs font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border"
-                      style={{
-                        borderColor: `${p.color}40`,
-                        color: p.color,
-                        background: `${p.color}15`,
-                      }}
-                    >
-                      PILLAR {p.number}
-                    </span>
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ background: p.color, boxShadow: `0 0 10px ${p.color}` }}
-                    />
-                  </div>
+                  {/* Monolith Background Photo */}
+                  {p.image && (
+                    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-2xl">
+                      <Image
+                        src={p.image}
+                        alt={p.name}
+                        fill
+                        className="object-cover opacity-25 group-hover:opacity-45 scale-105 group-hover:scale-110 transition-all duration-700 mix-blend-luminosity"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#030206] via-[#030206]/80 to-transparent" />
+                    </div>
+                  )}
 
-                  <h3
-                    className="text-lg sm:text-xl font-bold uppercase text-white tracking-tight mb-1"
-                    style={{ fontFamily: '"Syne", sans-serif' }}
+                  {/* Top Ambient Wavelength Light Bar */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-1 transition-all duration-500"
+                    style={{
+                      background: p.color,
+                      opacity: isActive ? 1 : 0.4,
+                      boxShadow: isActive ? `0 0 16px ${p.color}` : "none",
+                    }}
+                  />
+
+                  {/* Watermark Pillar Number */}
+                  <span
+                    className="absolute top-3 right-4 font-mono font-black text-6xl select-none pointer-events-none transition-all duration-500"
+                    style={{
+                      color: p.color,
+                      opacity: isActive ? 0.25 : 0.08,
+                      transform: isActive ? "scale(1.08)" : "scale(1)",
+                    }}
                   >
-                    {p.name}
-                  </h3>
-                  <span className="text-[10px] font-mono text-cyan-300/80 uppercase tracking-widest block mb-3">
-                    {p.subtitle}
+                    {p.number}
                   </span>
 
-                  <p className="text-slate-300/80 text-xs font-light leading-relaxed">
-                    {p.description}
-                  </p>
+                  <div>
+                    {/* Header: Badge + Target Dot */}
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                      <span
+                        className="text-[10px] font-mono font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full border transition-all duration-300"
+                        style={{
+                          borderColor: `${p.color}50`,
+                          color: p.color,
+                          background: `${p.color}15`,
+                          boxShadow: isActive ? `0 0 12px ${p.color}30` : "none",
+                        }}
+                      >
+                        PILLAR {p.number}
+                      </span>
+                      
+                      {/* Target Beacon Dot for Canvas Light Vector */}
+                      <div className="relative flex items-center justify-center">
+                        <span
+                          ref={(el) => {
+                            dotRefs.current[p.id] = el;
+                          }}
+                          className="w-3 h-3 rounded-full relative z-10 transition-transform duration-300"
+                          style={{
+                            background: p.color,
+                            boxShadow: `0 0 14px ${p.color}`,
+                            transform: isActive ? "scale(1.3)" : "scale(1)",
+                          }}
+                        />
+                        {isActive && (
+                          <span
+                            className="absolute w-6 h-6 rounded-full animate-ping opacity-60 pointer-events-none"
+                            style={{ background: p.color }}
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pillar Title & Subtitle */}
+                    <h3
+                      className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-1 relative z-10"
+                      style={{ fontFamily: '"Syne", sans-serif' }}
+                    >
+                      {p.name}
+                    </h3>
+                    <span
+                      className="text-[11px] font-mono uppercase tracking-widest block mb-4 relative z-10 font-semibold"
+                      style={{ color: p.color }}
+                    >
+                      {p.subtitle}
+                    </span>
+
+                    {/* Pillar Description */}
+                    <p className="text-slate-300/85 text-xs font-light leading-relaxed relative z-10">
+                      {p.description}
+                    </p>
+                  </div>
+
+                  {/* Bottom Keyword Badge Tag */}
+                  <div className="pt-6 relative z-10">
+                    <span
+                      className="inline-block text-[9px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 rounded border transition-all duration-300"
+                      style={{
+                        borderColor: isActive ? `${p.color}60` : "rgba(255,255,255,0.1)",
+                        color: isActive ? "#ffffff" : "rgba(255,255,255,0.5)",
+                        background: isActive ? `${p.color}25` : "rgba(255,255,255,0.03)",
+                      }}
+                    >
+                      {p.keyword}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -179,6 +295,93 @@ export default function AboutSections() {
       </section>
 
       <ThemeInstallation />
+
+      {/* ───────────────────────────────────────────────────────────────── */}
+      {/* SECTION 04 — WHY IS SABRANG OP?                                  */}
+      {/* ───────────────────────────────────────────────────────────────── */}
+      <section
+        id="why-sabrang-op"
+        className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/85 backdrop-blur-sm border-t border-white/10 overflow-hidden select-none"
+      >
+        {/* Ambient Backlight Glows */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <div
+            className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] opacity-25 blur-[160px]"
+            style={{ background: "radial-gradient(circle at center, rgba(34,211,238,0.2) 0%, transparent 70%)" }}
+          />
+          <div
+            className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] opacity-25 blur-[160px]"
+            style={{ background: "radial-gradient(circle at center, rgba(168,85,247,0.2) 0%, transparent 70%)" }}
+          />
+        </div>
+
+        <div className="max-w-6xl mx-auto space-y-16 relative z-10">
+          {/* Section Header */}
+          <div className="space-y-4 max-w-2xl">
+            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-400 block">
+              04 · SCALE &amp; IMPACT
+            </span>
+            <h2
+              className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
+              style={{
+                fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
+                fontWeight: 850,
+                color: "#ffffff",
+                textShadow:
+                  "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
+              }}
+            >
+              Why Is Sabrang OP?
+            </h2>
+            <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed pt-1">
+              Unmatched scale, wild crowd energy, massive prize pools, and 72 hours of unscripted mainstage euphoria.
+            </p>
+          </div>
+
+          {/* OP Stat Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-8 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-cyan-400/50 hover:-translate-y-1.5 transition-all duration-300">
+              <span className="text-4xl sm:text-5xl font-black font-mono text-cyan-400 block">15,000+</span>
+              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
+                Massive Footfall
+              </h3>
+              <p className="text-slate-400 text-xs font-light leading-relaxed">
+                Multi-college student convergence, roaring mainstage crowds, and non-stop campus pulse across 3 days.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl border border-purple-500/20 bg-gradient-to-b from-purple-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-purple-400/50 hover:-translate-y-1.5 transition-all duration-300">
+              <span className="text-4xl sm:text-5xl font-black font-mono text-purple-400 block">₹3.5L+</span>
+              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
+                Cash Prize Pool
+              </h3>
+              <p className="text-slate-400 text-xs font-light leading-relaxed">
+                High-stakes national competitions across Panache, Band Jam, Street Dance, Esports &amp; Hackathons.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-amber-400/50 hover:-translate-y-1.5 transition-all duration-300">
+              <span className="text-4xl sm:text-5xl font-black font-mono text-amber-400 block">30+</span>
+              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
+                Marquee Arenas
+              </h3>
+              <p className="text-slate-400 text-xs font-light leading-relaxed">
+                From high-fashion couture runways and rock band jams to AI hackathons and parliamentary debates.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl border border-pink-500/20 bg-gradient-to-b from-pink-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-pink-400/50 hover:-translate-y-1.5 transition-all duration-300">
+              <span className="text-4xl sm:text-5xl font-black font-mono text-pink-400 block">STAR</span>
+              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
+                Pro-Shows &amp; DJ Nights
+              </h3>
+              <p className="text-slate-400 text-xs font-light leading-relaxed">
+                Headlining EDM DJs, indie rock bands, and celebrity artists under volumetric laser mainstages.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 05 — BEYOND THE COMPETITIONS (Space Between Wavelengths)  */}

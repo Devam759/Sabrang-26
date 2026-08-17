@@ -125,16 +125,10 @@ export default function AccordionGallery({
         );
 
         if (media) {
-          const drift = Math.max(-1.5, Math.min(1.5, active - i));
-          const shift = drift * parallax * mediaSize * 0.06;
-
           tl.to(
             media,
             {
-              xPercent: -50,
-              yPercent: -50,
-              x: vertical ? 0 : isActive ? 0 : shift,
-              y: vertical ? (isActive ? 0 : shift) : 0,
+              scale: isActive ? 1.08 : 1.0,
               duration: dur,
               ease,
             },
@@ -298,6 +292,7 @@ export default function AccordionGallery({
                   src={item.image}
                   alt={item.alt || item.label || ""}
                   fill
+                  className="object-cover object-center w-full h-full"
                   sizes="(max-width: 768px) 100vw, 60vw"
                   draggable={false}
                 />
