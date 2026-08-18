@@ -40,29 +40,29 @@ export default function ThemeInstallation() {
         scrollTrigger: {
           trigger: trigger,
           start: "top top",
-          end: "+=150%",
+          end: "+=180%",
           pin: true,
           pinSpacing: true,
-          scrub: 0.5,
+          scrub: 0.6,
           onUpdate: (self) => {
             progressRef.current = self.progress;
           },
         },
       });
 
-      // ── PHASE 1 OVERLAY (0.0 to 0.30): Title & Initial White Beam ──
+      // ── PHASE 1 OVERLAY (0.0 to 0.40): Title & White Beam Approach ──
       master
-        .fromTo(p1Ref.current, { opacity: 1, y: 0 }, { opacity: 1, y: 0, duration: 0.25 }, 0)
-        .to(p1Ref.current, { opacity: 0, y: -20, duration: 0.12 }, 0.28);
+        .fromTo(p1Ref.current, { opacity: 1, y: 0 }, { opacity: 1, y: 0, duration: 0.36 }, 0)
+        .to(p1Ref.current, { opacity: 0, y: -20, duration: 0.08 }, 0.38);
 
-      // ── PHASE 2 OVERLAY (0.30 to 0.68): Refraction & 7 Spectral Rays ──
+      // ── PHASE 2 OVERLAY (0.55 to 0.78): Light Dispersing Inside Prism ──
       master
-        .fromTo(p2Ref.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.18 }, 0.32)
-        .to(p2Ref.current, { opacity: 0, y: -20, duration: 0.12 }, 0.64);
+        .fromTo(p2Ref.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.12 }, 0.55)
+        .to(p2Ref.current, { opacity: 0, y: -20, duration: 0.08 }, 0.76);
 
-      // ── PHASE 3 OVERLAY (0.68 to 1.0): Sabrang Convergence ──
+      // ── PHASE 3 OVERLAY (0.82 to 1.0): Sabrang Spectral Convergence ──
       master
-        .fromTo(p3Ref.current, { opacity: 0, scale: 0.95, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.22 }, 0.68);
+        .fromTo(p3Ref.current, { opacity: 0, scale: 0.95, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.16 }, 0.82);
     }, section);
 
     return () => ctx.revert();
@@ -80,7 +80,7 @@ export default function ThemeInstallation() {
         className="relative h-screen w-full overflow-hidden flex items-center justify-center"
       >
         {/* Extracted Standalone 2D Canvas Prism Optics Engine */}
-        <Prism progressRef={progressRef} className="absolute inset-0 z-1" />
+        <Prism progressRef={progressRef} className="absolute inset-0 z-0 pointer-events-none" />
 
         {/* Ambient Film Grain Overlay */}
         <div
@@ -89,7 +89,7 @@ export default function ThemeInstallation() {
             backgroundImage:
               "radial-gradient(rgba(255, 255, 255, 0.8) 1px, transparent 0)",
             backgroundSize: "4px 4px",
-            zIndex: 2,
+            zIndex: 1,
           }}
           aria-hidden
         />
@@ -98,7 +98,7 @@ export default function ThemeInstallation() {
         <div
           ref={p1Ref}
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none max-w-2xl mx-auto"
-          style={{ zIndex: 10, opacity: 1 }}
+          style={{ zIndex: 20, opacity: 1 }}
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.06] border border-white/15 text-[10px] font-mono text-cyan-300 tracking-[0.3em] uppercase mb-4 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> SABRANG 2026 · OFFICIAL THEME

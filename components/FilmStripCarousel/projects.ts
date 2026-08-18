@@ -14,15 +14,15 @@ import teamCover from './cover-images/team.png';
 export const NAV_PROJECTS: Project[] = [
   { id: 'home', title: 'Home', category: 'Festival Hub', description: 'The Sabrang 2026 landing experience.', image: homeCover.src, href: '/' },
   { id: 'about', title: 'About', category: 'Our Story', description: 'What Sabrang is and why it exists.', image: aboutCover.src, href: '/about' },
-  { id: 'events', title: 'Events', category: 'Compete', description: 'Every competition and showcase.', image: '/menu-scroll-covers/dance-battle.png', href: '/events' },
+  { id: 'events', title: 'Events', category: 'Compete', description: 'Every competition and showcase.', image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060355/sabrang-2026/menu-scroll-covers/dance-battle.png", href: '/events' },
   { id: 'gallery', title: 'Gallery', category: 'Memories', description: 'Highlights from past editions.', image: galleryCover.src, href: '/gallery' },
-  { id: 'schedule', title: 'Schedule', category: 'Timeline', description: 'When everything happens.', image: '/menu-scroll-covers/panache-runway.png', href: '/schedule' },
-  { id: 'register', title: 'Registration', category: 'Join Us', description: 'Sign up to participate.', image: '/menu-scroll-covers/step-up.jpg', href: '/register' },
+  { id: 'schedule', title: 'Schedule', category: 'Timeline', description: 'When everything happens.', image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060358/sabrang-2026/menu-scroll-covers/panache-runway.png", href: '/schedule' },
+  { id: 'register', title: 'Registration', category: 'Join Us', description: 'Sign up to participate.', image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060360/sabrang-2026/menu-scroll-covers/step-up.jpg", href: '/register' },
   { id: 'sponsors', title: 'Sponsors', category: 'Partners', description: 'The brands powering Sabrang.', image: sponsorsCover.src, href: '/sponsors' },
   { id: 'team', title: 'Our Team', category: 'The Crew', description: 'The people behind the festival.', image: teamCover.src, href: '/team' },
 
-  { id: 'contact', title: 'Contact Us', category: 'Say Hello', description: 'Reach the organising team.', image: '/menu-scroll-covers/sabrang-live.png', href: '/contact' },
-  { id: 'faq', title: 'FAQ', category: 'Answers', description: 'Everything commonly asked.', image: '/menu-scroll-covers/versevaad.jpg', href: '/faq' },
+  { id: 'contact', title: 'Contact Us', category: 'Say Hello', description: 'Reach the organising team.', image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png", href: '/contact' },
+  { id: 'faq', title: 'FAQ', category: 'Answers', description: 'Everything commonly asked.', image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060360/sabrang-2026/menu-scroll-covers/versevaad.jpg", href: '/faq' },
 ];
 
 // Preload all reel textures into GPU cache ahead of time

@@ -1,16 +1,20 @@
 import React from "react";
 import type { Metadata } from "next";
 import AboutHero from "@/components/about/AboutHero";
-import AboutSections from "@/components/about/AboutSections";
+import {
+  CoreSpectrumsSection,
+  AboutContentSections,
+} from "@/components/about/AboutSections";
 import AccordionGallery, {
   AccordionGalleryItem,
 } from "@/components/about/AccordionGallery";
 import JsonLd from "@/components/seo/JsonLd";
+import AboutBackground from "@/components/about/AboutBackground";
 
 export const metadata: Metadata = {
-  title: "About Sabrang 2026 – Shades & Colors of Light | JKLU Fest",
+  title: "About Sabrang 2026 | JKLU Fest",
   description:
-    "Learn about Sabrang 2026 — the annual flagship techno-cultural-management-design festival of JK Lakshmipat University celebrating talent, culture, and innovation in Jaipur under the theme 'Shades & Colors of Light'.",
+    "Learn about Sabrang 2026 — the annual flagship techno-cultural-management-design festival of JK Lakshmipat University celebrating talent, culture, and innovation in Jaipur.",
   keywords: [
     "About Sabrang",
     "Sabrang JKLU Story",
@@ -19,17 +23,17 @@ export const metadata: Metadata = {
     "JKLU Jaipur Fest",
     "What is Sabrang",
     "Sabrang 2026 About",
-    "Shades & Colors of Light",
     "Sabrang Meaning",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/about" },
   openGraph: {
-    title: "About Sabrang 2026 – Shades & Colors of Light",
+    title: "About Sabrang 2026",
     description:
       "Enter Sabrang — the annual flagship festival of JKLU celebrating art, music, design, and innovation.",
     url: "https://sabrang.jklu.edu.in/about",
   },
 };
+
 
 const aboutSchema = {
   "@context": "https://schema.org",
@@ -71,7 +75,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Panache",
     category: "Fashion · Ultraviolet Haute Couture",
     desc: "The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.",
-    image: "/panache-runway.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
     link: "/events",
   },
   {
@@ -79,7 +83,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Versevaad",
     category: "Literary · Laser Verbal Slam",
     desc: "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
-    image: "/versevaad.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
     link: "/events",
   },
   {
@@ -87,7 +91,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Echoes of Noor",
     category: "Music · Prismatic Sufi Harmonies",
     desc: "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.",
-    image: "/echos-of-noor.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060181/sabrang-2026/about/echos-of-noor.png",
     link: "/events",
   },
   {
@@ -95,7 +99,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Band Jam",
     category: "Music · Infrared Sonic Blast",
     desc: "Pure sonic warfare under the open sky — head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
-    image: "/sabrang-live.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
     link: "/events",
   },
   {
@@ -103,7 +107,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Dance Battles",
     category: "Dance · Spectrum Street Motion",
     desc: "High-octane solo and duo street dance battles featuring hip-hop, popping, locking, and freestyle dance showdowns.",
-    image: "/dance-battle.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
     link: "/events",
   },
   {
@@ -111,7 +115,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Step Up",
     category: "Choreography · Chromatic Group Resonance",
     desc: "Flawless synchronized group dance battles featuring power-packed choreography, thematic storytelling, and explosive energy.",
-    image: "/step-up.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060185/sabrang-2026/about/step-up.jpg",
     link: "/events",
   },
 ];
@@ -121,38 +125,49 @@ export default function AboutPage() {
     <>
       <JsonLd data={aboutSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <div className="w-full bg-[#000000] text-white min-h-screen">
+      <div className="relative w-full bg-[#000000] text-white min-h-screen">
+        {/* Full-Page Persistent 3D Fluid Liquid Ribbon Background */}
+        <AboutBackground />
 
         {/* 1. Immersive 3D pinned hero & story reveal */}
+
         <div className="relative z-10">
           <AboutHero />
         </div>
 
-        {/* 2. Structured Content Blocks: Identity, Theme Manifesto, Stats, Pro-Show & Beyond Competitions */}
+
+        {/* 2. THE CORE SPECTRUMS (Section 02 - Four Pillars) directly after "What is Sabrang" */}
         <div className="relative z-10">
-          <AboutSections />
+          <CoreSpectrumsSection />
         </div>
+
+        {/* 3. Structured Content Blocks: Why Sabrang OP, Beyond Competitions, Recombination */}
+        <div className="relative z-10">
+          <AboutContentSections />
+        </div>
+
 
         {/* 3. Flagship Showdowns (Pillars of Sabrang Accordion Showcase) */}
         <section className="relative w-full bg-[#030206]/75 backdrop-blur-sm text-white py-24 px-4 sm:px-8 md:px-16 border-t border-white/10 z-30 overflow-hidden">
           {/* Background Ambient Glows */}
-          <div className="absolute top-10 right-10 w-[650px] h-[650px] bg-purple-600/20 rounded-full blur-[170px] pointer-events-none" />
-          <div className="absolute bottom-10 left-10 w-[700px] h-[700px] bg-cyan-500/20 rounded-full blur-[190px] pointer-events-none" />
+          <div
+            className="absolute top-10 right-10 w-[650px] h-[650px] rounded-full pointer-events-none opacity-25"
+            style={{ background: "radial-gradient(circle, rgba(168,85,247,0.22) 0%, rgba(168,85,247,0.05) 45%, transparent 70%)" }}
+          />
+          <div
+            className="absolute bottom-10 left-10 w-[700px] h-[700px] rounded-full pointer-events-none opacity-20"
+            style={{ background: "radial-gradient(circle, rgba(6,182,212,0.2) 0%, rgba(6,182,212,0.04) 45%, transparent 70%)" }}
+          />
 
           <div className="max-w-7xl mx-auto space-y-8 relative z-10">
             {/* Section Header */}
             <div className="text-center space-y-3 max-w-2xl mx-auto">
-              <span className="text-xs font-mono uppercase tracking-widest text-pink-400">Flagship Showdowns</span>
               <h2
                 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
                 style={{ fontFamily: '"Syne", "Outfit", "Inter", sans-serif' }}
               >
                 Pillars of Sabrang
               </h2>
-
-              <p className="text-slate-400 text-xs sm:text-sm font-light max-w-lg mx-auto">
-                Explore the marquee competitive arenas where national talent clashes across every creative shade of light.
-              </p>
             </div>
 
             {/* Accordion Gallery Showcase */}
