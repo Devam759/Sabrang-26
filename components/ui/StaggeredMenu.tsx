@@ -130,7 +130,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   displaySocials = false,
   displayItemNumbering = false,
   className,
-  logoUrl = '/sabrang-logo/sabrang-logo.png',
+  logoUrl = "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png",
   customLogo,
   headerExtra,
   extraPanelContent,

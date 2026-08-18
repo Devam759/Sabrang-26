@@ -40,14 +40,14 @@ const HeroColoursOverBlack = dynamic(() => import("./HeroColoursOverBlack"), {
 
 // ── Gallery ────────────────────────────────────────────────────────────────────
 const GALLERY = [
-  "/events_posters/art.webp",
-  "/events_posters/PANACHE.webp",
-  "/events_posters/STEPUP.webp",
-  "/events_posters/echoesofnoor.webp",
-  "/events_posters/bgmi.webp",
-  "/events_posters/VERSVAAD.webp",
-  "/events_posters/BANDJAM.webp",
-  "/events_posters/DANCE_BATTLE.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060193/sabrang-2026/events_posters/art.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060209/sabrang-2026/events_posters/PANACHE.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060210/sabrang-2026/events_posters/STEPUP.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060205/sabrang-2026/events_posters/echoesofnoor.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060195/sabrang-2026/events_posters/bgmi.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060214/sabrang-2026/events_posters/VERSVAAD.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060194/sabrang-2026/events_posters/BANDJAM.webp",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060202/sabrang-2026/events_posters/DANCE_BATTLE.webp",
 ];
 
 // ─── 3D Per-Letter Trajectories for Scroll Zoom-Through ────────────────────────
@@ -501,7 +501,7 @@ export default function AboutHero() {
               }}
             >
               <Image
-                src="/menu-scroll-covers/sabrang-live.png"
+                src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png"
                 alt="Sabrang Live Concert Performance"
                 fill
                 sizes="(max-width: 768px) 90vw, 45vw"

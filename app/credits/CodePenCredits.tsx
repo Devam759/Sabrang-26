@@ -11,7 +11,7 @@ import { CustomEase } from "gsap/CustomEase";
 const devTeam = [
   {
     name: "Devam Gupta",
-    avatar: "/tech team credit/Devam gupta.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
     linkedin: "https://www.linkedin.com/in/devam-gupta/",
     github: "https://github.com/Devam759",
     email: "devamgupta@jklu.edu.in",
@@ -27,7 +27,7 @@ const devTeam = [
   },
   {
     name: "Kartik Saini",
-    avatar: "/tech team credit/Kartik Saini.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060384/sabrang-2026/tech-team-credit/Kartik-Saini.png",
     linkedin: "https://linkedin.com/in/kartik-14saini",
     github: "https://github.com/PrimeKartik",
     email: "kartiksaini@jklu.edu.in",
@@ -35,7 +35,7 @@ const devTeam = [
   },
   {
     name: "Pratham Lalwani",
-    avatar: "/tech team credit/Pratham.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060387/sabrang-2026/tech-team-credit/Pratham.png",
     linkedin: "https://www.linkedin.com/in/pratham2k07",
     github: "https://github.com/Pratham2k07",
     email: "prathamlalwani@jklu.edu.in",
@@ -43,7 +43,7 @@ const devTeam = [
   },
   {
     name: "Lakshya Gupta",
-    avatar: "/tech team credit/Lakshya.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060385/sabrang-2026/tech-team-credit/Lakshya.png",
     linkedin: "https://www.linkedin.com/in/lakshya-gupta-b87616370/",
     github: "https://github.com/Metamorpho-1",
     email: "lakshyagupta@jklu.edu.in",
@@ -59,7 +59,7 @@ const devTeam = [
   },
   {
     name: "Arihant Jain",
-    avatar: "/tech team credit/Arihant Jain.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060382/sabrang-2026/tech-team-credit/Arihant-Jain.png",
     linkedin: "https://www.linkedin.com/in/arihant-jain-0a2503383",
     github: "https://github.com/arrieejain3149",
     email: "arihantjain2025@jklu.edu.in",
@@ -67,7 +67,7 @@ const devTeam = [
   },
   {
     name: "Shubh Dixit",
-    avatar: "/tech team credit/Shubh dixt.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060392/sabrang-2026/tech-team-credit/Shubh-dixt.png",
     linkedin: "https://www.linkedin.com/in/shubhdixit0912",
     github: "https://github.com/Shubhdix9",
     email: "Shubhdixit@jklu.edu.in",

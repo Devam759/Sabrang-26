@@ -35,7 +35,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#22d3ee",
     defaultRatioX: 0.15,
     keyword: "TECHNICAL GENIUS",
-    image: "/versevaad.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
   },
   {
     id: "cultural",
@@ -46,7 +46,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#a855f7",
     defaultRatioX: 0.38,
     keyword: "ARTISTIC REBELLION",
-    image: "/dance-battle.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
   },
   {
     id: "management",
@@ -57,7 +57,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#f59e0b",
     defaultRatioX: 0.62,
     keyword: "STRATEGIC VISION",
-    image: "/sabrang-live.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
   },
   {
     id: "design",
@@ -68,7 +68,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#ec4899",
     defaultRatioX: 0.85,
     keyword: "CREATIVE AESTHETICS",
-    image: "/panache-runway.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
   },
 ];
 

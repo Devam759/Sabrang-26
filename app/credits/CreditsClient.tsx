@@ -7,7 +7,7 @@ export default function CreditsClient() {
     {
       name: "Devam Gupta",
       role: "Lead Web Architect & Fullstack Developer",
-      avatar: "/tech team credit/Devam gupta.png",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
       tag: "Core Lead",
     },
     {
