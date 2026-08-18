@@ -87,7 +87,7 @@ const festivalEventSchema = {
     "@type": "Audience",
     audienceType: "College Students",
   },
-  image: ["https://sabrang.jklu.edu.in/sabrang-logo/sabrang-logo.png"],
+  image: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   offers: {
     "@type": "Offer",
     url: "https://sabrang.jklu.edu.in/register",
@@ -112,9 +112,9 @@ const breadcrumbSchema = {
 };
 
 const summitImages = [
-  "/menu-scroll-covers/panache-runway.png",
-  "/menu-scroll-covers/sabrang-live.png",
-  "/menu-scroll-covers/step-up.jpg"
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060358/sabrang-2026/menu-scroll-covers/panache-runway.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060360/sabrang-2026/menu-scroll-covers/step-up.jpg"
 ];
 
 const summitNames = [

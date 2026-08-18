@@ -30,7 +30,7 @@ export function Dna() {
   // ─── Optimization: devicePixelRatio cached once
   const dprRef = useRef(Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2))
 
-  const { scene: gltfScene } = useGLTF('/hero/models/dna-draco.glb', '/hero/draco/')
+  const { scene: gltfScene } = useGLTF('/models/dna-draco.glb', '/draco/')
 
   // Extract + prepare geometry
   const geometry = useMemo(() => {
