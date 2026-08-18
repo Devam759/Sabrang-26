@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeClient from "./HomeClient";
+import HomeClient from "@/components/layout/HomeClient";
 import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/sabrang-logo/sabrang-logo.png",
+        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 JK Lakshmipat University Annual Fest",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual fest.",
-    images: ["/sabrang-logo/sabrang-logo.png"],
+    images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
 
@@ -87,7 +87,7 @@ const festivalEventSchema = {
     "@type": "Audience",
     audienceType: "College Students",
   },
-  image: ["https://sabrang.jklu.edu.in/sabrang-logo/sabrang-logo.png"],
+  image: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   offers: {
     "@type": "Offer",
     url: "https://sabrang.jklu.edu.in/register",
@@ -111,13 +111,36 @@ const breadcrumbSchema = {
   ],
 };
 
+const summitImages = [
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060358/sabrang-2026/menu-scroll-covers/panache-runway.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060360/sabrang-2026/menu-scroll-covers/step-up.jpg"
+];
+
+const summitNames = [
+  "PANACHE",
+  "BANDJAM",
+  "STEP-UP"
+];
+
+const summitBriefs = [
+  "The ultimate fashion showdown. Assert dominance on the runway with style that speaks volumes.",
+  "Pure sonic warfare under the open sky. The battle of the bands — raw, unfiltered, electric.",
+  "Premier solo dance showdown. Technical mastery, freestyle finesse, and electric expression."
+];
+
 export default function Home() {
   return (
     <>
       <JsonLd data={festivalEventSchema} />
       <JsonLd data={breadcrumbSchema} />
       <IntroReveal />
-      <HomeClient />
+      <HomeClient 
+        summitImages={summitImages}
+        summitNames={summitNames}
+        summitBriefs={summitBriefs}
+      />
     </>
   );
 }
+

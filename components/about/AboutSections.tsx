@@ -1,383 +1,406 @@
 "use client";
 
 /**
- * AboutSections — The Sabrang 2026 Spectrum Narrative
+ * AboutSections — The Sabrang 2026 Spectrum Narrative Sections
  *
- * Cinematic narrative arc after the locked landing page:
- * SECTION 01: WHAT IS SABRANG? (Editorial Story & SAB + RANG = ALL COLORS)
- * SECTION 02: THE FOUR PILLARS (Central Light System & 4 Emerging Wavelengths)
- * SECTION 03: SPECTRUM TRANSITION (Wavelengths Merging)
- * SECTION 04: THE SPECTRUM / FLAGSHIP EXPERIENCES (Scroll-Driven Event Wavelengths)
+ * SECTION 02: THE CORE SPECTRUMS (The Four Foundation Pillars)
+ * SECTION 04: WHY IS SABRANG OP? (Bespoke Kinetic Spectrum Console & Editorial Metrics)
  * SECTION 05: BEYOND COMPETITIONS (The Space Between Wavelengths)
  * SECTION 06: FINAL RECOMBINATION (Colors Merge into Pure White Light + Statement)
  */
 
-import React, { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import Image from "next/image";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import dynamic from "next/dynamic";
-import Prism from "./Prism";
-import ThemeInstallation from "./ThemeInstallation";
-import SabrangPillarsCanvas, { SABRANG_PILLARS } from "./SabrangPillarsCanvas";
 
-const HeroTunnelScene = dynamic(() => import("./HeroTunnelScene"), {
-  ssr: false,
-});
+export interface PillarData {
+  id: string;
+  number: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  color: string;
+  defaultRatioX: number;
+  keyword: string;
+  image?: string;
+}
 
-gsap.registerPlugin(ScrollTrigger);
-
-// Flagship Event Wavelength Data
-const SPECTRUM_EVENTS = [
+export const SABRANG_PILLARS: PillarData[] = [
   {
-    colorName: "VIOLET",
-    colorHex: "#8b5cf6",
-    eventName: "Panache",
-    hook: "The High-Fashion Runway Spectacle",
-    description: "Couture meets avant-garde art as top collegiate design houses battle under volumetric mainstage lights.",
-    prizePool: "₹65,000+",
+    id: "techno",
+    number: "01",
+    name: "TECHNO & INNOVATION",
+    subtitle: "Technical Genius & Code",
+    description: "National hackathons, robotics arenas, AI showdowns, and high-stakes coding duels.",
+    color: "#22d3ee",
+    defaultRatioX: 0.15,
+    keyword: "TECHNICAL GENIUS",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
   },
   {
-    colorName: "RED",
-    colorHex: "#ef4444",
-    eventName: "Dance Battle",
-    hook: "Choreography & Group Synergy Clash",
-    description: "High-octane group choreography, synchronization, and raw street energy on the main stage.",
-    prizePool: "₹55,000+",
+    id: "cultural",
+    number: "02",
+    name: "CULTURAL & PERFORMING",
+    subtitle: "Artistic Rebellion & Stage",
+    description: "Live band clashes, battle of the dance troupes, fashion runways, and mainstage concerts.",
+    color: "#a855f7",
+    defaultRatioX: 0.38,
+    keyword: "ARTISTIC REBELLION",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
   },
   {
-    colorName: "ORANGE",
-    colorHex: "#f97316",
-    eventName: "Band Jam",
-    hook: "Live Rock & Fusion Battle of the Bands",
-    description: "Electrifying guitar solos, explosive drumming, and original indie rock anthems.",
-    prizePool: "₹50,000+",
+    id: "management",
+    number: "03",
+    name: "MANAGEMENT & STRATEGY",
+    subtitle: "Business Vision & Pitch",
+    description: "B-plan pitching, stock market simulations, crisis management, and executive leadership.",
+    color: "#f59e0b",
+    defaultRatioX: 0.62,
+    keyword: "STRATEGIC VISION",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
   },
   {
-    colorName: "YELLOW",
-    colorHex: "#eab308",
-    eventName: "Step Up",
-    hook: "Solo & Duo Street Dance Duel",
-    description: "1v1 popping, locking, and hip-hop duels judged by national dance icons.",
-    prizePool: "₹35,000+",
-  },
-  {
-    colorName: "BLUE",
-    colorHex: "#3b82f6",
-    eventName: "Echoes of Noor",
-    hook: "Slam Poetry & Acoustic Expressions",
-    description: "Intimate acoustic melodies, spoken word poetry, and soulful vocal acts.",
-    prizePool: "₹30,00,0+",
-  },
-  {
-    colorName: "INDIGO",
-    colorHex: "#6366f1",
-    eventName: "VerseVaad",
-    hook: "National Parliamentary Debate & Oratory",
-    description: "High-level intellectual clash on contemporary ethics, technology, and global policy.",
-    prizePool: "₹25,000+",
+    id: "design",
+    number: "04",
+    name: "DESIGN & EXPRESSION",
+    subtitle: "Visual Arts & Aesthetics",
+    description: "UI/UX sprint challenges, fine art installations, multimedia storytelling, and digital craft.",
+    color: "#ec4899",
+    defaultRatioX: 0.85,
+    keyword: "CREATIVE AESTHETICS",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
   },
 ];
 
-export default function AboutSections() {
-  const pillarsProgressRef = useRef(1);
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 02 — THE FOUR PILLARS OF SABRANG (The Core Spectrums)
+// ─────────────────────────────────────────────────────────────────────────────
+export function CoreSpectrumsSection() {
   const [activePillarId, setActivePillarId] = useState<string | null>(null);
-  const dotRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
-  const [dotTargets, setDotTargets] = useState<{ [key: string]: { x: number; y: number } }>({});
-
-  useEffect(() => {
-    function updateDotPositions() {
-      const section = document.getElementById("four-pillars");
-      if (!section) return;
-      const secRect = section.getBoundingClientRect();
-      const newTargets: { [key: string]: { x: number; y: number } } = {};
-
-      Object.entries(dotRefs.current).forEach(([id, el]) => {
-        if (el) {
-          const r = el.getBoundingClientRect();
-          newTargets[id] = {
-            x: r.left + r.width / 2 - secRect.left,
-            y: r.top + r.height / 2 - secRect.top,
-          };
-        }
-      });
-
-      setDotTargets(newTargets);
-    }
-
-    updateDotPositions();
-    const timer = setTimeout(updateDotPositions, 100);
-    window.addEventListener("resize", updateDotPositions);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", updateDotPositions);
-    };
-  }, []);
 
   return (
-    <div className="relative w-full bg-[#030206]/70 backdrop-blur-sm text-white selection:bg-purple-500 selection:text-white overflow-hidden">
-      {/* Persistent Three.js 3D Particle Tunnel Background Scene */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
-        <HeroTunnelScene />
+    <section
+      id="four-pillars"
+      className="relative w-full py-20 sm:py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/70 backdrop-blur-[2px] text-white overflow-hidden select-none border-b border-white/10"
+    >
+      {/* Subtle ambient multi-color backdrop gradient */}
+      <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden>
+        <div
+          className="absolute top-1/3 left-1/4 w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(34,211,238,0.25) 0%, rgba(34,211,238,0.06) 45%, transparent 70%)" }}
+        />
+        <div
+          className="absolute top-1/3 right-1/4 w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.2) 0%, rgba(236,72,153,0.05) 45%, transparent 70%)" }}
+        />
       </div>
-      
-      {/* ───────────────────────────────────────────────────────────────── */}
-      {/* SECTION 02 — THE FOUR PILLARS OF SABRANG (Central Light System)   */}
-      {/* ───────────────────────────────────────────────────────────────── */}
-      <section
-        id="four-pillars"
-        className="relative w-full py-20 sm:py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/75 backdrop-blur-sm text-white overflow-hidden select-none border-b border-white/10"
-      >
-        {/* Central Canvas System */}
-        <div className="absolute inset-0 z-1 pointer-events-none">
-          <SabrangPillarsCanvas
-            progressRef={pillarsProgressRef}
-            activePillarId={activePillarId}
-            onHoverPillar={setActivePillarId}
-            dotTargets={dotTargets}
-          />
+
+      <div className="max-w-6xl mx-auto space-y-12 relative z-10">
+        {/* Section Heading */}
+        <div className="space-y-4 max-w-2xl">
+          <h2
+            className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
+            style={{
+              fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
+              fontWeight: 850,
+              color: "#ffffff",
+              textShadow:
+                "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
+            }}
+          >
+            The Core Spectrums
+          </h2>
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-12 relative z-10">
-          {/* Section Heading */}
-          <div className="space-y-4 max-w-2xl">
-            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-400 block">
-              02 · THE FOUNDATION
-            </span>
-            <h2
-              className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
-              style={{
-                fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
-                fontWeight: 850,
-                color: "#ffffff",
-                textShadow:
-                  "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
-              }}
-            >
-              The Core Spectrums
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed pt-1">
-              Four distinct forces emerging from the same unified core. Hover or tap to isolate each wavelength.
-            </p>
-          </div>
-
-          {/* Interactive Architectural Glass Monolith Pillars */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
-            {SABRANG_PILLARS.map((p) => {
-              const isActive = activePillarId === p.id;
-              return (
+        {/* Interactive Architectural Glass Monolith Pillars */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
+          {SABRANG_PILLARS.map((p) => {
+            const isActive = activePillarId === p.id;
+            return (
+              <div
+                key={p.id}
+                onMouseEnter={() => setActivePillarId(p.id)}
+                onMouseLeave={() => setActivePillarId(null)}
+                className={`group relative min-h-[340px] flex flex-col justify-between p-7 rounded-2xl border transition-all duration-500 cursor-pointer backdrop-blur-2xl overflow-hidden ${
+                  isActive
+                    ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02] -translate-y-3"
+                    : "bg-gradient-to-b from-white/[0.04] to-white/[0.01] hover:-translate-y-1.5"
+                }`}
+                style={{
+                  borderColor: isActive ? `${p.color}55` : "rgba(255,255,255,0.1)",
+                  boxShadow: isActive
+                    ? `0 20px 45px ${p.color}25, 0 0 35px ${p.color}18, inset 0 1px 0 rgba(255,255,255,0.25)`
+                    : "0 10px 30px rgba(0,0,0,0.5)",
+                }}
+              >
+                {/* Ambient Internal Glow Aura */}
                 <div
-                  key={p.id}
-                  onMouseEnter={() => setActivePillarId(p.id)}
-                  onMouseLeave={() => setActivePillarId(null)}
-                  className={`group relative min-h-[340px] flex flex-col justify-between p-7 rounded-2xl border transition-all duration-500 cursor-pointer backdrop-blur-2xl overflow-hidden ${
-                    isActive
-                      ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02] border-white/40 -translate-y-3"
-                      : "bg-gradient-to-b from-white/[0.04] to-white/[0.01] border-white/10 hover:border-white/25 hover:-translate-y-1.5"
-                  }`}
+                  className="absolute -top-16 -left-16 w-44 h-44 rounded-full pointer-events-none transition-opacity duration-500 blur-3xl"
                   style={{
-                    boxShadow: isActive
-                      ? `0 20px 45px ${p.color}35, inset 0 1px 0 rgba(255,255,255,0.3)`
-                      : "none",
+                    background: p.color,
+                    opacity: isActive ? 0.22 : 0,
                   }}
-                >
-                  {/* Monolith Background Photo */}
-                  {p.image && (
-                    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-2xl">
-                      <Image
-                        src={p.image}
-                        alt={p.name}
-                        fill
-                        className="object-cover opacity-25 group-hover:opacity-45 scale-105 group-hover:scale-110 transition-all duration-700 mix-blend-luminosity"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#030206] via-[#030206]/80 to-transparent" />
-                    </div>
-                  )}
+                />
 
-                  {/* Top Ambient Wavelength Light Bar */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-1 transition-all duration-500"
-                    style={{
-                      background: p.color,
-                      opacity: isActive ? 1 : 0.4,
-                      boxShadow: isActive ? `0 0 16px ${p.color}` : "none",
-                    }}
-                  />
+                {/* Monolith Background Photo */}
+                {p.image && (
+                  <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-2xl">
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      fill
+                      className="object-cover opacity-25 group-hover:opacity-45 scale-105 group-hover:scale-110 transition-all duration-700 mix-blend-luminosity"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#030206] via-[#030206]/80 to-transparent" />
+                  </div>
+                )}
 
-                  {/* Watermark Pillar Number */}
-                  <span
-                    className="absolute top-3 right-4 font-mono font-black text-6xl select-none pointer-events-none transition-all duration-500"
-                    style={{
-                      color: p.color,
-                      opacity: isActive ? 0.25 : 0.08,
-                      transform: isActive ? "scale(1.08)" : "scale(1)",
-                    }}
+                {/* Top Ambient Wavelength Light Bar */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-500 rounded-t-2xl"
+                  style={{
+                    background: `linear-gradient(90deg, transparent 0%, ${p.color} 25%, ${p.color} 75%, transparent 100%)`,
+                    opacity: isActive ? 1 : 0.7,
+                    boxShadow: isActive
+                      ? `0 0 18px ${p.color}, 0 0 32px ${p.color}90`
+                      : `0 0 10px ${p.color}60`,
+                  }}
+                />
+
+                <div className="pt-2">
+
+                  {/* Pillar Title */}
+                  <h3
+                    className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-3 relative z-10"
+                    style={{ fontFamily: '"Syne", sans-serif' }}
                   >
-                    {p.number}
-                  </span>
+                    {p.name}
+                  </h3>
 
-                  <div>
-                    {/* Header: Badge + Target Dot */}
-                    <div className="flex items-center justify-between mb-6 relative z-10">
-                      <span
-                        className="text-[10px] font-mono font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full border transition-all duration-300"
-                        style={{
-                          borderColor: `${p.color}50`,
-                          color: p.color,
-                          background: `${p.color}15`,
-                          boxShadow: isActive ? `0 0 12px ${p.color}30` : "none",
-                        }}
-                      >
-                        PILLAR {p.number}
-                      </span>
-                      
-                      {/* Target Beacon Dot for Canvas Light Vector */}
-                      <div className="relative flex items-center justify-center">
-                        <span
-                          ref={(el) => {
-                            dotRefs.current[p.id] = el;
-                          }}
-                          className="w-3 h-3 rounded-full relative z-10 transition-transform duration-300"
-                          style={{
-                            background: p.color,
-                            boxShadow: `0 0 14px ${p.color}`,
-                            transform: isActive ? "scale(1.3)" : "scale(1)",
-                          }}
-                        />
-                        {isActive && (
-                          <span
-                            className="absolute w-6 h-6 rounded-full animate-ping opacity-60 pointer-events-none"
-                            style={{ background: p.color }}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Pillar Title & Subtitle */}
-                    <h3
-                      className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-1 relative z-10"
-                      style={{ fontFamily: '"Syne", sans-serif' }}
-                    >
-                      {p.name}
-                    </h3>
-                    <span
-                      className="text-[11px] font-mono uppercase tracking-widest block mb-4 relative z-10 font-semibold"
-                      style={{ color: p.color }}
-                    >
-                      {p.subtitle}
-                    </span>
-
-                    {/* Pillar Description */}
-                    <p className="text-slate-300/85 text-xs font-light leading-relaxed relative z-10">
-                      {p.description}
-                    </p>
-                  </div>
-
-                  {/* Bottom Keyword Badge Tag */}
-                  <div className="pt-6 relative z-10">
-                    <span
-                      className="inline-block text-[9px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 rounded border transition-all duration-300"
-                      style={{
-                        borderColor: isActive ? `${p.color}60` : "rgba(255,255,255,0.1)",
-                        color: isActive ? "#ffffff" : "rgba(255,255,255,0.5)",
-                        background: isActive ? `${p.color}25` : "rgba(255,255,255,0.03)",
-                      }}
-                    >
-                      {p.keyword}
-                    </span>
-                  </div>
+                  {/* Pillar Description */}
+                  <p className="text-slate-300/85 text-xs font-light leading-relaxed relative z-10">
+                    {p.description}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      <ThemeInstallation />
+// ─────────────────────────────────────────────────────────────────────────────
+// BESPOKE EDITORIAL OP METRICS DATA (VERIFIED CONTENT SPECIFICATION)
+// ─────────────────────────────────────────────────────────────────────────────
+const OP_SPECS = [
+  {
+    num: "01",
+    stat: "50–60+",
+    keyword: "COLLEGES NATIONALLY",
+    accent: "#22d3ee",
+    role: "National Turnout",
+    details: "Over 2,000+ registered delegates and university teams from 50–60+ colleges across India descending on Jaipur for 3 days of multi-disciplinary rivalry.",
+    tags: ["50–60+ COLLEGES", "2,000+ DELEGATES", "3 DAYS DURATION"],
+  },
+  {
+    num: "02",
+    stat: "₹3,00,000+",
+    keyword: "VERIFIED CASH POOL",
+    accent: "#a855f7",
+    role: "Championship Bounty",
+    details: "Direct cash rewards, certified trophies, and national championship titles contested across marquee technical, cultural, management, and design arenas.",
+    tags: ["₹3,00,000+ POOL", "VERIFIED BOUNTY", "OFFICIAL MEMENTOS"],
+  },
+  {
+    num: "03",
+    stat: "4-IN-1",
+    keyword: "CROSS-DOMAIN FEST",
+    accent: "#f59e0b",
+    role: "Techno · Cultural · Management · Design",
+    details: "A rare national convergence of 4 pillars under one festival: from Panache fashion runway and Band Jam to AI coding duels, VerseVaad, and Seal the Deal.",
+    tags: ["PANACHE RUNWAY", "BAND JAM", "TECH HACKATHON", "VERSEVAAD"],
+  },
+  {
+    num: "04",
+    stat: "SINCE 2011",
+    keyword: "HEROIC 15-YR LEGACY",
+    accent: "#ec4899",
+    role: "Headliners & Pro-Nites",
+    details: "15 editions of pioneering campus culture at JKLU, celebrated with headlining live celebrity concerts, high-energy DJ nights, and open-air acoustic Sufi performances.",
+    tags: ["RUNNING SINCE 2011", "LIVE CONCERTS", "DJ NIGHTS", "SUFI ACOUSTICS"],
+  },
+];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT SECTIONS: OP STATS, BEYOND COMPETITIONS, AND FINAL RECOMBINATION
+// ─────────────────────────────────────────────────────────────────────────────
+export function AboutContentSections() {
+  const [activeSpecIndex, setActiveSpecIndex] = useState<number>(0);
+  const [activeExpIdx, setActiveExpIdx] = useState<number | null>(null);
+
+  const activeSpec = OP_SPECS[activeSpecIndex];
+
+  return (
+    <div className="relative w-full bg-transparent text-white selection:bg-purple-500 selection:text-white overflow-hidden">
       {/* ───────────────────────────────────────────────────────────────── */}
-      {/* SECTION 04 — WHY IS SABRANG OP?                                  */}
+      {/* SECTION 04 — WHY IS SABRANG OP? (BESPOKE EDITORIAL CONSOLE)      */}
       {/* ───────────────────────────────────────────────────────────────── */}
       <section
         id="why-sabrang-op"
-        className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/85 backdrop-blur-sm border-t border-white/10 overflow-hidden select-none"
+        className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/70 backdrop-blur-[2px] border-t border-white/10 overflow-hidden select-none"
       >
-        {/* Ambient Backlight Glows */}
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
+        {/* Prismatic ambient light shafts */}
+        <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden>
           <div
-            className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] opacity-25 blur-[160px]"
-            style={{ background: "radial-gradient(circle at center, rgba(34,211,238,0.2) 0%, transparent 70%)" }}
+            className="absolute top-1/3 left-1/4 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] rounded-full"
+            style={{ background: `radial-gradient(circle, ${activeSpec.accent}30 0%, ${activeSpec.accent}08 45%, transparent 70%)`, transition: "background 0.6s ease" }}
           />
           <div
-            className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] opacity-25 blur-[160px]"
-            style={{ background: "radial-gradient(circle at center, rgba(168,85,247,0.2) 0%, transparent 70%)" }}
+            className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, rgba(168,85,247,0.04) 45%, transparent 70%)" }}
           />
         </div>
 
         <div className="max-w-6xl mx-auto space-y-16 relative z-10">
-          {/* Section Header */}
-          <div className="space-y-4 max-w-2xl">
-            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-400 block">
-              04 · SCALE &amp; IMPACT
-            </span>
+          {/* Editorial Section Header with Live Status Ticker */}
+          <div className="space-y-4 max-w-3xl">
             <h2
-              className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
+              className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-white tracking-tight leading-none"
               style={{
                 fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
                 fontWeight: 850,
                 color: "#ffffff",
-                textShadow:
-                  "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
+                textShadow: "0 0 30px rgba(255,255,255,0.7), 0 0 60px rgba(34,211,238,0.4)",
               }}
             >
-              Why Is Sabrang OP?
+              The Sabrang Phenomenon
             </h2>
-            <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed pt-1">
-              Unmatched scale, wild crowd energy, massive prize pools, and 72 hours of unscripted mainstage euphoria.
-            </p>
           </div>
 
-          {/* OP Stat Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-8 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-cyan-400/50 hover:-translate-y-1.5 transition-all duration-300">
-              <span className="text-4xl sm:text-5xl font-black font-mono text-cyan-400 block">15,000+</span>
-              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Massive Footfall
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                Multi-college student convergence, roaring mainstage crowds, and non-stop campus pulse across 3 days.
-              </p>
+          {/* Bespoke Editorial Spectrum Console (Interactive Split-Flap Ribbon System) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-4">
+            {/* LEFT COLUMN: Interactive Spec Selector Tabs */}
+            <div className="lg:col-span-5 flex flex-col justify-between space-y-3">
+              {OP_SPECS.map((spec, idx) => {
+                const isSelected = activeSpecIndex === idx;
+                return (
+                  <button
+                    key={spec.num}
+                    onClick={() => setActiveSpecIndex(idx)}
+                    onMouseEnter={() => setActiveSpecIndex(idx)}
+                    className={`group relative text-left p-5 rounded-2xl border transition-all duration-400 overflow-hidden ${
+                      isSelected
+                        ? "bg-white/[0.08] border-white/40 shadow-2xl translate-x-2"
+                        : "bg-white/[0.02] border-white/10 hover:border-white/20 hover:bg-white/[0.04]"
+                    }`}
+                    style={{
+                      boxShadow: isSelected ? `0 10px 30px ${spec.accent}20` : "none",
+                    }}
+                  >
+                    {/* Left active colored subtle bar */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0 w-1 transition-all duration-300"
+                      style={{
+                        background: spec.accent,
+                        opacity: isSelected ? 0.7 : 0.15,
+                      }}
+                    />
+
+                    <div className="flex items-center justify-between pl-3">
+                      <div>
+                        <h4
+                          className="text-lg sm:text-xl font-bold uppercase text-white tracking-tight"
+                          style={{ fontFamily: '"Syne", sans-serif' }}
+                        >
+                          {spec.keyword}
+                        </h4>
+                      </div>
+
+                      <span
+                        className="text-2xl sm:text-3xl font-black font-mono tracking-tight transition-all duration-300"
+                        style={{
+                          color: isSelected ? spec.accent : "rgba(255,255,255,0.4)",
+                          textShadow: isSelected ? `0 0 18px ${spec.accent}` : "none",
+                        }}
+                      >
+                        {spec.stat}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="p-8 rounded-2xl border border-purple-500/20 bg-gradient-to-b from-purple-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-purple-400/50 hover:-translate-y-1.5 transition-all duration-300">
-              <span className="text-4xl sm:text-5xl font-black font-mono text-purple-400 block">₹3.5L+</span>
-              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Cash Prize Pool
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                High-stakes national competitions across Panache, Band Jam, Street Dance, Esports &amp; Hackathons.
-              </p>
-            </div>
+            {/* RIGHT COLUMN: Cinematic Holographic Showcase Plaque */}
+            <div className="lg:col-span-7 relative min-h-[420px] rounded-3xl border border-white/20 p-8 sm:p-12 flex flex-col justify-between overflow-hidden backdrop-blur-3xl bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent shadow-2xl">
+              {/* Dynamic Laser Grid Wireframe & Vignette */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-30 transition-all duration-700"
+                style={{
+                  background: `radial-gradient(ellipse at 85% 15%, ${activeSpec.accent}40 0%, transparent 65%)`,
+                }}
+              />
 
-            <div className="p-8 rounded-2xl border border-amber-500/20 bg-gradient-to-b from-amber-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-amber-400/50 hover:-translate-y-1.5 transition-all duration-300">
-              <span className="text-4xl sm:text-5xl font-black font-mono text-amber-400 block">30+</span>
-              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Marquee Arenas
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                From high-fashion couture runways and rock band jams to AI hackathons and parliamentary debates.
-              </p>
-            </div>
+              {/* Plaque Header: Clean minimal status */}
+              <div className="relative z-10 flex items-center justify-end border-b border-white/10 pb-5">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-2 h-2 rounded-full animate-ping"
+                    style={{ background: activeSpec.accent }}
+                  />
+                  <span
+                    className="text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded-full border"
+                    style={{
+                      borderColor: `${activeSpec.accent}50`,
+                      color: activeSpec.accent,
+                      background: `${activeSpec.accent}15`,
+                    }}
+                  >
+                    {activeSpec.role}
+                  </span>
+                </div>
+              </div>
 
-            <div className="p-8 rounded-2xl border border-pink-500/20 bg-gradient-to-b from-pink-500/10 to-transparent backdrop-blur-xl space-y-4 hover:border-pink-400/50 hover:-translate-y-1.5 transition-all duration-300">
-              <span className="text-4xl sm:text-5xl font-black font-mono text-pink-400 block">STAR</span>
-              <h3 className="text-lg font-bold uppercase text-white tracking-tight" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Pro-Shows &amp; DJ Nights
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                Headlining EDM DJs, indie rock bands, and celebrity artists under volumetric laser mainstages.
-              </p>
+              {/* Plaque Body: Giant Glowing Typography */}
+              <div className="relative z-10 py-6 space-y-4">
+                <span
+                  className="text-6xl sm:text-7xl md:text-8xl font-black font-mono tracking-tighter block leading-none"
+                  style={{
+                    color: "#ffffff",
+                    textShadow: `0 0 40px ${activeSpec.accent}, 0 0 80px ${activeSpec.accent}60`,
+                  }}
+                >
+                  {activeSpec.stat}
+                </span>
+
+                <h3
+                  className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight"
+                  style={{ fontFamily: '"Syne", sans-serif' }}
+                >
+                  {activeSpec.keyword}
+                </h3>
+
+                <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed max-w-lg">
+                  {activeSpec.details}
+                </p>
+              </div>
+
+              {/* Plaque Footer: Feature Pill Badges */}
+              <div className="relative z-10 pt-6 border-t border-white/10 flex flex-wrap gap-2.5">
+                {activeSpec.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[10px] font-mono uppercase tracking-wider px-3.5 py-1.5 rounded-full border bg-white/[0.04] transition-all duration-300 hover:border-white/40"
+                    style={{
+                      borderColor: `${activeSpec.accent}40`,
+                      color: "#ffffff",
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -386,127 +409,146 @@ export default function AboutSections() {
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 05 — BEYOND THE COMPETITIONS (Space Between Wavelengths)  */}
       {/* ───────────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/75 backdrop-blur-sm border-t border-white/10 overflow-hidden">
-        {/* Ambient atmospheric backlight blobs */}
+      <section className="relative w-full py-24 sm:py-32 px-6 sm:px-12 md:px-20 bg-black/40 backdrop-blur-[2px] border-t border-white/10 overflow-hidden select-none">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute top-10 left-10 w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] opacity-25 blur-[140px]"
-            style={{ background: "radial-gradient(ellipse at center, rgba(168,85,247,0.16) 0%, transparent 70%)" }} />
-          <div className="absolute bottom-10 right-10 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] opacity-20 blur-[150px]"
-            style={{ background: "radial-gradient(ellipse at center, rgba(6,182,212,0.15) 0%, transparent 70%)" }} />
+          <div
+            className="absolute top-10 left-10 w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] opacity-25"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(168,85,247,0.2) 0%, rgba(168,85,247,0.05) 45%, transparent 70%)",
+            }}
+          />
+          <div
+            className="absolute bottom-10 right-10 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] opacity-20"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(6,182,212,0.18) 0%, rgba(6,182,212,0.04) 45%, transparent 70%)",
+            }}
+          />
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-16 relative z-10">
-          
-          <div className="space-y-3 max-w-xl">
-            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-purple-400 block">
-              05 · THE FEST ATMOSPHERE
-            </span>
+        <div className="max-w-6xl mx-auto space-y-12 relative z-10">
+          <div className="space-y-4 max-w-2xl">
             <h2
-              className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
-              style={{ fontFamily: '"Syne", sans-serif' }}
+              className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
+              style={{
+                fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
+                fontWeight: 850,
+                color: "#ffffff",
+                textShadow:
+                  "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
+              }}
             >
-              Beyond <span className="text-cyan-300">Competitions</span>
+              Beyond Competitions
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm font-light">
-              The space between wavelengths — 72 hours of unscripted music, people, energy, and late-night campus discoveries.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-3 border-l border-purple-500/40 pl-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-purple-400">
-                After-Dark Energy
-              </span>
-              <h3 className="text-xl font-bold uppercase text-white" style={{ fontFamily: '"Syne", sans-serif' }}>
-                DJ Nights &amp; Mainstage Concerts
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                High-octane EDM basslines, laser visual installations, and open-floor dancing till midnight every single day.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+            {[
+              {
+                category: "After-Dark Energy",
+                title: "DJ Nights & Mainstage Concerts",
+                description:
+                  "High-octane EDM basslines, laser visual installations, and open-floor dancing till midnight every single day.",
+                color: "#a855f7",
+                image: "/menu-scroll-covers/sabrang-live.png",
+              },
+              {
+                category: "Interactive Zone",
+                title: "Esports & Mini Games Arena",
+                description:
+                  "Casual arcade corners, console gaming duels, VR setups, and pop-up challenge booths scattered across campus.",
+                color: "#22d3ee",
+                image: "/versevaad.jpg",
+              },
+              {
+                category: "Spontaneous Culture",
+                title: "Pre-Sabrang Flashmobs & Pop-ups",
+                description:
+                  "Acoustic jam circles, spontaneous street dance pop-ups, food carnivals, and neon photo installations.",
+                color: "#ec4899",
+                image: "/dance-battle.png",
+              },
+            ].map((item, idx) => {
+              const isExpActive = activeExpIdx === idx;
+              return (
+                <div
+                  key={idx}
+                  onMouseEnter={() => setActiveExpIdx(idx)}
+                  onMouseLeave={() => setActiveExpIdx(null)}
+                  className={`group relative min-h-[300px] flex flex-col justify-between p-7 rounded-2xl border transition-all duration-500 hover:-translate-y-2 overflow-hidden cursor-pointer backdrop-blur-2xl ${
+                    isExpActive
+                      ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02]"
+                      : "bg-gradient-to-b from-white/[0.06] to-white/[0.01]"
+                  }`}
+                  style={{
+                    borderColor: isExpActive ? `${item.color}55` : "rgba(255,255,255,0.1)",
+                    boxShadow: isExpActive
+                      ? `0 20px 45px ${item.color}25, 0 0 35px ${item.color}18, inset 0 1px 0 rgba(255,255,255,0.25)`
+                      : "0 10px 30px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {/* Ambient Internal Glow Aura */}
+                  <div
+                    className="absolute -top-16 -left-16 w-44 h-44 rounded-full pointer-events-none transition-opacity duration-500 blur-3xl"
+                    style={{
+                      background: item.color,
+                      opacity: isExpActive ? 0.22 : 0,
+                    }}
+                  />
 
-            <div className="space-y-3 border-l border-cyan-500/40 pl-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">
-                Interactive Zone
-              </span>
-              <h3 className="text-xl font-bold uppercase text-white" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Esports &amp; Mini Games Arena
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                Casual arcade corners, console gaming duels, VR setups, and pop-up challenge booths scattered across campus.
-              </p>
-            </div>
+                  {/* Background Photo with Luminosity */}
+                  {item.image && (
+                    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-2xl">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover opacity-20 group-hover:opacity-40 scale-105 group-hover:scale-110 transition-all duration-700 mix-blend-luminosity"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#030206] via-[#030206]/85 to-transparent" />
+                    </div>
+                  )}
 
-            <div className="space-y-3 border-l border-pink-500/40 pl-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-pink-400">
-                Spontaneous Culture
-              </span>
-              <h3 className="text-xl font-bold uppercase text-white" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Pre-Sabrang Flashmobs &amp; Pop-ups
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                Acoustic jam circles, spontaneous street dance pop-ups, food carnivals, and neon photo installations.
-              </p>
-            </div>
+                  {/* Top Ambient Wavelength Light Bar */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-500 rounded-t-2xl"
+                    style={{
+                      background: `linear-gradient(90deg, transparent 0%, ${item.color} 25%, ${item.color} 75%, transparent 100%)`,
+                      opacity: isExpActive ? 1 : 0.7,
+                      boxShadow: isExpActive
+                        ? `0 0 18px ${item.color}, 0 0 32px ${item.color}90`
+                        : `0 0 10px ${item.color}60`,
+                    }}
+                  />
+
+                <div className="pt-2 relative z-10">
+                  <h3
+                    className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-3"
+                    style={{ fontFamily: '"Syne", sans-serif' }}
+                  >
+                    {item.title}
+                  </h3>
+
+                  <p className="text-slate-300/85 text-xs font-light leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+              );
+            })}
           </div>
-
         </div>
       </section>
-
-      {/* ───────────────────────────────────────────────────────────────── */}
-      {/* SECTION 06 — THE FINAL RECOMBINATION & STATEMENT                   */}
-      {/* ───────────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-36 px-6 text-center bg-[#030206]/75 backdrop-blur-sm border-t border-white/10 overflow-hidden">
-        {/* Ambient atmospheric backlight blobs */}
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[900px] max-h-[900px] opacity-30 blur-[170px]"
-            style={{ background: "radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(6,182,212,0.15) 35%, rgba(168,85,247,0.1) 60%, transparent 80%)" }} />
-        </div>
-
-        <div className="max-w-3xl mx-auto space-y-10 relative z-10">
-          <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-300 block">
-            06 · THE RECOMBINATION
-          </span>
-
-          <div className="space-y-2">
-            <h2
-              className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-white tracking-tight"
-              style={{ fontFamily: '"Syne", sans-serif', letterSpacing: "-0.02em" }}
-            >
-              Sab rang.
-            </h2>
-            <h3
-              className="text-3xl sm:text-5xl font-light uppercase text-transparent bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 bg-clip-text tracking-tight"
-              style={{ fontFamily: '"Syne", sans-serif' }}
-            >
-              All color.
-            </h3>
-            <h4
-              className="text-2xl sm:text-4xl font-extralight uppercase text-white/80 tracking-widest"
-              style={{ fontFamily: '"Syne", sans-serif' }}
-            >
-              One light.
-            </h4>
-          </div>
-
-          <p
-            className="text-slate-400 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto"
-            style={{ fontFamily: '"Inter", sans-serif' }}
-          >
-            Whether you come to perform, create, compete, or simply absorb the energy — Sabrang 2026 welcomes you to step into the light.
-          </p>
-
-          <div className="pt-6">
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-bold text-xs uppercase tracking-widest shadow-2xl hover:bg-slate-200 hover:scale-105 transition duration-300"
-            >
-              Explore Flagship Arenas
-            </Link>
-          </div>
-        </div>
-      </section>
-
     </div>
+  );
+}
+
+export default function AboutSections() {
+  return (
+    <>
+      <CoreSpectrumsSection />
+      <AboutContentSections />
+    </>
   );
 }

@@ -1,0 +1,141 @@
+.hero-section-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    /* Allow interaction with 3D model behind */
+}
+
+/* Typography elements can still receive events if needed */
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    text-align: center;
+    gap: 0.5rem;
+    mix-blend-mode: normal;
+    z-index: 11;
+}
+
+.hero-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--color-white);
+    opacity: 0.8;
+}
+
+.hero-title {
+    font-family: var(--font-display), serif;
+    font-size: clamp(2.5rem, 12vw, 12rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--color-white);
+    text-transform: uppercase;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.hero-year {
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 1em;
+    text-transform: uppercase;
+    color: var(--color-white);
+    opacity: 0.6;
+    margin-right: -1em; /* Offset letter spacing for centering */
+}
+
+.hero-footer {
+    position: absolute;
+    bottom: 2rem;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 3rem;
+    pointer-events: auto;
+}
+
+.hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.hero-info p {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--color-white);
+    opacity: 0.6;
+}
+
+.hero-info .hero-date {
+    opacity: 1;
+    font-weight: 700;
+    color: var(--color-white);
+}
+
+.hero-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.7;
+}
+
+.hero-scroll .scroll-text {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+
+.hero-scroll .scroll-arrow {
+    font-size: 1rem;
+    animation: float-down 2s infinite ease-in-out;
+}
+
+@keyframes float-down {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(10px);
+    }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .hero-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        bottom: 3rem;
+        padding: 0 1.5rem;
+    }
+    
+    .hero-info {
+        align-items: center;
+        text-align: center;
+    }
+    
+    .hero-label {
+        font-size: 0.55rem;
+    }
+    
+    .hero-year {
+        font-size: 0.85rem;
+    }
+}

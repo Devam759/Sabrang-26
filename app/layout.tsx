@@ -1,3 +1,4 @@
+import "@/lib/suppress-three-logs";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import InitialLoader from "@/components/effects/InitialLoader";
@@ -7,10 +8,13 @@ import SmoothScroll from "@/components/effects/SmoothScroll";
 import { InteractionProvider } from "@/components/InteractionContext";
 import Link from "next/link";
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 
 import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
@@ -19,8 +23,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sabrang.jklu.edu.in"),
   manifest: "/site.webmanifest",
   icons: {
-    icon: [{ url: "/sabrang-logo/favicon.ico" }, { url: "/sabrang-logo/favicon.ico", sizes: "any" }],
-    shortcut: "/sabrang-logo/favicon.ico",
+    icon: [{ url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico" }, { url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico", sizes: "any" }],
+    shortcut: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   title: {
@@ -69,7 +73,7 @@ export const metadata: Metadata = {
       "SABRANG 2026 - JK Lakshmipat University's premier annual fest. Experience Sabrang JKLU with star-studded nights and thrilling competitions.",
     images: [
       {
-        url: "/sabrang-logo/sabrang-logo.png",
+        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 - JK Lakshmipat University Annual Cultural Fest",
@@ -81,7 +85,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual cultural & technical fest.",
-    images: ["/sabrang-logo/sabrang-logo.png"],
+    images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
 
@@ -114,7 +118,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className}`}>
         {process.env.NODE_ENV === "production" && (
           <Script
             defer
@@ -129,11 +133,11 @@ export default function RootLayout({
             <SmoothScroll>
               <TubesCursor />
               <CursorFollower />
-              <InitialLoader />
-              <div className="min-h-screen flex flex-col bg-black text-white overflow-x-clip">
+              {/* <InitialLoader /> */}
+              <div className="min-h-screen flex flex-col text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
-                <footer className="py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
+                <footer className="relative z-30 py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
                   <span>&copy; 2026 Sabrang Festival. All rights reserved.</span>
                   <span className="hidden sm:inline text-white/20">•</span>
                   <Link
@@ -149,6 +153,8 @@ export default function RootLayout({
             </SmoothScroll>
           </AuthProvider>
         </InteractionProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

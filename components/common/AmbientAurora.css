@@ -1,0 +1,90 @@
+.aurora-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    /* Ensure it sits above the base background */
+    pointer-events: none;
+    overflow: hidden;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.aurora-canvas::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('/noise.png');
+    background-repeat: repeat;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    z-index: 10;
+}
+
+.light-node {
+    position: absolute;
+    border-radius: var(--radius-lg);
+    opacity: 0.25;
+    /* Reduced for subtlety */
+    mix-blend-mode: screen;
+    will-change: transform;
+    filter: blur(80px);
+    /* Increased blur for softer glow */
+    transition: transform 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Peeking from Right Center */
+.node-right {
+    width: 60vw;
+    height: 80vh;
+    background: radial-gradient(circle, #4c1d95, transparent 70%); /* Deep Purple */
+    top: 10%;
+    right: -25vw;
+    animation: breathe-aurora 15s ease-in-out infinite alternate;
+}
+
+/* Peeking from Bottom Left */
+.node-bottom-left {
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, #e11d48, transparent 70%); /* Warm Magenta/Red */
+    bottom: -20vh;
+    left: -15vw;
+    animation: breathe-aurora 18s ease-in-out infinite alternate-reverse;
+}
+
+/* Peeking from Top Left */
+.node-top-left {
+    width: 40vw;
+    height: 40vw;
+    background: radial-gradient(circle, #ea580c, transparent 70%); /* Warm Orange */
+    top: -15vh;
+    left: -10vw;
+    opacity: 0.1;
+    animation: wander-aurora 25s linear infinite;
+}
+
+@keyframes breathe-aurora {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 0.2;
+    }
+
+    50% {
+        transform: scale(1.1) translate(5%, 5%);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(0.9) translate(-2%, 10%);
+        opacity: 0.2;
+    }
+}
+
+@keyframes wander-aurora {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(10vw, 5vh) rotate(360deg);
+    }
+}

@@ -1,12 +1,18 @@
 "use client";
 
 /**
- * Prism — Optical Ray Physics & Refraction Engine
+ * Prism — Cinematic Optical Refraction & Dispersion Simulation
  * 
- * Standalone 2D Canvas Ray Physics Component for Sabrang 2026: "Shades & Colors of Light".
+ * Rebuilt completely from scratch for Sabrang 2026.
  * 
- * Conceptual Flow:
- * MONOLITH LIGHT SOURCE → OPTICAL GLASS PRISM → SPECTRAL DISPERSION → SABRANG CONVERGENCE
+ * Continuous Physical Storyline:
+ * 0%–15%:  Dark Empty Space (Zero visibility of prism or lights)
+ * 15%–30%: White Light Source Appears (Intense pulsing white point on left)
+ * 30%–45%: White Beam Travels (Focused pure white laser shoots to prism)
+ * 45%–55%: Transparent Optical Glass Prism Reveals (Refractive 3D glass materializes)
+ * 55%–65%: White Beam Enters Prism (Visibly travels through glass interior as PURE WHITE light)
+ * 65%–80%: Gradual Spectral Dispersion Inside (Continuous physical split from white into 7 wavelengths)
+ * 80%–100%: Rainbow Spectrum Exits & Expands (7 luminous volumetric rays fan out with labels & bloom)
  */
 
 import React, { useEffect, useRef } from "react";
@@ -14,23 +20,22 @@ import React, { useEffect, useRef } from "react";
 export interface SpectralRay {
   label: string;
   color: string;
-  angle: number; // relative refraction angle in degrees
-  speed: number;
+  angle: number; // degrees
 }
 
 export const SPECTRUM_RAYS: SpectralRay[] = [
-  { label: "DANCE",       color: "#ff3b5c", angle: -54, speed: 1.0 },
-  { label: "DESIGN",      color: "#ff7b2c", angle: -36, speed: 0.95 },
-  { label: "LITERATURE",  color: "#f5d800", angle: -18, speed: 1.05 },
-  { label: "TECHNOLOGY",  color: "#22d3ee", angle: 0,   speed: 1.1 },
-  { label: "MANAGEMENT",  color: "#3b82f6", angle: 18,  speed: 0.9 },
-  { label: "CULTURE",     color: "#8b5cf6", angle: 36,  speed: 1.0 },
-  { label: "MUSIC",       color: "#ec4899", angle: 54,  speed: 1.05 },
+  { label: "DANCE",       color: "#ff3b5c", angle: -48 },
+  { label: "DESIGN",      color: "#ff7b2c", angle: -32 },
+  { label: "LITERATURE",  color: "#f5d800", angle: -16 },
+  { label: "TECHNOLOGY",  color: "#22d3ee", angle: 0 },
+  { label: "MANAGEMENT",  color: "#3b82f6", angle: 16 },
+  { label: "CULTURE",     color: "#8b5cf6", angle: 32 },
+  { label: "MUSIC",       color: "#ec4899", angle: 48 },
 ];
 
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const cleanHex = hex.replace("#", "");
-  const num = parseInt(cleanHex, 16);
+  const clean = hex.replace("#", "");
+  const num = parseInt(clean, 16);
   return {
     r: (num >> 16) & 255,
     g: (num >> 8) & 255,
@@ -38,11 +43,22 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
+export function interpolateRgb(
+  c1: { r: number; g: number; b: number },
+  c2: { r: number; g: number; b: number },
+  t: number
+): { r: number; g: number; b: number } {
+  const clampT = Math.min(1, Math.max(0, t));
+  return {
+    r: Math.round(c1.r + (c2.r - c1.r) * clampT),
+    g: Math.round(c1.g + (c2.g - c1.g) * clampT),
+    b: Math.round(c1.b + (c2.b - c1.b) * clampT),
+  };
+}
+
+const WHITE_RGB = { r: 255, g: 255, b: 255 };
+
 export interface PrismProps {
-  /** 
-   * Scrub progress from 0.0 (white light origin) to 1.0 (Sabrang chromatic convergence).
-   * If not provided or driven externally, progress defaults to 0 or reads from progressRef.
-   */
   progress?: number;
   progressRef?: React.MutableRefObject<number>;
   className?: string;
@@ -63,218 +79,358 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
     let dpr = 1;
 
     function handleResize() {
-      if (!canvas) return;
+      if (!canvas || !ctx) return;
+      const rect = canvas.getBoundingClientRect();
+      W = rect.width || canvas.offsetWidth || window.innerWidth;
+      H = rect.height || canvas.offsetHeight || window.innerHeight;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = canvas.offsetWidth;
-      H = canvas.offsetHeight;
-      canvas.width = W * dpr;
-      canvas.height = H * dpr;
-      ctx?.scale(dpr, dpr);
+
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     handleResize();
     const ro = new ResizeObserver(handleResize);
     ro.observe(canvas);
 
-    // Particle pool for photon dust inside light paths
-    const particleCount = 140;
-    const particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      size: Math.random() * 1.8 + 0.5,
-      alpha: Math.random() * 0.5 + 0.2,
+    // Subtle photon dust particles for volumetric light feel
+    const particles = Array.from({ length: 90 }, () => ({
+      size: Math.random() * 1.5 + 0.5,
+      alpha: Math.random() * 0.4 + 0.2,
       rayIndex: Math.floor(Math.random() * SPECTRUM_RAYS.length),
-      offset: Math.random() * 100,
-      speed: Math.random() * 0.003 + 0.001,
+      offset: Math.random(),
+      speed: Math.random() * 0.002 + 0.001,
     }));
 
     let time = 0;
 
     function render() {
       if (!ctx) return;
-      time += 0.012;
+      time += 0.015;
 
-      // Determine progress value: external ref (for high-fps scroll scrub) or prop
-      const p = progressRef ? progressRef.current : progress;
+      // ── GET EXACT SCROLL PROGRESS (0.00 to 1.00) ──
+      let p = 0;
+      if (progressRef && typeof progressRef.current === "number") {
+        p = progressRef.current;
+      } else {
+        p = progress;
+      }
+      p = Math.min(1, Math.max(0, p));
 
       ctx.clearRect(0, 0, W, H);
 
       const cx = W * 0.5;
       const cy = H * 0.5;
 
-      // ── MOMENT 01: MONOLITH LIGHT SOURCE ──
-      const sourceX = W * 0.18;
-      const sourceY = cy;
-
-      const sourceAlpha = p < 0.85 ? Math.min(1, Math.max(0.4, (0.85 - p) / 0.2)) : Math.max(0, 1 - (p - 0.85) / 0.15);
-      const pulseRadius = 6 + Math.sin(time * 2.5) * 2;
-
-      // Deep atmospheric background gradient
+      // ── SCENE 1: DARK CINEMATIC AMBIENT BACKGROUND ──
       const bgGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(W, H) * 0.75);
-      bgGrad.addColorStop(0, "rgba(8, 8, 16, 0.4)");
-      bgGrad.addColorStop(0.5, "rgba(3, 3, 7, 0.9)");
+      bgGrad.addColorStop(0, "rgba(10, 9, 20, 0.4)");
+      bgGrad.addColorStop(0.5, "rgba(3, 2, 7, 0.9)");
       bgGrad.addColorStop(1, "rgba(0, 0, 0, 1)");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Light Point Source
-      if (sourceAlpha > 0.01) {
-        const lightGlow = ctx.createRadialGradient(
-          sourceX,
-          sourceY,
-          0,
-          sourceX,
-          sourceY,
-          130
-        );
-        lightGlow.addColorStop(0, `rgba(255, 255, 255, ${0.95 * sourceAlpha})`);
-        lightGlow.addColorStop(0.15, `rgba(220, 240, 255, ${0.65 * sourceAlpha})`);
-        lightGlow.addColorStop(0.4, `rgba(160, 200, 255, ${0.2 * sourceAlpha})`);
-        lightGlow.addColorStop(1, "rgba(0,0,0,0)");
+      // If at start (0-15%), keep scene completely dark as requested
+      if (p <= 0.01) {
+        animRef.current = requestAnimationFrame(render);
+        return;
+      }
 
-        ctx.fillStyle = lightGlow;
+      // Geometry coordinates
+      const sourceX = W * 0.14;
+      const sourceY = cy;
+      const prismX = W * 0.44;
+      const prismY = cy;
+      const pSize = 58; // Prism radius
+
+      // Front Face Vertices (Equilateral Triangle)
+      const topV = { x: prismX, y: prismY - pSize };
+      const botRightV = { x: prismX + pSize * 0.866, y: prismY + pSize * 0.5 };
+      const botLeftV = { x: prismX - pSize * 0.866, y: prismY + pSize * 0.5 };
+
+      const entryX = prismX - pSize * 0.433;
+      const entryY = cy;
+      const exitBaseX = prismX + pSize * 0.433;
+
+      // 7 distinct exit points along right prism edge (between topV and botRightV)
+      const exitPoints = SPECTRUM_RAYS.map((ray, i) => {
+        const factor = (i / (SPECTRUM_RAYS.length - 1) - 0.5) * 0.65;
+        return {
+          x: exitBaseX + factor * (pSize * 0.433),
+          y: cy + factor * (pSize * 0.8),
+        };
+      });
+
+      // ── SCENE 2: WHITE LIGHT SOURCE (Appears 15% -> 30%) ──
+      const sourceProg = Math.min(1, Math.max(0, (p - 0.15) / 0.15));
+      const sourceFade = p > 0.90 ? Math.max(0, 1 - (p - 0.90) / 0.10) : 1;
+      const sourceAlpha = sourceProg * sourceFade;
+
+      if (sourceAlpha > 0.01) {
+        const pulseRadius = 7 + Math.sin(time * 2.5) * 2;
+
+        // Outer radial glow
+        const sGlow = ctx.createRadialGradient(sourceX, sourceY, 0, sourceX, sourceY, 130);
+        sGlow.addColorStop(0, `rgba(255, 255, 255, ${0.95 * sourceAlpha})`);
+        sGlow.addColorStop(0.2, `rgba(220, 240, 255, ${0.75 * sourceAlpha})`);
+        sGlow.addColorStop(0.5, `rgba(160, 200, 255, ${0.25 * sourceAlpha})`);
+        sGlow.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.fillStyle = sGlow;
         ctx.beginPath();
         ctx.arc(sourceX, sourceY, 130, 0, Math.PI * 2);
         ctx.fill();
 
-        // Core dot
+        // Intense central white core
         ctx.fillStyle = `rgba(255, 255, 255, ${sourceAlpha})`;
         ctx.beginPath();
         ctx.arc(sourceX, sourceY, pulseRadius, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // ── MOMENT 02: BEAM PROPAGATION ──
-      const prismX = W * 0.46;
-      const prismY = cy;
+      // ── SCENE 3: TRANSPARENT GLASS PRISM REVEALS (Reveals 35% -> 50%) ──
+      const prismReveal = Math.min(1, Math.max(0, (p - 0.35) / 0.15));
+      const prismFade = p > 0.92 ? Math.max(0, 1 - (p - 0.92) / 0.08) : 1;
+      const prismAlpha = prismReveal * prismFade;
 
-      const beamProgress = Math.min(1, Math.max(0, p / 0.25));
-      const currentBeamX = sourceX + (prismX - sourceX) * beamProgress;
-      const beamFade = p > 0.85 ? Math.max(0, 1 - (p - 0.85) / 0.15) : 1;
+      if (prismAlpha > 0.01) {
+        const depthX = 16;
+        const depthY = -14;
 
-      if (beamProgress > 0 && beamFade > 0) {
-        // Primary Volumetric Light Shaft
-        const shaftGrad = ctx.createLinearGradient(sourceX, sourceY, currentBeamX, prismY);
-        shaftGrad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * beamFade})`);
-        shaftGrad.addColorStop(0.7, `rgba(240, 248, 255, ${0.8 * beamFade})`);
-        shaftGrad.addColorStop(1, `rgba(255, 255, 255, ${0.98 * beamFade})`);
+        const topVBack = { x: topV.x + depthX, y: topV.y + depthY };
+        const botRightVBack = { x: botRightV.x + depthX, y: botRightV.y + depthY };
+        const botLeftVBack = { x: botLeftV.x + depthX, y: botLeftV.y + depthY };
 
-        // Soft volumetric beam glow width
         ctx.save();
-        ctx.lineWidth = 5 + Math.sin(time * 3) * 1;
+        ctx.globalAlpha = prismAlpha;
+
+        // 1. Back 3D Face (Glass Volume)
+        ctx.beginPath();
+        ctx.moveTo(topVBack.x, topVBack.y);
+        ctx.lineTo(botRightVBack.x, botRightVBack.y);
+        ctx.lineTo(botLeftVBack.x, botLeftVBack.y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.20)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 2. Connecting Bevel Lines (3D Prism Edges)
+        const bevelGrad = ctx.createLinearGradient(topV.x, topV.y, topVBack.x, topVBack.y);
+        bevelGrad.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+        bevelGrad.addColorStop(1, "rgba(180, 220, 255, 0.15)");
+        ctx.strokeStyle = bevelGrad;
+        ctx.lineWidth = 1.2;
+
+        ctx.beginPath();
+        ctx.moveTo(topV.x, topV.y);
+        ctx.lineTo(topVBack.x, topVBack.y);
+        ctx.moveTo(botRightV.x, botRightV.y);
+        ctx.lineTo(botRightVBack.x, botRightVBack.y);
+        ctx.moveTo(botLeftV.x, botLeftV.y);
+        ctx.lineTo(botLeftVBack.x, botLeftVBack.y);
+        ctx.stroke();
+
+        // 3. Front Triangular Face Glass Sheen
+        const glassFill = ctx.createLinearGradient(botLeftV.x, botLeftV.y, topV.x, topV.y);
+        glassFill.addColorStop(0, "rgba(255, 255, 255, 0.10)");
+        glassFill.addColorStop(0.5, "rgba(180, 230, 255, 0.25)");
+        glassFill.addColorStop(1, "rgba(255, 255, 255, 0.06)");
+
+        ctx.fillStyle = glassFill;
+        ctx.beginPath();
+        ctx.moveTo(topV.x, topV.y);
+        ctx.lineTo(botRightV.x, botRightV.y);
+        ctx.lineTo(botLeftV.x, botLeftV.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // 4. Front Glass Refractive Outline & Specular Highlight
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.70)";
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = "rgba(200, 240, 255, 0.85)";
+        ctx.shadowBlur = 18;
+        ctx.stroke();
+
+        // 5. Corner Vertex Starlet Nodes
+        [topV, botRightV, botLeftV].forEach((v) => {
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(v.x, v.y, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.restore();
+      }
+
+      // ── SCENE 3: WHITE BEAM TRAVELS TOWARD PRISM (Travels 30% -> 45%) ──
+      const beamTravelProg = Math.min(1, Math.max(0, (p - 0.30) / 0.15));
+
+      if (beamTravelProg > 0 && sourceFade > 0) {
+        const currentBeamX = sourceX + (entryX - sourceX) * beamTravelProg;
+
+        // Volumetric Soft White Beam Shaft Glow
+        const shaftGrad = ctx.createLinearGradient(sourceX, sourceY, currentBeamX, entryY);
+        shaftGrad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * sourceFade})`);
+        shaftGrad.addColorStop(0.7, `rgba(240, 248, 255, ${0.85 * sourceFade})`);
+        shaftGrad.addColorStop(1, `rgba(255, 255, 255, ${0.98 * sourceFade})`);
+
+        ctx.save();
+        ctx.lineWidth = 6 + Math.sin(time * 3) * 1.5;
         ctx.strokeStyle = shaftGrad;
-        ctx.shadowColor = "rgba(200, 230, 255, 0.85)";
+        ctx.shadowColor = "rgba(255, 255, 255, 0.95)";
         ctx.shadowBlur = 28;
         ctx.beginPath();
         ctx.moveTo(sourceX, sourceY);
-        ctx.lineTo(currentBeamX, prismY);
+        ctx.lineTo(currentBeamX, entryY);
         ctx.stroke();
         ctx.restore();
 
-        // Core tight laser center line
+        // Focused Core 100% PURE WHITE Laser Line
         ctx.save();
-        ctx.lineWidth = 2.0;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${beamFade})`;
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${sourceFade})`;
         ctx.beginPath();
         ctx.moveTo(sourceX, sourceY);
-        ctx.lineTo(currentBeamX, prismY);
+        ctx.lineTo(currentBeamX, entryY);
         ctx.stroke();
         ctx.restore();
       }
 
-      // Optical Glass Boundary at Prism position
-      const prismAlpha = Math.min(1, Math.max(0.2, p / 0.2)) * Math.max(0, 1 - (p - 0.85) / 0.15);
-      ctx.save();
-      ctx.strokeStyle = `rgba(255, 255, 255, ${0.25 * prismAlpha})`;
-      ctx.lineWidth = 1.5;
-      ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
-      ctx.shadowBlur = 16;
+      // ── SCENE 4: WHITE BEAM TOUCHES & ENTERS GLASS (Enters 45% -> 65%) ──
+      // Entry Spark Flare on Glass Face
+      if (p >= 0.45) {
+        const sparkProg = Math.min(1, (p - 0.45) / 0.15);
+        ctx.save();
+        const sGlow = ctx.createRadialGradient(entryX, entryY, 0, entryX, entryY, 28 * sparkProg);
+        sGlow.addColorStop(0, "rgba(255, 255, 255, 0.98)");
+        sGlow.addColorStop(0.3, "rgba(210, 245, 255, 0.85)");
+        sGlow.addColorStop(0.7, "rgba(150, 210, 255, 0.3)");
+        sGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
 
-      // Draw optical prism silhouette
-      ctx.beginPath();
-      const pSize = 45;
-      ctx.moveTo(prismX, prismY - pSize);
-      ctx.lineTo(prismX + pSize * 0.86, prismY + pSize * 0.5);
-      ctx.lineTo(prismX - pSize * 0.86, prismY + pSize * 0.5);
-      ctx.closePath();
-      ctx.stroke();
+        ctx.fillStyle = sGlow;
+        ctx.beginPath();
+        ctx.arc(entryX, entryY, 28 * sparkProg, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
 
-      // Soft glass interior sheen
-      const prismSheen = ctx.createLinearGradient(prismX - 20, prismY - 20, prismX + 20, prismY + 20);
-      prismSheen.addColorStop(0, `rgba(255, 255, 255, ${0.1 * prismAlpha})`);
-      prismSheen.addColorStop(0.5, `rgba(180, 220, 255, ${0.2 * prismAlpha})`);
-      prismSheen.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = prismSheen;
-      ctx.fill();
-      ctx.restore();
+      const insideTravelProg = Math.min(1, Math.max(0, (p - 0.55) / 0.10));
+      const dispersionProg = Math.min(1, Math.max(0, (p - 0.65) / 0.15));
 
-      // ── MOMENT 03: REFRACTION & SPECTRAL DISPERSION ──
-      const targetX = W * 0.85;
+      // ── SCENE 4 & 5: LIGHT INSIDE THE PRISM (Pure White at first, then gradual dispersion) ──
+      if (p >= 0.55) {
+        ctx.save();
 
-      if (p > 0.10) {
-        const refractProgress = Math.min(1, Math.max(0, (p - 0.10) / 0.55));
-        const convergeProgress = p > 0.72 ? Math.min(1, (p - 0.72) / 0.22) : 0;
+        if (dispersionProg <= 0) {
+          // Inside Glass: Beam is visibly 100% PURE WHITE traveling from entry to center
+          const currentInsideX = entryX + (prismX - entryX) * insideTravelProg;
+          const currentInsideY = cy;
 
-        SPECTRUM_RAYS.forEach((ray, index) => {
-          const rayLength = (targetX - prismX) * refractProgress;
-          const rad = (ray.angle * Math.PI) / 180;
-
-          const spreadY = Math.tan(rad) * rayLength * (1 - convergeProgress * 0.95);
-          const endX = prismX + rayLength;
-          const endY = prismY + spreadY;
-
-          const rgb = hexToRgb(ray.color);
-          const rayAlpha = Math.min(1, refractProgress * 1.5) * (1 - convergeProgress * 0.2);
-
-          // Render spectral volumetric ray line
-          ctx.save();
-          const rayGrad = ctx.createLinearGradient(prismX, prismY, endX, endY);
-          rayGrad.addColorStop(0, `rgba(255, 255, 255, ${0.9 * rayAlpha})`);
-          rayGrad.addColorStop(0.25, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.85 * rayAlpha})`);
-          rayGrad.addColorStop(0.85, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.45 * rayAlpha})`);
-          rayGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
-
-          ctx.lineWidth = 2 + (1 - convergeProgress) * 1.5;
-          ctx.strokeStyle = rayGrad;
-          ctx.shadowColor = ray.color;
-          ctx.shadowBlur = 18 * rayAlpha;
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "rgba(255, 255, 255, 0.95)";
+          ctx.shadowBlur = 14;
 
           ctx.beginPath();
-          ctx.moveTo(prismX, prismY);
-          
-          const controlX = prismX + rayLength * 0.5;
-          const controlY = prismY + spreadY * 0.4;
+          ctx.moveTo(entryX, entryY);
+          ctx.lineTo(currentInsideX, currentInsideY);
+          ctx.stroke();
+        } else {
+          // Inside Glass: Continuous Physical Dispersion WHITE -> 7 Wavelengths
+          SPECTRUM_RAYS.forEach((ray, i) => {
+            const exitP = exitPoints[i];
+            const currentExitX = prismX + (exitP.x - prismX) * Math.min(1, dispersionProg * 1.3);
+            const currentExitY = cy + (exitP.y - cy) * Math.min(1, dispersionProg * 1.3);
+
+            // Smooth physical color split: WHITE -> Spectral Color
+            const rayRgb = interpolateRgb(WHITE_RGB, hexToRgb(ray.color), dispersionProg);
+
+            ctx.strokeStyle = `rgb(${rayRgb.r}, ${rayRgb.g}, ${rayRgb.b})`;
+            ctx.lineWidth = 2.0;
+            ctx.shadowColor = `rgb(${rayRgb.r}, ${rayRgb.g}, ${rayRgb.b})`;
+            ctx.shadowBlur = 12 * dispersionProg;
+
+            ctx.beginPath();
+            ctx.moveTo(entryX, entryY);
+            ctx.lineTo(currentExitX, currentExitY);
+            ctx.stroke();
+          });
+        }
+        ctx.restore();
+      }
+
+      // ── SCENE 6: RAINBOW SPECTRUM EXITS & EXPANDS (80% -> 100%) ──
+      const exitProg = Math.min(1, Math.max(0, (p - 0.80) / 0.20));
+      const targetX = W * 0.88;
+
+      if (exitProg > 0) {
+        const convergeProg = p > 0.92 ? Math.min(1, (p - 0.92) / 0.08) : 0;
+
+        SPECTRUM_RAYS.forEach((ray, i) => {
+          const exitP = exitPoints[i];
+          const maxRayLength = targetX - exitP.x;
+          const currentRayLength = maxRayLength * exitProg;
+          const rad = (ray.angle * Math.PI) / 180;
+
+          const spreadY = Math.tan(rad) * currentRayLength * (1 - convergeProg * 0.95);
+          const endX = exitP.x + currentRayLength;
+          const endY = exitP.y + spreadY;
+
+          const rgb = hexToRgb(ray.color);
+          const rayAlpha = Math.min(1, exitProg * 1.6) * (1 - convergeProg * 0.15);
+
+          // Volumetric Luminous Light Ray
+          ctx.save();
+          const rayGrad = ctx.createLinearGradient(exitP.x, exitP.y, endX, endY);
+          rayGrad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * rayAlpha})`);
+          rayGrad.addColorStop(0.15, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.95 * rayAlpha})`);
+          rayGrad.addColorStop(0.8, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.6 * rayAlpha})`);
+          rayGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+
+          ctx.lineWidth = 2.4 + (1 - convergeProg) * 1.4;
+          ctx.strokeStyle = rayGrad;
+          ctx.shadowColor = ray.color;
+          ctx.shadowBlur = 22 * rayAlpha;
+
+          ctx.beginPath();
+          ctx.moveTo(exitP.x, exitP.y);
+
+          const controlX = exitP.x + currentRayLength * 0.5;
+          const controlY = exitP.y + spreadY * 0.4;
           ctx.quadraticCurveTo(controlX, controlY, endX, endY);
           ctx.stroke();
 
-          // Floating Light Tip Glow
-          if (refractProgress > 0.15) {
-            const tipGlow = ctx.createRadialGradient(endX, endY, 0, endX, endY, 35 * refractProgress);
-            tipGlow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.4 * rayAlpha})`);
+          // Soft Ray Tip Glow
+          if (exitProg > 0.15) {
+            const tipGlow = ctx.createRadialGradient(endX, endY, 0, endX, endY, 34 * exitProg);
+            tipGlow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.5 * rayAlpha})`);
             tipGlow.addColorStop(1, "rgba(0,0,0,0)");
             ctx.fillStyle = tipGlow;
             ctx.beginPath();
-            ctx.arc(endX, endY, 35 * refractProgress, 0, Math.PI * 2);
+            ctx.arc(endX, endY, 34 * exitProg, 0, Math.PI * 2);
             ctx.fill();
           }
           ctx.restore();
 
-          // ── FLOATING DISCIPLINE TEXT EMBEDDED IN LIGHT PATH ──
-          if (refractProgress > 0.25 && convergeProgress < 0.8) {
-            const textX = prismX + (endX - prismX) * 0.65;
-            const textY = prismY + (endY - prismY) * 0.65;
+          // Floating Discipline Text Label
+          if (exitProg > 0.45 && convergeProg < 0.85) {
+            const textX = exitP.x + (endX - exitP.x) * 0.62;
+            const textY = exitP.y + (endY - exitP.y) * 0.62;
 
             const labelFade = Math.min(
               1,
-              Math.max(0, (refractProgress - 0.2) / 0.3)
-            ) * (1 - convergeProgress * 1.5);
+              Math.max(0, (exitProg - 0.45) / 0.3)
+            ) * (1 - convergeProg * 1.5);
 
             if (labelFade > 0.01) {
               ctx.save();
               ctx.font = "900 10px 'Syne', sans-serif";
               ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.95 * labelFade})`;
               ctx.shadowColor = ray.color;
-              ctx.shadowBlur = 12 * labelFade;
+              ctx.shadowBlur = 14 * labelFade;
               ctx.textAlign = "left";
               ctx.textBaseline = "middle";
               ctx.letterSpacing = "0.25em";
@@ -283,49 +439,48 @@ export default function Prism({ progress = 0, progressRef, className = "" }: Pri
             }
           }
         });
+
+        // Photon Dust Particles
+        if (exitProg > 0.1 && p < 0.96) {
+          ctx.save();
+          particles.forEach((part) => {
+            part.offset += part.speed;
+            if (part.offset > 1) part.offset = 0;
+
+            const ray = SPECTRUM_RAYS[part.rayIndex];
+            const exitP = exitPoints[part.rayIndex];
+            const rgb = hexToRgb(ray.color);
+
+            const rad = (ray.angle * Math.PI) / 180;
+            const len = (targetX - exitP.x) * Math.min(1, exitProg);
+
+            const px = exitP.x + len * part.offset;
+            const py = exitP.y + Math.tan(rad) * len * part.offset;
+            const pAlpha = part.alpha * Math.sin(part.offset * Math.PI);
+
+            ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${pAlpha})`;
+            ctx.shadowColor = ray.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(px, py, part.size, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.restore();
+        }
       }
 
-      // ── PHOTON DUST PARTICLES ──
-      if (p > 0.15 && p < 0.95) {
-        ctx.save();
-        particles.forEach((part) => {
-          part.offset += part.speed;
-          if (part.offset > 1) part.offset = 0;
-
-          const ray = SPECTRUM_RAYS[part.rayIndex];
-          const rgb = hexToRgb(ray.color);
-
-          const startX = prismX;
-          const startY = prismY;
-          const rad = (ray.angle * Math.PI) / 180;
-          const len = (targetX - prismX) * Math.min(1, (p - 0.3) / 0.4);
-
-          const px = startX + len * part.offset;
-          const py = startY + Math.tan(rad) * len * part.offset;
-          const pAlpha = part.alpha * Math.sin(part.offset * Math.PI);
-
-          ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${pAlpha})`;
-          ctx.shadowColor = ray.color;
-          ctx.shadowBlur = 8;
-          ctx.beginPath();
-          ctx.arc(px, py, part.size, 0, Math.PI * 2);
-          ctx.fill();
-        });
-        ctx.restore();
-      }
-
-      // ── MOMENT 04: SABRANG CHROMATIC CONVERGENCE BLOOM ──
-      if (p > 0.72) {
-        const cProgress = Math.min(1, (p - 0.72) / 0.25);
+      // ── CHROMATIC CONVERGENCE BLOOM (90% -> 100%) ──
+      if (p >= 0.88) {
+        const cProg = Math.min(1, (p - 0.88) / 0.12);
         const coreX = targetX;
         const coreY = cy;
 
-        const bloomRadius = 180 * cProgress;
+        const bloomRadius = 180 * cProg;
         const cBloom = ctx.createRadialGradient(coreX, coreY, 0, coreX, coreY, bloomRadius);
-        cBloom.addColorStop(0, `rgba(255, 255, 255, ${0.95 * cProgress})`);
-        cBloom.addColorStop(0.2, `rgba(34, 211, 238, ${0.5 * cProgress})`);
-        cBloom.addColorStop(0.45, `rgba(168, 85, 247, ${0.35 * cProgress})`);
-        cBloom.addColorStop(0.7, `rgba(236, 72, 153, ${0.2 * cProgress})`);
+        cBloom.addColorStop(0, `rgba(255, 255, 255, ${0.95 * cProg})`);
+        cBloom.addColorStop(0.2, `rgba(34, 211, 238, ${0.55 * cProg})`);
+        cBloom.addColorStop(0.45, `rgba(168, 85, 247, ${0.4 * cProg})`);
+        cBloom.addColorStop(0.7, `rgba(236, 72, 153, ${0.25 * cProg})`);
         cBloom.addColorStop(1, "rgba(0,0,0,0)");
 
         ctx.fillStyle = cBloom;
