@@ -5,16 +5,16 @@ import {
   CoreSpectrumsSection,
   AboutContentSections,
 } from "@/components/about/AboutSections";
-import ThemeInstallation from "@/components/about/ThemeInstallation";
 import AccordionGallery, {
   AccordionGalleryItem,
 } from "@/components/about/AccordionGallery";
 import JsonLd from "@/components/seo/JsonLd";
+import AboutBackground from "@/components/about/AboutBackground";
 
 export const metadata: Metadata = {
-  title: "About Sabrang 2026 – Shades & Colors of Light | JKLU Fest",
+  title: "About Sabrang 2026 | JKLU Fest",
   description:
-    "Learn about Sabrang 2026 — the annual flagship techno-cultural-management-design festival of JK Lakshmipat University celebrating talent, culture, and innovation in Jaipur under the theme 'Shades & Colors of Light'.",
+    "Learn about Sabrang 2026 — the annual flagship techno-cultural-management-design festival of JK Lakshmipat University celebrating talent, culture, and innovation in Jaipur.",
   keywords: [
     "About Sabrang",
     "Sabrang JKLU Story",
@@ -23,17 +23,17 @@ export const metadata: Metadata = {
     "JKLU Jaipur Fest",
     "What is Sabrang",
     "Sabrang 2026 About",
-    "Shades & Colors of Light",
     "Sabrang Meaning",
   ],
   alternates: { canonical: "https://sabrang.jklu.edu.in/about" },
   openGraph: {
-    title: "About Sabrang 2026 – Shades & Colors of Light",
+    title: "About Sabrang 2026",
     description:
       "Enter Sabrang — the annual flagship festival of JKLU celebrating art, music, design, and innovation.",
     url: "https://sabrang.jklu.edu.in/about",
   },
 };
+
 
 const aboutSchema = {
   "@context": "https://schema.org",
@@ -125,48 +125,49 @@ export default function AboutPage() {
     <>
       <JsonLd data={aboutSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <div className="w-full bg-[#000000] text-white min-h-screen">
+      <div className="relative w-full bg-[#000000] text-white min-h-screen">
+        {/* Full-Page Persistent 3D Fluid Liquid Ribbon Background */}
+        <AboutBackground />
 
-        {/* 1. Immersive 3D pinned hero & story reveal (Ends with "What is Sabrang / Sabrang 2026") */}
+        {/* 1. Immersive 3D pinned hero & story reveal */}
+
         <div className="relative z-10">
           <AboutHero />
         </div>
+
 
         {/* 2. THE CORE SPECTRUMS (Section 02 - Four Pillars) directly after "What is Sabrang" */}
         <div className="relative z-10">
           <CoreSpectrumsSection />
         </div>
 
-        {/* 3. THEME INSTALLATION — OPTICAL PRISM & DISPERSION (STANDALONE PINNED TIMELINE) */}
-        <div className="relative z-20">
-          <ThemeInstallation />
-        </div>
-
-        {/* 4. Structured Content Blocks: Why Sabrang OP, Beyond Competitions, Recombination */}
+        {/* 3. Structured Content Blocks: Why Sabrang OP, Beyond Competitions, Recombination */}
         <div className="relative z-10">
           <AboutContentSections />
         </div>
 
+
         {/* 3. Flagship Showdowns (Pillars of Sabrang Accordion Showcase) */}
         <section className="relative w-full bg-[#030206]/75 backdrop-blur-sm text-white py-24 px-4 sm:px-8 md:px-16 border-t border-white/10 z-30 overflow-hidden">
           {/* Background Ambient Glows */}
-          <div className="absolute top-10 right-10 w-[650px] h-[650px] bg-purple-600/20 rounded-full blur-[170px] pointer-events-none" />
-          <div className="absolute bottom-10 left-10 w-[700px] h-[700px] bg-cyan-500/20 rounded-full blur-[190px] pointer-events-none" />
+          <div
+            className="absolute top-10 right-10 w-[650px] h-[650px] rounded-full pointer-events-none opacity-25"
+            style={{ background: "radial-gradient(circle, rgba(168,85,247,0.22) 0%, rgba(168,85,247,0.05) 45%, transparent 70%)" }}
+          />
+          <div
+            className="absolute bottom-10 left-10 w-[700px] h-[700px] rounded-full pointer-events-none opacity-20"
+            style={{ background: "radial-gradient(circle, rgba(6,182,212,0.2) 0%, rgba(6,182,212,0.04) 45%, transparent 70%)" }}
+          />
 
           <div className="max-w-7xl mx-auto space-y-8 relative z-10">
             {/* Section Header */}
             <div className="text-center space-y-3 max-w-2xl mx-auto">
-              <span className="text-xs font-mono uppercase tracking-widest text-pink-400">Flagship Showdowns</span>
               <h2
                 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
                 style={{ fontFamily: '"Syne", "Outfit", "Inter", sans-serif' }}
               >
                 Pillars of Sabrang
               </h2>
-
-              <p className="text-slate-400 text-xs sm:text-sm font-light max-w-lg mx-auto">
-                Explore the marquee competitive arenas where national talent clashes across every creative shade of light.
-              </p>
             </div>
 
             {/* Accordion Gallery Showcase */}
