@@ -10,7 +10,6 @@
  */
 
 import React, { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 
 export interface PillarData {
@@ -81,26 +80,23 @@ export function CoreSpectrumsSection() {
   return (
     <section
       id="four-pillars"
-      className="relative w-full py-20 sm:py-28 px-6 sm:px-12 md:px-20 bg-[#030206] text-white overflow-hidden select-none border-b border-white/10"
+      className="relative w-full py-20 sm:py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/70 backdrop-blur-[2px] text-white overflow-hidden select-none border-b border-white/10"
     >
       {/* Subtle ambient multi-color backdrop gradient */}
       <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden>
         <div
-          className="absolute top-1/3 left-1/4 w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full blur-[160px]"
-          style={{ background: "radial-gradient(circle, rgba(34,211,238,0.25) 0%, transparent 70%)" }}
+          className="absolute top-1/3 left-1/4 w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(34,211,238,0.25) 0%, rgba(34,211,238,0.06) 45%, transparent 70%)" }}
         />
         <div
-          className="absolute top-1/3 right-1/4 w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full blur-[160px]"
-          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 70%)" }}
+          className="absolute top-1/3 right-1/4 w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.2) 0%, rgba(236,72,153,0.05) 45%, transparent 70%)" }}
         />
       </div>
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
         {/* Section Heading */}
         <div className="space-y-4 max-w-2xl">
-          <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-400 block">
-            02 · THE FOUNDATION
-          </span>
           <h2
             className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
             style={{
@@ -113,9 +109,6 @@ export function CoreSpectrumsSection() {
           >
             The Core Spectrums
           </h2>
-          <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed pt-1">
-            Four distinct forces emerging from the same unified core. Hover or tap to explore each dimension.
-          </p>
         </div>
 
         {/* Interactive Architectural Glass Monolith Pillars */}
@@ -129,15 +122,25 @@ export function CoreSpectrumsSection() {
                 onMouseLeave={() => setActivePillarId(null)}
                 className={`group relative min-h-[340px] flex flex-col justify-between p-7 rounded-2xl border transition-all duration-500 cursor-pointer backdrop-blur-2xl overflow-hidden ${
                   isActive
-                    ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02] border-white/40 -translate-y-3"
-                    : "bg-gradient-to-b from-white/[0.04] to-white/[0.01] border-white/10 hover:border-white/25 hover:-translate-y-1.5"
+                    ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02] -translate-y-3"
+                    : "bg-gradient-to-b from-white/[0.04] to-white/[0.01] hover:-translate-y-1.5"
                 }`}
                 style={{
+                  borderColor: isActive ? `${p.color}55` : "rgba(255,255,255,0.1)",
                   boxShadow: isActive
-                    ? `0 20px 45px ${p.color}35, inset 0 1px 0 rgba(255,255,255,0.3)`
-                    : "none",
+                    ? `0 20px 45px ${p.color}25, 0 0 35px ${p.color}18, inset 0 1px 0 rgba(255,255,255,0.25)`
+                    : "0 10px 30px rgba(0,0,0,0.5)",
                 }}
               >
+                {/* Ambient Internal Glow Aura */}
+                <div
+                  className="absolute -top-16 -left-16 w-44 h-44 rounded-full pointer-events-none transition-opacity duration-500 blur-3xl"
+                  style={{
+                    background: p.color,
+                    opacity: isActive ? 0.22 : 0,
+                  }}
+                />
+
                 {/* Monolith Background Photo */}
                 {p.image && (
                   <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-2xl">
@@ -153,48 +156,30 @@ export function CoreSpectrumsSection() {
 
                 {/* Top Ambient Wavelength Light Bar */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-1 transition-all duration-500"
+                  className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-500 rounded-t-2xl"
                   style={{
-                    background: p.color,
-                    opacity: isActive ? 1 : 0.4,
-                    boxShadow: isActive ? `0 0 16px ${p.color}` : "none",
+                    background: `linear-gradient(90deg, transparent 0%, ${p.color} 25%, ${p.color} 75%, transparent 100%)`,
+                    opacity: isActive ? 1 : 0.7,
+                    boxShadow: isActive
+                      ? `0 0 18px ${p.color}, 0 0 32px ${p.color}90`
+                      : `0 0 10px ${p.color}60`,
                   }}
                 />
 
                 <div className="pt-2">
 
-                  {/* Pillar Title & Subtitle */}
+                  {/* Pillar Title */}
                   <h3
-                    className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-1 relative z-10"
+                    className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-3 relative z-10"
                     style={{ fontFamily: '"Syne", sans-serif' }}
                   >
                     {p.name}
                   </h3>
-                  <span
-                    className="text-[11px] font-mono uppercase tracking-widest block mb-4 relative z-10 font-semibold"
-                    style={{ color: p.color }}
-                  >
-                    {p.subtitle}
-                  </span>
 
                   {/* Pillar Description */}
                   <p className="text-slate-300/85 text-xs font-light leading-relaxed relative z-10">
                     {p.description}
                   </p>
-                </div>
-
-                {/* Bottom Keyword Badge Tag */}
-                <div className="pt-6 relative z-10">
-                  <span
-                    className="inline-block text-[9px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 rounded border transition-all duration-300"
-                    style={{
-                      borderColor: isActive ? `${p.color}60` : "rgba(255,255,255,0.1)",
-                      color: isActive ? "#ffffff" : "rgba(255,255,255,0.5)",
-                      background: isActive ? `${p.color}25` : "rgba(255,255,255,0.03)",
-                    }}
-                  >
-                    {p.keyword}
-                  </span>
                 </div>
               </div>
             );
@@ -252,52 +237,45 @@ const OP_SPECS = [
 // ─────────────────────────────────────────────────────────────────────────────
 export function AboutContentSections() {
   const [activeSpecIndex, setActiveSpecIndex] = useState<number>(0);
+  const [activeExpIdx, setActiveExpIdx] = useState<number | null>(null);
 
   const activeSpec = OP_SPECS[activeSpecIndex];
 
   return (
-    <div className="relative w-full bg-[#030206] text-white selection:bg-purple-500 selection:text-white overflow-hidden">
+    <div className="relative w-full bg-transparent text-white selection:bg-purple-500 selection:text-white overflow-hidden">
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 04 — WHY IS SABRANG OP? (BESPOKE EDITORIAL CONSOLE)      */}
       {/* ───────────────────────────────────────────────────────────────── */}
       <section
         id="why-sabrang-op"
-        className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206] border-t border-white/10 overflow-hidden select-none"
+        className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/70 backdrop-blur-[2px] border-t border-white/10 overflow-hidden select-none"
       >
         {/* Prismatic ambient light shafts */}
         <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden>
           <div
-            className="absolute top-1/3 left-1/4 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] rounded-full blur-[170px]"
-            style={{ background: `radial-gradient(circle, ${activeSpec.accent}30 0%, transparent 70%)`, transition: "background 0.6s ease" }}
+            className="absolute top-1/3 left-1/4 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] rounded-full"
+            style={{ background: `radial-gradient(circle, ${activeSpec.accent}30 0%, ${activeSpec.accent}08 45%, transparent 70%)`, transition: "background 0.6s ease" }}
           />
           <div
-            className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full blur-[170px]"
-            style={{ background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%)" }}
+            className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, rgba(168,85,247,0.04) 45%, transparent 70%)" }}
           />
         </div>
 
         <div className="max-w-6xl mx-auto space-y-16 relative z-10">
           {/* Editorial Section Header with Live Status Ticker */}
           <div className="space-y-4 max-w-3xl">
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <span className="text-[11px] font-mono uppercase tracking-[0.35em] text-cyan-400">
-                04 // SCALE, IMPACT &amp; PULSE
-              </span>
-            </div>
             <h2
               className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-white tracking-tight leading-none"
               style={{
                 fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
                 fontWeight: 850,
+                color: "#ffffff",
                 textShadow: "0 0 30px rgba(255,255,255,0.7), 0 0 60px rgba(34,211,238,0.4)",
               }}
             >
-              The Sabrang <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">Phenomenon</span>
+              The Sabrang Phenomenon
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm font-light max-w-xl leading-relaxed pt-1">
-              A 3-day techno-cultural-management-design immersion at JK Lakshmipat University — uniting national talent, high stakes, and unforgettable pro-nites.
-            </p>
           </div>
 
           {/* Bespoke Editorial Spectrum Console (Interactive Split-Flap Ribbon System) */}
@@ -320,21 +298,17 @@ export function AboutContentSections() {
                       boxShadow: isSelected ? `0 10px 30px ${spec.accent}20` : "none",
                     }}
                   >
-                    {/* Left active colored laser bar */}
+                    {/* Left active colored subtle bar */}
                     <div
-                      className="absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300"
+                      className="absolute left-0 top-0 bottom-0 w-1 transition-all duration-300"
                       style={{
                         background: spec.accent,
-                        opacity: isSelected ? 1 : 0.2,
-                        boxShadow: isSelected ? `0 0 14px ${spec.accent}` : "none",
+                        opacity: isSelected ? 0.7 : 0.15,
                       }}
                     />
 
                     <div className="flex items-center justify-between pl-3">
                       <div>
-                        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-400 block mb-1">
-                          {spec.role}
-                        </span>
                         <h4
                           className="text-lg sm:text-xl font-bold uppercase text-white tracking-tight"
                           style={{ fontFamily: '"Syne", sans-serif' }}
@@ -369,14 +343,7 @@ export function AboutContentSections() {
               />
 
               {/* Plaque Header: Clean minimal status */}
-              <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-5">
-                <span
-                  className="text-xs font-mono font-bold uppercase tracking-widest block"
-                  style={{ color: activeSpec.accent }}
-                >
-                  {activeSpec.keyword}
-                </span>
-
+              <div className="relative z-10 flex items-center justify-end border-b border-white/10 pb-5">
                 <div className="flex items-center gap-2">
                   <span
                     className="w-2 h-2 rounded-full animate-ping"
@@ -442,119 +409,134 @@ export function AboutContentSections() {
       {/* ───────────────────────────────────────────────────────────────── */}
       {/* SECTION 05 — BEYOND THE COMPETITIONS (Space Between Wavelengths)  */}
       {/* ───────────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-28 px-6 sm:px-12 md:px-20 bg-[#030206]/75 backdrop-blur-sm border-t border-white/10 overflow-hidden">
+      <section className="relative w-full py-24 sm:py-32 px-6 sm:px-12 md:px-20 bg-black/40 backdrop-blur-[2px] border-t border-white/10 overflow-hidden select-none">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute top-10 left-10 w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] opacity-25 blur-[140px]"
-            style={{ background: "radial-gradient(ellipse at center, rgba(168,85,247,0.16) 0%, transparent 70%)" }} />
-          <div className="absolute bottom-10 right-10 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] opacity-20 blur-[150px]"
-            style={{ background: "radial-gradient(ellipse at center, rgba(6,182,212,0.15) 0%, transparent 70%)" }} />
+          <div
+            className="absolute top-10 left-10 w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] opacity-25"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(168,85,247,0.2) 0%, rgba(168,85,247,0.05) 45%, transparent 70%)",
+            }}
+          />
+          <div
+            className="absolute bottom-10 right-10 w-[55vw] h-[55vw] max-w-[650px] max-h-[650px] opacity-20"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(6,182,212,0.18) 0%, rgba(6,182,212,0.04) 45%, transparent 70%)",
+            }}
+          />
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-16 relative z-10">
-          <div className="space-y-3 max-w-xl">
-            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-purple-400 block">
-              05 · THE FEST ATMOSPHERE
-            </span>
+        <div className="max-w-6xl mx-auto space-y-12 relative z-10">
+          <div className="space-y-4 max-w-2xl">
             <h2
-              className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
-              style={{ fontFamily: '"Syne", sans-serif' }}
+              className="text-4xl sm:text-6xl font-black uppercase text-white tracking-tight leading-none"
+              style={{
+                fontFamily: '"Syne", "Outfit", "Inter", sans-serif',
+                fontWeight: 850,
+                color: "#ffffff",
+                textShadow:
+                  "0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(56, 189, 248, 0.6), 0 4px 20px rgba(0,0,0,0.9)",
+              }}
             >
-              Beyond <span className="text-cyan-300">Competitions</span>
+              Beyond Competitions
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm font-light">
-              The space between wavelengths — 72 hours of unscripted music, people, energy, and late-night campus discoveries.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-3 border-l border-purple-500/40 pl-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-purple-400">
-                After-Dark Energy
-              </span>
-              <h3 className="text-xl font-bold uppercase text-white" style={{ fontFamily: '"Syne", sans-serif' }}>
-                DJ Nights &amp; Mainstage Concerts
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                High-octane EDM basslines, laser visual installations, and open-floor dancing till midnight every single day.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+            {[
+              {
+                category: "After-Dark Energy",
+                title: "DJ Nights & Mainstage Concerts",
+                description:
+                  "High-octane EDM basslines, laser visual installations, and open-floor dancing till midnight every single day.",
+                color: "#a855f7",
+                image: "/menu-scroll-covers/sabrang-live.png",
+              },
+              {
+                category: "Interactive Zone",
+                title: "Esports & Mini Games Arena",
+                description:
+                  "Casual arcade corners, console gaming duels, VR setups, and pop-up challenge booths scattered across campus.",
+                color: "#22d3ee",
+                image: "/versevaad.jpg",
+              },
+              {
+                category: "Spontaneous Culture",
+                title: "Pre-Sabrang Flashmobs & Pop-ups",
+                description:
+                  "Acoustic jam circles, spontaneous street dance pop-ups, food carnivals, and neon photo installations.",
+                color: "#ec4899",
+                image: "/dance-battle.png",
+              },
+            ].map((item, idx) => {
+              const isExpActive = activeExpIdx === idx;
+              return (
+                <div
+                  key={idx}
+                  onMouseEnter={() => setActiveExpIdx(idx)}
+                  onMouseLeave={() => setActiveExpIdx(null)}
+                  className={`group relative min-h-[300px] flex flex-col justify-between p-7 rounded-2xl border transition-all duration-500 hover:-translate-y-2 overflow-hidden cursor-pointer backdrop-blur-2xl ${
+                    isExpActive
+                      ? "bg-gradient-to-b from-white/[0.09] to-white/[0.02]"
+                      : "bg-gradient-to-b from-white/[0.06] to-white/[0.01]"
+                  }`}
+                  style={{
+                    borderColor: isExpActive ? `${item.color}55` : "rgba(255,255,255,0.1)",
+                    boxShadow: isExpActive
+                      ? `0 20px 45px ${item.color}25, 0 0 35px ${item.color}18, inset 0 1px 0 rgba(255,255,255,0.25)`
+                      : "0 10px 30px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {/* Ambient Internal Glow Aura */}
+                  <div
+                    className="absolute -top-16 -left-16 w-44 h-44 rounded-full pointer-events-none transition-opacity duration-500 blur-3xl"
+                    style={{
+                      background: item.color,
+                      opacity: isExpActive ? 0.22 : 0,
+                    }}
+                  />
 
-            <div className="space-y-3 border-l border-cyan-500/40 pl-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">
-                Interactive Zone
-              </span>
-              <h3 className="text-xl font-bold uppercase text-white" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Esports &amp; Mini Games Arena
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                Casual arcade corners, console gaming duels, VR setups, and pop-up challenge booths scattered across campus.
-              </p>
-            </div>
+                  {/* Background Photo with Luminosity */}
+                  {item.image && (
+                    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-2xl">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover opacity-20 group-hover:opacity-40 scale-105 group-hover:scale-110 transition-all duration-700 mix-blend-luminosity"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#030206] via-[#030206]/85 to-transparent" />
+                    </div>
+                  )}
 
-            <div className="space-y-3 border-l border-pink-500/40 pl-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-pink-400">
-                Spontaneous Culture
-              </span>
-              <h3 className="text-xl font-bold uppercase text-white" style={{ fontFamily: '"Syne", sans-serif' }}>
-                Pre-Sabrang Flashmobs &amp; Pop-ups
-              </h3>
-              <p className="text-slate-400 text-xs font-light leading-relaxed">
-                Acoustic jam circles, spontaneous street dance pop-ups, food carnivals, and neon photo installations.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+                  {/* Top Ambient Wavelength Light Bar */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-500 rounded-t-2xl"
+                    style={{
+                      background: `linear-gradient(90deg, transparent 0%, ${item.color} 25%, ${item.color} 75%, transparent 100%)`,
+                      opacity: isExpActive ? 1 : 0.7,
+                      boxShadow: isExpActive
+                        ? `0 0 18px ${item.color}, 0 0 32px ${item.color}90`
+                        : `0 0 10px ${item.color}60`,
+                    }}
+                  />
 
-      {/* ───────────────────────────────────────────────────────────────── */}
-      {/* SECTION 06 — THE FINAL RECOMBINATION & STATEMENT                   */}
-      {/* ───────────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-36 px-6 text-center bg-[#030206]/75 backdrop-blur-sm border-t border-white/10 overflow-hidden">
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[900px] max-h-[900px] opacity-30 blur-[170px]"
-            style={{ background: "radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(6,182,212,0.15) 35%, rgba(168,85,247,0.1) 60%, transparent 80%)" }} />
-        </div>
+                <div className="pt-2 relative z-10">
+                  <h3
+                    className="text-xl sm:text-2xl font-bold uppercase text-white tracking-tight leading-snug mb-3"
+                    style={{ fontFamily: '"Syne", sans-serif' }}
+                  >
+                    {item.title}
+                  </h3>
 
-        <div className="max-w-3xl mx-auto space-y-10 relative z-10">
-          <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-cyan-300 block">
-            06 · THE RECOMBINATION
-          </span>
-
-          <div className="space-y-2">
-            <h2
-              className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-white tracking-tight"
-              style={{ fontFamily: '"Syne", sans-serif', letterSpacing: "-0.02em" }}
-            >
-              Sab rang.
-            </h2>
-            <h3
-              className="text-3xl sm:text-5xl font-light uppercase text-transparent bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 bg-clip-text tracking-tight"
-              style={{ fontFamily: '"Syne", sans-serif' }}
-            >
-              All color.
-            </h3>
-            <h4
-              className="text-2xl sm:text-4xl font-extralight uppercase text-white/80 tracking-widest"
-              style={{ fontFamily: '"Syne", sans-serif' }}
-            >
-              One light.
-            </h4>
-          </div>
-
-          <p
-            className="text-slate-400 text-xs sm:text-sm font-light leading-relaxed max-w-md mx-auto"
-            style={{ fontFamily: '"Inter", sans-serif' }}
-          >
-            Whether you come to perform, create, compete, or simply absorb the energy — Sabrang 2026 welcomes you to step into the light.
-          </p>
-
-          <div className="pt-6">
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-bold text-xs uppercase tracking-widest shadow-2xl hover:bg-slate-200 hover:scale-105 transition duration-300"
-            >
-              Explore Flagship Arenas
-            </Link>
+                  <p className="text-slate-300/85 text-xs font-light leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+              );
+            })}
           </div>
         </div>
       </section>
