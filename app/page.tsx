@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeClient from "./HomeClient";
+import HomeClient from "@/components/layout/HomeClient";
 import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
@@ -111,13 +111,36 @@ const breadcrumbSchema = {
   ],
 };
 
+const summitImages = [
+  "/menu-scroll-covers/panache-runway.png",
+  "/menu-scroll-covers/sabrang-live.png",
+  "/menu-scroll-covers/step-up.jpg"
+];
+
+const summitNames = [
+  "PANACHE",
+  "BANDJAM",
+  "STEP-UP"
+];
+
+const summitBriefs = [
+  "The ultimate fashion showdown. Assert dominance on the runway with style that speaks volumes.",
+  "Pure sonic warfare under the open sky. The battle of the bands — raw, unfiltered, electric.",
+  "Premier solo dance showdown. Technical mastery, freestyle finesse, and electric expression."
+];
+
 export default function Home() {
   return (
     <>
       <JsonLd data={festivalEventSchema} />
       <JsonLd data={breadcrumbSchema} />
       <IntroReveal />
-      <HomeClient />
+      <HomeClient 
+        summitImages={summitImages}
+        summitNames={summitNames}
+        summitBriefs={summitBriefs}
+      />
     </>
   );
 }
+

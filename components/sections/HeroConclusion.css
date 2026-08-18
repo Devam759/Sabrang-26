@@ -1,0 +1,78 @@
+.register-btn-main {
+    position: relative;
+    background: var(--color-white);
+    color: var(--color-black);
+    padding: 1.5rem 4.5rem;
+    border-radius: 100px;
+    font-family: var(--font-space-grotesk), sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(var(--color-black-rgb), 0.4);
+}
+
+/* shine effect */
+.register-btn-main::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(var(--color-white-rgb), 0.8),
+            transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* hover */
+.register-btn-main:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 20px 60px var(--white-strong);
+    background: var(--color-white);
+}
+
+.register-btn-main:hover::before {
+    transform: translateX(100%);
+}
+
+.register-btn-main svg {
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+}
+
+.register-btn-main:hover svg {
+    transform: translateX(8px);
+}
+
+@media (max-width: 768px) {
+    .register-btn-main {
+        padding: 1.25rem 3.5rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-btn-main {
+        padding: 1.1rem 2.8rem;
+        font-size: 0.85rem;
+        letter-spacing: 1.5px;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .register-btn-main {
+        width: calc(100vw - 48px);
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        justify-content: center;
+        letter-spacing: 1px;
+    }
+}
