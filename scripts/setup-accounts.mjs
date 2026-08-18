@@ -1,15 +1,16 @@
 import admin from 'firebase-admin';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { randomInt } from 'crypto';
+import dotenv from 'dotenv';
 
-const serviceAccount = JSON.parse(
-  readFileSync(join(process.cwd(), 'sabrang-26-firebase-adminsdk-fbsvc-a93ec956bb.json'), 'utf8')
-);
+dotenv.config();
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
   });
 }
 
