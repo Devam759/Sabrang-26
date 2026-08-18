@@ -631,32 +631,34 @@ export default function GalleryClient() {
         />
       </div>
 
-      <Canvas
-        className="absolute inset-0 z-10"
-        camera={{ position: [0, 0, 6.5], fov: 50 }}
-        dpr={[1, 1.5]}
-        gl={{ powerPreference: 'high-performance', antialias: false }}
-        onCreated={({ camera }) => camera.lookAt(0, 0, 0)}
-      >
-        <Suspense fallback={null}>
-          <ResponsiveGalleryCamera />
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 8, 5]} intensity={1.5} />
-          <directionalLight position={[-5, -5, -5]} intensity={0.5} />
-          <hemisphereLight args={['#ffffff', '#000000', 0.4]} />
+      {isMobile === false && (
+        <Canvas
+          className="absolute inset-0 z-10"
+          camera={{ position: [0, 0, 6.5], fov: 50 }}
+          dpr={[1, 1.5]}
+          gl={{ powerPreference: 'high-performance', antialias: false }}
+          onCreated={({ camera }) => camera.lookAt(0, 0, 0)}
+        >
+          <Suspense fallback={null}>
+            <ResponsiveGalleryCamera />
+            <ambientLight intensity={0.4} />
+            <directionalLight position={[5, 8, 5]} intensity={1.5} />
+            <directionalLight position={[-5, -5, -5]} intensity={0.5} />
+            <hemisphereLight args={['#ffffff', '#000000', 0.4]} />
 
-          <ImageTube
-            scrollTargetRef={tubeScrollTarget}
-            spinVelocityRef={tubeSpinVelocity}
-            naturalDirRef={tubeNaturalDir}
-            tubeAngleRef={tubeAngle}
-            rotationSpeedScaleTargetRef={rotationSpeedScaleTarget}
-            onHoverStart={onImageHoverStart}
-            onHoverEnd={onImageHoverEnd}
-            onImageSelect={onImageSelect}
-          />
-        </Suspense>
-      </Canvas>
+            <ImageTube
+              scrollTargetRef={tubeScrollTarget}
+              spinVelocityRef={tubeSpinVelocity}
+              naturalDirRef={tubeNaturalDir}
+              tubeAngleRef={tubeAngle}
+              rotationSpeedScaleTargetRef={rotationSpeedScaleTarget}
+              onHoverStart={onImageHoverStart}
+              onHoverEnd={onImageHoverEnd}
+              onImageSelect={onImageSelect}
+            />
+          </Suspense>
+        </Canvas>
+      )}
 
       <div
         aria-hidden

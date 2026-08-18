@@ -95,7 +95,7 @@ const organizationSchema = {
   name: "JK Lakshmipat University",
   alternateName: "JKLU",
   url: "https://jklu.edu.in",
-  logo: "https://sabrang.jklu.edu.in/sabrang-logo/white_jklu_logo.png",
+  logo: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
   sameAs: [
     "https://www.facebook.com/jklakshmipatuniversity",
     "https://www.instagram.com/jklakshmipatuniversity",

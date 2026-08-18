@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo, useEffect } from "react";
+import React, { useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture, useAspect } from "@react-three/drei";
 import gsap from "gsap";
@@ -126,6 +126,14 @@ const Scene = () => {
 };
 
 export default function ContactBackground() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="fixed inset-0 z-0 pointer-events-none bg-black">
       {/* R3F v9 supports passing THREE.WebGPURenderer directly to gl prop */}
@@ -157,8 +165,6 @@ export default function ContactBackground() {
           return renderer as any;
         }}
         camera={{ position: [0, 0, 5], fov: 75 }}
-        // ponytail: capped at 1.5x — a full-screen shader at native DPR on a
-        // retina/4K display is 2-4x the fragments for a background nobody reads.
         dpr={[1, 1.5]}
         className="w-full h-full"
       >

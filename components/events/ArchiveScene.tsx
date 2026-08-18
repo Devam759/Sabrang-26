@@ -706,6 +706,11 @@ export default function ArchiveScene({
     if (textures) onReady();
   }, [textures, onReady]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div
       className="absolute inset-0 select-none touch-none"
@@ -715,12 +720,13 @@ export default function ArchiveScene({
       onPointerCancel={endDrag}
       onPointerLeave={onPointerLeave}
     >
-      <Canvas
-        frameloop={active ? "always" : "never"}
-        dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0, 11], fov: 48 }}
-      >
+      {mounted && (
+        <Canvas
+          frameloop={active ? "always" : "never"}
+          dpr={[1, 2]}
+          gl={{ antialias: true, powerPreference: "high-performance" }}
+          camera={{ position: [0, 0, 11], fov: 48 }}
+        >
         <CameraRig pointerRef={pointerRef} />
 
         <Grid
@@ -753,6 +759,7 @@ export default function ArchiveScene({
           />
         )}
       </Canvas>
-    </div>
-  );
+    )}
+  </div>
+);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useAspect } from "@react-three/drei";
 import * as THREE from "three";
@@ -289,6 +289,14 @@ function VideoBackground() {
 }
 
 export default function ThreeBackground() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="fixed inset-0 z-0 w-full h-full bg-[#030005] pointer-events-none overflow-hidden">
       <Canvas
