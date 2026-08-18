@@ -9,6 +9,8 @@ import Link from "next/link";
 import "./globals.css";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
@@ -149,6 +151,8 @@ export default function RootLayout({
             </SmoothScroll>
           </AuthProvider>
         </InteractionProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
