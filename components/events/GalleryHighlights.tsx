@@ -14,6 +14,7 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
 import { createWheelGesture } from "@/lib/gestureStepper";
@@ -63,9 +64,8 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+            }`}
         />
       )}
 
@@ -92,7 +92,7 @@ function ArchiveHeading({ className = "" }: { className?: string }) {
     <header className={`mx-auto max-w-6xl px-6 ${className}`}>
       <h1
         id="gallery-highlights-heading"
-        className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white font-darknexis text-neon-rgb"
+        className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white font-[family-name:var(--font-space-grotesk)] text-neon-rgb"
       >
         Events
       </h1>
@@ -207,12 +207,17 @@ export default function GalleryHighlights({
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          {/* Was a 13.5MB retrowave loop under two darkening overlays. The
-              overlays left it a dim magenta-to-navy wash, which these two
-              gradients paint outright — and they cost no decode on a page that
-              is already running a WebGL archive. */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#1b1035_0%,#120c26_45%,#07080f_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_12%,rgba(236,72,153,0.16)_0%,transparent_58%)]" />
+          {/* Cube video background */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+            src="/cube.mp4"
+          />
+          {/* Dark overlay so content stays readable */}
+          <div className="absolute inset-0 bg-black/50" />
         </div>
 
         <div className="relative z-10 h-full">
@@ -262,9 +267,8 @@ export default function GalleryHighlights({
                 {/* METADATA */}
                 <div
                   aria-live="polite"
-                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${
-                    ready ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
+                    }`}
                 >
                   {/* Navigation Buttons: Bottom-Right on mobile, Centered on Desktop */}
                   <div className="absolute right-5 bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:bottom-12 flex items-center gap-2 sm:gap-3 md:gap-6 pointer-events-auto z-20">
@@ -291,14 +295,6 @@ export default function GalleryHighlights({
                     </button>
                   </div>
 
-                  <div className="max-w-[48vw] sm:max-w-[50vw] md:max-w-[calc(50vw-4rem)]">
-                    <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white truncate font-darknexis text-neon-rgb">
-                      {focused.title}
-                    </h2>
-                    <p className="mt-0.5 sm:mt-1 max-w-md text-[11px] sm:text-xs md:text-sm font-medium leading-normal text-slate-300 line-clamp-1 truncate">
-                      {focused.description}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -314,6 +310,20 @@ export default function GalleryHighlights({
             ))}
           </ul>
         </div>
+
+        {/* Footer bar */}
+        <footer className="absolute bottom-0 inset-x-0 z-20 py-[9px] border-t border-white/10 bg-black/80 backdrop-blur-sm text-center text-white/50 text-[10px] flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
+          <span>&copy; 2026 Sabrang Festival. All rights reserved.</span>
+          <span className="hidden sm:inline text-white/20">&bull;</span>
+          <Link
+            href="/credits"
+            className="inline-flex items-center gap-1.5 text-white/70 hover:text-purple-400 transition-colors group font-medium"
+          >
+            <span>Made with</span>
+            <span className="text-red-500 group-hover:scale-125 transition-transform inline-block">❤️</span>
+            <span>by Tech Team</span>
+          </Link>
+        </footer>
       </section>
 
       {/* Expanded poster detail overlay */}

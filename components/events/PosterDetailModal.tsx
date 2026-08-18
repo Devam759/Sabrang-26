@@ -30,20 +30,18 @@ export default function PosterDetailModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${
-        visible
-          ? "bg-black/90 backdrop-blur-md opacity-100"
-          : "bg-transparent opacity-0 pointer-events-none"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-500 overflow-y-auto ${visible
+        ? "bg-black/90 backdrop-blur-md opacity-100"
+        : "bg-transparent opacity-0 pointer-events-none"
+        }`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`${item.title} event details`}
     >
       <div
-        className={`relative my-auto flex max-h-[90vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-500 overflow-y-auto p-4 sm:p-6 bg-neutral-950/90 border border-white/10 rounded-2xl shadow-2xl ${
-          visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
-        }`}
+        className={`relative my-auto flex max-h-[90vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-500 overflow-y-auto p-4 sm:p-6 bg-neutral-950/90 border border-white/10 rounded-2xl shadow-2xl ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -85,10 +83,8 @@ export default function PosterDetailModal({
 
         {/* Info panel */}
         <div className="flex flex-col justify-center py-2 md:py-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-400">
-            {item.category}
-          </p>
-          <h3 className="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
+
+          <h3 className="mt-2 text-2xl sm:text-4xl font-black uppercase tracking-tight text-white md:text-5xl font-[family-name:var(--font-space-grotesk)] text-neon-rgb">
             {item.title}
           </h3>
           <p className="mt-3 max-w-sm text-sm sm:text-base leading-relaxed text-slate-300">
