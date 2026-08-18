@@ -3,8 +3,34 @@
 
 import * as THREE from "three";
 
+// ─── Strings to suppress on BOTH server (Node.js terminal) and browser ────────
+const SUPPRESSED_STRINGS = [
+  "THREE.Clock",
+  "Multiple instances of Three.js",
+  "THREE.BufferGeometry.computeBoundingSphere",
+  "computeBoundingSphere",
+  "Computed radius is NaN",
+  "position attribute is likely to have NaN",
+  "position attribute is likely to have NaN values",
+];
+
+const filterLog = (origFn: (...args: unknown[]) => void) => {
+  return (...args: unknown[]) => {
+    const msg = args.map((a) => (typeof a === "string" ? a : String(a))).join(" ");
+    if (SUPPRESSED_STRINGS.some((s) => msg.includes(s))) {
+      return;
+    }
+    origFn.apply(console, args);
+  };
+};
+
+// Apply on Node.js (server / terminal) and browser alike
+console.warn = filterLog(console.warn);
+console.error = filterLog(console.error);
+
+// ─── Browser-only patches ──────────────────────────────────────────────────────
 if (typeof window !== "undefined") {
-  // 1. Monkey-patch BufferGeometry.computeBoundingSphere to guard against initial empty/NaN attributes
+  // Monkey-patch BufferGeometry.computeBoundingSphere to guard against initial empty/NaN attributes
   try {
     const origComputeBoundingSphere = THREE.BufferGeometry.prototype.computeBoundingSphere;
     THREE.BufferGeometry.prototype.computeBoundingSphere = function () {
@@ -25,30 +51,6 @@ if (typeof window !== "undefined") {
   } catch {
     // Ignore in non-browser environments
   }
-
-  // 2. Global console filter for third-party Three.js libraries
-  const SUPPRESSED_STRINGS = [
-    "Multiple instances of Three.js",
-    "THREE.Clock",
-    "THREE.BufferGeometry.computeBoundingSphere",
-    "computeBoundingSphere",
-    "Computed radius is NaN",
-    "position attribute is likely to have NaN",
-    "position attribute is likely to have NaN values",
-  ];
-
-  const filterLog = (origFn: (...args: unknown[]) => void) => {
-    return (...args: unknown[]) => {
-      const msg = args.map((a) => (typeof a === "string" ? a : String(a))).join(" ");
-      if (SUPPRESSED_STRINGS.some((s) => msg.includes(s))) {
-        return;
-      }
-      origFn.apply(console, args);
-    };
-  };
-
-  console.warn = filterLog(console.warn);
-  console.error = filterLog(console.error);
 }
 
 export {};

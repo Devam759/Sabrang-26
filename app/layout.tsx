@@ -129,7 +129,7 @@ export default function RootLayout({
           <AuthProvider>
             <SmoothScroll>
               <CursorFollower />
-              <InitialLoader />
+              {/* <InitialLoader /> */}
               <div className="min-h-screen flex flex-col text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
