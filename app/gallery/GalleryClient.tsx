@@ -22,6 +22,7 @@ import {
 import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
 import MobileGallery from './MobileGallery';
 import { GALLERY_IMAGES } from '@/lib/constants';
+import CursorGrid from '@/components/ui/CursorGrid';
 
 function CustomGalleryLoader() {
   const { active, progress } = useProgress();
@@ -463,7 +464,15 @@ function ImageTube({
 
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
       const rowObj = rowGroupRefs.current[rowIndex];
-      if (rowObj) rowObj.rotation.y = angle.current * rowSpeed[rowIndex % ROWS];
+      if (rowObj) {
+        rowObj.rotation.y = angle.current * rowSpeed[rowIndex % ROWS];
+
+        // Smoothly scale up the ring in the center of the screen
+        const worldY = -scrollCurrent.current + rowPositions[rowIndex].y;
+        const distance = Math.abs(worldY);
+        const scale = 1.0 + 0.12 * Math.exp(-(distance * distance) / 3.0);
+        rowObj.scale.setScalar(scale);
+      }
     }
   });
 
@@ -661,8 +670,26 @@ export default function GalleryClient() {
       onPointerCancel={endDrag}
       onPointerLeave={onPointerLeave}
     >
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+        <CursorGrid
+          cellSize={70}
+          color="#a855f7"
+          radius={320}
+          falloff="smooth"
+          holdTime={400}
+          fadeDuration={800}
+          lineWidth={1.2}
+          maxOpacity={0.85}
+          fillOpacity={0.05}
+          gridOpacity={0}
+          cellRadius={8}
+          clickPulse={true}
+          pulseSpeed={600}
+        />
+      </div>
+
       <Canvas
-        className="absolute inset-0"
+        className="absolute inset-0 z-10"
         camera={{ position: [0, 0, 6.5], fov: 50 }}
         dpr={[1, 1.5]}
         gl={{ powerPreference: 'high-performance', antialias: false }}
@@ -670,12 +697,10 @@ export default function GalleryClient() {
       >
         <Suspense fallback={null}>
           <ResponsiveGalleryCamera />
-          <ambientLight intensity={0.8} />
+          <ambientLight intensity={0.4} />
           <directionalLight position={[5, 8, 5]} intensity={1.5} />
-          <directionalLight position={[-5, -5, -5]} intensity={0.5} color="#4f46e5" />
-          <hemisphereLight args={['#ffffff', '#111827', 0.8]} />
-
-          <GridPlane targetCenterUv={targetCenterUv} />
+          <directionalLight position={[-5, -5, -5]} intensity={0.5} />
+          <hemisphereLight args={['#ffffff', '#000000', 0.4]} />
 
           <ImageTube
             scrollTargetRef={tubeScrollTarget}
@@ -692,7 +717,7 @@ export default function GalleryClient() {
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_center,transparent_0%,transparent_58%,#000_100%)]"
+        className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_58%,#000_100%)]"
       />
 
       <h1 className="sr-only">Gallery</h1>
