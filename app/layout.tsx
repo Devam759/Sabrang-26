@@ -1,6 +1,7 @@
 import "@/lib/suppress-three-logs";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import InitialLoader from "@/components/effects/InitialLoader";
 import TubesCursor from "@/components/effects/TubesCursor";
 import CursorFollower from "@/components/effects/CursorFollower";
@@ -137,18 +138,7 @@ export default function RootLayout({
               <div className="min-h-screen flex flex-col text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>
-                <footer className="relative z-30 py-6 border-t border-white/10 bg-black text-center text-white/50 text-sm flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
-                  <span>&copy; 2026 Sabrang Festival. All rights reserved.</span>
-                  <span className="hidden sm:inline text-white/20">•</span>
-                  <Link
-                    href="/credits"
-                    className="inline-flex items-center gap-1.5 text-white/70 hover:text-purple-400 transition-colors group font-medium"
-                  >
-                    <span>Made with</span>
-                    <span className="text-red-500 group-hover:scale-125 transition-transform inline-block">❤️</span>
-                    <span>by Tech Team</span>
-                  </Link>
-                </footer>
+                <Footer />
               </div>
             </SmoothScroll>
           </AuthProvider>

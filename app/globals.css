@@ -75,6 +75,11 @@
     width: 100%;
     max-width: 100vw;
   }
+
+  body.lightbox-open #main-navbar {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
 }
 
 @layer utilities {
