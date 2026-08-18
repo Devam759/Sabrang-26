@@ -6,7 +6,7 @@ import './HeroConclusion.css'
 
 export default function HeroConclusion() {
   return (
-    <section className="relative min-h-screen z-[70] flex flex-col items-center justify-center text-center px-6 py-20 overflow-visible bg-transparent text-white">
+    <section className="relative min-h-screen z-30 flex flex-col items-center justify-center text-center px-6 py-20 overflow-visible bg-transparent text-white">
       
       {/* Background Glow (Aura) */}
       <div 
