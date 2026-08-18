@@ -1,0 +1,260 @@
+.hero-theme {
+    /* Core */
+    --color-black: #050505;
+    --color-black-rgb: 5, 5, 5;
+    --color-white: #ffffff;
+    --color-white-rgb: 255, 255, 255;
+
+    --color-copper: #cba381;
+    --color-copper-rgb: 203, 163, 129;
+
+    /* Celestial Palette */
+    --color-violet: #7c3aed;
+    --color-violet-rgb: 124, 58, 237;
+    --color-orange: #ea580c;
+    --color-orange-rgb: 234, 88, 12;
+    --color-amber: #f59e0b;
+    --color-amber-rgb: 245, 158, 11;
+
+    /* Utility Roles */
+    --color-success: #4ade80;
+    --color-success-rgb: 74, 222, 128;
+    --color-danger: #f87171;
+    --color-danger-rgb: 248, 113, 113;
+    --color-info: #3b82f6;
+    --color-info-rgb: 59, 130, 246;
+    --color-neutral: #888890;
+    --color-neutral-rgb: 136, 136, 144;
+
+    /* Backgrounds */
+    --bg-primary: #050505;
+    --bg-secondary: #0d0c0a;
+    --bg-surface: #1a1815;
+    --bg-overlay: rgba(15, 15, 20, 0.4);
+
+    /* Text */
+    --text-primary: var(--color-white);
+    --text-secondary: rgba(var(--color-white-rgb), 0.7);
+    --text-muted: rgba(var(--color-white-rgb), 0.5);
+    --text-accent: var(--color-copper);
+
+    /* Copper Levels */
+    --copper-subtle: rgba(var(--color-copper-rgb), 0.05);
+    --copper-normal: rgba(var(--color-copper-rgb), 0.15);
+    --copper-strong: rgba(var(--color-copper-rgb), 0.30);
+    --copper-glow: rgba(var(--color-copper-rgb), 0.50);
+
+    /* White Levels */
+    --white-subtle: rgba(var(--color-white-rgb), 0.05);
+    --white-normal: rgba(var(--color-white-rgb), 0.15);
+    --white-strong: rgba(var(--color-white-rgb), 0.30);
+
+    /* Borders */
+    --border-subtle: var(--white-subtle);
+    --border-normal: var(--white-normal);
+    --border-strong: var(--white-strong);
+
+    /* Legacy / Compatibility */
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 5, 5, 5;
+    --background-end-rgb: 5, 5, 5;
+
+    /* Fonts */
+    --font-ui: var(--font-space-grotesk), sans-serif;
+    --font-display: var(--font-playfair), serif;
+    --font-mono: var(--font-jetbrains-mono), monospace;
+
+    /* Weights */
+    --fw-light: 300;
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    font-family: var(--font-ui);
+    position: relative;
+    font-weight: var(--fw-regular);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(1.05);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes textReveal {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-text-reveal {
+    opacity: 0;
+    animation: textReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-theme::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url('/hero/noise.png');
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 1;
+    will-change: transform;
+}
+
+@media (max-width: 768px) {
+    .hero-theme::after {
+        display: none;
+    }
+}
+
+.hero-theme::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: -20vh;
+    width: 80vh;
+    height: 100vh;
+    background: radial-gradient(ellipse at left center, var(--copper-subtle) 0%, transparent 70%);
+    pointer-events: none;
+    mix-blend-mode: screen;
+    z-index: 2;
+    will-change: transform;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+.btn-primary {
+    background: var(--color-copper);
+    color: var(--color-black);
+    border-color: var(--color-copper);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-white);
+    border-color: var(--color-white);
+    box-shadow: 0 4px 12px rgba(var(--color-black-rgb), 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--white-subtle);
+    border-color: var(--border-normal);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--white-normal);
+    border-color: var(--color-white);
+    transform: translateY(-2px);
+}
+
+.btn-glass {
+    background: rgba(var(--color-white-rgb), 0.03);
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text-secondary);
+}
+
+.btn-glass:hover:not(:disabled) {
+    background: var(--white-subtle);
+    border-color: var(--border-normal);
+    color: var(--text-primary);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-icon {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: skewX(-25deg);
+    transition: 0s;
+}
+
+.btn-shine:hover::before {
+    left: 150%;
+    transition: left 0.6s ease-out;
+}
+
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+    pointer-events: none;
+}
+
+.no-scroll {
+    overflow: hidden !important;
+    height: 100vh !important;
+}

@@ -196,7 +196,7 @@ export default function Navbar() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 z-40 bg-black/95"
+            className="fixed inset-0 z-40 bg-black"
           >
             {role !== "admin" && (
               <div className="absolute inset-0">
