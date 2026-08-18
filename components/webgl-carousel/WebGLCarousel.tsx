@@ -3,18 +3,10 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import Dynamic from "next/dynamic";
 import gsap from "gsap";
+import { Canvas } from "@react-three/fiber";
+import Carousel from "./Carousel";
 import { CarouselItemData } from "./CarouselItem";
-
-const Canvas = Dynamic(
-  () => import("@react-three/fiber").then((mod) => mod.Canvas),
-  {
-    ssr: false,
-  },
-);
-
-const Carousel = Dynamic(() => import("./Carousel"), {
-  ssr: false,
-});
+import { useTexture } from "@react-three/drei";
 
 interface WebGLCarouselProps {
   items: CarouselItemData[];
@@ -187,7 +179,14 @@ export default function WebGLCarousel({
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Preload unique texture URLs concurrently
+    const uniqueImages = Array.from(new Set(items.map((i) => i.image).filter(Boolean)));
+    uniqueImages.forEach((url) => {
+      try {
+        useTexture.preload(url);
+      } catch {}
+    });
+  }, [items]);
 
   useEffect(() => {
     if (activeItem) {

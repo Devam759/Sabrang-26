@@ -9,11 +9,11 @@ import { Slides } from "./TextureProjection/scene/Slides";
 import { SlideNoise } from "./TextureProjection/scene/SlideNoise";
 
 const IMAGES = [
-  "/fest-crowd-lights.jpg",
-  "/dance-battle.png",
-  "/panache-runway.png",
-  "/sabrang-live.png",
-  "/echos-of-noor.png"
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060182/sabrang-2026/about/fest-crowd-lights.jpg",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060181/sabrang-2026/about/echos-of-noor.png"
 ];
 
 export default function TextureProjectionBackground() {

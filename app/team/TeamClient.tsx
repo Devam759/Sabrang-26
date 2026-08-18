@@ -249,8 +249,8 @@ export default function TeamClient() {
   ];
 
   function getMemberImage(name: string): string {
-    // For now, use JKLU logo for everyone for instant loading
-    return "/sabrang-logo/white_jklu_logo.png";
+    // For now, use JKLU logo for everyone for instant loading (15KB optimized)
+    return "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto,w_800/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png";
 
     /*
     const normalized = name.toLowerCase().trim();
@@ -276,7 +276,7 @@ export default function TeamClient() {
     if (normalized.includes("ashmit") || normalized.includes("asmit")) return "/team-images/asmit.webp";
     if (normalized.includes("laksh")) return "/team-images/laksh.webp";
 
-    return "/sabrang-logo/white_jklu_logo.png";
+    return "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png";
     */
   }
 

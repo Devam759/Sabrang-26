@@ -26,7 +26,7 @@ export type GalleryItem = {
 export const galleryItems: GalleryItem[] = [
   {
     id: 1,
-    image: "/events_posters/PANACHE.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060209/sabrang-2026/events_posters/PANACHE.webp",
     title: "Panache",
     category: "Fashion",
     venue: "Main Stage",
@@ -37,7 +37,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 2,
-    image: "/events_posters/BANDJAM.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060194/sabrang-2026/events_posters/BANDJAM.webp",
     title: "Bandjam",
     category: "Live Music",
     venue: "Amphitheatre",
@@ -48,7 +48,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 3,
-    image: "/events_posters/DANCE_BATTLE.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060202/sabrang-2026/events_posters/DANCE_BATTLE.webp",
     title: "Sync",
     category: "Group Dance",
     venue: "Main Stage",
@@ -59,7 +59,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 4,
-    image: "/events_posters/STEPUP.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060210/sabrang-2026/events_posters/STEPUP.webp",
     title: "Step-Up",
     category: "Solo Dance",
     venue: "Main Stage",
@@ -70,7 +70,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 5,
-    image: "/events_posters/echoesofnoor.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060205/sabrang-2026/events_posters/echoesofnoor.webp",
     title: "Echoes of Noor",
     category: "Classical",
     venue: "Auditorium",
@@ -81,7 +81,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 6,
-    image: "/events_posters/VERSVAAD.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060214/sabrang-2026/events_posters/VERSVAAD.webp",
     title: "Versvaad",
     category: "Literary",
     venue: "Library Court",
@@ -92,7 +92,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 7,
-    image: "/events_posters/art.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060193/sabrang-2026/events_posters/art.webp",
     title: "Art Event",
     category: "Fine Arts",
     venue: "Arts Block",
@@ -103,7 +103,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 8,
-    image: "/events_posters/bgmi.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060195/sabrang-2026/events_posters/bgmi.webp",
     title: "BGMI Tournament",
     category: "E-Sports",
     venue: "Tech Hall",
@@ -114,7 +114,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 9,
-    image: "/events_posters/clay.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060196/sabrang-2026/events_posters/clay.webp",
     title: "Clay Modelling",
     category: "Fine Arts",
     venue: "Arts Block",
@@ -125,7 +125,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 10,
-    image: "/events_posters/convo.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060197/sabrang-2026/events_posters/convo.webp",
     title: "Convo",
     category: "Speaking",
     venue: "Auditorium",
@@ -136,7 +136,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 11,
-    image: "/events_posters/courtroom.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060199/sabrang-2026/events_posters/courtroom.webp",
     title: "Courtroom",
     category: "Debate",
     venue: "Moot Court",
@@ -147,7 +147,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 12,
-    image: "/events_posters/deal.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060203/sabrang-2026/events_posters/deal.webp",
     title: "Deal",
     category: "Business",
     venue: "Seminar Hall",
@@ -158,7 +158,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 13,
-    image: "/events_posters/dumb.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060204/sabrang-2026/events_posters/dumb.webp",
     title: "Dumb Charades",
     category: "Fun",
     venue: "Central Lawn",
@@ -169,7 +169,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 14,
-    image: "/events_posters/focus.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060206/sabrang-2026/events_posters/focus.webp",
     title: "Focus",
     category: "Photography",
     venue: "Campus",
@@ -180,7 +180,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 15,
-    image: "/events_posters/freefire.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060208/sabrang-2026/events_posters/freefire.webp",
     title: "Free Fire Tournament",
     category: "E-Sports",
     venue: "Tech Hall",
@@ -191,7 +191,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 16,
-    image: "/events_posters/valo.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060212/sabrang-2026/events_posters/valo.webp",
     title: "Valorant Tournament",
     category: "E-Sports",
     venue: "Tech Hall",
@@ -202,7 +202,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: 17,
-    image: "/events_posters/wicket.webp",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060215/sabrang-2026/events_posters/wicket.webp",
     title: "Wicket",
     category: "Sports",
     venue: "Sports Ground",
