@@ -16,8 +16,43 @@ interface PlaneProps {
 
 const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
   const $mesh = useRef<THREE.Mesh>(null);
-  const { viewport } = useThree();
+  const { viewport, gl } = useThree();
   const tex = useTexture(texture);
+
+  // Configure texture for maximum sharpness (no colorSpace override — ShaderMaterial
+  // outputs to gl_FragColor directly, so sRGB decode without re-encode would dim the image)
+  useEffect(() => {
+    if (tex) {
+      tex.anisotropy = gl.capabilities.getMaxAnisotropy();
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = true;
+      tex.needsUpdate = true;
+    }
+  }, [tex, gl]);
+
+  // Dynamically update image resolution when texture image loads
+  useEffect(() => {
+    const updateImageDimensions = () => {
+      if (tex && tex.image && $mesh.current && $mesh.current.material) {
+        const img = tex.image as any;
+        const imgW = img.naturalWidth || img.width || 1000;
+        const imgH = img.naturalHeight || img.height || 1000;
+        const mat = $mesh.current.material as THREE.ShaderMaterial;
+        mat.uniforms.uImageRes.value.set(imgW, imgH);
+      }
+    };
+
+    updateImageDimensions();
+
+    const img = tex?.image as any;
+    if (img && typeof img.addEventListener === "function" && !img.complete) {
+      img.addEventListener("load", updateImageDimensions);
+      return () => {
+        img.removeEventListener("load", updateImageDimensions);
+      };
+    }
+  }, [tex]);
 
   useEffect(() => {
     if ($mesh.current && $mesh.current.material) {
@@ -63,8 +98,12 @@ const Plane = ({ texture, width, height, active, ...props }: PlaneProps) => {
         uRes: { value: new THREE.Vector2(width, height) },
         uImageRes: {
           value: new THREE.Vector2(
-            tex.image ? (tex.image as any).width || 1000 : 1000,
-            tex.image ? (tex.image as any).height || 1000 : 1000,
+            tex?.image
+              ? (tex.image as any).naturalWidth || (tex.image as any).width || 1000
+              : 1000,
+            tex?.image
+              ? (tex.image as any).naturalHeight || (tex.image as any).height || 1000
+              : 1000,
           ),
         },
       },

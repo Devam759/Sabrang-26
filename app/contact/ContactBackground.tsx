@@ -25,9 +25,9 @@ const HEIGHT = 900;
 const Scene = () => {
   // Load textures using Suspense
   const [rawMap, depthMap, edgeMap] = useTexture([
-    "/contact-raw.png",
-    "/contact-depth.png",
-    "/contact-edge.png"
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060190/sabrang-2026/contact/contact-raw.png",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060188/sabrang-2026/contact/contact-depth.png",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060189/sabrang-2026/contact/contact-edge.png"
   ], (textures) => {
     if (Array.isArray(textures)) {
       textures[0].colorSpace = THREE.SRGBColorSpace;

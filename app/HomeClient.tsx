@@ -28,7 +28,7 @@ const EVENTS = [
     title: "PANACHE",
     subtitle: "THE RUNWAY",
     desc: "The ultimate fashion showdown. Assert dominance on the runway with style that speaks volumes.",
-    image: "/menu-scroll-covers/panache-runway.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060358/sabrang-2026/menu-scroll-covers/panache-runway.png",
     state: "primary" as const,
   },
   {
@@ -36,7 +36,7 @@ const EVENTS = [
     title: "BANDJAM",
     subtitle: "THE SOUND",
     desc: "Pure sonic warfare under the open sky. The battle of the bands — raw, unfiltered, electric.",
-    image: "/menu-scroll-covers/sabrang-live.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png",
     state: "secondary" as const,
   },
   {
@@ -44,7 +44,7 @@ const EVENTS = [
     title: "STEP-UP",
     subtitle: "THE MOVEMENT",
     desc: "Premier solo dance showdown. Technical mastery, freestyle finesse, and electric expression.",
-    image: "/menu-scroll-covers/step-up.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060360/sabrang-2026/menu-scroll-covers/step-up.jpg",
     state: "tertiary" as const,
   },
 ];

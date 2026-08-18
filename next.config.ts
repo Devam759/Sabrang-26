@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
     // Every value the app actually passes to next/image. A quality outside this
     // list is a 400, not a fallback — 65 silently blanked the whole mobile gallery.
     qualities: [65, 75, 85, 90],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
   },
   allowedDevOrigins: [
     'localhost',
