@@ -2,6 +2,7 @@ import "@/lib/suppress-three-logs";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import InitialLoader from "@/components/effects/InitialLoader";
+import TubesCursor from "@/components/effects/TubesCursor";
 import CursorFollower from "@/components/effects/CursorFollower";
 import SmoothScroll from "@/components/effects/SmoothScroll";
 import { InteractionProvider } from "@/components/InteractionContext";
@@ -130,6 +131,7 @@ export default function RootLayout({
         <InteractionProvider>
           <AuthProvider>
             <SmoothScroll>
+              <TubesCursor />
               <CursorFollower />
               {/* <InitialLoader /> */}
               <div className="min-h-screen flex flex-col text-white overflow-x-clip">

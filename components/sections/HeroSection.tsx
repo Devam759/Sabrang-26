@@ -13,6 +13,10 @@ export default function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
+    if (!containerRef.current) return
+    const container = containerRef.current
+    const triggerEl = document.getElementById('scroll-trigger')
+
     const ctx = gsap.context(() => {
       // Entrance Animation
       const tl = gsap.timeline({ delay: 0.2 })
@@ -35,18 +39,20 @@ export default function HeroSection() {
       window.addEventListener('mousemove', handleMouseMove)
 
       // Scroll transition
-      ScrollTrigger.create({
-        trigger: '#scroll-trigger',
-        start: 'top top',
-        end: '+=100vh',
-        scrub: 1,
-        animation: gsap.to('.hero-section-container', {
-          y: -150,
-          opacity: 0,
-          scale: 0.95,
-          ease: "none"
+      if (triggerEl) {
+        ScrollTrigger.create({
+          trigger: triggerEl,
+          start: 'top top',
+          end: '+=100vh',
+          scrub: 1,
+          animation: gsap.to(container, {
+            y: -150,
+            opacity: 0,
+            scale: 0.95,
+            ease: "none"
+          })
         })
-      })
+      }
       
       return () => {
         window.removeEventListener('mousemove', handleMouseMove)
@@ -67,7 +73,7 @@ export default function HeroSection() {
       <div className="hero-footer">
         <div className="hero-info hero-anim">
           <p>THE CULTURAL FESTIVAL OF JKLU</p>
-          <p className="hero-date">14 &mdash; 16 MARCH</p>
+          <p className="hero-date">23 &mdash; 25 OCTOBER</p>
         </div>
         
         <div className="hero-scroll hero-anim">

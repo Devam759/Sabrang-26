@@ -113,7 +113,7 @@
     content: "";
     position: fixed;
     inset: 0;
-    background: url('/hero/noise.png');
+    background: url('/noise.png');
     background-repeat: repeat;
     background-size: 200px 200px;
     opacity: 0.04;
