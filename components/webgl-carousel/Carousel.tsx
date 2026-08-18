@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useFrame, useThree, extend } from "@react-three/fiber";
 import gsap from "gsap";
 import * as THREE from "three";
-import PostProcessing from "./PostProcessing";
 import CarouselItem, { CarouselItemData } from "./CarouselItem";
 import { lerp, getPiramidalIndex, usePrevious } from "./utils";
 import { useTexture, shaderMaterial } from "@react-three/drei";
@@ -103,7 +102,6 @@ function Background() {
 
 export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
   const [$root, setRoot] = useState<THREE.Group | null>(null);
-  const $post = useRef<any>(null);
 
   const [activePlane, setActivePlane] = useState<number | null>(null);
   const prevActivePlane = usePrevious(activePlane);
@@ -226,10 +224,6 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       Number.isFinite(progress.current) ? progress.current : 0,
       0.1,
     );
-
-    if ($post.current) {
-      $post.current.thickness = Math.min(0.25, Number.isFinite(speed.current) ? speed.current : 0);
-    }
   });
 
   /* Handle Wheel - Localized strictly to Carousel component */
@@ -370,7 +364,6 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       <Background />
       {renderPlaneEvents()}
       {renderSlider()}
-      <PostProcessing ref={$post} />
     </group>
   );
 }

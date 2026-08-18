@@ -40,20 +40,6 @@ export default function TeamClient() {
     };
   }, []);
 
-  const teamImages = [
-    "/team-carousel/Aditya Nayak.png",
-    "/team-carousel/Ambika Dalmia.png",
-    "/team-carousel/Aryan.png",
-    "/team-carousel/Ashlesha Sharma.png",
-    "/team-carousel/Daksh kumar.png",
-    "/team-carousel/Devansh Srivastava.png",
-    "/team-carousel/Manan.png",
-    "/team-carousel/Naman Shukla.png",
-    "/team-carousel/Rashi.png",
-    "/team-carousel/Roshan jangir.png",
-    "/team-carousel/Satvik.png",
-  ];
-
   const rawMembers = [
     // University Leadership & Mentors
     { name: "Anushka Pathak", role: "Faculty Coordinator" },
@@ -92,7 +78,7 @@ export default function TeamClient() {
       role: "Discipline Core",
       links: {
         email: "mailto:saumyapuri14@gmail.com",
-        linkedin: "http://www.linkedin.com/in/saumyapuri14"
+        linkedin: "https://www.linkedin.com/in/saumyapuri14"
       }
     },
     { name: "Aayush", role: "Design Core" },
@@ -107,8 +93,23 @@ export default function TeamClient() {
     },
     { name: "Mahi Tripathi", role: "Decor Core" },
     { name: "Vaibhav Sharma", role: "Media & Report Core" },
-    { name: "Kartik Singh", role: "Photography Core" },
-    { name: "Roshan Jangir", role: "Photography Core" },
+    { 
+      name: "Kartik Singh", 
+      role: "Photography Core",
+      links: {
+        email: "mailto:kartiksingh@jklu.edu.in",
+        instagram: "https://www.instagram.com/kray.tive?igsh=MWU4cHcxcnlsdnBmYw%3D%3D&utm_source=qr",
+        linkedin: "https://www.linkedin.com/in/k4rtiksingh?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+      }
+    },
+    { 
+      name: "Roshan Jangir", 
+      role: "Photography Core",
+      links: {
+        email: "mailto:roshanjangir@jklu.edu.in",
+        linkedin: "https://www.linkedin.com/in/roshan-jangir-a614a430a?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+      }
+    },
     { name: "Aadhya Mittal", role: "Events Core" },
     { 
       name: "Devansh Srivastava", 
@@ -129,7 +130,14 @@ export default function TeamClient() {
         github: "https://github.com/Satvik1131"
       }
     },
-    { name: "Asmit Sharma", role: "Internal Arrangements Core" },
+    { 
+      name: "Ashmit Sharma", 
+      role: "Internal Arrangements Core",
+      links: {
+        email: "mailto:asmitsharma@jklu.edu.in",
+        linkedin: "https://www.linkedin.com/in/ashmit-sharma-63414b3b4?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+      }
+    },
     { 
       name: "Kunal Kasliwal", 
       role: "Transport Core",
@@ -144,18 +152,18 @@ export default function TeamClient() {
       role: "Transport Core",
       links: {
         email: "mailto:mananlala@jklu.edu.in",
-        linkedin: "http://www.linkedin.com/in/manan-lala-a3a094320"
+        instagram: "https://www.instagram.com/mananlala16?igsh=azZ3aGlvcnc0aGlh",
+        linkedin: "https://www.linkedin.com/in/manan-lala-a3a094320?utm_source=share_via&utm_content=profile&utm_medium=member_android"
       }
     },
     { 
       name: "Aditya Nayak", 
       role: "Social Media Core",
       links: {
-        instagram: "https://www.instagram.com/_nayak_1913?igsh=MXBpNHNyNmcyY3lkMw==",
-        linkedin: "http://www.linkedin.com/in/adityanayak13",
-        github: "https://github.com/AdityaNayak13",
         email: "mailto:adityanayak@jklu.edu.in",
-        website: "https://drive.google.com/open?id=1RZ6JawWfvzH8xE54bdaoxrXURElSRibc"
+        instagram: "https://www.instagram.com/_nayak_1913/",
+        linkedin: "https://www.linkedin.com/in/adityanayak13",
+        github: "https://github.com/AdityaNayak13"
       }
     },
     { 
@@ -229,17 +237,28 @@ export default function TeamClient() {
         github: "https://github.com/dakshkkumar"
       }
     },
-    { name: "Laksh Sharma", role: "Anchoring Core" },
+    { 
+      name: "Laksh Sharma", 
+      role: "Anchoring Core",
+      links: {
+        email: "mailto:lakshsharma@jklu.edu.in",
+        instagram: "https://www.instagram.com/lksh.jpeg?igsh=MXB3MXh6MWg1bHB0aw==",
+        linkedin: "https://www.linkedin.com/in/laksh-sharma25?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+      }
+    },
   ];
 
   function getMemberImage(name: string): string {
+    // For now, use JKLU logo for everyone for instant loading
+    return "/sabrang-logo/white_jklu_logo.png";
+
+    /*
     const normalized = name.toLowerCase().trim();
-    if (normalized.includes("aditya nayak")) return "/team-images/aditya-nayak.webp";
-    if (normalized.includes("ambika dalmia")) return "/team-images/ambika-dalmia.webp";
-    if (normalized.includes("aryan") || normalized.includes("aryan gupta")) return "/team-images/aryan.webp";
-    if (normalized.includes("ashlesha sharma")) return "/team-images/ashlesha-sharma.webp";
-    if (normalized.includes("daksh kumar")) return "/team-images/daksh-kumar.webp";
-    if (normalized.includes("devam")) return "/team-images/devam.webp";
+    if (normalized.includes("aditya")) return "/team-images/aditya-nayak.webp";
+    if (normalized.includes("ambika")) return "/team-images/ambika-dalmia.webp";
+    if (normalized.includes("aryan")) return "/team-images/aryan.webp";
+    if (normalized.includes("ashlesha")) return "/team-images/ashlesha-sharma.webp";
+    if (normalized.includes("daksh")) return "/team-images/daksh-kumar.webp";
     if (normalized.includes("devansh")) return "/team-images/devansh.webp";
     if (normalized.includes("diksha")) return "/team-images/diksha.webp";
     if (normalized.includes("gurseerat")) return "/team-images/gurseerat-oh.webp";
@@ -247,18 +266,18 @@ export default function TeamClient() {
     if (normalized.includes("khushi")) return "/team-images/khushii.webp";
     if (normalized.includes("kunal")) return "/team-images/kunal.webp";
     if (normalized.includes("manan")) return "/team-images/manan.webp";
-    if (normalized.includes("naman shukla")) return "/team-images/naman-shukla.webp";
+    if (normalized.includes("naman")) return "/team-images/naman-shukla.webp";
     if (normalized.includes("rishika")) return "/team-images/rishika-oh.webp";
     if (normalized.includes("roshan")) return "/team-images/roshan-jangir.webp";
     if (normalized.includes("satvik")) return "/team-images/satvik.webp";
     if (normalized.includes("saumya")) return "/team-images/saumya.webp";
     if (normalized.includes("abhiram")) return "/team-images/abhiram.webp";
     if (normalized.includes("ankit")) return "/team-images/ankit.webp";
-    if (normalized.includes("asmit")) return "/team-images/asmit.webp";
+    if (normalized.includes("ashmit") || normalized.includes("asmit")) return "/team-images/asmit.webp";
     if (normalized.includes("laksh")) return "/team-images/laksh.webp";
 
-    // Fallback to JKLU logo for those we don't have photos for
     return "/sabrang-logo/white_jklu_logo.png";
+    */
   }
 
   const carouselMembers = rawMembers.map((member) => ({
