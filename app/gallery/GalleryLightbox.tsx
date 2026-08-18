@@ -113,7 +113,11 @@ export default function GalleryLightbox({
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     closeButtonRef.current?.focus();
-    return () => previous?.focus?.();
+    document.body.classList.add("lightbox-open");
+    return () => {
+      document.body.classList.remove("lightbox-open");
+      previous?.focus?.();
+    };
   }, []);
 
   const target = bounds ? fitRect(aspect, bounds.w, bounds.h) : origin;

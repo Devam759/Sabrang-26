@@ -249,13 +249,14 @@ export default function FilmStripCarousel({
         sim={sim}
         expandRef={expandRef}
       />
-      <CarouselControls onPrev={prevAndCancel} onNext={nextAndCancel} />
-      <Pagination
-        count={projects.length}
-        activeIndex={activeIndex}
-        loading={loading}
-        onSelect={goToAndCancel}
-      />
+      <CarouselControls onPrev={prevAndCancel} onNext={nextAndCancel}>
+        <Pagination
+          count={projects.length}
+          activeIndex={activeIndex}
+          loading={loading}
+          onSelect={goToAndCancel}
+        />
+      </CarouselControls>
     </section>
   );
 }

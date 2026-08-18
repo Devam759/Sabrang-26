@@ -154,7 +154,10 @@ export default function ContactBackground() {
           
           return renderer as any;
         }}
-        camera={{ position: [0, 0, 5], fov: 75 }} 
+        camera={{ position: [0, 0, 5], fov: 75 }}
+        // ponytail: capped at 1.5x — a full-screen shader at native DPR on a
+        // retina/4K display is 2-4x the fragments for a background nobody reads.
+        dpr={[1, 1.5]}
         className="w-full h-full"
       >
         <React.Suspense fallback={null}>
@@ -162,7 +165,7 @@ export default function ContactBackground() {
         </React.Suspense>
       </Canvas>
       {/* Subtle dark overlay for text readability */}
-      <div className="absolute inset-0 bg-black/20 mix-blend-multiply pointer-events-none" />
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
     </div>
   );
 }
