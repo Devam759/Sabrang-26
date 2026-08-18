@@ -4,9 +4,9 @@ import JsonLd from "@/components/seo/JsonLd";
 import SubtleFooter from "@/components/layout/SubtleFooter";
 
 export const metadata: Metadata = {
-  title: "Gallery – Sabrang 2026 | JKLU Cultural Fest",
+  title: "Gallery - Sabrang 2026 | JKLU Cultural Fest",
   description:
-    "Explore photos and memorable highlights from Sabrang — featuring flagship events, cultural performances, Bandjam, Panache fashion show, Echoes of Noor, and DJ nights at JKLU.",
+    "Explore photos and memorable highlights from Sabrang, featuring flagship events, cultural performances, Bandjam, Panache fashion show, Echoes of Noor, and DJ nights at JKLU.",
   keywords: [
     "Sabrang Gallery",
     "Sabrang 2026 Photos",

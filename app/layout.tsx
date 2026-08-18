@@ -2,7 +2,6 @@ import "@/lib/suppress-three-logs";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import InitialLoader from "@/components/effects/InitialLoader";
 import TubesCursor from "@/components/effects/TubesCursor";
 import CursorFollower from "@/components/effects/CursorFollower";
 import SmoothScroll from "@/components/effects/SmoothScroll";
@@ -26,14 +25,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico" }, { url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico", sizes: "any" }],
     shortcut: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    apple: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png",
   },
   title: {
     default: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     template: "%s | Sabrang 2026 | JKLU",
   },
   description:
-    "SABRANG 2026 - JK Lakshmipat University's premier annual cultural & technical fest. Experience Sabrang JKLU with star-studded pro-shows, flagship competitions, dance battles, and live concerts in Jaipur.",
+    "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest. Experience Sabrang JKLU with star-studded pro-shows, flagship competitions, dance battles, and live concerts in Jaipur.",
   keywords: [
     "Sabrang 2026",
     "Sabrang JKLU",
@@ -44,7 +43,7 @@ export const metadata: Metadata = {
     "JKLU Fest",
     "College Fest Jaipur 2026",
     "Cultural Fest Jaipur",
-    "Technical Fest JKLU",
+    "Cultural Fest JKLU",
     "Sabrang Registration",
     "JKLU Events",
     "Jaipur College Fest October 2026",
@@ -71,7 +70,7 @@ export const metadata: Metadata = {
     siteName: "Sabrang 2026 - JKLU",
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
-      "SABRANG 2026 - JK Lakshmipat University's premier annual fest. Experience Sabrang JKLU with star-studded nights and thrilling competitions.",
+      "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest. Experience Sabrang JKLU with star-studded nights and thrilling competitions.",
     images: [
       {
         url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png",
@@ -85,7 +84,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
-      "SABRANG 2026 - JK Lakshmipat University's premier annual cultural & technical fest.",
+      "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest.",
     images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
@@ -134,7 +133,6 @@ export default function RootLayout({
             <SmoothScroll>
               <TubesCursor />
               <CursorFollower />
-              {/* <InitialLoader /> */}
               <div className="min-h-screen flex flex-col text-white overflow-x-clip">
                 <Navbar />
                 <main className="flex-grow w-full">{children}</main>

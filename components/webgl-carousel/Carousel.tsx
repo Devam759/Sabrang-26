@@ -127,15 +127,32 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
     }
   }, [activePlane, items, onActiveItemChange]);
 
+  const initialIndex = useMemo(() => {
+    const idx = items.findIndex((it) =>
+      it.name?.toLowerCase().includes("kartik sharma")
+    );
+    return idx !== -1 ? idx : 0;
+  }, [items]);
+
+  const initialProgress = useMemo(() => {
+    if (items.length === 0) return 0;
+    return (initialIndex / items.length) * 100;
+  }, [initialIndex, items.length]);
+
   /* Vars */
-  const progress = useRef(4.6875);
+  const progress = useRef(initialProgress);
   const startPos = useRef(0);
   const isDown = useRef(false);
   const speedWheel = 0.008;
   const speedDrag = -0.035;
   const autoPlaySpeed = 0.018; // Calmer, slower steady automatic drift velocity
-  const oldProgress = useRef(4.6875);
+  const oldProgress = useRef(initialProgress);
   const speed = useRef(0);
+
+  useEffect(() => {
+    progress.current = initialProgress;
+    oldProgress.current = initialProgress;
+  }, [initialProgress]);
 
   const $items = useMemo(() => {
     if ($root) return $root.children;

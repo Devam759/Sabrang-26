@@ -19,7 +19,7 @@ const devTeam = [
   },
   {
     name: "Aditya Singh Nayal",
-    avatar: "/tech team credit/Aditya.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787083775/sabrang-2026/tech-team-credit/Aditya.jpg",
     linkedin: "https://www.linkedin.com/in/aditya-singh-nayal-5678b3378",
     github: "https://github.com/Aston-09",
     email: "adityasinghnayal@jklu.edu.in",
@@ -51,7 +51,7 @@ const devTeam = [
   },
   {
     name: "Saurav Tank",
-    avatar: "/tech team credit/Saurav.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787083776/sabrang-2026/tech-team-credit/Saurav.png",
     linkedin: "https://www.linkedin.com/in/saurav-tank/",
     github: "https://github.com/sauravtank1507",
     email: "sauravtank@jklu.edu.in",

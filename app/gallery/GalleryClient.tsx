@@ -1,6 +1,5 @@
 "use client";
 
-import { useProgress } from '@react-three/drei';
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -23,63 +22,6 @@ import GalleryLightbox, { type OriginRect } from './GalleryLightbox';
 import MobileGallery from './MobileGallery';
 import { GALLERY_IMAGES } from '@/lib/constants';
 import CursorGrid from '@/components/ui/CursorGrid';
-
-function CustomGalleryLoader() {
-  const { active, progress } = useProgress();
-  const [show, setShow] = useState(true);
-
-  // Hide once the textures are actually in, not on a fixed timer — otherwise a
-  // slow connection is shown an empty black tube. The long delay is a bail-out
-  // if the loading manager never reports; it restarts on every progress tick,
-  // so it only fires once loading has genuinely stalled.
-  useEffect(() => {
-    const loaded = !active && progress >= 100;
-    const timer = setTimeout(() => setShow(false), loaded ? 400 : 6000);
-    return () => clearTimeout(timer);
-  }, [active, progress]);
-
-  return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, filter: 'blur(16px)', scale: 1.04 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md"
-        >
-          {/* Ambient luminous glow */}
-          <div className="absolute h-80 w-80 rounded-full bg-purple-600/15 blur-[120px] animate-pulse" />
-          <div className="absolute h-64 w-64 rounded-full bg-cyan-500/15 blur-[90px]" />
-
-          {/* Cyber HUD loading console */}
-          <div className="relative flex flex-col items-center space-y-7">
-            <div className="relative flex h-20 w-20 items-center justify-center">
-              <div className="absolute inset-0 rounded-full border border-white/10" />
-              <div className="absolute inset-0 rounded-full border border-transparent border-t-cyan-400 border-r-purple-500 animate-spin" />
-              <span className="font-mono text-xs font-black tracking-wider text-white">
-                {Math.round(progress > 0 ? progress : 100)}%
-              </span>
-            </div>
-
-            <div className="text-center space-y-2.5">
-              <p className="text-[11px] font-mono tracking-[0.35em] text-cyan-400/90 uppercase font-semibold">
-                LOADING ARCHIVE
-              </p>
-              <div className="h-[3px] w-52 overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_12px_rgba(56,189,248,0.8)]"
-                  initial={{ width: '0%' }}
-                  animate={{ width: '100%' }}
-                  transition={{ ease: 'easeOut', duration: 0.4 }}
-                />
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 const CYLINDER_IMAGES = GALLERY_IMAGES.slice(0, 50);
 const IMAGES = CYLINDER_IMAGES;
@@ -534,6 +476,7 @@ export default function GalleryClient() {
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    window.dispatchEvent(new CustomEvent('sabrang-page-ready'));
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -721,8 +664,6 @@ export default function GalleryClient() {
       />
 
       <h1 className="sr-only">Gallery</h1>
-
-      <CustomGalleryLoader />
 
       {/* DOM-rendered lightbox */}
       {selected && (

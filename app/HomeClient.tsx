@@ -35,7 +35,7 @@ const EVENTS = [
     num: "02",
     title: "BANDJAM",
     subtitle: "THE SOUND",
-    desc: "Pure sonic warfare under the open sky. The battle of the bands — raw, unfiltered, electric.",
+    desc: "Pure sonic warfare under the open sky. The battle of the bands: raw, unfiltered, electric.",
     image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png",
     state: "secondary" as const,
   },
@@ -343,7 +343,7 @@ export default function HomeClient() {
           {/* Year badge */}
           <div className="hero-year-badge absolute top-1/2 left-1/2 -translate-x-1/2 mt-[7vh] sm:mt-[9vh] z-20 pointer-events-none">
             <span className="text-sm sm:text-lg md:text-2xl font-extralight tracking-[0.4em] sm:tracking-[0.6em] text-white/40 uppercase">
-              — 2026 —
+              2026
             </span>
           </div>
 

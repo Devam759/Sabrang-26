@@ -4,7 +4,6 @@ import React, { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture, useAspect } from "@react-three/drei";
 import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
 import * as THREE from "three/webgpu";
 import {
@@ -87,13 +86,16 @@ const Scene = () => {
     };
   }, [rawMap, depthMap, edgeMap]);
 
-  useGSAP(() => {
-    gsap.to(uniforms.uProgress, {
+  useEffect(() => {
+    const tween = gsap.to(uniforms.uProgress, {
       value: 1,
       repeat: -1,
       duration: 3,
       ease: "power1.out",
     });
+    return () => {
+      tween.kill();
+    };
   }, [uniforms]);
 
   // Handle pointer tracking

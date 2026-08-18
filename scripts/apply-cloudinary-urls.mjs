@@ -3,6 +3,22 @@ import path from "path";
 
 const mapping = JSON.parse(fs.readFileSync("cloudinary-mapping.json", "utf-8"));
 
+// Build comprehensive map with casing aliases
+const fullMap = { ...mapping };
+
+for (const [key, val] of Object.entries(mapping)) {
+  // Add lowercase variant
+  fullMap[key.toLowerCase()] = val;
+  
+  // If key starts with /Gallery/, also map /gallery/
+  if (key.startsWith("/Gallery/")) {
+    fullMap[key.replace("/Gallery/", "/gallery/")] = val;
+  }
+  if (key.startsWith("/gallery/")) {
+    fullMap[key.replace("/gallery/", "/Gallery/")] = val;
+  }
+}
+
 // Map of aliases to ensure legacy or short paths also get the right Cloudinary URL
 const extraAliases = {
   "/dance-battle.png": mapping["/about/dance-battle.png"],
@@ -11,7 +27,7 @@ const extraAliases = {
   "/panache-runway.png": mapping["/about/panache-runway.png"],
   "/sabrang-live.png": mapping["/about/sabrang-live.png"],
   "/step-up.jpg": mapping["/about/step-up.jpg"],
-  "/versevaad.jpg": "/about/versevaad.jpg" ? mapping["/about/versevaad.jpg"] : undefined,
+  "/versevaad.jpg": mapping["/about/versevaad.jpg"],
   "/contact-depth.png": mapping["/contact/contact-depth.png"],
   "/contact-edge.png": mapping["/contact/contact-edge.png"],
   "/contact-raw.png": mapping["/contact/contact-raw.png"],
@@ -20,7 +36,9 @@ const extraAliases = {
   "/background.mp4": mapping["/videos/background.mp4"],
 };
 
-const fullMap = { ...extraAliases, ...mapping };
+for (const [k, v] of Object.entries(extraAliases)) {
+  if (v) fullMap[k] = v;
+}
 
 // Files to update
 const targetExtensions = [".ts", ".tsx", ".js", ".jsx", ".json"];

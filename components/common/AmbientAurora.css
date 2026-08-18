@@ -12,7 +12,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url('/noise.png');
+    background-image: url('https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082843/sabrang-2026/root/noise.png');
     background-repeat: repeat;
     opacity: 0.05;
     mix-blend-mode: overlay;

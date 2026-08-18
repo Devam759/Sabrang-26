@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import ContactForm from "@/components/forms/ContactForm";
 import ContactBackground from "./ContactBackground";
 import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
@@ -17,57 +16,63 @@ if (typeof window !== "undefined") {
 export default function ContactClient() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    // Select all sections that we want to reveal on scroll
-    const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-    revealElements.forEach((el) => {
-      gsap.fromTo(
-        el,
-        {
-          opacity: 0,
-          y: 40, // reduced translation for mobile
-          scale: 0.98,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 95%",
-            end: "top 70%",
-            scrub: 1, // 1 second smooth scrubbing effect
-          },
-        }
-      );
-    });
+    const ctx = gsap.context(() => {
+      // Select all sections that we want to reveal on scroll
+      const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
 
-    // For staggered elements like the organizing heads
-    const headCards = gsap.utils.toArray<HTMLElement>('.gsap-stagger-card');
-    if (headCards.length > 0) {
-      gsap.fromTo(
-        headCards,
-        {
-          opacity: 0,
-          y: 30, // reduced translation for mobile
-        },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".gsap-stagger-container",
-            start: "top 90%",
-            end: "top 60%",
-            scrub: 1,
+      revealElements.forEach((el) => {
+        gsap.fromTo(
+          el,
+          {
+            opacity: 0,
+            y: 40, // reduced translation for mobile
+            scale: 0.98,
           },
-        }
-      );
-    }
-  }, { scope: containerRef });
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 95%",
+              end: "top 70%",
+              scrub: 1, // 1 second smooth scrubbing effect
+            },
+          }
+        );
+      });
+
+      // For staggered elements like the organizing heads
+      const headCards = gsap.utils.toArray<HTMLElement>('.gsap-stagger-card');
+      if (headCards.length > 0) {
+        gsap.fromTo(
+          headCards,
+          {
+            opacity: 0,
+            y: 30, // reduced translation for mobile
+          },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".gsap-stagger-container",
+              start: "top 90%",
+              end: "top 60%",
+              scrub: 1,
+            },
+          }
+        );
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden" ref={containerRef}>
@@ -214,10 +219,10 @@ export default function ContactClient() {
 const OrganizingHeadsGallery = () => {
   const [activeCard, setActiveCard] = useState(0);
   const backgrounds = [
-    "/gallery/43.webp",
-    "/gallery/87.webp",
-    "/gallery/96.webp",
-    "/gallery/48.webp"
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060269/sabrang-2026/gallery/43.webp",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060341/sabrang-2026/gallery/87.webp",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060353/sabrang-2026/gallery/96.webp",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060275/sabrang-2026/gallery/48.webp"
   ];
 
   return (

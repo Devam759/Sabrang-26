@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import FaqParticleBackground from "@/components/ui/FaqParticleBackground";
 
 if (typeof window !== "undefined") {
@@ -15,7 +14,7 @@ const faqs = [
   {
     question: "What is Sabrang?",
     answer:
-      "Sabrang is the annual flagship cultural and techno-management festival of JK Lakshmipat University, Jaipur. It features 50+ events including cultural competitions, technical challenges, e-sports tournaments, and professional shows over three days.",
+      "Sabrang is the annual cultural festival of JK Lakshmipat University, Jaipur. It features exciting events including dance battles, fashion runways, music band jams, literary slams, e-sports, and celebrity pro-shows over three days.",
   },
   {
     question: "When and where is Sabrang 2026?",
@@ -40,7 +39,7 @@ const faqs = [
   {
     question: "What is the total prize pool?",
     answer:
-      "The total prize pool exceeds ₹2.5 Lakhs, distributed across all technical, cultural, and flagship events.",
+      "The total prize pool exceeds ₹2.5 Lakhs, distributed across all cultural and flagship events.",
   },
   {
     question: "Can I participate in multiple events?",
@@ -156,57 +155,63 @@ function FaqItem({ faq, index }: { faq: any; index: number }) {
 export default function FAQClient() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    // Reveal for single sections
-    const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-    revealElements.forEach((el) => {
-      gsap.fromTo(
-        el,
-        {
-          opacity: 0,
-          y: 40, // reduced translation for mobile
-          scale: 0.98, // smoother scale on mobile
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 95%",
-            end: "top 70%",
-            scrub: 1,
-          },
-        }
-      );
-    });
+    const ctx = gsap.context(() => {
+      // Reveal for single sections
+      const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
 
-    // Staggered reveal for FAQ items
-    const faqCards = gsap.utils.toArray<HTMLElement>('.gsap-faq-card');
-    if (faqCards.length > 0) {
-      gsap.fromTo(
-        faqCards,
-        {
-          opacity: 0,
-          x: -20, // reduced translation for mobile
-        },
-        {
-          opacity: 1,
-          x: 0,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".gsap-faq-container",
-            start: "top 90%",
-            end: "bottom 85%",
-            scrub: 1.5,
+      revealElements.forEach((el) => {
+        gsap.fromTo(
+          el,
+          {
+            opacity: 0,
+            y: 40, // reduced translation for mobile
+            scale: 0.98, // smoother scale on mobile
           },
-        }
-      );
-    }
-  }, { scope: containerRef });
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 95%",
+              end: "top 70%",
+              scrub: 1,
+            },
+          }
+        );
+      });
+
+      // Staggered reveal for FAQ items
+      const faqCards = gsap.utils.toArray<HTMLElement>('.gsap-faq-card');
+      if (faqCards.length > 0) {
+        gsap.fromTo(
+          faqCards,
+          {
+            opacity: 0,
+            x: -20, // reduced translation for mobile
+          },
+          {
+            opacity: 1,
+            x: 0,
+            stagger: 0.1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".gsap-faq-container",
+              start: "top 90%",
+              end: "bottom 85%",
+              scrub: 1.5,
+            },
+          }
+        );
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden bg-transparent" ref={containerRef}>

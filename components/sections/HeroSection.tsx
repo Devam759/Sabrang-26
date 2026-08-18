@@ -44,7 +44,7 @@ export default function HeroSection() {
           trigger: triggerEl,
           start: 'top top',
           end: '+=100vh',
-          scrub: 1,
+          scrub: true,
           animation: gsap.to(container, {
             y: -150,
             opacity: 0,
@@ -73,7 +73,7 @@ export default function HeroSection() {
       <div className="hero-footer">
         <div className="hero-info hero-anim">
           <p>THE CULTURAL FESTIVAL OF JKLU</p>
-          <p className="hero-date">23 &mdash; 25 OCTOBER</p>
+          <p className="hero-date">23 - 25 OCTOBER</p>
         </div>
         
         <div className="hero-scroll hero-anim">

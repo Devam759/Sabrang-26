@@ -292,6 +292,8 @@ export default function AccordionGallery({
                   src={item.image}
                   alt={item.alt || item.label || ""}
                   fill
+                  priority={i === defaultIndex || i === 0}
+                  loading={i === defaultIndex || i === 0 ? "eager" : "lazy"}
                   className="object-cover object-center w-full h-full"
                   sizes="(max-width: 768px) 100vw, 60vw"
                   draggable={false}

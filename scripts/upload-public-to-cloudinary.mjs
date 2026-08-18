@@ -25,91 +25,135 @@ function generateSignature(params, apiSecret) {
   return crypto.createHash("sha1").update(stringToSign).digest("hex");
 }
 
-// Get all files recursively from public directory
+function getResourceType(ext) {
+  const lower = ext.toLowerCase();
+  if ([".mp4", ".mov", ".webm", ".mkv", ".avi"].includes(lower)) return "video";
+  if ([".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".ico"].includes(lower)) return "image";
+  if ([".glb", ".gltf"].includes(lower)) return "raw";
+  return null; // Not a media asset for Cloudinary
+}
+
+// Get only valid media files recursively from public directory
 function getFilesRecursively(dir, fileList = []) {
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
     if (stat.isDirectory()) {
-      // Don't skip any folder
+      // Skip internal folders that shouldn't be on Cloudinary
+      if (["draco", "fonts"].includes(file.toLowerCase())) continue;
       getFilesRecursively(filePath, fileList);
     } else {
-      // Skip non-media system files if any (e.g. .gitkeep, webmanifest, fonts unless needed)
-      if (file.endsWith(".gitkeep") || file.endsWith(".webmanifest") || filePath.includes(`${path.sep}fonts${path.sep}`)) {
+      const ext = path.extname(file).toLowerCase();
+      // Skip system files, webmanifests, licenses, gitkeep
+      if (
+        file === ".gitkeep" ||
+        file.endsWith(".webmanifest") ||
+        file.endsWith(".txt") ||
+        file.endsWith(".json") ||
+        file.endsWith(".js") ||
+        file.endsWith(".wasm")
+      ) {
         continue;
       }
-      fileList.push(filePath);
+      if (getResourceType(ext)) {
+        fileList.push(filePath);
+      }
     }
   }
   return fileList;
 }
 
-async function uploadFile(filePath) {
+async function uploadFile(filePath, retryCount = 0) {
   const relPath = path.relative(PUBLIC_DIR, filePath).replace(/\\/g, "/");
-  
-  // Format folder in Cloudinary: e.g. "sabrang-2026/events_posters"
   const parsed = path.parse(relPath);
-  const subFolder = parsed.dir ? parsed.dir.replace(/\s+/g, "-").toLowerCase() : "root";
+  const ext = parsed.ext.toLowerCase();
+  const resourceType = getResourceType(ext);
+
+  if (!resourceType) return null;
+
+  const subFolder = parsed.dir
+    ? parsed.dir.replace(/[^a-zA-Z0-9_\-\/]/g, "-").replace(/-+/g, "-").toLowerCase()
+    : "root";
   const cloudinaryFolder = `sabrang-2026/${subFolder}`;
-  
-  // Clean public_id: remove extension, replace spaces/special chars with hyphens
-  const cleanName = parsed.name.replace(/[^a-zA-Z0-9_\-\.]/g, "-").replace(/-+/g, "-");
-  
+
+  let cleanName = parsed.name.replace(/[^a-zA-Z0-9_\-\.]/g, "-").replace(/-+/g, "-");
+  let publicId = resourceType === "raw" ? `${cleanName}${parsed.ext}` : cleanName;
+
   const timestamp = Math.floor(Date.now() / 1000);
-  const resourceType = filePath.endsWith(".mp4") ? "video" : "image";
 
   const params = {
     folder: cloudinaryFolder,
-    public_id: cleanName,
+    public_id: publicId,
     timestamp,
   };
 
   const signature = generateSignature(params, API_SECRET);
-
-  const fileData = fs.readFileSync(filePath);
-  const base64Data = `data:${resourceType === "video" ? "video/mp4" : "image/" + parsed.ext.slice(1)};base64,${fileData.toString("base64")}`;
+  const fileBuffer = fs.readFileSync(filePath);
+  const blob = new Blob([fileBuffer]);
 
   const formData = new FormData();
-  formData.append("file", base64Data);
+  formData.append("file", blob, path.basename(filePath));
   formData.append("api_key", API_KEY);
   formData.append("timestamp", timestamp.toString());
   formData.append("signature", signature);
   formData.append("folder", cloudinaryFolder);
-  formData.append("public_id", cleanName);
+  formData.append("public_id", publicId);
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
+      method: "POST",
+      body: formData,
+    });
 
-  const data = await res.json();
-  if (data.error) {
-    throw new Error(`[${relPath}] Error: ${data.error.message}`);
+    const data = await res.json();
+    if (data.error) {
+      throw new Error(`[${relPath}] Cloudinary Error: ${data.error.message}`);
+    }
+
+    let finalUrl = data.secure_url;
+    if (resourceType === "image") {
+      finalUrl = data.secure_url.replace("/upload/", "/upload/f_auto,q_auto/");
+    }
+
+    console.log(`✓ Uploaded (${resourceType}): /${relPath} -> ${finalUrl}`);
+    return {
+      relPath: `/${relPath}`,
+      url: finalUrl,
+      secureUrl: data.secure_url,
+      publicId: data.public_id,
+      resourceType,
+    };
+  } catch (err) {
+    if (retryCount < 2) {
+      console.warn(`⚠️ Retrying ${relPath} (attempt ${retryCount + 2})... Error: ${err.message}`);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return uploadFile(filePath, retryCount + 1);
+    }
+    throw err;
   }
-
-  // Create optimized CDN URL
-  let optimizedUrl = data.secure_url;
-  if (resourceType === "image") {
-    // Insert f_auto,q_auto transformation
-    optimizedUrl = data.secure_url.replace("/upload/", "/upload/f_auto,q_auto/");
-  }
-
-  console.log(`✓ Uploaded: /${relPath} -> ${optimizedUrl}`);
-  return { relPath: `/${relPath}`, url: optimizedUrl, secureUrl: data.secure_url, publicId: data.public_id };
 }
 
 async function main() {
-  console.log("Scanning public folder...");
+  console.log("==========================================");
+  console.log(`Cloudinary Cloud: ${CLOUD_NAME}`);
+  console.log("Scanning public folder for media files (images, videos, 3D models)...");
+  console.log("==========================================");
+
   const files = getFilesRecursively(PUBLIC_DIR);
-  console.log(`Found ${files.length} media files to upload.`);
+  console.log(`Found ${files.length} media files to process.\n`);
 
   let mapping = {};
   if (fs.existsSync(MAPPING_FILE)) {
     try {
       mapping = JSON.parse(fs.readFileSync(MAPPING_FILE, "utf-8"));
-    } catch {}
+    } catch (e) {
+      mapping = {};
+    }
   }
+
+  let successCount = 0;
+  let failCount = 0;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -117,16 +161,20 @@ async function main() {
     console.log(`[${i + 1}/${files.length}] Uploading ${rel}...`);
     try {
       const res = await uploadFile(file);
-      mapping[res.relPath] = res.url;
-      // Save progressively
-      fs.writeFileSync(MAPPING_FILE, JSON.stringify(mapping, null, 2), "utf-8");
+      if (res) {
+        mapping[res.relPath] = res.url;
+        successCount++;
+        fs.writeFileSync(MAPPING_FILE, JSON.stringify(mapping, null, 2), "utf-8");
+      }
     } catch (err) {
+      failCount++;
       console.error(`✗ Failed: ${rel}:`, err.message);
     }
   }
 
   console.log("\n==========================================");
-  console.log("All uploads complete! Mapping saved to cloudinary-mapping.json");
+  console.log(`Upload finished! Success: ${successCount}, Failed: ${failCount}`);
+  console.log(`Mapping successfully saved to ${MAPPING_FILE}`);
   console.log("==========================================");
 }
 

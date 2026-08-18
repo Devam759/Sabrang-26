@@ -14,7 +14,7 @@ import AboutBackground from "@/components/about/AboutBackground";
 export const metadata: Metadata = {
   title: "About Sabrang 2026 | JKLU Fest",
   description:
-    "Learn about Sabrang 2026 — the annual flagship techno-cultural-management-design festival of JK Lakshmipat University celebrating talent, culture, and innovation in Jaipur.",
+    "Learn about Sabrang 2026, the annual cultural festival of JK Lakshmipat University celebrating talent, music, dance, fashion, and arts in Jaipur.",
   keywords: [
     "About Sabrang",
     "Sabrang JKLU Story",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About Sabrang 2026",
     description:
-      "Enter Sabrang — the annual flagship festival of JKLU celebrating art, music, design, and innovation.",
+      "Enter Sabrang, the annual flagship festival of JKLU celebrating art, music, design, and innovation.",
     url: "https://sabrang.jklu.edu.in/about",
   },
 };
@@ -75,7 +75,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Panache",
     category: "Fashion · Ultraviolet Haute Couture",
     desc: "The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082812/sabrang-2026/about-flagship-events-pics/PANACHE.jpg",
     link: "/events",
   },
   {
@@ -83,7 +83,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Versevaad",
     category: "Literary · Laser Verbal Slam",
     desc: "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082933/sabrang-2026/about-flagship-events-pics/VERSEVAAD.jpg",
     link: "/events",
   },
   {
@@ -91,31 +91,31 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Echoes of Noor",
     category: "Music · Prismatic Sufi Harmonies",
     desc: "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060181/sabrang-2026/about/echos-of-noor.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082810/sabrang-2026/about-flagship-events-pics/ECHOES-OF-NOOR.jpg",
     link: "/events",
   },
   {
     id: "04",
     label: "Band Jam",
     category: "Music · Infrared Sonic Blast",
-    desc: "Pure sonic warfare under the open sky — head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
+    desc: "Pure sonic warfare under the open sky: head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082808/sabrang-2026/about-flagship-events-pics/BANDJAM.jpg",
     link: "/events",
   },
   {
     id: "05",
-    label: "Dance Battles",
-    category: "Dance · Spectrum Street Motion",
-    desc: "High-octane solo and duo street dance battles featuring hip-hop, popping, locking, and freestyle dance showdowns.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
+    label: "Sync",
+    category: "Dance · Chromatic Group Resonance",
+    desc: "High-energy synchronized group dance showdowns featuring sharp formations, thematic choreography, and electric crew dynamics.",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082815/sabrang-2026/about-flagship-events-pics/SYNC.jpg",
     link: "/events",
   },
   {
     id: "06",
     label: "Step Up",
-    category: "Choreography · Chromatic Group Resonance",
-    desc: "Flawless synchronized group dance battles featuring power-packed choreography, thematic storytelling, and explosive energy.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060185/sabrang-2026/about/step-up.jpg",
+    category: "Choreography · Solo & Duo Street Battles",
+    desc: "Fierce solo and duo street dance battles featuring popping, locking, hip-hop, and freestyle footwork on the arena floor.",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082813/sabrang-2026/about-flagship-events-pics/STEPUP.jpg",
     link: "/events",
   },
 ];
@@ -166,7 +166,7 @@ export default function AboutPage() {
                 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight"
                 style={{ fontFamily: '"Syne", "Outfit", "Inter", sans-serif' }}
               >
-                Pillars of Sabrang
+                Signature Showdowns
               </h2>
             </div>
 

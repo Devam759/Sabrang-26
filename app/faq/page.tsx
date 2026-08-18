@@ -34,7 +34,7 @@ const faqSchema = {
       name: "What is Sabrang 2026?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sabrang is the annual flagship cultural and technical festival of JK Lakshmipat University (JKLU), Jaipur. It is a vibrant confluence of art, music, dance, fashion, and intellect held every year on the JKLU campus.",
+        text: "Sabrang is the annual cultural festival of JK Lakshmipat University (JKLU), Jaipur. It is a vibrant confluence of music, dance, fashion, art, and youth celebration held every year on the JKLU campus.",
       },
     },
     {
