@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import CursorGrid from "@/components/ui/CursorGrid";
+import FaqParticleBackground from "@/components/ui/FaqParticleBackground";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -99,6 +99,60 @@ const faqs = [
   },
 ];
 
+function FaqItem({ faq, index }: { faq: any; index: number }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="gsap-faq-card w-full">
+      <motion.div 
+        layout
+        transition={{ duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }}
+        className="group bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-indigo-500/30 rounded-2xl overflow-hidden shadow-xl"
+      >
+      <motion.div 
+        layout="position"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex justify-between items-center cursor-pointer p-5 md:p-6 hover:bg-indigo-500/10 transition-colors"
+      >
+        <motion.h3 layout="position" className="text-base md:text-lg font-bold text-white/90 group-hover:text-white pr-4 transition-colors">
+          {faq.question}
+        </motion.h3>
+        <motion.span 
+          layout="position"
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+          className="text-xl md:text-2xl text-indigo-400 font-bold flex-shrink-0 bg-indigo-500/10 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center"
+        >
+          +
+        </motion.span>
+      </motion.div>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            layout="position"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="overflow-hidden"
+          >
+            <motion.div 
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-white/60 leading-relaxed border-t border-white/5 pt-4 bg-black/20"
+            >
+              {faq.answer}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+    </div>
+  );
+}
+
 export default function FAQClient() {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -155,25 +209,9 @@ export default function FAQClient() {
   }, { scope: containerRef });
 
   return (
-    <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0a0a0a] to-black" ref={containerRef}>
-      {/* Dynamic CursorGrid Interactive Background */}
-      <div className="fixed inset-0 z-0 opacity-70 pointer-events-none overflow-hidden">
-        <CursorGrid
-          cellSize={70}
-          color="#D946EF"
-          radius={160}
-          falloff="smooth"
-          holdTime={400}
-          fadeDuration={800}
-          lineWidth={1.2}
-          maxOpacity={0.85}
-          fillOpacity={0.05}
-          gridOpacity={0.08}
-          cellRadius={8}
-          clickPulse={true}
-          pulseSpeed={600}
-        />
-      </div>
+    <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden bg-transparent" ref={containerRef}>
+      {/* Dynamic Particle Interactive Background */}
+      <FaqParticleBackground />
 
       <div className="relative z-10 max-w-4xl mx-auto space-y-12 md:space-y-16">
         {/* Hero Header */}
@@ -183,9 +221,6 @@ export default function FAQClient() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="inline-block px-4 py-1.5 mb-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold text-xs md:text-sm tracking-widest uppercase">
-            Help Center
-          </div>
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-white tracking-tight uppercase drop-shadow-lg">
             FAQ
           </h1>
@@ -197,22 +232,7 @@ export default function FAQClient() {
         {/* FAQs */}
         <section className="space-y-4 gsap-faq-container">
           {faqs.map((faq, index) => (
-            <details
-              key={index}
-              className="group bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-indigo-500/30 rounded-2xl overflow-hidden transition-all duration-300 shadow-xl gsap-faq-card"
-            >
-              <summary className="flex justify-between items-center cursor-pointer p-5 md:p-6 hover:bg-indigo-500/5 transition-colors list-none">
-                <h3 className="text-base md:text-lg font-bold text-white/90 group-hover:text-white pr-4 transition-colors">
-                  {faq.question}
-                </h3>
-                <span className="text-xl md:text-2xl text-indigo-400 font-bold transition-transform group-open:rotate-45 flex-shrink-0 bg-indigo-500/10 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center">
-                  +
-                </span>
-              </summary>
-              <div className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-white/60 leading-relaxed border-t border-white/5 pt-4 bg-black/20">
-                {faq.answer}
-              </div>
-            </details>
+            <FaqItem key={index} faq={faq} index={index} />
           ))}
         </section>
 
