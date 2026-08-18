@@ -26,14 +26,19 @@ export default function HeroSection() {
         { y: 0, opacity: 1, filter: 'blur(0px)', duration: 1.2, stagger: 0.15, ease: "power3.out" }
       )
       
-      // Mouse Parallax for typography
+      // Mouse Parallax for typography (scoped to container elements)
+      const p1 = container.querySelector('.parallax-1')
+      const p2 = container.querySelector('.parallax-2')
+      const p3 = container.querySelector('.parallax-3')
+
       const handleMouseMove = (e: MouseEvent) => {
+        if (!container.isConnected) return
         const x = (e.clientX / window.innerWidth - 0.5) * 20
         const y = (e.clientY / window.innerHeight - 0.5) * 20
         
-        gsap.to('.parallax-1', { x: -x, y: -y, duration: 1, ease: "power2.out" })
-        gsap.to('.parallax-2', { x: x * 0.8, y: y * 0.8, duration: 1.5, ease: "power2.out" })
-        gsap.to('.parallax-3', { x: -x * 0.5, y: y * 1.2, duration: 2, ease: "power2.out" })
+        if (p1) gsap.to(p1, { x: -x, y: -y, duration: 1, ease: "power2.out", overwrite: "auto" })
+        if (p2) gsap.to(p2, { x: x * 0.8, y: y * 0.8, duration: 1.5, ease: "power2.out", overwrite: "auto" })
+        if (p3) gsap.to(p3, { x: -x * 0.5, y: y * 1.2, duration: 2, ease: "power2.out", overwrite: "auto" })
       }
       
       window.addEventListener('mousemove', handleMouseMove)
