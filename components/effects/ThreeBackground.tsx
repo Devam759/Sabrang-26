@@ -108,7 +108,7 @@ function VideoBackground() {
 
     if (typeof document !== "undefined") {
       vid = document.createElement("video");
-      vid.src = "/background.mp4";
+      vid.src = "https://res.cloudinary.com/eprhemvt/video/upload/v1787060394/sabrang-2026/videos/background.mp4";
       vid.crossOrigin = "anonymous";
       vid.loop = true;
       vid.muted = true;

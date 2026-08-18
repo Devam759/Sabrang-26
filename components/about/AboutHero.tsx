@@ -362,7 +362,7 @@ export default function AboutHero() {
             }}
           >
             <Image
-              src="/menu-scroll-covers/sabrang-live.png"
+              src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png"
               alt="Sabrang Live Concert Experience"
               fill
               sizes="(max-width: 768px) 92vw, 85vw"
@@ -487,7 +487,6 @@ export default function AboutHero() {
             willChange: "opacity",
           }}
         />
-
         {/* Scroll indicator */}
         <div
           ref={scrollIndRef}

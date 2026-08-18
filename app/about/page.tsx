@@ -75,7 +75,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Panache",
     category: "Fashion · Ultraviolet Haute Couture",
     desc: "The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.",
-    image: "/panache-runway.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
     link: "/events",
   },
   {
@@ -83,7 +83,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Versevaad",
     category: "Literary · Laser Verbal Slam",
     desc: "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
-    image: "/versevaad.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
     link: "/events",
   },
   {
@@ -91,7 +91,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Echoes of Noor",
     category: "Music · Prismatic Sufi Harmonies",
     desc: "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.",
-    image: "/echos-of-noor.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060181/sabrang-2026/about/echos-of-noor.png",
     link: "/events",
   },
   {
@@ -99,7 +99,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Band Jam",
     category: "Music · Infrared Sonic Blast",
     desc: "Pure sonic warfare under the open sky — head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
-    image: "/sabrang-live.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
     link: "/events",
   },
   {
@@ -107,7 +107,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Dance Battles",
     category: "Dance · Spectrum Street Motion",
     desc: "High-octane solo and duo street dance battles featuring hip-hop, popping, locking, and freestyle dance showdowns.",
-    image: "/dance-battle.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
     link: "/events",
   },
   {
@@ -115,7 +115,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Step Up",
     category: "Choreography · Chromatic Group Resonance",
     desc: "Flawless synchronized group dance battles featuring power-packed choreography, thematic storytelling, and explosive energy.",
-    image: "/step-up.jpg",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060185/sabrang-2026/about/step-up.jpg",
     link: "/events",
   },
 ];

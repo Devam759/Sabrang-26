@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useFrame, useThree, extend } from "@react-three/fiber";
 import gsap from "gsap";
 import * as THREE from "three";
-import PostProcessing from "./PostProcessing";
 import CarouselItem, { CarouselItemData } from "./CarouselItem";
 import { lerp, getPiramidalIndex, usePrevious } from "./utils";
 import { useTexture, shaderMaterial } from "@react-three/drei";
@@ -20,7 +19,7 @@ const heightVariantsDesktop = [
   1.8, 2.0, 1.75, 1.95, 1.85, 2.05, 1.78, 1.9, 1.82, 1.98,
 ];
 const widthVariantsMobile = [
-  1.8, 2.0, 1.75, 1.95, 1.85, 2.05, 1.78, 1.9, 1.82, 1.98,
+  1.3, 1.4, 1.25, 1.45, 1.35, 1.5, 1.28, 1.4, 1.32, 1.48,
 ];
 
 /* GSAP Defaults */
@@ -103,7 +102,6 @@ function Background() {
 
 export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
   const [$root, setRoot] = useState<THREE.Group | null>(null);
-  const $post = useRef<any>(null);
 
   const [activePlane, setActivePlane] = useState<number | null>(null);
   const prevActivePlane = usePrevious(activePlane);
@@ -157,7 +155,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       ? widthVariantsMobile[index % widthVariantsMobile.length]
       : planeSettings.width;
     const cardHeight = isMobile
-      ? 0.85
+      ? 0.7
       : heightVariantsDesktop[index % heightVariantsDesktop.length];
 
     if (activePlane === index) {
@@ -226,10 +224,6 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       Number.isFinite(progress.current) ? progress.current : 0,
       0.1,
     );
-
-    if ($post.current) {
-      $post.current.thickness = Math.min(0.25, Number.isFinite(speed.current) ? speed.current : 0);
-    }
   });
 
   /* Handle Wheel - Localized strictly to Carousel component */
@@ -343,7 +337,7 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
             ? widthVariantsMobile[i % widthVariantsMobile.length]
             : planeSettings.width;
           const cardHeight = isMobile
-            ? 0.85
+            ? 0.7
             : heightVariantsDesktop[i % heightVariantsDesktop.length];
           return (
             <CarouselItem
@@ -370,7 +364,6 @@ export default function Carousel({ items, onActiveItemChange }: CarouselProps) {
       <Background />
       {renderPlaneEvents()}
       {renderSlider()}
-      <PostProcessing ref={$post} />
     </group>
   );
 }

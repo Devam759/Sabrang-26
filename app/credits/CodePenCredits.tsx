@@ -11,7 +11,7 @@ import { CustomEase } from "gsap/CustomEase";
 const devTeam = [
   {
     name: "Devam Gupta",
-    avatar: "/tech team credit/Devam gupta.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
     linkedin: "https://www.linkedin.com/in/devam-gupta/",
     github: "https://github.com/Devam759",
     email: "devamgupta@jklu.edu.in",
@@ -27,7 +27,7 @@ const devTeam = [
   },
   {
     name: "Kartik Saini",
-    avatar: "/tech team credit/Kartik Saini.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060384/sabrang-2026/tech-team-credit/Kartik-Saini.png",
     linkedin: "https://linkedin.com/in/kartik-14saini",
     github: "https://github.com/PrimeKartik",
     email: "kartiksaini@jklu.edu.in",
@@ -35,7 +35,7 @@ const devTeam = [
   },
   {
     name: "Pratham Lalwani",
-    avatar: "/tech team credit/Pratham.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060387/sabrang-2026/tech-team-credit/Pratham.png",
     linkedin: "https://www.linkedin.com/in/pratham2k07",
     github: "https://github.com/Pratham2k07",
     email: "prathamlalwani@jklu.edu.in",
@@ -43,7 +43,7 @@ const devTeam = [
   },
   {
     name: "Lakshya Gupta",
-    avatar: "/tech team credit/Lakshya.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060385/sabrang-2026/tech-team-credit/Lakshya.png",
     linkedin: "https://www.linkedin.com/in/lakshya-gupta-b87616370/",
     github: "https://github.com/Metamorpho-1",
     email: "lakshyagupta@jklu.edu.in",
@@ -59,7 +59,7 @@ const devTeam = [
   },
   {
     name: "Arihant Jain",
-    avatar: "/tech team credit/Arihant Jain.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060382/sabrang-2026/tech-team-credit/Arihant-Jain.png",
     linkedin: "https://www.linkedin.com/in/arihant-jain-0a2503383",
     github: "https://github.com/arrieejain3149",
     email: "arihantjain2025@jklu.edu.in",
@@ -67,7 +67,7 @@ const devTeam = [
   },
   {
     name: "Shubh Dixit",
-    avatar: "/tech team credit/Shubh dixt.png",
+    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060392/sabrang-2026/tech-team-credit/Shubh-dixt.png",
     linkedin: "https://www.linkedin.com/in/shubhdixit0912",
     github: "https://github.com/Shubhdix9",
     email: "Shubhdixit@jklu.edu.in",
@@ -192,7 +192,7 @@ export default function CodePenCredits() {
 
       /* Entrance Animation */
       const centerBox = root.querySelector<HTMLElement>(".cc-center-box")!;
-      gsap.to(centerBox, { height: "440px", duration: 1.2, ease: "hop" });
+      gsap.to(centerBox, { height: "420px", duration: 1.2, ease: "hop" });
       gsap.to(leftBoxes, {
         clipPath: "polygon(0 0,100% 0,100% 100%,0 100%)",
         ease: "hop",
@@ -462,7 +462,7 @@ export default function CodePenCredits() {
                 src={m.avatar}
                 alt={m.name}
                 fill
-                sizes="320px"
+                sizes="420px"
                 loading="eager"
                 style={{
                   visibility: i === 0 ? "visible" : "hidden",
@@ -535,18 +535,18 @@ export default function CodePenCredits() {
         {/* ── BOTTOM CENTER NAVIGATION ── */}
         <div className="cc-bottom-nav">
           <button
-            className="cc-nav-btn cc-nav-prev"
+            className="liquid-metal-btn cc-nav-prev"
             onClick={handlePrev}
             aria-label="Previous profile"
           >
-            <div className="cc-nav-glow-accent cc-accent-cyan" />
-            <span className="cc-nav-icon-wrap">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </span>
-            <span className="cc-nav-btn-label">PREV</span>
-            <span className="cc-nav-btn-code">◄</span>
+            <div className="lm-border-wrapper">
+              <div className="lm-border-spin" />
+              <div className="lm-border-inner-mask" />
+            </div>
+            <div className="lm-inner">
+              <span className="cc-nav-arrow cc-nav-arrow-left">←</span>
+              <span className="cc-nav-btn-label">PREV</span>
+            </div>
           </button>
 
           {/* Dots & Indicator */}
@@ -562,18 +562,18 @@ export default function CodePenCredits() {
           </div>
 
           <button
-            className="cc-nav-btn cc-nav-next"
+            className="liquid-metal-btn cc-nav-next"
             onClick={handleNext}
             aria-label="Next profile"
           >
-            <span className="cc-nav-btn-code">►</span>
-            <span className="cc-nav-btn-label">NEXT</span>
-            <span className="cc-nav-icon-wrap">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </span>
-            <div className="cc-nav-glow-accent cc-accent-pink" />
+            <div className="lm-border-wrapper">
+              <div className="lm-border-spin" />
+              <div className="lm-border-inner-mask" />
+            </div>
+            <div className="lm-inner">
+              <span className="cc-nav-btn-label">NEXT</span>
+              <span className="cc-nav-arrow cc-nav-arrow-right">→</span>
+            </div>
           </button>
         </div>
 
@@ -741,7 +741,7 @@ export default function CodePenCredits() {
         }
         .cc-center-box {
           position: relative;
-          width: 320px; height: 0px;
+          width: 420px; height: 0px;
           overflow: hidden;
           background: #0d0d12;
           border-radius: 19px;
@@ -752,6 +752,7 @@ export default function CodePenCredits() {
           position: absolute; top: 0; left: 0;
           width: 100%; height: 100%;
           object-fit: cover;
+          object-position: center top;
           will-change: clip-path, transform;
         }
 
@@ -759,20 +760,20 @@ export default function CodePenCredits() {
         .cc-name-card {
           position: absolute;
           bottom: 12px; left: 12px; right: 12px;
-          padding: 16px;
-          background: rgba(10, 10, 15, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 14px;
+          padding: 16px 20px;
+          background: transparent;
+          border: none;
           z-index: 10;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          box-shadow: none;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
         .cc-name-title {
-          font-size: 18px; font-weight: 800;
-          color: #fff; margin: 0 0 10px 0;
+          font-size: 22px; font-weight: 800;
+          color: #fff; margin: 0 0 8px 0;
           letter-spacing: -0.3px;
-          text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+          text-shadow: 0 4px 16px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.9);
         }
         .cc-name-links {
           display: flex; gap: 8px; align-items: center;
@@ -782,10 +783,12 @@ export default function CodePenCredits() {
           width: 32px; height: 32px;
           border-radius: 8px;
           border: none;
-          background: rgba(255, 255, 255, 0.05);
-          color: rgba(255, 255, 255, 0.7);
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(8px);
+          color: rgba(255, 255, 255, 0.9);
           text-decoration: none;
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
         .cc-link-btn:hover {
           transform: translateY(-2px);
@@ -822,7 +825,8 @@ export default function CodePenCredits() {
         }
         .cc-progress-bar {
           height: 100%; width: 100%;
-          background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6);
+          background: #ffffff;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
           transform: scaleX(0);
         }
 
@@ -833,70 +837,101 @@ export default function CodePenCredits() {
           z-index: 30;
         }
 
-        /* Cyber-HUD chamfered buttons */
-        .cc-nav-btn {
+        /* --- Liquid Metal Button Styles --- */
+        .liquid-metal-btn {
           position: relative;
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 8px 16px;
-          background: rgba(8, 9, 14, 0.85);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          letter-spacing: 2.5px;
-          font-weight: 700;
-          color: rgba(255, 255, 255, 0.85);
+          width: 110px;
+          height: 40px;
+          border-radius: 100px;
+          background: transparent;
+          border: none;
           cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-          backdrop-filter: blur(16px);
+          outline: none;
+          transform-style: preserve-3d;
+          perspective: 1000px;
+          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          -webkit-tap-highlight-color: transparent;
+          display: inline-block;
+          padding: 0;
           user-select: none;
-          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
         }
-        .cc-nav-btn:hover {
-          color: #fff;
-          border-color: rgba(255, 255, 255, 0.35);
-          background: rgba(18, 20, 30, 0.95);
-          transform: translateY(-2px);
+
+        .liquid-metal-btn:active {
+          transform: translateY(2px) scale(0.95);
         }
-        .cc-nav-btn:active {
-          transform: translateY(1px);
-        }
-        .cc-nav-glow-accent {
+
+        .lm-border-wrapper {
           position: absolute;
-          width: 3px; height: 16px;
-          border-radius: 2px;
-          transition: all 0.25s ease;
+          inset: 0;
+          border-radius: 100px;
+          overflow: hidden;
+          z-index: 1;
         }
-        .cc-accent-cyan {
-          left: 0; top: 50%; transform: translateY(-50%);
-          background: #06b6d4;
-          box-shadow: 0 0 10px #06b6d4;
+
+        .lm-border-spin {
+          position: absolute;
+          top: -100%; left: -50%;
+          width: 200%; height: 300%;
+          background: conic-gradient(from 0deg, transparent 0%, rgba(180, 180, 180, 0.2) 20%, rgba(255, 255, 255, 0.9) 50%, rgba(180, 180, 180, 0.2) 80%, transparent 100%);
+          animation: lm-spin 3s linear infinite;
+          opacity: 0.7;
+          transition: opacity 0.3s ease;
         }
-        .cc-accent-pink {
-          right: 0; top: 50%; transform: translateY(-50%);
-          background: #ec4899;
-          box-shadow: 0 0 10px #ec4899;
+
+        .liquid-metal-btn:hover .lm-border-spin {
+          animation: lm-spin 1.5s linear infinite;
+          opacity: 1;
         }
-        .cc-nav-btn-code {
-          font-size: 8px;
-          opacity: 0.4;
-          transition: opacity 0.2s ease, transform 0.2s ease;
+
+        @keyframes lm-spin {
+          100% { transform: rotate(360deg); }
         }
-        .cc-nav-prev:hover .cc-nav-btn-code {
-          opacity: 1; transform: translateX(-2px); color: #06b6d4;
+
+        .lm-border-inner-mask {
+          position: absolute;
+          inset: 1.5px;
+          background: #000;
+          border-radius: 100px;
         }
-        .cc-nav-next:hover .cc-nav-btn-code {
-          opacity: 1; transform: translateX(2px); color: #ec4899;
+
+        .lm-inner {
+          position: absolute;
+          inset: 1.5px;
+          border-radius: 100px;
+          background: linear-gradient(180deg, #262626 0%, #050505 100%);
+          box-shadow: inset 0px 2px 4px rgba(255, 255, 255, 0.15), inset 0px -1px 2px rgba(0, 0, 0, 0.9), 0 4px 10px rgba(0,0,0,0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          color: #a0a0a0;
+          font-family: 'Inter', sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 1.5px;
+          text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.8);
+          transition: all 0.3s ease;
+          z-index: 2;
         }
-        .cc-nav-icon-wrap {
-          display: flex; align-items: center; justify-content: center;
-          transition: transform 0.2s ease;
+
+        .liquid-metal-btn:hover .lm-inner {
+          color: #fff;
+          background: linear-gradient(180deg, #303030 0%, #0a0a0a 100%);
         }
-        .cc-nav-prev:hover .cc-nav-icon-wrap {
-          transform: translateX(-3px);
+
+        .liquid-metal-btn:active .lm-inner {
+          box-shadow: inset 0px 4px 8px rgba(0, 0, 0, 0.8), inset 0px 1px 2px rgba(0, 0, 0, 0.6);
         }
-        .cc-nav-next:hover .cc-nav-icon-wrap {
-          transform: translateX(3px);
+
+        .cc-nav-arrow {
+          font-size: 14px;
+          transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .liquid-metal-btn.cc-nav-prev:hover .cc-nav-arrow-left {
+          transform: translateX(-4px);
+        }
+        .liquid-metal-btn.cc-nav-next:hover .cc-nav-arrow-right {
+          transform: translateX(4px);
         }
 
         /* Dots Container */
@@ -919,8 +954,8 @@ export default function CodePenCredits() {
         .cc-nav-dot-active {
           width: 20px; height: 5px;
           border-radius: 999px;
-          background: linear-gradient(90deg, #38bdf8, #ec4899);
-          box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+          background: #ffffff;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
         /* ─── UP NEXT TEXT (CLEAN HUD STRING) ─── */

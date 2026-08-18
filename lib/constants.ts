@@ -8,11 +8,11 @@ export const SITE_CONFIG = {
     name: "JK Lakshmipat University",
     shortName: "JKLU",
     url: "https://jklu.edu.in",
-    logo: "/sabrang-logo/white_jklu_logo.png",
+    logo: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
   },
   logos: {
-    sabrang: "/sabrang-logo/sabrang-logo.png",
-    jkTyre: "/past-sponsors/JK Tyre.png",
+    sabrang: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png",
+    jkTyre: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060362/sabrang-2026/past-sponsors/JK-Tyre.png",
   },
   loaderDurationMs: 6000,
 } as const;
@@ -22,6 +22,7 @@ export interface OrganizingHead {
   phone: string;
   displayPhone: string;
   role?: string;
+  image?: string;
 }
 
 export const ORGANIZING_HEADS: OrganizingHead[] = [
@@ -34,6 +35,7 @@ export const ORGANIZING_HEADS: OrganizingHead[] = [
     name: "Rishika Singh",
     phone: "+917300118679",
     displayPhone: "+91 73001 18679",
+    image: "/Team NAme/Rishika OH .webp",
   },
   {
     name: "Gurseerat Kaur",
@@ -74,25 +76,25 @@ export interface SponsorItem {
 
 export const PAST_SPONSORS: SponsorItem[] = [
   {
-    src: "/past-sponsors/Chaap Singh.png",
+    src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060361/sabrang-2026/past-sponsors/Chaap-Singh.png",
     alt: "Chaap Singh",
     title: "Chaap Singh",
   },
   {
-    src: "/past-sponsors/JK Lakshmi Cement.png",
+    src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060362/sabrang-2026/past-sponsors/JK-Lakshmi-Cement.png",
     alt: "JK Lakshmi Cement",
     title: "JK Lakshmi Cement",
   },
-  { src: "/past-sponsors/JK Tyre.png", alt: "JK Tyre", title: "JK Tyre" },
-  { src: "/past-sponsors/McCain.png", alt: "McCain", title: "McCain" },
-  { src: "/past-sponsors/Nescafe.png", alt: "Nescafe", title: "Nescafe" },
+  { src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060362/sabrang-2026/past-sponsors/JK-Tyre.png", alt: "JK Tyre", title: "JK Tyre" },
+  { src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060363/sabrang-2026/past-sponsors/McCain.png", alt: "McCain", title: "McCain" },
+  { src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060365/sabrang-2026/past-sponsors/Nescafe.png", alt: "Nescafe", title: "Nescafe" },
   {
-    src: "/past-sponsors/The Belgian Waffle Co.png",
+    src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060367/sabrang-2026/past-sponsors/The-Belgian-Waffle-Co.png",
     alt: "The Belgian Waffle Co.",
     title: "The Belgian Waffle Co.",
   },
-  { src: "/past-sponsors/my fm.png", alt: "MY FM", title: "MY FM" },
-  { src: "/past-sponsors/red bull.png", alt: "Red Bull", title: "Red Bull" },
+  { src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060364/sabrang-2026/past-sponsors/my-fm.png", alt: "MY FM", title: "MY FM" },
+  { src: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060366/sabrang-2026/past-sponsors/red-bull.png", alt: "Red Bull", title: "Red Bull" },
 ];
 
 export const CURSOR_TRAIL_COLORS = [

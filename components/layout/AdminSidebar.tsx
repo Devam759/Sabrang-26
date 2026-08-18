@@ -117,7 +117,7 @@ export default function AdminSidebar() {
     <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col p-6 gap-2 z-40">
       <div className="flex items-center gap-3 mb-8 px-2">
         <Image
-          src="/sabrang-logo/sabrang-logo.png"
+          src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/sabrang-logo.png"
           alt="Sabrang Logo"
           width={36}
           height={36}
