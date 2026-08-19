@@ -25,7 +25,7 @@ export default function PrismScene() {
       dpr={tier === 'MOBILE' ? 1 : [1, 2]}
     >
       <color attach="background" args={['#010101']} />
-      <fogExp2 attach="fog" color="#010101" density={0.015} />
+      <fogExp2 attach="fog" args={['#010101', 0.015]} />
 
       <CameraRig />
 
@@ -39,7 +39,7 @@ export default function PrismScene() {
         <SpectralTypography />
 
         {tier !== 'MOBILE' && (
-          <EffectComposer multisampling={tier === 'ULTRA' ? 4 : 0} disableNormalPass>
+          <EffectComposer multisampling={tier === 'ULTRA' ? 4 : 0}>
             <Bloom 
               luminanceThreshold={0.9} 
               luminanceSmoothing={0.1} 

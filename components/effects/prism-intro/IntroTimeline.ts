@@ -21,6 +21,7 @@ export const introState = {
   
   // Typography Progression
   lightToTextProgress: 0,
+  typographyWaveProgress: -1.0,
   typographyOpacity: 0,
   typographyDisperseProgress: 0.0, // 0 to 1 for disintegration
   typographyWhiteMerge: 0.0, // 0 to 1 for turning white

@@ -4,15 +4,26 @@ import { getFirestore } from "firebase-admin/firestore";
 
 if (!getApps().length && process.env.FIREBASE_PROJECT_ID) {
   try {
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    
+    // Safely format the private key
+    if (privateKey) {
+      privateKey = privateKey.replace(/"/g, "").replace(/\\n/g, "\n");
+    }
+
     initializeApp({
       credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        privateKey: privateKey,
       }),
     });
-  } catch (error) {
-    console.error("Firebase admin initialization error", error);
+  } catch (error: any) {
+    if (error.message?.includes('Failed to parse private key') || error.code === 'app/invalid-credential') {
+      console.error("⚠️ Firebase Admin Warning: Failed to parse FIREBASE_PRIVATE_KEY. Please ensure the key in .env.local is correctly formatted as a PEM string.");
+    } else {
+      console.error("Firebase admin initialization error:", error);
+    }
   }
 }
 

@@ -177,10 +177,10 @@ export default function SpectralTypography() {
   return (
     <points ref={pointsRef} position={[0, 0, 0]}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-startPosition" count={startPositions.length / 3} array={startPositions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={colors.length / 3} array={colors} itemSize={3} />
-        <bufferAttribute attach="attributes-aRandom" count={randoms.length / 3} array={randoms} itemSize={3} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-startPosition" args={[startPositions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        <bufferAttribute attach="attributes-aRandom" args={[randoms, 3]} />
       </bufferGeometry>
       <shaderMaterial
         ref={materialRef}

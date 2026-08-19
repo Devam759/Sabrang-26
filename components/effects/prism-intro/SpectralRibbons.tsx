@@ -59,9 +59,7 @@ export default function SpectralRibbons() {
           <planeGeometry args={[10, 0.08, 32, 1]}>
             <bufferAttribute
               attach="attributes-ribbonOffset"
-              count={33 * 2} // (segments + 1) * 2
-              array={new Float32Array(33 * 2).fill(ribbon.offset)}
-              itemSize={1}
+              args={[new Float32Array(33 * 2).fill(ribbon.offset), 1]}
             />
           </planeGeometry>
           <shaderMaterial

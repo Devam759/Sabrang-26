@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 export default function IntroReveal({ title = "SABRANG" }: { title?: string }) {
   const [isVisible, setIsVisible] = useState(true);
@@ -16,7 +16,7 @@ export default function IntroReveal({ title = "SABRANG" }: { title?: string }) {
 
   const characters = title.split('');
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 1 },
     visible: {
       opacity: 1,
@@ -31,14 +31,14 @@ export default function IntroReveal({ title = "SABRANG" }: { title?: string }) {
     }
   };
 
-  const charVariants = {
+  const charVariants: Variants = {
     hidden: { opacity: 0, filter: 'blur(20px)', y: 20, scale: 0.8 },
     visible: { 
       opacity: 1, 
       filter: 'blur(0px)', 
       y: 0,
       scale: 1,
-      transition: { duration: 1.2, ease: [0.2, 0.65, 0.3, 0.9] } 
+      transition: { duration: 1.2, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] } 
     }
   };
 
