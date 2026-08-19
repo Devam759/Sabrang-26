@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
 import { createWheelGesture } from "@/lib/gestureStepper";
 import PosterDetailModal from "./PosterDetailModal";
+import EventsFilterDropdown from "./EventsFilterDropdown";
 
 const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
 
@@ -86,16 +87,43 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
 /**
  * One heading, rendered either as an overlay on the pinned stage or in normal
  * flow above the static archive — never twice, never in two different voices.
+ *
+ * The optional `dropdownProps` attach the EventsFilterDropdown to the right
+ * edge of the heading bar so both elements share the same baseline.
  */
-function ArchiveHeading({ className = "" }: { className?: string }) {
+function ArchiveHeading({
+  className = "",
+  dropdownProps,
+}: {
+  className?: string;
+  dropdownProps?: {
+    items: GalleryItem[];
+    focusedIndex: number;
+    onSelect: (index: number) => void;
+  };
+}) {
   return (
-    <header className={`mx-auto max-w-6xl px-6 ${className}`}>
+    <header
+      className={`mx-auto max-w-6xl px-6 flex items-center justify-between gap-4 ${className}`}
+    >
       <h1
         id="gallery-highlights-heading"
         className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white font-[family-name:var(--font-space-grotesk)] text-neon-rgb"
       >
         Events
       </h1>
+
+      {/* Dropdown sits to the right of the title, pointer-events enabled even
+          when the heading is inside the pointer-events-none overlay layer. */}
+      {dropdownProps && (
+        <div style={{ pointerEvents: "auto" }}>
+          <EventsFilterDropdown
+            items={dropdownProps.items}
+            focusedIndex={dropdownProps.focusedIndex}
+            onSelect={dropdownProps.onSelect}
+          />
+        </div>
+      )}
     </header>
   );
 }
@@ -223,7 +251,16 @@ export default function GalleryHighlights({
         <div className="relative z-10 h-full">
           {mode === "static" ? (
             <>
-              <ArchiveHeading className="pt-16 md:pt-20" />
+              <ArchiveHeading
+                className="pt-16 md:pt-20"
+                dropdownProps={{
+                  items,
+                  focusedIndex,
+                  onSelect: (index) => {
+                    setFocusedIndex(index);
+                  },
+                }}
+              />
               <StaticArchive items={items} />
             </>
           ) : (
@@ -261,7 +298,16 @@ export default function GalleryHighlights({
 
                 {/* Heading pinned to top, above the 3D canvas */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-20 md:pt-24">
-                  <ArchiveHeading />
+                  <ArchiveHeading
+                    dropdownProps={{
+                      items,
+                      focusedIndex,
+                      onSelect: (index) => {
+                        setFocusedIndex(index);
+                        focusRequestRef.current?.(index);
+                      },
+                    }}
+                  />
                 </div>
 
                 {/* METADATA */}
