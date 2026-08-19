@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useRef, useState, useEffect } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import ContactForm from "@/components/forms/ContactForm";
 import ContactBackground from "./ContactBackground";
 import { ORGANIZING_HEADS, SITE_CONFIG } from "@/lib/constants";
@@ -16,57 +16,63 @@ if (typeof window !== "undefined") {
 export default function ContactClient() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    // Select all sections that we want to reveal on scroll
-    const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-    revealElements.forEach((el) => {
-      gsap.fromTo(
-        el,
-        {
-          opacity: 0,
-          y: 40, // reduced translation for mobile
-          scale: 0.98,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 95%",
-            end: "top 70%",
-            scrub: 1, // 1 second smooth scrubbing effect
-          },
-        }
-      );
-    });
+    const ctx = gsap.context(() => {
+      // Select all sections that we want to reveal on scroll
+      const revealElements = gsap.utils.toArray<HTMLElement>('.gsap-reveal');
 
-    // For staggered elements like the organizing heads
-    const headCards = gsap.utils.toArray<HTMLElement>('.gsap-stagger-card');
-    if (headCards.length > 0) {
-      gsap.fromTo(
-        headCards,
-        {
-          opacity: 0,
-          y: 30, // reduced translation for mobile
-        },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".gsap-stagger-container",
-            start: "top 90%",
-            end: "top 60%",
-            scrub: 1,
+      revealElements.forEach((el) => {
+        gsap.fromTo(
+          el,
+          {
+            opacity: 0,
+            y: 40, // reduced translation for mobile
+            scale: 0.98,
           },
-        }
-      );
-    }
-  }, { scope: containerRef });
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 95%",
+              end: "top 70%",
+              scrub: 1, // 1 second smooth scrubbing effect
+            },
+          }
+        );
+      });
+
+      // For staggered elements like the organizing heads
+      const headCards = gsap.utils.toArray<HTMLElement>('.gsap-stagger-card');
+      if (headCards.length > 0) {
+        gsap.fromTo(
+          headCards,
+          {
+            opacity: 0,
+            y: 30, // reduced translation for mobile
+          },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".gsap-stagger-container",
+              start: "top 90%",
+              end: "top 60%",
+              scrub: 1,
+            },
+          }
+        );
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div className="relative min-h-screen py-16 px-4 sm:px-6 md:px-8 pb-24 overflow-x-hidden" ref={containerRef}>
@@ -103,7 +109,7 @@ export default function ContactClient() {
         </section>
 
         {/* Email Callout Section (GSAP Scrub) */}
-        <section className="bg-black/60 backdrop-blur-md border border-white/10 border-l-4 border-l-cyan-500 p-6 sm:p-8 md:p-12 text-center space-y-4 shadow-[0_0_30px_rgba(0,255,255,0.15)] gsap-reveal mx-2 sm:mx-0">
+        <section className="bg-black/80 border border-white/10 border-l-4 border-l-cyan-500 p-6 sm:p-8 md:p-12 text-center space-y-4 shadow-[0_0_30px_rgba(0,255,255,0.15)] gsap-reveal mx-2 sm:mx-0">
           <div className="w-12 h-12 md:w-14 md:h-14 bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
             <svg
               className="w-6 h-6 md:w-7 md:h-7"
@@ -135,7 +141,7 @@ export default function ContactClient() {
         {/* Form & Venue Section (GSAP Scrub) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
           {/* Send Us A Message Form */}
-          <div className="bg-black/60 backdrop-blur-md border border-white/10 border-r-2 border-r-pink-500 p-5 md:p-8 space-y-6 shadow-[0_0_30px_rgba(236,72,153,0.15)] gsap-reveal mx-2 sm:mx-0">
+          <div className="bg-black/80 border border-white/10 border-r-2 border-r-pink-500 p-5 md:p-8 space-y-6 shadow-[0_0_30px_rgba(236,72,153,0.15)] gsap-reveal mx-2 sm:mx-0">
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase italic">
               Send Us A Message
             </h2>
@@ -143,7 +149,7 @@ export default function ContactClient() {
           </div>
 
           {/* Venue & Location Details */}
-          <div className="bg-black/60 backdrop-blur-md border border-white/10 border-l-2 border-l-cyan-500 p-5 md:p-8 space-y-6 shadow-[0_0_30px_rgba(0,255,255,0.15)] gsap-reveal mx-2 sm:mx-0">
+          <div className="bg-black/80 border border-white/10 border-l-2 border-l-cyan-500 p-5 md:p-8 space-y-6 shadow-[0_0_30px_rgba(0,255,255,0.15)] gsap-reveal mx-2 sm:mx-0">
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tight uppercase italic">
               Festival Venue
             </h2>
@@ -211,79 +217,62 @@ export default function ContactClient() {
 }
 
 const OrganizingHeadsGallery = () => {
-  const [activeCard, setActiveCard] = useState<number | null>(0);
+  const [activeCard, setActiveCard] = useState(0);
   const backgrounds = [
-    "/gallery/43.webp",
-    "/gallery/87.webp",
-    "/gallery/96.webp",
-    "/gallery/48.webp"
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060269/sabrang-2026/gallery/43.webp",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060341/sabrang-2026/gallery/87.webp",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060353/sabrang-2026/gallery/96.webp",
+    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060275/sabrang-2026/gallery/48.webp"
   ];
 
   return (
     <div className="flex w-full h-[300px] md:h-[400px] items-stretch justify-start lg:justify-center gap-2 md:gap-4 gsap-reveal overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
-      {ORGANIZING_HEADS.map((head, index) => (
-        <motion.div
-          key={index}
-          layout
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, ease: "easeInOut" }}
-          className={`relative cursor-pointer overflow-hidden rounded-2xl bg-black/60 border border-cyan-500/30 shrink-0 ${
-            activeCard === index ? "w-[300px] md:w-[400px]" : "w-[3.5rem]"
-          }`}
-          onClick={() => setActiveCard(index)}
-          onHoverStart={() => setActiveCard(index)}
-        >
-          <img
-            src={backgrounds[index]}
-            className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity hover:opacity-80 transition-opacity"
-            alt={head.name}
-          />
-          <AnimatePresence>
-            {activeCard === index && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"
+      {ORGANIZING_HEADS.map((head, index) => {
+        const active = activeCard === index;
+        return (
+          <div
+            key={index}
+            className={`relative cursor-pointer overflow-hidden rounded-2xl bg-black/60 border border-cyan-500/30 shrink-0 transition-[width] duration-500 ease-in-out ${
+              active ? "w-[300px] md:w-[400px]" : "w-14"
+            }`}
+            onClick={() => setActiveCard(index)}
+            onMouseEnter={() => setActiveCard(index)}
+          >
+            {/* Fixed-width layer: nothing inside it reflows or re-rasterizes while
+                the card animates — the parent just clips a cached layer. */}
+            <div className="absolute inset-y-0 left-0 w-[300px] md:w-[400px]">
+              <Image
+                src={backgrounds[index]}
+                alt={head.name}
+                fill
+                sizes="400px"
+                quality={65}
+                className={`object-cover transition-opacity duration-500 ${
+                  active ? "opacity-80" : "opacity-40"
+                }`}
               />
-            )}
-          </AnimatePresence>
 
-          <AnimatePresence>
-            {activeCard !== index && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none"
-              >
-                <p className="whitespace-nowrap -rotate-90 text-xs font-mono font-bold text-cyan-400/50 uppercase tracking-widest">
-                  {head.name}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              <div
+                className={`absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none transition-opacity duration-500 ${
+                  active ? "opacity-100" : "opacity-0"
+                }`}
+              />
 
-          <AnimatePresence>
-            {activeCard === index && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ delay: 0.2 }}
-                className="absolute inset-0 flex flex-col justify-end p-4 md:p-6"
+              <div
+                className={`absolute inset-0 flex flex-col justify-end p-4 md:p-6 transition-opacity duration-300 delay-200 ${
+                  active ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
               >
                 <div className="flex flex-col gap-2 relative z-10">
-                  <h3 className="text-xl md:text-3xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]">
+                  <h3 className="text-xl md:text-3xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] whitespace-nowrap">
                     {head.name}
                   </h3>
-                  <p className="text-pink-400 font-mono text-[10px] md:text-xs uppercase tracking-widest">
+                  <p className="text-pink-400 font-mono text-[10px] md:text-xs uppercase tracking-widest whitespace-nowrap">
                     {head.role || "Organizing Head"}
                   </p>
                   <a
                     href={`tel:${head.phone}`}
-                    className="mt-2 inline-flex w-fit items-center gap-2 px-3 py-2 bg-cyan-500/10 hover:bg-cyan-500/30 text-white font-bold text-[10px] uppercase tracking-widest transition-all border border-cyan-500/30 hover:border-cyan-400 rounded-lg backdrop-blur-md"
+                    className="mt-2 inline-flex w-fit items-center gap-2 px-3 py-2 bg-cyan-500/10 hover:bg-cyan-500/30 text-white font-bold text-[10px] uppercase tracking-widest transition-colors border border-cyan-500/30 hover:border-cyan-400 rounded-lg whitespace-nowrap"
                   >
                     <svg className="w-3 h-3 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1.01 1.01 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -291,11 +280,22 @@ const OrganizingHeadsGallery = () => {
                     <span>{head.displayPhone}</span>
                   </a>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      ))}
+              </div>
+            </div>
+
+            {/* Collapsed label, also fixed width so it never reflows */}
+            <div
+              className={`absolute inset-y-0 left-0 w-14 flex items-center justify-center bg-black/50 pointer-events-none transition-opacity duration-300 ${
+                active ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              <p className="whitespace-nowrap -rotate-90 text-xs font-mono font-bold text-cyan-400/50 uppercase tracking-widest">
+                {head.name}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

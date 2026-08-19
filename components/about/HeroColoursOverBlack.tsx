@@ -5,7 +5,7 @@
  * Optimized for minimal GPU consumption, silky 60 FPS, and low power usage.
  */
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -193,6 +193,11 @@ export default function HeroColoursOverBlack({
   scrollProgress,
   palette = "blue",
 }: HeroColoursOverBlackProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div
       aria-hidden="true"
@@ -206,27 +211,29 @@ export default function HeroColoursOverBlack({
         transform: "translateZ(0)",
       }}
     >
-      <Canvas
-        dpr={1}
-        performance={{ min: 0.8 }}
-        camera={{ position: [0, 0, 1] }}
-        gl={{
-          antialias: false,
-          alpha: false,
-          stencil: false,
-          depth: false,
-          powerPreference: "high-performance",
-        }}
-        onCreated={({ gl }) => {
-          gl.setClearColor(new THREE.Color("#000000"), 1);
-          gl.domElement?.addEventListener("webglcontextlost", (e) =>
-            e.preventDefault(),
-          );
-        }}
-        style={{ width: "100%", height: "100%" }}
-      >
-        <FluidScreenQuad scrollProgress={scrollProgress} palette={palette} />
-      </Canvas>
+      {mounted && (
+        <Canvas
+          dpr={1}
+          performance={{ min: 0.8 }}
+          camera={{ position: [0, 0, 1] }}
+          gl={{
+            antialias: false,
+            alpha: false,
+            stencil: false,
+            depth: false,
+            powerPreference: "high-performance",
+          }}
+          onCreated={({ gl }) => {
+            gl.setClearColor(new THREE.Color("#000000"), 1);
+            gl.domElement?.addEventListener("webglcontextlost", (e) =>
+              e.preventDefault(),
+            );
+          }}
+          style={{ width: "100%", height: "100%" }}
+        >
+          <FluidScreenQuad scrollProgress={scrollProgress} palette={palette} />
+        </Canvas>
+      )}
     </div>
   );
 }

@@ -71,7 +71,7 @@ export function Head({ isMobile = false }: { isMobile?: boolean }) {
   const progressRef = useScrollProgress()
   const headGroupRef = useRef<THREE.Group>(null!)
   const dprRef = useRef(Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2))
-  const { scene } = useGLTF('/hero/models/human-draco.glb', '/hero/draco/')
+  const { scene } = useGLTF('/models/human-draco.glb', '/draco/')
   const glowTexture = useMemo(() => createGlowTexture(), [])
 
   // 1. Merge all meshes into a single Geometry for performance
@@ -274,3 +274,5 @@ export function Head({ isMobile = false }: { isMobile?: boolean }) {
     </group>
   )
 }
+
+useGLTF.preload('/models/human-draco.glb', '/draco/')

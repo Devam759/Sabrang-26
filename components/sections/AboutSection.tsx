@@ -28,7 +28,7 @@ export default function AboutSection() {
           trigger: "#scroll-trigger",
           start: "top top",
           end: "bottom bottom",
-          scrub: 1,
+          scrub: true,
         }
       });
 

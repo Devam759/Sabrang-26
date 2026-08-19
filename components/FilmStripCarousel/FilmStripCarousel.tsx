@@ -185,6 +185,11 @@ export default function FilmStripCarousel({
     [cancelExpand, goToCinematic]
   );
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <section className="fsc-section">
       <div
@@ -194,46 +199,48 @@ export default function FilmStripCarousel({
         onPointerMove={onWrapPointerMove}
         onClick={onWrapClick}
       >
-        <Canvas
-          dpr={[1, 1.25]}
-          gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
-          camera={{ position: [0, 0, bp.cameraZ], fov: bp.fov }}
-          onCreated={({ gl }) => {
-            gl.domElement?.addEventListener('webglcontextlost', (e) => e.preventDefault());
-          }}
-        >
-          <CarouselCamera
-            z={bp.cameraZ}
-            fov={bp.fov}
-            sim={sim}
-            expandRef={expandRef}
-            reducedMotion={reducedMotion}
-          />
-          <ambientLight color="#6b4b9e" intensity={0.55} />
-          <directionalLight position={PANEL_LIGHT_DIR} intensity={2.0} color="#fff4e6" />
-          <directionalLight position={[-4, 1.2, -3]} intensity={0.9} color="#ff2a8d" />
-          <Environment
-            sim={sim}
-            expandRef={expandRef}
-            introRef={introRef}
-            cameraZ={bp.cameraZ}
-            fov={bp.fov}
-          />
-          <Suspense fallback={null}>
-            <FilmStrip
-              projects={projects}
+        {mounted && (
+          <Canvas
+            dpr={[1, 1.25]}
+            gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
+            camera={{ position: [0, 0, bp.cameraZ], fov: bp.fov }}
+            onCreated={({ gl }) => {
+              gl.domElement?.addEventListener('webglcontextlost', (e) => e.preventDefault());
+            }}
+          >
+            <CarouselCamera
+              z={bp.cameraZ}
+              fov={bp.fov}
               sim={sim}
-              step={step}
-              activeRef={activeRef}
-              bp={bp}
+              expandRef={expandRef}
               reducedMotion={reducedMotion}
+            />
+            <ambientLight color="#6b4b9e" intensity={0.55} />
+            <directionalLight position={PANEL_LIGHT_DIR} intensity={2.0} color="#fff4e6" />
+            <directionalLight position={[-4, 1.2, -3]} intensity={0.9} color="#ff2a8d" />
+            <Environment
+              sim={sim}
               expandRef={expandRef}
               introRef={introRef}
-              onExpandComplete={onExpandComplete}
-              onFrameClick={onFrameClick}
+              cameraZ={bp.cameraZ}
+              fov={bp.fov}
             />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <FilmStrip
+                projects={projects}
+                sim={sim}
+                step={step}
+                activeRef={activeRef}
+                bp={bp}
+                reducedMotion={reducedMotion}
+                expandRef={expandRef}
+                introRef={introRef}
+                onExpandComplete={onExpandComplete}
+                onFrameClick={onFrameClick}
+              />
+            </Suspense>
+          </Canvas>
+        )}
 
         {/* 0-overhead CSS ambient depth vignette */}
         <div
@@ -249,13 +256,14 @@ export default function FilmStripCarousel({
         sim={sim}
         expandRef={expandRef}
       />
-      <CarouselControls onPrev={prevAndCancel} onNext={nextAndCancel} />
-      <Pagination
-        count={projects.length}
-        activeIndex={activeIndex}
-        loading={loading}
-        onSelect={goToAndCancel}
-      />
+      <CarouselControls onPrev={prevAndCancel} onNext={nextAndCancel}>
+        <Pagination
+          count={projects.length}
+          activeIndex={activeIndex}
+          loading={loading}
+          onSelect={goToAndCancel}
+        />
+      </CarouselControls>
     </section>
   );
 }

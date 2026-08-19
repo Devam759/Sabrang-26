@@ -3,9 +3,9 @@ import SponsorsClient from "./SponsorsClient";
 import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Sponsors & Partners – Sabrang 2026 | JKLU",
+  title: "Sponsors & Partners - Sabrang 2026 | JKLU",
   description:
-    "Meet the sponsors and corporate partners supporting Sabrang 2026 — the annual cultural and technical festival of JK Lakshmipat University, Jaipur.",
+    "Meet the sponsors and corporate partners supporting Sabrang 2026, the annual cultural festival of JK Lakshmipat University, Jaipur.",
   keywords: [
     "Sabrang Sponsors",
     "Sabrang 2026 Partners",

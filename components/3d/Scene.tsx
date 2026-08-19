@@ -144,7 +144,7 @@ function SceneContent() {
 
         end: 'bottom bottom',
 
-        scrub: 2.5,
+        scrub: true,
 
         onUpdate: self => {
 

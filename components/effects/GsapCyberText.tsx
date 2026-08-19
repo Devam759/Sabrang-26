@@ -1,9 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
-import { Zen_Dots } from 'next/font/google';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -14,54 +12,57 @@ export default function GsapCyberText({ text = 'SABRANG 2026' }: { text?: string
   const containerRef = useRef<HTMLDivElement>(null);
   const charsRef = useRef<(HTMLSpanElement | null)[]>([]);
   
-  useGSAP(() => {
+  useEffect(() => {
     if (!containerRef.current) return;
     
     const chars = charsRef.current.filter(Boolean);
     if (!chars.length) return;
 
-    // Phase 1: Initial load animation (Decoding effect)
-    gsap.fromTo(chars, 
-      { 
-        opacity: 0, 
-        y: 50, 
-        scale: 1.5,
-        filter: 'blur(10px) hue-rotate(90deg)',
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        filter: 'blur(0px) hue-rotate(0deg)',
-        duration: 1,
-        stagger: {
-          each: 0.05,
-          from: 'random'
+    const ctx = gsap.context(() => {
+      // Phase 1: Initial load animation (Decoding effect)
+      gsap.fromTo(chars, 
+        { 
+          opacity: 0, 
+          y: 50, 
+          scale: 1.5,
+          filter: 'blur(10px) hue-rotate(90deg)',
         },
-        ease: 'power4.out',
-        onComplete: () => {
-          // Phase 2: Initialize ScrollTrigger ONLY after the intro finishes
-          // This ensures ScrollTrigger records opacity: 1 as the baseline
-          gsap.to(chars, {
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start: "top top",
-              end: "+=600",
-              scrub: 1,
-            },
-            y: () => (Math.random() - 0.5) * 800,
-            x: () => (Math.random() - 0.5) * 800,
-            rotationZ: () => (Math.random() - 0.5) * 90,
-            rotationX: () => (Math.random() - 0.5) * 90,
-            opacity: 0,
-            scale: () => Math.random() * 2,
-            filter: 'blur(20px)',
-            ease: 'none',
-          });
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: 'blur(0px) hue-rotate(0deg)',
+          duration: 1,
+          stagger: {
+            each: 0.05,
+            from: 'random'
+          },
+          ease: 'power4.out',
+          onComplete: () => {
+            // Phase 2: Initialize ScrollTrigger ONLY after the intro finishes
+            gsap.to(chars, {
+              scrollTrigger: {
+                trigger: containerRef.current,
+                start: "top top",
+                end: "+=600",
+                scrub: 1,
+              },
+              y: () => (Math.random() - 0.5) * 800,
+              x: () => (Math.random() - 0.5) * 800,
+              rotationZ: () => (Math.random() - 0.5) * 90,
+              rotationX: () => (Math.random() - 0.5) * 90,
+              opacity: 0,
+              scale: () => Math.random() * 2,
+              filter: 'blur(20px)',
+              ease: 'none',
+            });
+          }
         }
-      }
-    );
-  }, { scope: containerRef });
+      );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleHover = () => {
     const chars = charsRef.current.filter(Boolean);

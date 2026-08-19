@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useRef, useMemo, useEffect } from "react";
+import React, { useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture, useAspect } from "@react-three/drei";
 import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
 import * as THREE from "three/webgpu";
 import {
@@ -87,13 +86,16 @@ const Scene = () => {
     };
   }, [rawMap, depthMap, edgeMap]);
 
-  useGSAP(() => {
-    gsap.to(uniforms.uProgress, {
+  useEffect(() => {
+    const tween = gsap.to(uniforms.uProgress, {
       value: 1,
       repeat: -1,
       duration: 3,
       ease: "power1.out",
     });
+    return () => {
+      tween.kill();
+    };
   }, [uniforms]);
 
   // Handle pointer tracking
@@ -124,6 +126,14 @@ const Scene = () => {
 };
 
 export default function ContactBackground() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="fixed inset-0 z-0 pointer-events-none bg-black">
       {/* R3F v9 supports passing THREE.WebGPURenderer directly to gl prop */}
@@ -154,7 +164,8 @@ export default function ContactBackground() {
           
           return renderer as any;
         }}
-        camera={{ position: [0, 0, 5], fov: 75 }} 
+        camera={{ position: [0, 0, 5], fov: 75 }}
+        dpr={[1, 1.5]}
         className="w-full h-full"
       >
         <React.Suspense fallback={null}>
@@ -162,7 +173,7 @@ export default function ContactBackground() {
         </React.Suspense>
       </Canvas>
       {/* Subtle dark overlay for text readability */}
-      <div className="absolute inset-0 bg-black/20 mix-blend-multiply pointer-events-none" />
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
     </div>
   );
 }

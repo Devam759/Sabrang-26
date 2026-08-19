@@ -14,10 +14,12 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
 import { createWheelGesture } from "@/lib/gestureStepper";
 import PosterDetailModal from "./PosterDetailModal";
+import EventsFilterDropdown from "./EventsFilterDropdown";
 
 const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
 
@@ -63,9 +65,8 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+            }`}
         />
       )}
 
@@ -86,16 +87,43 @@ function ArchivePlate({ item, index }: { item: GalleryItem; index: number }) {
 /**
  * One heading, rendered either as an overlay on the pinned stage or in normal
  * flow above the static archive — never twice, never in two different voices.
+ *
+ * The optional `dropdownProps` attach the EventsFilterDropdown to the right
+ * edge of the heading bar so both elements share the same baseline.
  */
-function ArchiveHeading({ className = "" }: { className?: string }) {
+function ArchiveHeading({
+  className = "",
+  dropdownProps,
+}: {
+  className?: string;
+  dropdownProps?: {
+    items: GalleryItem[];
+    focusedIndex: number;
+    onSelect: (index: number) => void;
+  };
+}) {
   return (
-    <header className={`mx-auto max-w-6xl px-6 ${className}`}>
+    <header
+      className={`mx-auto max-w-6xl px-6 flex items-center justify-between gap-4 ${className}`}
+    >
       <h1
         id="gallery-highlights-heading"
-        className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white font-darknexis text-neon-rgb"
+        className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white font-[family-name:var(--font-space-grotesk)] text-neon-rgb"
       >
         Events
       </h1>
+
+      {/* Dropdown sits to the right of the title, pointer-events enabled even
+          when the heading is inside the pointer-events-none overlay layer. */}
+      {dropdownProps && (
+        <div style={{ pointerEvents: "auto" }}>
+          <EventsFilterDropdown
+            items={dropdownProps.items}
+            focusedIndex={dropdownProps.focusedIndex}
+            onSelect={dropdownProps.onSelect}
+          />
+        </div>
+      )}
     </header>
   );
 }
@@ -207,18 +235,32 @@ export default function GalleryHighlights({
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          {/* Was a 13.5MB retrowave loop under two darkening overlays. The
-              overlays left it a dim magenta-to-navy wash, which these two
-              gradients paint outright — and they cost no decode on a page that
-              is already running a WebGL archive. */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#1b1035_0%,#120c26_45%,#07080f_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_12%,rgba(236,72,153,0.16)_0%,transparent_58%)]" />
+          {/* Cube video background */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+            src="https://res.cloudinary.com/eprhemvt/video/upload/v1787082832/sabrang-2026/root/cube.mp4"
+          />
+          {/* Dark overlay so content stays readable */}
+          <div className="absolute inset-0 bg-black/50" />
         </div>
 
         <div className="relative z-10 h-full">
           {mode === "static" ? (
             <>
-              <ArchiveHeading className="pt-16 md:pt-20" />
+              <ArchiveHeading
+                className="pt-16 md:pt-20"
+                dropdownProps={{
+                  items,
+                  focusedIndex,
+                  onSelect: (index) => {
+                    setFocusedIndex(index);
+                  },
+                }}
+              />
               <StaticArchive items={items} />
             </>
           ) : (
@@ -256,15 +298,23 @@ export default function GalleryHighlights({
 
                 {/* Heading pinned to top, above the 3D canvas */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-20 md:pt-24">
-                  <ArchiveHeading />
+                  <ArchiveHeading
+                    dropdownProps={{
+                      items,
+                      focusedIndex,
+                      onSelect: (index) => {
+                        setFocusedIndex(index);
+                        focusRequestRef.current?.(index);
+                      },
+                    }}
+                  />
                 </div>
 
                 {/* METADATA */}
                 <div
                   aria-live="polite"
-                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${
-                    ready ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={`pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-6 transition-opacity duration-500 sm:px-8 sm:pb-8 md:px-12 md:pb-12 ${ready ? "opacity-100" : "opacity-0"
+                    }`}
                 >
                   {/* Navigation Buttons: Bottom-Right on mobile, Centered on Desktop */}
                   <div className="absolute right-5 bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:bottom-12 flex items-center gap-2 sm:gap-3 md:gap-6 pointer-events-auto z-20">
@@ -291,14 +341,6 @@ export default function GalleryHighlights({
                     </button>
                   </div>
 
-                  <div className="max-w-[48vw] sm:max-w-[50vw] md:max-w-[calc(50vw-4rem)]">
-                    <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white truncate font-darknexis text-neon-rgb">
-                      {focused.title}
-                    </h2>
-                    <p className="mt-0.5 sm:mt-1 max-w-md text-[11px] sm:text-xs md:text-sm font-medium leading-normal text-slate-300 line-clamp-1 truncate">
-                      {focused.description}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -314,6 +356,22 @@ export default function GalleryHighlights({
             ))}
           </ul>
         </div>
+
+        {/* Footer bar */}
+        <footer className="absolute bottom-0 inset-x-0 z-20 py-1.5 border-t border-white/10 bg-black/80 backdrop-blur-sm text-center text-white/50 text-[10px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 px-4">
+          <span>&copy; 2026 Sabrang. All rights reserved.</span>
+          <span className="hidden sm:inline text-white/20">&bull;</span>
+          <Link
+            href="/credits"
+            className="inline-flex items-center gap-1 text-white/70 hover:text-purple-400 transition-colors group font-medium"
+          >
+            <span>Made with</span>
+            <svg className="w-3.5 h-3.5 text-red-500 fill-red-500 inline-block group-hover:scale-125 transition-transform" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span>by Tech Team</span>
+          </Link>
+        </footer>
       </section>
 
       {/* Expanded poster detail overlay */}

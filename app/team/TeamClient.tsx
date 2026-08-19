@@ -248,36 +248,40 @@ export default function TeamClient() {
     },
   ];
 
+const TEAM_IMAGES: Record<string, string> = {
+  "Abhirama Shreyas": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084232/sabrang-2026/team/abhirama-shreyas.png",
+  "Aditya Nayak": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084234/sabrang-2026/team/aditya-nayak.png",
+  "Ambika Dalmia": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084235/sabrang-2026/team/ambika-dalmia.png",
+  "Ankit Joshi": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084236/sabrang-2026/team/ankit-joshi.png",
+  "Anushka Pathak": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084237/sabrang-2026/team/anushka-pathak.png",
+  "Aryan Gupta": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084238/sabrang-2026/team/aryan-gupta.png",
+  "Ashlesha Sharma": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084239/sabrang-2026/team/ashlesha-sharma.png",
+  "Ashmit Sharma": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084240/sabrang-2026/team/ashmit-sharma.png",
+  "Daksh Kumar": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084243/sabrang-2026/team/daksh-kumar.png",
+  "Devam Gupta": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084750/devam-gupta.jpg",
+  "Devansh Srivastava": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084245/sabrang-2026/team/devansh-srivastava.png",
+  "Diksha Shekhawat": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084246/sabrang-2026/team/diksha-shekhawat.png",
+  "Gurseerat Kaur": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084247/sabrang-2026/team/gurseerat-kaur.jpg",
+  "Kartik Singh": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084249/sabrang-2026/team/kartik-singh.png",
+  "Kartik Sharma": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084250/sabrang-2026/team/kartik-sharma.jpg",
+  "Khushi Soni": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084251/sabrang-2026/team/khushi-soni.png",
+  "Kunal Kasliwal": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084252/sabrang-2026/team/kunal-kasliwal.png",
+  "Laksh Sharma": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084253/sabrang-2026/team/laksh-sharma.png",
+  "Manan Lala": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084254/sabrang-2026/team/manan-lala.png",
+  "Naman Shukla": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084255/sabrang-2026/team/naman-shukla.png",
+  "Richa Sharma": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084257/sabrang-2026/team/richa-sharma.png",
+  "Rishika Singh": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084258/sabrang-2026/team/rishika-singh.png",
+  "Roshan Jangir": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084259/sabrang-2026/team/roshan-jangir.png",
+  "Satvik Agrawal": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084261/sabrang-2026/team/satvik-agrawal.png",
+  "Saumya Puri": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084262/sabrang-2026/team/saumya-puri.png",
+  "Vice Chancellor": "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084263/sabrang-2026/team/vice-chancellor.png",
+};
+
   function getMemberImage(name: string): string {
-    // For now, use JKLU logo for everyone for instant loading (15KB optimized)
-    return "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto,w_800/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png";
-
-    /*
-    const normalized = name.toLowerCase().trim();
-    if (normalized.includes("aditya")) return "/team-images/aditya-nayak.webp";
-    if (normalized.includes("ambika")) return "/team-images/ambika-dalmia.webp";
-    if (normalized.includes("aryan")) return "/team-images/aryan.webp";
-    if (normalized.includes("ashlesha")) return "/team-images/ashlesha-sharma.webp";
-    if (normalized.includes("daksh")) return "/team-images/daksh-kumar.webp";
-    if (normalized.includes("devansh")) return "/team-images/devansh.webp";
-    if (normalized.includes("diksha")) return "/team-images/diksha.webp";
-    if (normalized.includes("gurseerat")) return "/team-images/gurseerat-oh.webp";
-    if (normalized.includes("kartik") && normalized.includes("singh")) return "/team-images/kartik-chaudhary.webp";
-    if (normalized.includes("khushi")) return "/team-images/khushii.webp";
-    if (normalized.includes("kunal")) return "/team-images/kunal.webp";
-    if (normalized.includes("manan")) return "/team-images/manan.webp";
-    if (normalized.includes("naman")) return "/team-images/naman-shukla.webp";
-    if (normalized.includes("rishika")) return "/team-images/rishika-oh.webp";
-    if (normalized.includes("roshan")) return "/team-images/roshan-jangir.webp";
-    if (normalized.includes("satvik")) return "/team-images/satvik.webp";
-    if (normalized.includes("saumya")) return "/team-images/saumya.webp";
-    if (normalized.includes("abhiram")) return "/team-images/abhiram.webp";
-    if (normalized.includes("ankit")) return "/team-images/ankit.webp";
-    if (normalized.includes("ashmit") || normalized.includes("asmit")) return "/team-images/asmit.webp";
-    if (normalized.includes("laksh")) return "/team-images/laksh.webp";
-
-    return "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png";
-    */
+    return (
+      TEAM_IMAGES[name] ||
+      "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto,w_800/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png"
+    );
   }
 
   const carouselMembers = rawMembers.map((member) => ({

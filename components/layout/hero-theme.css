@@ -113,7 +113,7 @@
     content: "";
     position: fixed;
     inset: 0;
-    background: url('/hero/noise.png');
+    background: url('https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082843/sabrang-2026/root/noise.png');
     background-repeat: repeat;
     background-size: 200px 200px;
     opacity: 0.04;

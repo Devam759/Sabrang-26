@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
-import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Wheel, { type WheelHandle } from '@/components/ui/Wheel'
@@ -36,7 +35,6 @@ export default function HomeClient({
   const previewRef = useRef<HTMLDivElement>(null)
   const cardVisibleRef = useRef(false)
   const wheelSectionRef = useRef<HTMLDivElement>(null)
-  const lenisRef = useRef<Lenis | null>(null)
   const phaseRef = useRef(0)
 
   const handleSummitSelect = useCallback((index: number) => {
@@ -45,19 +43,9 @@ export default function HomeClient({
 
   useEffect(() => {
     setMounted(true)
-    const lenis = new Lenis()
-    lenisRef.current = lenis
-
-    // Bridge Lenis scroll events to GSAP ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update)
-
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000)
-    })
-    gsap.ticker.lagSmoothing(0)
 
     // Phases: 0 = Head Zoom, 1 = Explosion/DNA, 2 = Space
-    ScrollTrigger.create({
+    const trigger = ScrollTrigger.create({
       trigger: '#scroll-trigger',
       start: 'top top',
       end: 'bottom bottom',
@@ -75,8 +63,7 @@ export default function HomeClient({
     });
 
     return () => {
-      lenis.destroy()
-      ScrollTrigger.getAll().forEach(t => t.kill())
+      trigger.kill()
     }
   }, [])
 

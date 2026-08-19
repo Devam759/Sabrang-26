@@ -69,9 +69,30 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    setIsOpen(false);
-    setNavLoading(false);
-  }, [pathname]);
+    const handlePageReady = () => {
+      setIsOpen(false);
+      setNavLoading(false);
+    };
+
+    window.addEventListener("sabrang-page-ready", handlePageReady);
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (navLoading) {
+      // Graceful timeout so loading never hangs even if event isn't dispatched
+      timer = setTimeout(() => {
+        setIsOpen(false);
+        setNavLoading(false);
+      }, 700);
+    } else {
+      setIsOpen(false);
+      setNavLoading(false);
+    }
+
+    return () => {
+      window.removeEventListener("sabrang-page-ready", handlePageReady);
+      if (timer) clearTimeout(timer);
+    };
+  }, [pathname, navLoading]);
 
   useEffect(() => {
     if (isOpen) {
@@ -104,6 +125,7 @@ export default function Navbar() {
   return (
     <>
       <header
+        id="main-navbar"
         className={`fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-between items-center transition-all duration-300 ease-out ${
           isVisible || isOpen
             ? "translate-y-0 opacity-100 pointer-events-none"
@@ -269,14 +291,6 @@ export default function Navbar() {
               </motion.div>
             )}
 
-            <motion.p
-              variants={PANEL_ITEM}
-              initial="hidden"
-              animate="visible"
-              className="sm-tagline pointer-events-none absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-center"
-            >
-              Where every shade finds its own spectrum
-            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>

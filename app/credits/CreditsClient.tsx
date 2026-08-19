@@ -13,37 +13,37 @@ export default function CreditsClient() {
     {
       name: "Technical Advisory",
       role: "UI/UX & WebGL Shader Design",
-      avatar: "/team-images/aditya-nayak.webp",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
       tag: "Design",
     },
     {
       name: "Frontend Team",
       role: "React, Next.js & Animation Engineering",
-      avatar: "/team-images/ambika-dalmia.webp",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
       tag: "Engineering",
     },
     {
       name: "Backend & Cloud",
       role: "Firebase Infrastructure & Auth Services",
-      avatar: "/team-images/aryan.webp",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
       tag: "Infrastructure",
     },
     {
       name: "QA & Testing",
       role: "Quality Assurance & Automated Testing",
-      avatar: "/team-images/ashlesha-sharma.webp",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
       tag: "Quality",
     },
     {
       name: "DevOps & SecOps",
       role: "CI/CD Pipelines & Platform Security",
-      avatar: "/team-images/daksh-kumar.webp",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
       tag: "Operations",
     },
     {
       name: "Content & Strategy",
       role: "Digital Strategy & Content Management",
-      avatar: "/team-images/manan.webp",
+      avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
       tag: "Strategy",
     },
   ];
