@@ -7,57 +7,95 @@ export default function IntroReveal({ title = "SABRANG" }: { title?: string }) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Automatically hide the intro reveal after the animation completes
+    // Hide the intro reveal after the sequence
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, 4000); // 4 seconds total duration
+    }, 4500); 
     return () => clearTimeout(timer);
   }, []);
+
+  const characters = title.split('');
+
+  const containerVariants = {
+    hidden: { opacity: 1 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      }
+    },
+    exit: {
+      opacity: 0,
+      transition: { duration: 1.2, ease: "easeInOut" }
+    }
+  };
+
+  const charVariants = {
+    hidden: { opacity: 0, filter: 'blur(20px)', y: 20, scale: 0.8 },
+    visible: { 
+      opacity: 1, 
+      filter: 'blur(0px)', 
+      y: 0,
+      scale: 1,
+      transition: { duration: 1.2, ease: [0.2, 0.65, 0.3, 0.9] } 
+    }
+  };
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
           key="intro-reveal"
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#030005] overflow-hidden"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050508] overflow-hidden"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
         >
-          {/* Background noise/grain for texture */}
+          {/* Noise overlay */}
           <div 
-            className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
+            className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-screen"
             style={{ 
               backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' 
             }} 
           />
 
+          {/* Cinematic Zoom Container */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
-            animate={{ 
-              scale: [0.8, 1, 1, 10], 
-              opacity: [0, 1, 1, 0],
-              filter: ['blur(10px)', 'blur(0px)', 'blur(0px)', 'blur(20px)']
-            }}
-            transition={{
-              duration: 3.2,
-              times: [0, 0.3, 0.7, 1],
-              ease: 'easeInOut'
-            }}
-            className="relative flex items-center justify-center"
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1, 15] }}
+            transition={{ duration: 4.5, times: [0, 0.7, 1], ease: "easeInOut" }}
+            className="relative flex items-center justify-center z-10"
           >
-            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(219,39,119,0.8)] text-center px-4">
-              {title}
+            <h1 className="flex text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-[0.2em] uppercase" style={{ fontFamily: "var(--font-display), serif" }}>
+              {characters.map((char, index) => (
+                <motion.span
+                  key={index}
+                  variants={charVariants}
+                  className="inline-block drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                >
+                  {char}
+                </motion.span>
+              ))}
             </h1>
-            
-            {/* Sexy glowing aura behind the text */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: [0, 0.8, 0], scale: [0, 1.2, 2] }}
-              transition={{ duration: 3.2, times: [0, 0.5, 1], ease: 'easeOut' }}
-              className="absolute inset-0 bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-red-600/30 blur-3xl -z-10"
+          </motion.div>
+
+          {/* Subtle loading line */}
+          <motion.div 
+            className="absolute bottom-[15%] w-[1px] bg-white/40 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 60, opacity: [0, 1, 0] }}
+            transition={{ duration: 3.5, ease: "easeInOut", delay: 0.5 }}
+          >
+            <motion.div 
+              className="w-full bg-white shadow-[0_0_10px_#fff]"
+              initial={{ height: "0%" }}
+              animate={{ height: "100%" }}
+              transition={{ duration: 2.5, ease: "circIn", delay: 0.8 }}
             />
           </motion.div>
+
         </motion.div>
       )}
     </AnimatePresence>

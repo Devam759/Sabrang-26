@@ -49,8 +49,6 @@ export const metadata: Metadata = {
   },
 };
 
-import IntroReveal from "@/components/effects/IntroReveal";
-
 const festivalEventSchema = {
   "@context": "https://schema.org",
   "@type": "Festival",
@@ -112,9 +110,9 @@ const breadcrumbSchema = {
 };
 
 const summitImages = [
-  "/menu-scroll-covers/panache-runway.png",
-  "/menu-scroll-covers/sabrang-live.png",
-  "/menu-scroll-covers/step-up.jpg"
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
+  "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060185/sabrang-2026/about/step-up.jpg"
 ];
 
 const summitNames = [
@@ -134,7 +132,6 @@ export default function Home() {
     <>
       <JsonLd data={festivalEventSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <IntroReveal />
       <HomeClient 
         summitImages={summitImages}
         summitNames={summitNames}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
-import ScheduleClient from "./ScheduleClient";
+import FuturisticSchedule, { ScheduleData } from "@/components/schedule/FuturisticSchedule";
 
 export const metadata: Metadata = {
   title: "Event Schedule – Sabrang 2026",
@@ -55,184 +55,56 @@ const breadcrumbSchema = {
 };
 
 export default function SchedulePage() {
-  const schedule = {
-    "Day 1 - October 23, 2026": [
-      {
-        time: "9:00 AM",
-        event: "Opening Ceremony",
-        venue: "Main Stage",
-        type: "Ceremony",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060206/sabrang-2026/events_posters/focus.webp",
-      },
-      {
-        time: "11:00 AM",
-        event: "Technical Hackathon Begins",
-        venue: "Computer Lab",
-        type: "Technical",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060196/sabrang-2026/events_posters/clay.webp",
-      },
-      {
-        time: "2:00 PM",
-        event: "Step Up - Solo Dance",
-        venue: "Auditorium",
-        type: "Cultural",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060210/sabrang-2026/events_posters/STEPUP.webp",
-      },
-      {
-        time: "4:00 PM",
-        event: "Robotics Competition",
-        venue: "Engineering Block",
-        type: "Technical",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060197/sabrang-2026/events_posters/convo.webp",
-      },
-      {
-        time: "6:00 PM",
-        event: "Panache - Rampwalk (Prelims)",
-        venue: "Main Stage",
-        type: "Flagship",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060209/sabrang-2026/events_posters/PANACHE.webp",
-      },
-      {
-        time: "8:00 PM",
-        event: "DJ Night",
-        venue: "OAT",
-        type: "Entertainment",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060202/sabrang-2026/events_posters/DANCE_BATTLE.webp",
-      },
-    ],
-    "Day 2 - October 24, 2026": [
-      {
-        time: "10:00 AM",
-        event: "Business Quiz",
-        venue: "Seminar Hall",
-        type: "Management",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060203/sabrang-2026/events_posters/deal.webp",
-      },
-      {
-        time: "11:00 AM",
-        event: "Gunj - Vocal Solo",
-        venue: "Seminar Hall",
-        type: "Cultural",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060214/sabrang-2026/events_posters/VERSVAAD.webp",
-      },
-      {
-        time: "2:00 PM",
-        event: "E-Sports Tournament Begins",
-        venue: "Computer Lab 1",
-        type: "E-Sports",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060195/sabrang-2026/events_posters/bgmi.webp",
-      },
-      {
-        time: "3:00 PM",
-        event: "Debate Competition",
-        venue: "Lecture Hall",
-        type: "Literary",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060199/sabrang-2026/events_posters/courtroom.webp",
-      },
-      {
-        time: "5:00 PM",
-        event: "Bandjam - Battle of Bands",
-        venue: "OAT",
-        type: "Flagship",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060194/sabrang-2026/events_posters/BANDJAM.webp",
-      },
-      {
-        time: "7:00 PM",
-        event: "Stand-up Comedy Show",
-        venue: "Main Stage",
-        type: "Entertainment",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060204/sabrang-2026/events_posters/dumb.webp",
-      },
-    ],
-    "Day 3 - October 25, 2026": [
-      {
-        time: "9:00 AM",
-        event: "Art Exhibition",
-        venue: "Gallery",
-        type: "Cultural",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060193/sabrang-2026/events_posters/art.webp",
-      },
-      {
-        time: "10:00 AM",
-        event: "E-Sports Finals",
-        venue: "Computer Lab 1",
-        type: "E-Sports",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060212/sabrang-2026/events_posters/valo.webp",
-      },
-      {
-        time: "12:00 PM",
-        event: "Panache - Rampwalk (Finals)",
-        venue: "Main Stage",
-        type: "Flagship",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060209/sabrang-2026/events_posters/PANACHE.webp",
-      },
-      {
-        time: "3:00 PM",
-        event: "Prize Distribution",
-        venue: "Main Stage",
-        type: "Ceremony",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060215/sabrang-2026/events_posters/wicket.webp",
-      },
-      {
-        time: "5:00 PM",
-        event: "Closing Ceremony",
-        venue: "Main Stage",
-        type: "Ceremony",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060205/sabrang-2026/events_posters/echoesofnoor.webp",
-      },
-      {
-        time: "7:00 PM",
-        event: "Pro-Show Concert",
-        venue: "Main Stage",
-        type: "Entertainment",
-        image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060208/sabrang-2026/events_posters/freefire.webp",
-      },
-    ],
-  };
+  const schedule: ScheduleData = [
+    {
+      label: "DAY ONE",
+      date: "23 OCT 2026",
+      events: [
+        { time: "09:00 AM", event: "Opening Ceremony", venue: "Main Stage", category: "Mandatory", description: "The official opening ceremony of SABRANG 26. Join the lighting of the lamp and the commencement address." },
+        { time: "11:00 AM", event: "Technical Hackathon Begins", venue: "Computer Lab", category: "Mandatory", description: "A 48-hour intense coding competition. Build innovative solutions for real-world problems." },
+        { time: "02:00 PM", event: "Step Up - Solo Dance", venue: "Auditorium", category: "Fun", description: "Watch participants battle it out on the dance floor in our premier solo dance competition." },
+        { time: "04:00 PM", event: "Robotics Competition", venue: "Engineering Block", category: "Competition", description: "Line followers, robo-wars, and autonomous robots navigating complex arenas." },
+        { time: "06:00 PM", event: "Panache - Rampwalk (Prelims)", venue: "Main Stage", category: "Competition", description: "The first round of our flagship fashion event. Witness incredible designs and runway presence." },
+        { time: "08:00 PM", event: "DJ Night", venue: "OAT", category: "Fun", description: "End day one with high-energy electronic music and a spectacular light show at the Open Air Theatre." },
+      ]
+    },
+    {
+      label: "DAY TWO",
+      date: "24 OCT 2026",
+      events: [
+        { time: "10:00 AM", event: "Business Quiz", venue: "Seminar Hall", category: "Competition", description: "Test your knowledge of the corporate world, startups, and global economics." },
+        { time: "11:00 AM", event: "Gunj - Vocal Solo", venue: "Seminar Hall", category: "Competition", description: "A showcase of raw vocal talent across various genres of music." },
+        { time: "02:00 PM", event: "E-Sports Tournament Begins", venue: "Computer Lab 1", category: "Competition", description: "Intense competitive gaming featuring BGMI, Valorant, and FIFA." },
+        { time: "03:00 PM", event: "Debate Competition", venue: "Lecture Hall", category: "Competition", description: "Fierce intellectual battles on pressing contemporary issues." },
+        { time: "05:00 PM", event: "Bandjam - Battle of Bands", venue: "OAT", category: "Competition", description: "The ultimate showdown of college bands competing for the title." },
+        { time: "07:00 PM", event: "Stand-up Comedy Show", venue: "Main Stage", category: "Fun", description: "A night of laughter featuring a surprise celebrity stand-up comedian." },
+      ]
+    },
+    {
+      label: "DAY THREE",
+      date: "25 OCT 2026",
+      events: [
+        { time: "09:00 AM", event: "Art Exhibition", venue: "Gallery", category: "Fun", description: "A curated exhibition of visual arts, photography, and digital installations by students." },
+        { time: "10:00 AM", event: "E-Sports Finals", venue: "Computer Lab 1", category: "Competition", description: "The thrilling conclusion to the E-Sports tournament." },
+        { time: "12:00 PM", event: "Panache - Rampwalk (Finals)", venue: "Main Stage", category: "Competition", description: "The grand finale of the fashion showcase featuring the best designers and models." },
+        { time: "03:00 PM", event: "Prize Distribution", venue: "Main Stage", category: "Mandatory", description: "Celebrating the winners of Sabrang 26 across all technical and cultural events." },
+        { time: "05:00 PM", event: "Closing Ceremony", venue: "Main Stage", category: "Mandatory", description: "The official conclusion of the festival." },
+        { time: "07:00 PM", event: "Pro-Show Concert", venue: "Main Stage", category: "Fun", description: "The ultimate finale: a live concert by a renowned artist to close Sabrang 26." },
+      ]
+    }
+  ];
 
   return (
     <>
+      <style>{`
+        /* Hide the global navbar so our custom futuristic header takes precedence */
+        nav.fixed.top-0.left-0.right-0.z-50 {
+          display: none !important;
+        }
+      `}</style>
       <JsonLd data={scheduleSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <main className="schedule-section-bg min-h-screen pt-24 md:pt-32 pb-24 md:pb-32 overflow-x-clip">
-        {/* Hero */}
-        <section className="text-center px-4 mb-16 md:mb-24">
-          <h1 className="text-[clamp(48px,8vw,110px)] font-black tracking-[-0.04em] uppercase leading-none mb-4 text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-purple-500 drop-shadow-[0_0_30px_rgba(168,85,247,0.3)]">
-            Schedule
-          </h1>
-          <p className="text-sm md:text-lg text-white/60 font-bold tracking-[0.2em] uppercase">
-            Three days. One unforgettable experience.
-          </p>
-        </section>
-
-        {/* Schedule Tabs */}
-        <ScheduleClient schedule={schedule} />
-
-        {/* Note */}
-        <section className="max-w-3xl mx-auto mt-24 px-4">
-          <div className="border-t border-white/10 pt-8">
-            <h3 className="text-xs tracking-[0.2em] font-bold text-white/40 uppercase mb-8">
-              Important Notes
-            </h3>
-            <div className="space-y-6 text-sm md:text-base text-white/70">
-              <div className="flex items-start gap-4">
-                <span className="font-mono text-white/30 text-xs mt-1">01</span>
-                <p>Schedule may be subject to minor adjustments. Please check for updates regularly.</p>
-              </div>
-              <div className="w-full h-px bg-white/5" />
-              <div className="flex items-start gap-4">
-                <span className="font-mono text-white/30 text-xs mt-1">02</span>
-                <p>Participants must report 30 minutes before their event slot.</p>
-              </div>
-              <div className="w-full h-px bg-white/5" />
-              <div className="flex items-start gap-4">
-                <span className="font-mono text-white/30 text-xs mt-1">03</span>
-                <p>Venue notifications will be communicated via official announcements.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+      <FuturisticSchedule schedule={schedule} />
     </>
   );
 }

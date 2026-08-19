@@ -19,7 +19,7 @@ const devTeam = [
   },
   {
     name: "Aditya Singh Nayal",
-    avatar: "/tech team credit/Aditya.png",
+    avatar: "/team-carousel/Tech team credit/Aditya.png",
     linkedin: "https://www.linkedin.com/in/aditya-singh-nayal-5678b3378",
     github: "https://github.com/Aston-09",
     email: "adityasinghnayal@jklu.edu.in",
@@ -27,7 +27,7 @@ const devTeam = [
   },
   {
     name: "Kartik Saini",
-    avatar: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060384/sabrang-2026/tech-team-credit/Kartik-Saini.png",
+    avatar: "/team-carousel/Tech team credit/Kartik Saini.png",
     linkedin: "https://linkedin.com/in/kartik-14saini",
     github: "https://github.com/PrimeKartik",
     email: "kartiksaini@jklu.edu.in",
@@ -51,7 +51,7 @@ const devTeam = [
   },
   {
     name: "Saurav Tank",
-    avatar: "/tech team credit/Saurav.png",
+    avatar: "/team-carousel/Tech team credit/Saurav.png",
     linkedin: "https://www.linkedin.com/in/saurav-tank/",
     github: "https://github.com/sauravtank1507",
     email: "sauravtank@jklu.edu.in",
