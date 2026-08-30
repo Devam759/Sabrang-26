@@ -61,9 +61,9 @@ export default function SchedulePage() {
       date: "23 OCT 2026",
       events: [
         { time: "09:00 AM", event: "Opening Ceremony", venue: "Main Stage", category: "Mandatory", description: "The official opening ceremony of SABRANG 26. Join the lighting of the lamp and the commencement address." },
-        { time: "11:00 AM", event: "Technical Hackathon Begins", venue: "Computer Lab", category: "Mandatory", description: "A 48-hour intense coding competition. Build innovative solutions for real-world problems." },
+        { time: "11:00 AM", event: "Art Installation Competition", venue: "Campus Grounds", category: "Competition", description: "A creative team competition to build massive art installations from recycled materials." },
         { time: "02:00 PM", event: "Step Up - Solo Dance", venue: "Auditorium", category: "Fun", description: "Watch participants battle it out on the dance floor in our premier solo dance competition." },
-        { time: "04:00 PM", event: "Robotics Competition", venue: "Engineering Block", category: "Competition", description: "Line followers, robo-wars, and autonomous robots navigating complex arenas." },
+        { time: "04:00 PM", event: "Photography Competition", venue: "Campus Wide", category: "Competition", description: "Capture the spirit of Sabrang through your lens. Themed photography contest." },
         { time: "06:00 PM", event: "Panache - Rampwalk (Prelims)", venue: "Main Stage", category: "Competition", description: "The first round of our flagship fashion event. Witness incredible designs and runway presence." },
         { time: "08:00 PM", event: "DJ Night", venue: "OAT", category: "Fun", description: "End day one with high-energy electronic music and a spectacular light show at the Open Air Theatre." },
       ]
@@ -87,7 +87,7 @@ export default function SchedulePage() {
         { time: "09:00 AM", event: "Art Exhibition", venue: "Gallery", category: "Fun", description: "A curated exhibition of visual arts, photography, and digital installations by students." },
         { time: "10:00 AM", event: "E-Sports Finals", venue: "Computer Lab 1", category: "Competition", description: "The thrilling conclusion to the E-Sports tournament." },
         { time: "12:00 PM", event: "Panache - Rampwalk (Finals)", venue: "Main Stage", category: "Competition", description: "The grand finale of the fashion showcase featuring the best designers and models." },
-        { time: "03:00 PM", event: "Prize Distribution", venue: "Main Stage", category: "Mandatory", description: "Celebrating the winners of Sabrang 26 across all technical and cultural events." },
+        { time: "03:00 PM", event: "Prize Distribution", venue: "Main Stage", category: "Mandatory", description: "Celebrating the winners of Sabrang 26 across all cultural and creative events." },
         { time: "05:00 PM", event: "Closing Ceremony", venue: "Main Stage", category: "Mandatory", description: "The official conclusion of the festival." },
         { time: "07:00 PM", event: "Pro-Show Concert", venue: "Main Stage", category: "Fun", description: "The ultimate finale: a live concert by a renowned artist to close Sabrang 26." },
       ]

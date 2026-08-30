@@ -45,34 +45,7 @@
     color: var(--color-white);
 }
 
-.hero-scroll {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    opacity: 0.7;
-}
 
-.hero-scroll .scroll-text {
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-}
-
-.hero-scroll .scroll-arrow {
-    font-size: 1rem;
-    animation: float-down 2s infinite ease-in-out;
-}
-
-@keyframes float-down {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(10px);
-    }
-}
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {

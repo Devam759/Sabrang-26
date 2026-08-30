@@ -8,13 +8,13 @@ export const metadata: Metadata = {
     "SABRANG 2026 - JK Lakshmipat University's premier annual fest. Experience Sabrang JKLU with star-studded nights, pro-shows, and competitions in Jaipur.",
   keywords: [
     "SABRANG 2026",
+    "Sabrang",
     "Sabrang JKLU",
     "Sabrang JKLU 2026",
     "JK Lakshmipat University Fest",
     "JKLU Annual Fest",
     "College Fest Jaipur 2026",
     "Cultural Fest Jaipur",
-    "Technical Fest JKLU",
     "Sabrang Event Registration",
     "Panache Runway JKLU",
     "Step-Up Dance Battle",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/sabrang-logo/sabrang-logo.png",
+        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 JK Lakshmipat University Annual Fest",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual fest.",
-    images: ["/sabrang-logo/sabrang-logo.png"],
+    images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
 
@@ -55,7 +55,7 @@ const festivalEventSchema = {
   name: "Sabrang 2026",
   alternateName: ["Sabrang JKLU 2026", "Sabrang JKLU", "JKLU Fest 2026"],
   description:
-    "JK Lakshmipat University's premier annual cultural and technical festival featuring pro-shows, flagship competitions, dance battles, and live concerts.",
+    "JK Lakshmipat University's premier annual cultural festival featuring pro-shows, flagship competitions, dance battles, and live concerts.",
   url: "https://sabrang.jklu.edu.in",
   startDate: "2026-10-23T09:00:00+05:30",
   endDate: "2026-10-25T22:00:00+05:30",
@@ -85,7 +85,7 @@ const festivalEventSchema = {
     "@type": "Audience",
     audienceType: "College Students",
   },
-  image: ["/sabrang-logo/sabrang-logo.png"],
+  image: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   offers: {
     "@type": "Offer",
     url: "https://sabrang.jklu.edu.in/register",

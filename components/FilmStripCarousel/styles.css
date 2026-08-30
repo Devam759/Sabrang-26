@@ -208,7 +208,7 @@
 
 @media (max-width: 767px) {
   .fsc-titlebox {
-    top: 54px;
+    top: 15vh;
   }
 
   .fsc-title {

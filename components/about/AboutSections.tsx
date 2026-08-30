@@ -28,12 +28,12 @@ export const SABRANG_PILLARS: PillarData[] = [
   {
     id: "techno",
     number: "01",
-    name: "TECHNO & INNOVATION",
-    subtitle: "Technical Genius & Code",
-    description: "National hackathons, robotics arenas, AI showdowns, and high-stakes coding duels.",
+    name: "LITERARY & ARTS",
+    subtitle: "Creative Expression",
+    description: "Poetry slams, creative writing, debate championships, and live art exhibitions.",
     color: "#22d3ee",
     defaultRatioX: 0.15,
-    keyword: "TECHNICAL GENIUS",
+    keyword: "CREATIVE EXPRESSION",
     image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
   },
   {
@@ -210,7 +210,7 @@ const OP_SPECS = [
     keyword: "VERIFIED CASH POOL",
     accent: "#a855f7",
     role: "Championship Bounty",
-    details: "Direct cash rewards, certified trophies, and national championship titles contested across marquee technical, cultural, management, and design arenas.",
+    details: "Direct cash rewards, certified trophies, and national championship titles contested across marquee cultural, management, and design arenas.",
     tags: ["₹3,00,000+ POOL", "VERIFIED BOUNTY", "OFFICIAL MEMENTOS"],
   },
   {

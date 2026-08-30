@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { ShaderBackground } from "@/components/ui/neuro-noise";
+import { motion } from "framer-motion";
 
 /* ─────────────────────────────────────────────────────────────
    TYPES & CONSTANTS
@@ -169,27 +170,43 @@ export default function FuturisticSchedule({ schedule }: { schedule?: ScheduleDa
       </div>
       <WebGLBackground />
 
-      <main className="relative z-10 w-full h-full max-w-[1100px] mx-auto flex flex-col px-4 sm:px-6 pt-12 pb-8 justify-center">
+      <main className="relative z-10 w-full h-full max-w-[1200px] mx-auto flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-12 pb-8">
         
         {/* REVEALING SOON — Schedule temporarily hidden */}
-        <div className="flex flex-col items-center justify-center flex-1 w-full text-center mt-[-10vh]">
-          <h1 className="text-sm sm:text-base font-bold tracking-[0.5em] text-white/40 uppercase font-mono mb-6">
-            SCHEDULE
-          </h1>
-          
-          <div className="relative inline-block">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-[0.2em] text-white uppercase font-mono drop-shadow-[0_0_30px_rgba(124,58,237,0.3)]">
-              REVEALING SOON
-            </h2>
-            <div className="absolute -bottom-4 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
-          </div>
-
-          <div className="flex gap-3 mt-8 opacity-50">
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" style={{ animationDelay: "200ms" }}></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" style={{ animationDelay: "400ms" }}></span>
-          </div>
+        <div className="text-center mb-8 relative z-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1
+              className="text-4xl sm:text-6xl md:text-7xl lg:text-[84px] font-black tracking-tight text-white mb-3 uppercase leading-none"
+              style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif' }}
+            >
+              SCHEDULE
+            </h1>
+            <p className="text-violet-400/80 font-mono text-xs sm:text-sm tracking-[0.3em] uppercase">
+              23 - 25 OCTOBER 2026
+            </p>
+          </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative w-full max-w-xl text-center p-10 sm:p-16"
+        >
+          <h2
+            className="relative z-10 text-3xl sm:text-5xl md:text-6xl font-black uppercase text-white tracking-tight leading-none"
+            style={{
+              fontFamily: '"Syne", var(--font-space-grotesk), sans-serif',
+              textShadow: "0 0 30px rgba(255,255,255,0.7), 0 0 50px rgba(168,85,247,0.4)",
+            }}
+          >
+            REVEALING SOON
+          </h2>
+        </motion.div>
 
         {/* 
           TEMPORARILY HIDDEN — SCHEDULE REVEAL

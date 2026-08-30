@@ -37,8 +37,8 @@ export default function CursorFollower() {
     };
 
     const update = () => {
-      currentX += (mouseX - currentX) * 0.22;
-      currentY += (mouseY - currentY) * 0.22;
+      currentX = mouseX;
+      currentY = mouseY;
       if (wrapRef.current) {
         wrapRef.current.style.transform = `translate3d(${currentX - 8}px, ${currentY - 8}px, 0)`;
       }

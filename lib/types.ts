@@ -37,7 +37,7 @@ export interface Event {
   id?: string;
   title: string;
   description: string;
-  category: "Flagship" | "Cultural" | "Technical" | "E-Sports" | "Other" | string;
+  category: "Flagship" | "Cultural" | "Fine Arts" | "E-Sports" | "Other" | string;
   dateTime?: Timestamp | Date | string;
   date?: Timestamp | Date | string;
   time?: string;

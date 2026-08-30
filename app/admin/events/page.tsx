@@ -19,7 +19,7 @@ export default function EventManagement() {
 
   // Form state
   const [formData, setFormData] = useState({
-    title: '', description: '', date: '', time: '', venue: '', category: 'technical', isActive: true
+    title: '', description: '', date: '', time: '', venue: '', category: 'cultural', isActive: true
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,7 +58,7 @@ export default function EventManagement() {
       });
     } else {
       setSelectedEvent(null);
-      setFormData({ title: '', description: '', date: '', time: '', venue: '', category: 'technical', isActive: true });
+      setFormData({ title: '', description: '', date: '', time: '', venue: '', category: 'cultural', isActive: true });
     }
     setIsModalOpen(true);
   };
@@ -238,8 +238,8 @@ export default function EventManagement() {
                 value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
                 className="w-full bg-admin-bg border border-admin-border rounded-lg py-2 px-4 focus:outline-none focus:border-admin-accent"
               >
-                <option value="technical">Technical</option>
                 <option value="cultural">Cultural</option>
+                <option value="fine-arts">Fine Arts</option>
                 <option value="sports">Sports</option>
                 <option value="general">General</option>
               </select>

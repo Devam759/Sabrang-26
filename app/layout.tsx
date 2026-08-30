@@ -26,11 +26,10 @@ import JsonLd from "@/components/seo/JsonLd";
 export const metadata: Metadata = {
   metadataBase: new URL("https://sabrang.jklu.edu.in"),
   manifest: "/site.webmanifest",
-  icons: {
-    icon: [{ url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico" }, { url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico", sizes: "any" }],
-    shortcut: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060370/sabrang-2026/sabrang-logo/favicon.ico",
-    apple: "/sabrang-logo/sabrang-logo.png",
+  appleWebApp: {
+    title: "Sabrang'26",
   },
+  icons: {},
   title: {
     default: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     template: "%s | Sabrang 2026 | JKLU",
@@ -77,7 +76,7 @@ export const metadata: Metadata = {
       "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest. Experience Sabrang JKLU with star-studded nights and thrilling competitions.",
     images: [
       {
-        url: "/sabrang-logo/sabrang-logo.png",
+        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 - JK Lakshmipat University Annual Cultural Fest",
@@ -89,7 +88,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest.",
-    images: ["/sabrang-logo/sabrang-logo.png"],
+    images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
 

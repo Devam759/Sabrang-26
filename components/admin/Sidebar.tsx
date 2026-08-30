@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -384,8 +384,8 @@ export default function Sidebar() {
     <>
       {/* Mobile Hamburger Header */}
       <div className={`md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <Link href="/admin" className="flex items-center gap-2">
-          <img src="/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain" />
+        <Link href="/admin" className="flex items-center gap-2 p-1">
+          <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain" />
           <span className="text-sm font-bold text-slate-900">Sabrang Admin</span>
         </Link>
         <button 
@@ -412,8 +412,8 @@ export default function Sidebar() {
       >
         {/* Desktop Sidebar Logo */}
         <div className="h-16 flex items-center px-6 border-b border-slate-200 bg-white hidden md:flex">
-          <Link href="/admin" className="flex items-center gap-3">
-            <img src="/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain" />
+          <Link href="/admin" className="flex items-center gap-3 p-1">
+            <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain" />
             <div>
               <p className="text-sm font-bold text-slate-900 leading-tight">Sabrang '26</p>
               <p className="text-[11px] text-slate-500 font-medium">Administration</p>

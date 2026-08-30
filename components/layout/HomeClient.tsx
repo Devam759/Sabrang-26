@@ -16,7 +16,7 @@ export default function HomeClient() {
         {/* Scroll Triggers (Main Hero Logic) — the pin adds the real scroll
             length, see HERO_PIN_END. The page ends when the pin releases,
             with PHASE_03 still on screen. */}
-        <div id="scroll-trigger" className="relative w-full z-10 pointer-events-none">
+        <div id="scroll-trigger" className="relative w-full z-10 pointer-events-none -mt-[100vh]">
           <section className="h-[100vh]" data-label="Zoom Phase" />
           <section className="h-[100vh]" data-label="Scatter/DNA Phase" />
         </div>

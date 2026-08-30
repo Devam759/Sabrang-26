@@ -125,25 +125,48 @@ export default function Navbar() {
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <div
-          className={`pointer-events-auto transition-opacity duration-300 ${
-            isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
-          }`}
-        >
-          <Link
-            href="/"
-            className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95"
+        <div className="pointer-events-auto relative flex items-center h-16 md:h-20 w-32 md:w-48">
+          <div
+            className={`absolute left-0 transition-opacity duration-300 ${
+              isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
           >
-            <Image
-              src="/sabrang-logo/sabrang-logo.png"
-              alt="Sabrang Logo"
-              width={200}
-              height={80}
-              loading="eager"
-              fetchPriority="high"
-              className="-mt-8 h-20 md:h-24 w-auto object-contain drop-shadow-2xl"
-            />
-          </Link>
+            <Link
+              href="/"
+              className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95 py-2"
+            >
+              <Image
+                src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091528/sabrang-2026/sabrang-logo/sabrang-logo-dark.png"
+                alt="Sabrang Logo"
+                width={200}
+                height={80}
+                loading="eager"
+                fetchPriority="high"
+                style={{ width: "auto", height: "auto" }}
+                className="h-16 md:h-20 object-contain drop-shadow-2xl"
+              />
+            </Link>
+          </div>
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                key="user-panel"
+                variants={PANEL}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                className="absolute left-0 z-50 flex flex-col justify-center h-full"
+              >
+                <Link
+                  href="/register"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-5 py-2.5 rounded-full bg-white text-black font-bold text-xs tracking-wide shadow-xl hover:bg-neutral-200 hover:-translate-y-0.5 active:scale-90 active:duration-75 transition-all duration-300 ease-out text-center"
+                >
+                  Register Now
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="pointer-events-auto flex items-center gap-2.5 md:gap-4">
@@ -164,7 +187,8 @@ export default function Navbar() {
               alt="JKLU Logo"
               width={64}
               height={56}
-              className="h-10 md:h-13.5 w-auto object-contain drop-shadow-xl"
+              style={{ width: "auto", height: "auto" }}
+              className="h-10 md:h-13.5 object-contain drop-shadow-xl"
             />
           </a>
 
@@ -208,29 +232,7 @@ export default function Navbar() {
         />
       </div>
 
-      {/* ── Public CTA button only — zero admin session leakage ── */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            key="user-panel"
-            variants={PANEL}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            className="fixed top-5 left-5 z-50 flex flex-col gap-2 max-w-[260px] text-sm"
-          >
-            <motion.div variants={PANEL_ITEM}>
-              <Link
-                href="/register"
-                onClick={() => setIsOpen(false)}
-                className="block px-5 py-2.5 rounded-full bg-white text-black font-bold text-xs tracking-wide shadow-xl hover:bg-neutral-200 hover:-translate-y-0.5 active:scale-90 active:duration-75 transition-all duration-300 ease-out text-center"
-              >
-                Register Now
-              </Link>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </>
   );
 }

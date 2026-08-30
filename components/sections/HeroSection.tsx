@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { heroScrollState, HERO_PIN_END, HERO_SCRUB } from '@/components/3d/hero/heroScrollState'
 import './HeroSection.css'
+import Link from 'next/link'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -37,44 +38,44 @@ export default function HeroSection() {
         const x = (e.clientX / window.innerWidth - 0.5) * 20
         const y = (e.clientY / window.innerHeight - 0.5) * 20
         
-        if (p1) gsap.to(p1, { x: -x, y: -y, duration: 1, ease: "power2.out", overwrite: "auto" })
-        if (p2) gsap.to(p2, { x: x * 0.8, y: y * 0.8, duration: 1.5, ease: "power2.out", overwrite: "auto" })
-        if (p3) gsap.to(p3, { x: -x * 0.5, y: y * 1.2, duration: 2, ease: "power2.out", overwrite: "auto" })
+        if (p1) gsap.to(p1, { x: -x, y: -y, duration: 0, overwrite: "auto" })
+        if (p2) gsap.to(p2, { x: x * 0.8, y: y * 0.8, duration: 0, overwrite: "auto" })
+        if (p3) gsap.to(p3, { x: -x * 0.5, y: y * 1.2, duration: 0, overwrite: "auto" })
       }
       
       window.addEventListener('mousemove', handleMouseMove)
 
       // MAIN HERO SCROLL TRIGGER
       if (triggerEl) {
+        const actualTrigger = containerRef.current?.parentElement || triggerEl;
+        
         ScrollTrigger.create({
-          trigger: triggerEl,
+          trigger: actualTrigger,
           start: 'top top',
           end: HERO_PIN_END,
-          pin: true,
+          pin: triggerEl,
           scrub: HERO_SCRUB,
           onUpdate: (self) => {
             heroScrollState.progress = self.progress
           }
         })
 
-        // Drop the countdown down near the footer before PHASE_01 arrives
-        // (AboutSection card 1 starts at 30/100), so it stays on screen for the
-        // whole sequence without sitting on top of the cards.
+        // Fade out the countdown smoothly as soon as scrolling starts
         gsap.timeline({
           scrollTrigger: {
-            trigger: triggerEl,
+            trigger: actualTrigger,
             start: 'top top',
             end: HERO_PIN_END,
             scrub: HERO_SCRUB,
-            invalidateOnRefresh: true, // re-read the vh-based y on resize
           }
         })
           .to('.hero-countdown', {
-            y: () => window.innerHeight * 0.24,
-            scale: 0.6,
-            duration: 12,
-            ease: 'power2.inOut',
-          }, 8)
+            opacity: 0,
+            y: -50,
+            filter: 'blur(20px)',
+            duration: 3,
+            ease: 'power1.in',
+          }, 0)
           .set({}, {}, 100) // force total duration to 100 == progress 1
       }
       
@@ -101,14 +102,13 @@ export default function HeroSection() {
       
       <div className="hero-footer">
         <div className="hero-info hero-anim">
-          <p>THE CULTURAL FESTIVAL OF JKLU</p>
           <p className="hero-date">23 - 25 OCTOBER</p>
         </div>
         
-        <div className="hero-scroll hero-anim">
-          <span className="scroll-text">SCROLL TO EXPLORE</span>
-          <div className="scroll-arrow">&darr;</div>
-        </div>
+        <Link href="/register" className="hero-anim group flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md px-6 py-3 rounded-full text-white text-xs font-bold tracking-widest uppercase transition-all duration-300 pointer-events-auto shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          REGISTER NOW
+          <span className="text-[10px] group-hover:translate-x-1 transition-transform">➔</span>
+        </Link>
       </div>
     </div>
   )

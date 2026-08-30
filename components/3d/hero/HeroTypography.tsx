@@ -112,7 +112,7 @@ export default function HeroTypography({ mobile = false, q }: { mobile?: boolean
   const baseHeight = 2 * Math.tan(vFov / 2) * heroConfig.cameraDistance
   const baseWidth = baseHeight * (size.width / size.height)
 
-  const fontSize = Math.min(baseWidth * 0.15, 12.1)
+  const fontSize = Math.min(baseWidth * (mobile ? 0.16 : 0.12), 8.5)
   const M = 4 // Multiplier to expand the bleed area
   const fxW = fontSize * 7.2 * M
   const fxH = fontSize * 3.6 * M
