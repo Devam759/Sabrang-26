@@ -144,6 +144,7 @@ export default function RootLayout({
               <InteractionProvider>
                 <AuthProvider>
                   <SmoothScroll>
+                    {/* Re-enabled the colourful cursor now that HeroScene is optimized */}
                     <TubesCursor />
                     <CursorFollower />
                     <div className="min-h-screen flex flex-col text-white overflow-x-clip">

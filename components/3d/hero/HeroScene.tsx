@@ -91,9 +91,9 @@ export default function HeroScene() {
       <Canvas
         frameloop="always"
         camera={{ position: [0, 0, heroConfig.cameraDistance], fov: heroConfig.cameraFOV, near: 0.1, far: 200 }}
-        dpr={q.dpr}
+        dpr={1} // Locked to 1 for massive performance boost
         // opaque: the wrapper is already #000, so blending against the page buys nothing
-        gl={{ antialias: false, alpha: false, stencil: false, powerPreference: 'high-performance' }}
+        gl={{ antialias: false, alpha: false, stencil: false }}
         style={{ pointerEvents: 'none' }}
         onCreated={({ gl }) => {
           // The prism's transmission:1 makes three re-render the whole scene into an
