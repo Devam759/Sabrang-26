@@ -37,18 +37,18 @@ export default function AboutSection() {
 
       // Total duration 100 virtual units to represent 0 -> 1 progress
       // PHASE 01: ROBOT (30 - 50)
-      tl.fromTo(step1Ref.current, { autoAlpha: 0, y: 60 }, { autoAlpha: 1, y: 0, duration: 8 }, 30)
-        .to(step1Ref.current, { autoAlpha: 0, y: -60, duration: 8 }, 42)
+      tl.fromTo(step1Ref.current, { autoAlpha: 0, y: 60, yPercent: -50 }, { autoAlpha: 1, y: 0, yPercent: -50, duration: 8 }, 30)
+        .to(step1Ref.current, { autoAlpha: 0, y: -60, yPercent: -50, duration: 8 }, 42)
 
       // PHASE 02: DNA (50 - 70)
-      tl.fromTo(step2Ref.current, { autoAlpha: 0, y: 60 }, { autoAlpha: 1, y: 0, duration: 8 }, 50)
-        .to(step2Ref.current, { autoAlpha: 0, y: -60, duration: 8 }, 62)
+      tl.fromTo(step2Ref.current, { autoAlpha: 0, y: 60, yPercent: -50 }, { autoAlpha: 1, y: 0, yPercent: -50, duration: 8 }, 50)
+        .to(step2Ref.current, { autoAlpha: 0, y: -60, yPercent: -50, duration: 8 }, 62)
 
       // PHASE 03: SPACE (70 -> end). No fade-out: the page ends on this card,
       // so it has to still be on screen at progress 1.
       tl.fromTo(step3Ref.current, 
-        { autoAlpha: 0, y: 60 }, 
-        { autoAlpha: 1, y: 0, duration: 8 }, 70)
+        { autoAlpha: 0, y: 60, yPercent: -50 }, 
+        { autoAlpha: 1, y: 0, yPercent: -50, duration: 8 }, 70)
 
       // Background glow sync (delay until hero atmosphere is fading)
       tl.to(glowRef.current, { left: "0%", duration: 5, top: '40%' }, 20)

@@ -23,10 +23,19 @@ export const heroScrollState = {
  * range, or they desync and the cards play against a different clock than the hero.
  */
 /** Viewport heights of scroll the whole pinned hero sequence spans. Raise to slow
- * every phase down, lower to speed them up -- it is the only pacing knob. */
-export const HERO_PIN_VH = 1.5
+ * every phase down, lower to speed them up -- it is the only pacing knob.
+ *
+ * On mobile (≤768px) we use a larger value so touchscreen swipes don't skip the
+ * whole sequence in a single flick. */
+export const HERO_PIN_VH_DESKTOP = 1.5
+export const HERO_PIN_VH_MOBILE = 4
 
-export const HERO_PIN_END = () => '+=' + window.innerHeight * HERO_PIN_VH
+export function getHeroPinVh() {
+  if (typeof window === 'undefined') return HERO_PIN_VH_DESKTOP
+  return window.innerWidth <= 768 ? HERO_PIN_VH_MOBILE : HERO_PIN_VH_DESKTOP
+}
+
+export const HERO_PIN_END = () => '+=' + window.innerHeight * getHeroPinVh()
 
 /** One scrub value everywhere, so nothing lags anything else while scrubbing. */
 export const HERO_SCRUB = 0.8

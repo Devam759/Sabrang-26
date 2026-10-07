@@ -12,6 +12,15 @@ import './hero-theme.css'
 export default function HomeClient() {
   const btnRef = useRef<HTMLAnchorElement>(null)
 
+  // Force scroll to top on mount/reload and prevent browser from jumping
+  // back to previous scroll position automatically.
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual'
+    }
+    window.scrollTo(0, 0)
+  }, [])
+
   // Entrance fade-in + scroll-based fade-out tied to hero progress
   useEffect(() => {
     const btn = btnRef.current
