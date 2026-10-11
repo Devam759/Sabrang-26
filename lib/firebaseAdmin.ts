@@ -1,6 +1,7 @@
 import { getApps, initializeApp, cert, applicationDefault, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { getAuth, type Auth } from 'firebase-admin/auth';
+import { getStorage } from 'firebase-admin/storage';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -26,7 +27,7 @@ function initFirebaseAdmin(): App | null {
       }
       
       const app = initializeApp({
-        credential: cert(serviceAccount)
+        credential: cert(serviceAccount), storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
       });
       console.log('Firebase Admin SDK initialized successfully via FIREBASE_SERVICE_ACCOUNT.');
       return app;
@@ -68,6 +69,7 @@ function initFirebaseAdmin(): App | null {
               clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
               privateKey: privateKey,
             }),
+            storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
           });
           console.log('Firebase Admin SDK initialized successfully via FIREBASE credentials.');
           return app;
@@ -82,7 +84,7 @@ function initFirebaseAdmin(): App | null {
     if (fs.existsSync(serviceAccountPath)) {
       const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
       const app = initializeApp({
-        credential: cert(serviceAccount)
+        credential: cert(serviceAccount), storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
       });
       console.log('Firebase Admin SDK initialized successfully via local service-account.json.');
       return app;
@@ -101,7 +103,8 @@ function initFirebaseAdmin(): App | null {
       try {
         const app = initializeApp({
           credential: applicationDefault(),
-          projectId: projectId
+          projectId: projectId,
+          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
         });
         console.log("Firebase Admin SDK initialized using Default Application Credentials.");
         return app;
@@ -124,3 +127,5 @@ export const adminApp = app as App;
 export const adminDb = app ? getFirestore(app) : (null as unknown as Firestore);
 export const adminAuth = app ? getAuth(app) : (null as unknown as Auth);
 
+
+export const adminStorage = app ? getStorage(app) : null;

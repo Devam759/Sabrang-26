@@ -37,7 +37,7 @@ type TeamMember = {
   age: string;
   institutionName: string;
   address: string;
-  idCard: File | null;
+  idCard: string | null; idCardName?: string;
 };
 
 export default function CheckoutForm() {
@@ -59,13 +59,13 @@ export default function CheckoutForm() {
   const [visitorCount, setVisitorCount] = useState<number>(1);
   
   // ID Cards
-  const [idCards, setIdCards] = useState<Record<string, File | null>>({});
+  const [idCards, setIdCards] = useState<Record<string, { url: string, name: string } | null>>({});
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
-  const handleIdCardUpload = (
+  const handleIdCardUpload = async (
     key: string,
     file: File | null,
-    onSuccess: (f: File) => void,
+    onSuccess: (url: string, fileName: string) => void,
     onClear: () => void
   ) => {
     if (!file) {
@@ -78,46 +78,60 @@ export default function CheckoutForm() {
       return;
     }
 
-    // Accept image formats only
     if (!file.type.startsWith("image/")) {
       alert("Only image formats (PNG, JPG, JPEG, WEBP) are accepted for ID card verification.");
       onClear();
       return;
     }
-
-    // Max size 5MB
     if (file.size > 5 * 1024 * 1024) {
       alert("ID card image size exceeds the 5MB limit. Please upload a smaller image.");
       onClear();
       return;
     }
 
-    setUploadProgress((prev) => ({ ...prev, [key]: 15 }));
+    setUploadProgress((prev) => ({ ...prev, [key]: 10 }));
 
-    const reader = new FileReader();
-    let current = 15;
-    const timer = setInterval(() => {
-      current += Math.floor(Math.random() * 25) + 15;
-      if (current >= 95) {
-        current = 95;
-        clearInterval(timer);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Simulate progress for UI UX
+      const timer = setInterval(() => {
+        setUploadProgress((prev) => {
+          const current = prev[key] || 10;
+          if (current >= 90) return prev;
+          return { ...prev, [key]: current + Math.floor(Math.random() * 10) };
+        });
+      }, 300);
+
+      const response = await fetch('/api/upload-id', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(timer);
+
+      if (!response.ok) {
+        throw new Error(await response.text());
       }
-      setUploadProgress((prev) => ({ ...prev, [key]: current }));
-    }, 45);
 
-    reader.onload = () => {
-      clearInterval(timer);
+      const data = await response.json();
       setUploadProgress((prev) => ({ ...prev, [key]: 100 }));
-      onSuccess(file);
-    };
-
-    reader.onerror = () => {
-      clearInterval(timer);
-      alert("Failed to load image. Please try again.");
+      
+      setTimeout(() => {
+        onSuccess(data.url, file.name);
+      }, 300);
+      
+    } catch (e) {
+      console.error("Upload failed", e);
+      alert("Failed to upload image. Please try again.");
       onClear();
-    };
-
-    reader.readAsDataURL(file);
+      setUploadProgress((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
   };
 
   const [promoCode, setPromoCode] = useState("");
@@ -271,6 +285,7 @@ export default function CheckoutForm() {
 
       const payload = {
         action: "CREATE_ORDER",
+        idCard: Object.values(idCards).find(v => v !== null)?.url || null,
         ...formData,
         name,
         email,
@@ -887,7 +902,7 @@ export default function CheckoutForm() {
                   handleIdCardUpload(
                     group,
                     file,
-                    (validFile) => setIdCards((prev) => ({ ...prev, [group]: validFile })),
+                    (url, name) => setIdCards((prev) => ({ ...prev, [group]: { url, name } })),
                     () => {
                       e.target.value = "";
                       setIdCards((prev) => ({ ...prev, [group]: null }));
@@ -1092,7 +1107,7 @@ export default function CheckoutForm() {
                             handleIdCardUpload(
                               memberKey,
                               file,
-                              (validFile) => updateTeamMember(group, member.id, 'idCard', validFile),
+                              (url, name) => { updateTeamMember(group, member.id, 'idCard', url); updateTeamMember(group, member.id, 'idCardName', name); },
                               () => {
                                 e.target.value = "";
                                 updateTeamMember(group, member.id, 'idCard', null);
@@ -1113,7 +1128,7 @@ export default function CheckoutForm() {
                           ) : member.idCard ? (
                             <>
                               <Check className="w-4 h-4 text-emerald-400" />
-                              <span className="truncate max-w-[280px] text-white font-medium">{member.idCard.name}</span>
+                              <span className="truncate max-w-[280px] text-white font-medium">{member.idCardName}</span>
                             </>
                           ) : (
                             <>

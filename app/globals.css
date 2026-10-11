@@ -153,37 +153,20 @@
   border-radius: 8px !important;
 }
 
-/* ── Google Sites Modern Typography for Internal Team Pages ── */
-.admin-portal-scope,
-.admin-portal-scope *,
-.admin-portal-scope h1,
-.admin-portal-scope h2,
-.admin-portal-scope h3,
-.admin-portal-scope h4,
-.admin-portal-scope h5,
-.admin-portal-scope h6,
-.admin-portal-scope p,
-.admin-portal-scope span,
-.admin-portal-scope label,
-.admin-portal-scope input,
-.admin-portal-scope select,
-.admin-portal-scope textarea,
-.admin-portal-scope button,
-.admin-portal-scope table,
-.admin-portal-scope th,
-.admin-portal-scope td,
-.admin-portal-scope a,
-.admin-portal-scope div {
-  font-family: 'Open Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
-}
-
-/* Hide default browser system cursor globally on desktop (pointer: fine), except on admin portal */
+/* Hide default browser system cursor globally on desktop (pointer: fine) */
 @media (hover: hover) and (pointer: fine) {
-
-  html:not(:has(.admin-portal-scope)),
-  body:not(:has(.admin-portal-scope)),
-  body:not(:has(.admin-portal-scope)) *:not(.admin-portal-scope):not(.admin-portal-scope *) {
+  html,
+  body {
     cursor: none !important;
+  }
+  
+  /* Selectively restore cursor for interactive elements instead of chaining :not() */
+  a, button, input, textarea, select, [role="button"], .cursor-pointer {
+    cursor: pointer !important;
+  }
+  
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    cursor: text !important;
   }
 }
 
@@ -317,4 +300,29 @@ body.loader-active .custom-cursor-circle {
   }
 }
 
-
+
+@keyframes liquid-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(250px, 150px) scale(1.3); }
+  66% { transform: translate(-150px, 250px) scale(0.7); }
+}
+@keyframes liquid-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-300px, 200px) scale(1.2); }
+  66% { transform: translate(150px, -200px) scale(0.8); }
+}
+@keyframes liquid-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-200px, -250px) scale(0.8); }
+  66% { transform: translate(300px, -150px) scale(1.2); }
+}
+@keyframes liquid-4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(250px, -200px) scale(1.4); }
+  66% { transform: translate(-200px, 150px) scale(0.6); }
+}
+
+.animate-liquid-1 { animation: liquid-1 25s infinite alternate ease-in-out; }
+.animate-liquid-2 { animation: liquid-2 28s infinite alternate-reverse ease-in-out; }
+.animate-liquid-3 { animation: liquid-3 32s infinite alternate ease-in-out; }
+.animate-liquid-4 { animation: liquid-4 22s infinite alternate-reverse ease-in-out; }

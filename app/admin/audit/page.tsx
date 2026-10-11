@@ -92,20 +92,22 @@ export default function AuditLogs() {
     });
   };
 
+
   return (
-    <div className="space-y-6 font-sans text-slate-800">
+    <div className="space-y-8 font-sans text-slate-900 animate-in fade-in duration-300">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Audit Logs</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-tight text-slate-900 font-space-grotesk">Audit Logs</h1>
+          <p className="text-slate-500 uppercase tracking-[0.2em] text-[10px] mt-2 font-semibold">System Action Tracking</p>
         </div>
         <button
           onClick={exportExcel}
           disabled={filteredLogs.length === 0}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-40"
+          className="group inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer shadow-xs disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <Download size={14} />
-          <span>Export Excel (.xlsx)</span>
+          <Download size={15} className="text-slate-700 group-hover:text-slate-900 transition-colors" />
+          <span>Export Excel</span>
         </button>
       </div>
 
@@ -113,70 +115,64 @@ export default function AuditLogs() {
       <div className="md:hidden">
         <button 
           onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-          className="w-full bg-white border border-slate-200 p-3.5 rounded-xl shadow-xs flex items-center justify-between text-slate-800 text-xs font-semibold cursor-pointer"
+          className="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-xs flex items-center justify-between text-slate-900 text-xs font-bold uppercase tracking-widest cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-slate-500" />
-            <span>Search & Filter Registry</span>
+            <span>Search & Filter</span>
           </div>
-          <span className="text-xs text-purple-600 font-bold">
-            {isMobileFiltersOpen ? 'Hide' : 'Show'}
+          <span className="text-[10px] text-slate-600 font-bold">
+            {isMobileFiltersOpen ? 'HIDE' : 'SHOW'}
           </span>
         </button>
       </div>
 
       {/* Filter Card */}
-      <div className={`grid transition-all duration-200 md:grid-rows-[1fr] md:opacity-100 ${isMobileFiltersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 md:opacity-100'}`}>
+      <div className={`grid transition-all duration-300 md:grid-rows-[1fr] md:opacity-100 ${isMobileFiltersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 md:opacity-100'}`}>
         <div className="overflow-hidden">
-          <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs flex flex-wrap gap-4 items-end">
-            <div className="flex items-center gap-2 text-slate-700 w-full lg:w-auto mb-1">
-              <div className="p-2 bg-slate-100 rounded-lg text-slate-700">
-                <Filter size={15} />
-              </div>
-              <span className="text-xs font-semibold">Filter Logs</span>
-            </div>
+          <div className="bg-white backdrop-blur-xl border border-slate-200 p-5 rounded-[24px] shadow-xs flex flex-wrap gap-4 items-end">
             
             {/* Action filter */}
             <div className="flex-1 min-w-[160px]">
-              <label className="block text-[11px] font-medium text-slate-500 mb-1.5">Action Type</label>
+              <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">Action Type</label>
               <select 
                 value={filterAction} 
                 onChange={e => setFilterAction(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-400 cursor-pointer"
+                className="w-full bg-white/80 border border-slate-100 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none focus:border-purple-500/50 cursor-pointer appearance-none"
               >
-                <option value="">All Actions ({uniqueActions.length})</option>
-                {uniqueActions.map(a => <option key={a} value={a}>{a}</option>)}
+                <option value="" className="bg-[#1a1525]">All Actions ({uniqueActions.length})</option>
+                {uniqueActions.map(a => <option key={a} value={a} className="bg-[#1a1525]">{a}</option>)}
               </select>
             </div>
 
             {/* Date From */}
             <div className="flex-grow min-w-[140px]">
-              <label className="block text-[11px] font-medium text-slate-500 mb-1.5">From Date</label>
+              <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">From Date</label>
               <input 
                 type="date" 
                 value={filterDateFrom} 
                 onChange={e => setFilterDateFrom(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-400"
+                className="w-full bg-white/80 border border-slate-100 rounded-xl py-3 px-4 text-xs text-slate-900 font-mono focus:outline-none focus:border-purple-500/50 custom-date-input"
               />
             </div>
 
             {/* Date To */}
             <div className="flex-grow min-w-[140px]">
-              <label className="block text-[11px] font-medium text-slate-500 mb-1.5">To Date</label>
+              <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">To Date</label>
               <input 
                 type="date" 
                 value={filterDateTo} 
                 onChange={e => setFilterDateTo(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-400"
+                className="w-full bg-white/80 border border-slate-100 rounded-xl py-3 px-4 text-xs text-slate-900 font-mono focus:outline-none focus:border-purple-500/50 custom-date-input"
               />
             </div>
 
             {/* Clear buttons */}
             <button 
               onClick={() => { setFilterAction(''); setFilterDateFrom(''); setFilterDateTo(''); }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shadow-xs"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-slate-200 bg-white hover:bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:text-slate-900 rounded-xl transition-colors cursor-pointer shadow-xs h-[46px]"
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={14} />
               <span>Reset</span>
             </button>
           </div>
@@ -187,82 +183,110 @@ export default function AuditLogs() {
       {loading ? (
         <SkeletonTable rows={10} />
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden flex flex-col">
+        <div className="bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] shadow-xs overflow-hidden flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
-                  <th className="p-4 w-14 text-center">#</th>
-                  <th className="p-4">Timestamp</th>
-                  <th className="p-4">Performed By</th>
-                  <th className="p-4">Action</th>
-                  <th className="p-4">Target Entity</th>
-                  <th className="p-4">Details</th>
+                <tr className="bg-white/80 border-b border-slate-200 text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em]">
+                  <th className="p-5 w-14 text-center">#</th>
+                  <th className="p-5">Timestamp</th>
+                  <th className="p-5">Performed By</th>
+                  <th className="p-5">Action</th>
+                  <th className="p-5">Target Entity</th>
+                  <th className="p-5">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
-                {paginatedLogs.map((log, idx) => (
-                  <tr key={log.id} className="hover:bg-slate-50/60 transition-colors text-slate-700">
-                    <td className="p-4 text-center text-slate-400 font-mono font-medium">
-                      {(currentPage - 1) * itemsPerPage + idx + 1}
-                    </td>
-                    <td className="p-4 text-slate-500 whitespace-nowrap">
-                      {log.timestamp && log.timestamp.toDate ? (
-                        <div>
-                          <div className="font-semibold text-slate-900">{log.timestamp.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">
-                            {log.timestamp.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </div>
+              <tbody className="divide-y divide-slate-100 text-xs font-medium">
+                {paginatedLogs.map((log, index) => {
+                  const logDate = log.timestamp?.toDate ? log.timestamp.toDate() : null;
+                  return (
+                    <tr key={log.id} className="hover:bg-slate-50 transition-colors duration-500 ease-out group animate-in fade-in slide-in-from-bottom-2" style={{ animationFillMode: "both", animationDelay: `${index * 50}ms` }}>
+                      <td className="p-5 text-center text-slate-400 font-bold font-mono text-[10px]">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
+                      <td className="p-5">
+                        <div className="space-y-1">
+                          <p className="font-bold text-slate-900 text-[13px]">
+                            {logDate ? logDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                          </p>
+                          <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
+                            {logDate ? logDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''}
+                          </p>
                         </div>
-                      ) : 'N/A'}
-                    </td>
-                    <td className="p-4 font-semibold text-slate-900">{log.performedBy || 'System'}</td>
-                    <td className="p-4">
-                      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-500 font-mono text-[11px]">{log.targetEntity || 'N/A'}</td>
-                    <td className="p-4 whitespace-normal min-w-[240px] max-w-md text-slate-600 leading-relaxed">
-                      {log.details || '-'}
-                    </td>
-                  </tr>
-                ))}
-                {paginatedLogs.length === 0 && (
+                      </td>
+                      <td className="p-5">
+                        <p className="font-bold text-slate-800 group-hover:text-slate-900 transition-colors">{log.performedBy}</p>
+                      </td>
+                      <td className="p-5">
+                        <span className="inline-flex items-center px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold tracking-widest uppercase">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="p-5">
+                        <p className="text-slate-600 font-mono text-[10px] tracking-wider">{log.targetEntity || 'System'}</p>
+                      </td>
+                      <td className="p-5">
+                        <p className="text-slate-700 text-xs leading-relaxed max-w-sm whitespace-normal">{log.details}</p>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredLogs.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center text-slate-400 font-medium text-xs">
-                      No matching audit logs found.
+                    <td colSpan={6} className="p-12 text-center text-slate-500">
+                      <Filter className="mx-auto h-8 w-8 mb-3 opacity-50" />
+                      <p className="font-bold text-sm">No logs match criteria.</p>
+                      <p className="text-[10px] mt-1 uppercase tracking-widest">Adjust filters to see results.</p>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-slate-200 flex justify-between items-center bg-slate-50 text-xs">
-              <span className="text-slate-500">
-                Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> ({filteredLogs.length} entries)
-              </span>
+            <div className="flex items-center justify-between p-5 border-t border-slate-200 bg-black/10">
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                Showing <span className="text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                <span className="text-slate-800">{Math.min(currentPage * itemsPerPage, filteredLogs.length)}</span> of{' '}
+                <span className="text-slate-800">{filteredLogs.length}</span> entries
+              </p>
               <div className="flex gap-2">
-                <button 
-                  disabled={currentPage === 1} 
-                  onClick={() => {
-                    setCurrentPage(p => p - 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="px-3 py-1.5 border border-slate-200 rounded-md bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  Previous
+                  Prev
                 </button>
-                <button 
-                  disabled={currentPage === totalPages} 
-                  onClick={() => {
-                    setCurrentPage(p => p + 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="px-3 py-1.5 border border-slate-200 rounded-md bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                <div className="flex items-center gap-1 px-2">
+                  {[...Array(totalPages)].map((_, i) => {
+                     const page = i + 1;
+                     if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                       return (
+                         <button
+                           key={page}
+                           onClick={() => setCurrentPage(page)}
+                           className={`w-7 h-7 flex items-center justify-center rounded-lg text-[10px] font-bold transition-all ${
+                             currentPage === page 
+                               ? 'bg-slate-900 text-white shadow-[0_0_10px_rgba(255,255,255,0.3)]' 
+                               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                           }`}
+                         >
+                           {page}
+                         </button>
+                       );
+                     } else if (page === currentPage - 2 || page === currentPage + 2) {
+                       return <span key={page} className="text-slate-400 text-xs px-1">...</span>;
+                     }
+                     return null;
+                  })}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   Next
                 </button>
@@ -271,6 +295,14 @@ export default function AuditLogs() {
           )}
         </div>
       )}
+
+      <style jsx global>{`
+        .custom-date-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.5;
+            cursor: pointer;
+        }
+      `}</style>
     </div>
   );
 }

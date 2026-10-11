@@ -7,6 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db, FIREBASE_SETUP_MESSAGE } from '../../lib/firebase';
 import Sidebar from './Sidebar';
 import { Loader2 } from 'lucide-react';
+import LiquidBackground from './LiquidBackground';
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -40,15 +41,20 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
       }
 
       try {
+        const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
         const [roleDoc, userDoc] = await Promise.all([
-          getDoc(doc(db, 'roles', user.uid)).catch(() => null),
-          getDoc(doc(db, 'users', user.uid)).catch(() => null),
+          Promise.race([getDoc(doc(db, 'roles', user.uid)), timeout]).catch(() => null),
+          Promise.race([getDoc(doc(db, 'users', user.uid)), timeout]).catch(() => null),
         ]);
 
-        const role = roleDoc?.exists() ? roleDoc.data()?.role : (userDoc?.exists() ? userDoc.data()?.role : 'admin');
+        let role = 'admin';
+        if (roleDoc && 'exists' in roleDoc && roleDoc.exists()) {
+          role = roleDoc.data()?.role || 'admin';
+        } else if (userDoc && 'exists' in userDoc && userDoc.exists()) {
+          role = userDoc.data()?.role || 'admin';
+        }
 
         if (role === 'scanner') {
-          // Hard navigate — never set isAuthenticated, keep showing loader
           window.location.href = '/scanner';
           return;
         } else {
@@ -64,13 +70,13 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
 
   if (configError) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white border border-slate-200 p-8 rounded-xl shadow-lg">
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Firebase Configuration Required</h2>
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+        <div className="max-w-md bg-white backdrop-blur-xl border border-slate-200 p-8 rounded-xl shadow-lg">
+          <h2 className="text-xl font-bold text-slate-900 mb-2 font-space-grotesk">Firebase Configuration Required</h2>
           <p className="text-slate-600 text-sm mb-6 leading-relaxed">
             {FIREBASE_SETUP_MESSAGE}
           </p>
-          <div className="text-xs bg-slate-100 border border-slate-200 p-3 rounded-lg text-left font-mono text-slate-800">
+          <div className="text-xs bg-black/50 border border-slate-200 p-3 rounded-lg text-left font-mono text-slate-600">
             1. Copy .env.example to .env.local<br/>
             2. Fill in your Firebase configuration keys
           </div>
@@ -82,59 +88,35 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
   // Consistent SSR / Initial client render avoids hydration mismatch
   if (!mounted || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
-        <Loader2 className="animate-spin text-slate-400" size={36} />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="animate-spin text-slate-500" size={36} />
       </div>
     );
   }
 
   return (
-    <div className="admin-portal-scope flex min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-      <Sidebar />
-      <main className="flex-1 w-full md:w-[calc(100%-16rem)] pt-16 md:pt-0 overflow-y-auto relative bg-[#f8fafc]">
-        <header className="sticky top-0 z-30 bg-white px-6 md:px-8 h-16 hidden md:flex items-center justify-between border-b border-slate-200 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-            Sabrang 2026 Management System
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-body relative overflow-hidden">
+      <LiquidBackground />
+      
+      {/* Floating Sidebar Container */}
+      <div className="relative z-50 flex-shrink-0">
+        <Sidebar />
+      </div>
+      
+      {/* Main Content Area with fluid padding to match floating sidebar */}
+      <main className="flex-1 w-full overflow-y-auto relative z-10 bg-transparent flex flex-col h-[100dvh]">
+        <header className="sticky top-0 z-30 bg-white backdrop-blur-xl mx-4 mt-4 md:mx-6 md:mt-6 rounded-[24px] px-6 h-16 hidden md:flex items-center justify-between border border-slate-200 shadow-sm">
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-[0.2em] font-space-grotesk">
+            Sabrang '26 Administration
           </span>
+
         </header>
 
-        <div className="p-6 md:p-10 max-w-7xl mx-auto">{children}</div>
+        {/* Page content with fluid fade-in animation container */}
+        <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both">
+          {children}
+        </div>
       </main>
-
-      {/* Scoped style specifically for Admin Portal ensuring standard browser cursor */}
-      <style jsx global>{`
-        .admin-portal-scope,
-        .admin-portal-scope *,
-        html:has(.admin-portal-scope),
-        body:has(.admin-portal-scope),
-        body:has(.admin-portal-scope) * {
-          cursor: auto !important;
-        }
-        .admin-portal-scope a,
-        .admin-portal-scope button,
-        .admin-portal-scope [role="button"],
-        .admin-portal-scope select,
-        .admin-portal-scope .cursor-pointer,
-        body:has(.admin-portal-scope) a,
-        body:has(.admin-portal-scope) button,
-        body:has(.admin-portal-scope) [role="button"],
-        body:has(.admin-portal-scope) select,
-        body:has(.admin-portal-scope) .cursor-pointer {
-          cursor: pointer !important;
-        }
-        .admin-portal-scope input,
-        .admin-portal-scope textarea,
-        body:has(.admin-portal-scope) input,
-        body:has(.admin-portal-scope) textarea {
-          cursor: text !important;
-        }
-        .admin-portal-scope button:disabled,
-        .admin-portal-scope .cursor-not-allowed,
-        body:has(.admin-portal-scope) button:disabled,
-        body:has(.admin-portal-scope) .cursor-not-allowed {
-          cursor: not-allowed !important;
-        }
-      `}</style>
     </div>
   );
 }

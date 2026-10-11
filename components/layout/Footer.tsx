@@ -25,7 +25,7 @@ export default function Footer() {
               className="inline-flex items-center hover:opacity-80 transition-opacity"
             >
               <img
-                src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091528/sabrang-2026/sabrang-logo/sabrang-logo-dark.png"
+                src="/sabrang-logo/Sabrang_Logo.png"
                 alt="Sabrang 2026"
                 className="h-7 sm:h-9 w-auto object-contain"
               />
@@ -40,7 +40,7 @@ export default function Footer() {
               className="inline-flex md:hidden items-center hover:opacity-80 transition-opacity"
             >
               <img
-                src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png"
+                src="/sabrang-logo/jklu_logo.png"
                 alt="JK Lakshmipat University (JKLU)"
                 className="h-6 w-auto object-contain"
               />
@@ -103,7 +103,7 @@ export default function Footer() {
               className="inline-flex items-center hover:opacity-80 transition-opacity"
             >
               <img
-                src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png"
+                src="/sabrang-logo/jklu_logo.png"
                 alt="JK Lakshmipat University (JKLU)"
                 className="h-6 sm:h-8 w-auto object-contain"
               />

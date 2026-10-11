@@ -13,32 +13,30 @@ export default function TubesCursor() {
   const pathname = usePathname();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const hidden = pathname === "/login" || pathname?.startsWith("/admin") || pathname?.startsWith("/scanner");
+  const hidden = pathname?.startsWith('/admin') || pathname?.startsWith('/scanner') || pathname?.startsWith('/login');
 
   useEffect(() => {
     if (!canvasRef.current) return;
     // Skip entirely on touch/coarse-pointer devices - the trail is invisible
     if (window.matchMedia("(pointer: coarse)").matches) return;
 
+    if (hidden) {
+      // Clear out the canvas if it was already running
+      return;
+    }
+
     const canvas = canvasRef.current;
 
-    let app: {
-      tubes?: {
-        setColors: (c: string[]) => void;
-        setLightsColors: (c: string[]) => void;
-      };
-      dispose?: () => void;
-    } | null = null;
-
+    let app: any = null;
     let isMounted = true;
 
     const FIXED_TUBE_COLORS = [...CURSOR_TRAIL_COLORS];
     const FIXED_LIGHT_COLORS = ["#83f36e", "#fe8a2e", "#ff008a", "#60aed5"];
 
-    // @ts-ignore
+    // @ts-ignore - dynamic import of minified external library without types
     import("threejs-components/build/cursors/tubes1.min.js")
       .then((module) => {
-        if (!isMounted || !canvas) return;
+        if (!isMounted || !canvas || hidden) return;
         const TubesCursorLib = module.default ?? module;
         app = TubesCursorLib(canvas, {
           tubes: {
@@ -61,8 +59,8 @@ export default function TubesCursor() {
       });
 
     const handleUserPointer = (e: MouseEvent | PointerEvent | TouchEvent) => {
-      // Guard against synthetic/dispatched events to prevent infinite bubbling loops
       if ("isTrusted" in e && !e.isTrusted) return;
+      if (hidden) return;
 
       let cx = 0;
       let cy = 0;
@@ -78,31 +76,19 @@ export default function TubesCursor() {
 
       if (canvas) {
         const eventInit: any = {
-          clientX: cx,
-          clientY: cy,
-          pageX: cx,
-          pageY: cy,
-          screenX: cx,
-          screenY: cy,
-          pointerType: "mouse",
-          isPrimary: true,
-          bubbles: false,
-          cancelable: true,
+          clientX: cx, clientY: cy, pageX: cx, pageY: cy, screenX: cx, screenY: cy,
+          pointerType: "mouse", isPrimary: true, bubbles: false, cancelable: true,
         };
         try {
           canvas.dispatchEvent(new PointerEvent("pointermove", eventInit));
           canvas.dispatchEvent(new MouseEvent("mousemove", eventInit));
-        } catch {
-          // ignore dispatch errors
-        }
+        } catch {}
       }
     };
 
     window.addEventListener("pointermove", handleUserPointer, { passive: true });
     window.addEventListener("mousemove", handleUserPointer, { passive: true });
     window.addEventListener("touchmove", handleUserPointer, { passive: true });
-
-    // Magnetic update logic removed due to missing dependencies
 
     return () => {
       isMounted = false;
@@ -113,7 +99,7 @@ export default function TubesCursor() {
         app.dispose();
       }
     };
-  }, []);
+  }, [hidden]); // <-- Add hidden to dependency array!
 
   return (
     <div

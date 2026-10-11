@@ -119,7 +119,7 @@ export default function GlobalSearch() {
                   {results.regs.map(r => (
                     <div key={r.id} className="bg-admin-bg p-3 rounded-lg flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-white">{r.name} <span className="text-xs text-admin-muted bg-white/5 px-2 py-0.5 rounded ml-2">{r.rollNumber}</span></p>
+                        <p className="font-medium text-slate-900">{r.name} <span className="text-xs text-admin-muted bg-white px-2 py-0.5 rounded ml-2">{r.rollNumber}</span></p>
                         <p className="text-xs text-admin-muted mt-1">{r.email} &middot; {r.branch} {r.year}</p>
                       </div>
                       <Link href="/admin/registrations" className="text-xs text-admin-accent hover:underline">View</Link>
@@ -138,7 +138,7 @@ export default function GlobalSearch() {
                   {results.evts.map(e => (
                     <div key={e.id} className="bg-admin-bg p-3 rounded-lg flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-white">{e.title}</p>
+                        <p className="font-medium text-slate-900">{e.title}</p>
                         <p className="text-xs text-admin-muted mt-1">{e.venue}</p>
                       </div>
                       <Link href="/admin/events" className="text-xs text-admin-accent hover:underline">View</Link>
@@ -157,7 +157,7 @@ export default function GlobalSearch() {
                   {results.anns.map(a => (
                     <div key={a.id} className="bg-admin-bg p-3 rounded-lg flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-white">{a.title}</p>
+                        <p className="font-medium text-slate-900">{a.title}</p>
                         <p className="text-xs text-admin-muted mt-1">{a.postedAt ? a.postedAt.toDate().toLocaleString() : ''}</p>
                       </div>
                       <Link href="/admin/announcements" className="text-xs text-admin-accent hover:underline">View</Link>
@@ -176,7 +176,7 @@ export default function GlobalSearch() {
                   {results.logs.map(l => (
                     <div key={l.id} className="bg-admin-bg p-3 rounded-lg flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-white">{l.action}</p>
+                        <p className="font-medium text-slate-900">{l.action}</p>
                         <p className="text-xs text-admin-muted mt-1">{l.details}</p>
                       </div>
                       <Link href="/admin/audit" className="text-xs text-admin-accent hover:underline">View</Link>

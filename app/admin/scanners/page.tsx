@@ -137,7 +137,7 @@ export default function ScannerAccounts() {
           className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer ${
             scanners.length >= 5 
               ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-              : 'bg-slate-900 hover:bg-slate-800 text-white'
+              : 'bg-slate-900 hover:bg-slate-800 text-slate-900'
           }`}
         >
           <Plus size={15} /> <span>Add Scanner Account</span>
@@ -232,7 +232,7 @@ export default function ScannerAccounts() {
           </div>
           <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
             <button type="button" onClick={() => setIsCreateOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-xs cursor-pointer disabled:opacity-40">
+            <button type="submit" disabled={isSubmitting} className="bg-slate-900 hover:bg-slate-800 text-slate-900 font-semibold px-4 py-2 rounded-lg text-xs shadow-xs cursor-pointer disabled:opacity-40">
               {isSubmitting ? 'Provisioning...' : 'Provision Account'}
             </button>
           </div>
@@ -248,7 +248,7 @@ export default function ScannerAccounts() {
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button onClick={() => setIsDeleteOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Cancel</button>
-            <button onClick={handleDelete} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-xs cursor-pointer">
+            <button onClick={handleDelete} className="bg-rose-600 hover:bg-rose-700 text-slate-900 font-semibold px-4 py-2 rounded-lg text-xs shadow-xs cursor-pointer">
               Revoke Account
             </button>
           </div>

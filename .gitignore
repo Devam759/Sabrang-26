@@ -138,3 +138,6 @@ cloudinary-mapping.json
 # Local scripts & scratch
 scripts/
 scratch/
+
+# Local Uploads Fallback
+/public/uploads/

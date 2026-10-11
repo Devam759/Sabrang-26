@@ -500,41 +500,51 @@ export default function Registrations() {
     }
   };
 
+
   return (
-    <div className="space-y-8 font-sans text-slate-800">
-      {/* Live Counter Cards */}
+    <div className="space-y-8 font-sans text-slate-900 animate-in fade-in duration-300">
+      {/* Live Counter Cards - Bento Boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Registrations</h2>
-          <p className="text-3xl font-bold tracking-tight text-slate-900">
-            {loading ? '-' : registrations.length.toLocaleString('en-IN')}
-          </p>
-          {filteredRegistrations.length !== registrations.length && (
-            <p className="text-[11px] font-medium text-purple-700 mt-2 bg-purple-50 px-2.5 py-1 border border-purple-200 rounded-md inline-block">
-              Filtered matches: {filteredRegistrations.length}
+        {/* Total Registrations */}
+        <div className="bg-white backdrop-blur-[40px] border border-slate-200 p-8 md:p-10 rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full blur-[50px] -translate-y-1/2 translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
+          <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10 mb-8">Total Registrations</h2>
+          <div className="relative z-10">
+            <p className="text-6xl md:text-8xl font-light tracking-tighter text-slate-900 font-space-grotesk">
+              {loading ? '-' : registrations.length.toLocaleString('en-IN')}
             </p>
-          )}
+            {filteredRegistrations.length !== registrations.length && (
+              <p className="text-[10px] font-bold text-slate-600 mt-3 tracking-widest uppercase bg-white px-3 py-1.5 border border-slate-200 rounded-lg inline-block">
+                Filtered: {filteredRegistrations.length}
+              </p>
+            )}
+          </div>
         </div>
         
-        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Today&apos;s Registrations</h2>
-          <p className="text-3xl font-bold tracking-tight text-blue-600">
-            {loading ? '-' : todaysRegistrationsCount.toLocaleString('en-IN')}
-          </p>
+        {/* Today's Registrations */}
+        <div className="bg-white backdrop-blur-[40px] border border-slate-200 p-8 md:p-10 rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
+          <div className="absolute bottom-0 right-0 w-48 h-48 bg-white rounded-full blur-[50px] translate-y-1/2 translate-x-1/4 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
+          <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10 mb-8">Today's Registrations</h2>
+          <div className="relative z-10 flex items-end">
+            <p className="text-6xl md:text-8xl font-light tracking-tighter text-slate-600 font-space-grotesk">
+              {loading ? '-' : todaysRegistrationsCount.toLocaleString('en-IN')}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Main Title & Action header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 pb-2 border-b border-slate-200 mt-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Registration Directory</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-tight text-slate-900 font-space-grotesk">Registration Directory</h1>
+          <p className="text-slate-500 uppercase tracking-[0.2em] text-[10px] mt-2 font-semibold">Attendee Database</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-3">
           {unsentCount > 0 && (
             <button
               onClick={handleSendUnsentEmails}
               disabled={loading || emailSendingState === 'sending'}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-40"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-white hover:bg-slate-50 text-slate-600 border border-slate-300 rounded-xl text-[10px] uppercase tracking-widest font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {emailSendingState === 'sending' ? (
                 <svg className="animate-spin" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
@@ -547,168 +557,172 @@ export default function Registrations() {
           <button 
             onClick={exportExcel}
             disabled={loading || registrations.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-40"
+            className="group inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-xs disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <CustomDownloadIcon size={14} /> <span>Export Excel (.xlsx)</span>
+            <CustomDownloadIcon size={14} className="text-slate-700 group-hover:text-slate-900 transition-colors" /> <span>Export Excel</span>
           </button>
         </div>
       </div>
 
       {/* Email sending status feedback banner */}
       {emailSendingState !== 'idle' && (
-        <div className={`border rounded-xl px-4 py-3 text-xs font-semibold shadow-xs ${
-          emailSendingState === 'sending' ? 'bg-blue-50 text-blue-800 border-blue-200' :
-          emailSendingState === 'done' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
-          'bg-rose-50 text-rose-800 border-rose-200'
+        <div className={`border rounded-2xl px-5 py-4 text-xs font-bold tracking-wider uppercase shadow-xs ${
+          emailSendingState === 'sending' ? 'bg-white text-slate-600 border-slate-200' :
+          emailSendingState === 'done' ? 'bg-white text-slate-600 border-slate-200' :
+          'bg-white text-slate-600 border-slate-200'
         }`}>
           {emailSendingMessage}
         </div>
       )}
 
-      {/* Structured Filters Option Bar */}
-      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      {/* Structured Filters Option Bar - Glassmorphic */}
+      <div className="bg-white backdrop-blur-xl border border-slate-200 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <div className="flex-1 relative">
-          <CustomSearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+          <CustomSearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-10 pr-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-400"
+            className="w-full bg-white/80 border border-slate-100 rounded-xl py-3 pl-11 pr-4 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-500/50 transition-all font-mono"
             placeholder="Search Name, Application Number, or Email..."
           />
         </div>
         
-        <div className="flex items-center gap-2.5 min-w-[280px]">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <select
             value={statusFilter}
             onChange={(e: any) => setStatusFilter(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+            className="w-full sm:w-[160px] bg-white/80 border border-slate-100 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
           >
-            <option value="all">Filter: All Status</option>
-            <option value="entered">Checked-In</option>
-            <option value="pending">Pending Check-In</option>
-            <option value="declined">Declined / Blocked</option>
+            <option value="all" className="bg-[#1a1525]">Filter: All Status</option>
+            <option value="entered" className="bg-[#1a1525]">Checked-In</option>
+            <option value="pending" className="bg-[#1a1525]">Pending Check-In</option>
+            <option value="declined" className="bg-[#1a1525]">Declined / Blocked</option>
           </select>
 
           <select
             value={eventFilter}
             onChange={(e: any) => setEventFilter(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+            className="w-full sm:w-[180px] bg-white/80 border border-slate-100 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
           >
-            <option value="all">Event: All Events</option>
+            <option value="all" className="bg-[#1a1525]">Event: All Events</option>
             {OFFICIAL_EVENTS.map(evt => (
-              <option key={evt.id} value={evt.id}>{evt.title}</option>
+              <option key={evt.id} value={evt.id} className="bg-[#1a1525]">{evt.title}</option>
             ))}
           </select>
 
           <select
             value={emailFilter}
             onChange={(e: any) => setEmailFilter(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+            className="w-full sm:w-[140px] bg-white/80 border border-slate-100 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
           >
-            <option value="all">Email: All</option>
-            <option value="sent">Email: Sent</option>
-            <option value="unsent">Email: Unsent</option>
+            <option value="all" className="bg-[#1a1525]">Email: All</option>
+            <option value="sent" className="bg-[#1a1525]">Email: Sent</option>
+            <option value="unsent" className="bg-[#1a1525]">Email: Unsent</option>
           </select>
         </div>
       </div>
 
-      {/* Main Table Segment */}
+      {/* Main Table Segment - Glassmorphic */}
       {loading ? (
         <SkeletonTable rows={10} />
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden flex flex-col">
+        <div className="bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] shadow-xs overflow-hidden flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
-                  <th className="p-4 w-14 text-center">#</th>
-                  <th className="p-4 cursor-pointer hover:text-slate-900" onClick={() => handleSort('name')}>
+                <tr className="bg-white/80 border-b border-slate-200 text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em]">
+                  <th className="p-5 w-14 text-center">#</th>
+                  <th className="p-5 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('name')}>
                     Name {sortField === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="p-4 cursor-pointer hover:text-slate-900" onClick={() => handleSort('email')}>
+                  <th className="p-5 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('email')}>
                     Contact {sortField === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
+
+
                   </th>
-                  <th className="p-4 cursor-pointer hover:text-slate-900" onClick={() => handleSort('registeredAt')}>
+                  <th className="p-5 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('registeredAt')}>
                     Registered {sortField === 'registeredAt' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="p-4">Events</th>
-                  <th className="p-4">Entry Status</th>
-                  <th className="p-4">Email Status</th>
-                  <th className="p-4 text-right">Action</th>
+                  <th className="p-5">Events</th>
+                  <th className="p-5">Entry Status</th>
+                  <th className="p-5">Email Status</th>
+                  <th className="p-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+              <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
                 {paginatedRegistrations.map((reg, idx) => (
-                  <tr key={reg.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="p-4 text-center text-slate-400 font-mono font-medium">
+                  <tr key={reg.id} className="hover:bg-slate-50 transition-colors duration-500 ease-out group animate-in fade-in slide-in-from-bottom-2" style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}>
+                    <td className="p-5 text-center text-slate-400 font-mono text-[10px]">
                       {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
-                    <td className="p-4 font-semibold text-slate-900">
-                      {reg.name}
-                      {reg.isTest && (
-                        <span className="ml-2 inline-block px-1.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[10px] font-medium">
-                          Test
-                        </span>
-                      )}
+                    <td className="p-5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 group-hover:text-slate-900 transition-colors text-[13px]">{reg.name}</span>
+                        {reg.isTest && (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+                            Test
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-5">
                       <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">{reg.phone}</div>
+                      <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
                     </td>
-                    <td className="p-4 text-slate-500 whitespace-nowrap">
+                    <td className="p-5 whitespace-nowrap">
                       {reg.registeredAt && reg.registeredAt.toDate ? (
-                        <div>
-                          <div className="font-semibold text-slate-800">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
-                          <div className="text-[10px] text-slate-400">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div className="space-y-1">
+                          <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
-                      ) : '-'}
+                      ) : <span className="text-slate-400">-</span>}
                     </td>
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-1 max-w-[250px]">
+                    <td className="p-5">
+                      <div className="flex flex-wrap gap-1.5 max-w-[250px]">
                         {getEventTitles(reg).list.length === 0 ? (
-                          <span className="text-slate-400">N/A</span>
+                          <span className="text-slate-400 font-mono text-[10px]">N/A</span>
                         ) : (
                           getEventTitles(reg).list.map((title, i) => (
-                            <span key={i} className="inline-block px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-md text-[10px] whitespace-nowrap">
+                            <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] whitespace-nowrap uppercase tracking-widest font-bold">
                               {title}
                             </span>
                           ))
                         )}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
+                    <td className="p-5">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
                         reg.hasEntered 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                          : (reg.status === 'declined' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200')
+                          ? 'bg-white text-slate-600 border border-slate-200' 
+                          : (reg.status === 'declined' ? 'bg-white text-slate-600 border border-slate-200' : 'bg-white text-slate-600 border border-slate-200')
                       }`}>
                         {reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending')}
                       </span>
                     </td>
-                    <td className="p-4">
-                      <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
+                    <td className="p-5">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
                         reg.emailSent 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                          : 'bg-rose-50 text-rose-700 border-rose-200'
+                          ? 'bg-white text-slate-600 border border-slate-200' 
+                          : 'bg-white text-slate-600 border border-slate-200'
                       }`}>
                         {reg.emailSent ? 'Sent' : 'Unsent'}
                       </span>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-5 text-right">
                       <button 
                         onClick={() => setSelectedReg(reg)} 
-                        className="p-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                        className="p-2 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-500 rounded-xl transition-colors cursor-pointer"
                         title="View Details"
                       >
-                        <CustomEyeIcon size={15} />
+                        <CustomEyeIcon size={16} />
                       </button>
                     </td>
                   </tr>
                 ))}
                 {paginatedRegistrations.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="p-12 text-center text-slate-400 font-medium text-xs">
+                    <td colSpan={8} className="p-16 text-center text-slate-500 font-bold text-xs uppercase tracking-widest">
                       No matching registration logs found.
                     </td>
                   </tr>
@@ -716,12 +730,14 @@ export default function Registrations() {
               </tbody>
             </table>
           </div>
+
           
+
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-slate-200 flex justify-between items-center bg-slate-50 text-xs">
-              <span className="text-slate-500">
-                Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> ({filteredRegistrations.length} registrations)
+            <div className="p-5 border-t border-slate-200 flex justify-between items-center bg-white/80 text-xs">
+              <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
+                Page <strong className="text-slate-800">{currentPage}</strong> of <strong className="text-slate-800">{totalPages}</strong> ({filteredRegistrations.length} total)
               </span>
               <div className="flex gap-2">
                 <button 
@@ -730,7 +746,7 @@ export default function Registrations() {
                     setCurrentPage(p => p - 1);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="px-3 py-1.5 border border-slate-200 rounded-md bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-[10px] uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Previous
                 </button>
@@ -740,7 +756,7 @@ export default function Registrations() {
                     setCurrentPage(p => p + 1);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="px-3 py-1.5 border border-slate-200 rounded-md bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-[10px] uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   Next
                 </button>
@@ -753,55 +769,74 @@ export default function Registrations() {
       {/* Modal Details */}
       <Modal isOpen={!!selectedReg} onClose={() => setSelectedReg(null)} title="Registration Details">
         {selectedReg && (
-          <div className="space-y-5 text-slate-800 text-xs">
-            <div className="grid grid-cols-2 gap-3.5">
+          <div className="space-y-6 text-slate-900 text-xs">
+            <div className="grid grid-cols-2 gap-4">
               {/* Student Details */}
-              <div className="col-span-2 border-b border-slate-200 pb-2">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Student Credentials</p>
+              <div className="col-span-2 border-b border-slate-200 pb-3">
+                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Student Credentials</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Full Name</p>
-                <p className="font-bold text-sm text-slate-900 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">{selectedReg.name}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Full Name</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">{selectedReg.name}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Email Address</p>
-                <p className="font-medium text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg break-all lowercase">{selectedReg.email}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Email Address</p>
+                <p className="font-medium text-xs text-slate-800 bg-white/80 p-3 border border-slate-100 rounded-xl break-all lowercase">{selectedReg.email}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Phone Number</p>
-                <p className="font-bold text-sm text-slate-900 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">{selectedReg.phone}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Phone Number</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono tracking-widest">{selectedReg.phone}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Gender</p>
-                <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">{selectedReg.gender || 'N/A'}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Gender</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">{selectedReg.gender || 'N/A'}</p>
               </div>
               
               {/* Additional Information */}
-              <div className="col-span-2 border-t border-slate-200 pt-4 mt-2">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Additional Information</p>
+              <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
+                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Additional Information</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Registration / Roll No.</p>
-                <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">{selectedReg.rollNumber || selectedReg.registrationNumber || 'N/A'}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Registration / Roll No.</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono tracking-widest">{selectedReg.rollNumber || selectedReg.registrationNumber || 'N/A'}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Registered At</p>
-                <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Registered At</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
                   {selectedReg.registeredAt?.toDate ? selectedReg.registeredAt.toDate().toLocaleString('en-IN') : 'N/A'}
                 </p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Address / Locality</p>
-                <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">{selectedReg.address || 'N/A'}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Address / Locality</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">{selectedReg.address || 'N/A'}</p>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Institution ID Card</p>
+                <div className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
+                  {selectedReg.idCard !== undefined ? (
+                    typeof selectedReg.idCard === 'string' && (selectedReg.idCard.startsWith('http') || selectedReg.idCard.startsWith('/')) ? (
+                      <a href={selectedReg.idCard} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full max-w-[200px] overflow-hidden rounded-xl border border-slate-200 group">
+                        <img src={selectedReg.idCard} alt="ID Card" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                          <span className="text-white bg-slate-900/80 px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm shadow-xl">Open Full Image</span>
+                        </div>
+                      </a>
+                    ) : (
+                      <span className="text-[12px]">Attached</span>
+                    )
+                  ) : (
+                    <span className="text-slate-400 text-[12px]">Not provided</span>
+                  )}
+                </div>
               </div>
               <div className="col-span-2 sm:col-span-2">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Enrolled Events</p>
-                <div className="flex flex-wrap gap-1 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Enrolled Events</p>
+                <div className="flex flex-wrap gap-2 bg-white/80 p-3 border border-slate-100 rounded-xl">
                   {getEventTitles(selectedReg).list.length === 0 ? (
-                    <span className="text-slate-400 font-semibold text-xs">N/A</span>
+                    <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">N/A</span>
                   ) : (
                     getEventTitles(selectedReg).list.map((title, i) => (
-                      <span key={i} className="inline-block px-2 py-0.5 bg-white border border-slate-200 text-slate-700 rounded-md text-[10px] whitespace-nowrap font-medium">
+                      <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[9px] uppercase tracking-widest font-bold">
                         {title}
                       </span>
                     ))
@@ -812,48 +847,50 @@ export default function Registrations() {
               {/* Other Specific Fields */}
               {(selectedReg.teamName || selectedReg.bgmi_teamName || selectedReg.valorant_teamName || selectedReg.freefire_teamName || selectedReg.generic_teamName) && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">Team Name</p>
-                  <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg break-all">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Team Name</p>
+                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl break-all">
                     {selectedReg.teamName || selectedReg.bgmi_teamName || selectedReg.valorant_teamName || selectedReg.freefire_teamName || selectedReg.generic_teamName}
                   </p>
                 </div>
               )}
               {selectedReg.generic_vaadVivaadRepresentative && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">Vaad Vivaad Representative</p>
-                  <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Vaad Vivaad Representative</p>
+                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
                     {selectedReg.generic_vaadVivaadRepresentative}
                   </p>
                 </div>
               )}
               {selectedReg.bgmi_leaderIgn && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">BGMI Leader IGN</p>
-                  <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">BGMI Leader IGN</p>
+                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
                     {selectedReg.bgmi_leaderIgn}
                   </p>
                 </div>
+
+
               )}
               {selectedReg.bgmi_leaderUid && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">BGMI Leader UID</p>
-                  <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">BGMI Leader UID</p>
+                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
                     {selectedReg.bgmi_leaderUid}
                   </p>
                 </div>
               )}
               {selectedReg.valorant_leaderRiotId && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">Valorant Leader Riot ID</p>
-                  <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Valorant Leader Riot ID</p>
+                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
                     {selectedReg.valorant_leaderRiotId}
                   </p>
                 </div>
               )}
               {selectedReg.freefire_leaderUid && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">Free Fire Leader UID</p>
-                  <p className="font-semibold text-xs text-slate-800 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Free Fire Leader UID</p>
+                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
                     {selectedReg.freefire_leaderUid}
                   </p>
                 </div>
@@ -861,35 +898,50 @@ export default function Registrations() {
 
               {/* Team Members */}
               {selectedReg.teamMembers && (
-                <div className="col-span-2 border-t border-slate-200 pt-4 mt-2">
-                  <p className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Team Members</p>
-                  <div className="space-y-3">
+                <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-4">Team Members</p>
+                  <div className="space-y-4">
                     {(() => {
-                      let membersToRender: any[] = [];
+                      let membersToRender = [];
                       if (Array.isArray(selectedReg.teamMembers)) {
                         membersToRender = selectedReg.teamMembers;
                       } else if (typeof selectedReg.teamMembers === 'object') {
-                        Object.entries(selectedReg.teamMembers).forEach(([group, members]: [string, any]) => {
+                        Object.entries(selectedReg.teamMembers).forEach(([group, members]) => {
                           if (Array.isArray(members)) {
-                            membersToRender.push(...members.map((m: any) => ({ ...m, _group: group })));
+                            membersToRender.push(...members.map((m) => ({ ...m, _group: group })));
                           }
                         });
                       }
 
                       if (membersToRender.length === 0) {
-                        return <p className="text-slate-500 text-xs italic">No team members registered.</p>;
+                        return <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">No team members registered.</p>;
                       }
 
-                      return membersToRender.map((m, idx) => (
-                        <div key={m.id || idx} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                          <p className="font-semibold text-slate-800 mb-2">{idx + 1}. {m.name || 'Unknown Name'}</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
-                            {m.email && <p><span className="text-slate-500 font-medium">Email:</span> {m.email}</p>}
-                            {(m.mobileNumber || m.phone) && <p><span className="text-slate-500 font-medium">Phone:</span> {m.mobileNumber || m.phone}</p>}
-                            {m.gender && <p><span className="text-slate-500 font-medium">Gender:</span> {m.gender}</p>}
-                            {m.age && <p><span className="text-slate-500 font-medium">Age:</span> {m.age}</p>}
-                            {m.institutionName && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-medium">Institution:</span> {m.institutionName}</p>}
-                            {m._group && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-medium">Event Group:</span> <span className="uppercase text-slate-800 font-semibold">{m._group}</span></p>}
+                      return membersToRender.map((m: any, idx: number) => (
+                        <div key={m.id || idx} className="bg-white/80 border border-slate-100 rounded-xl p-4">
+                          <p className="font-bold text-slate-900 mb-3 text-sm">{idx + 1}. {m.name || 'Unknown Name'}</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
+                            {m.email && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Email</span> <span className="font-medium text-slate-800 lowercase">{m.email}</span></p>}
+                            {(m.mobileNumber || m.phone) && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Phone</span> <span className="font-mono text-slate-800">{m.mobileNumber || m.phone}</span></p>}
+                            {m.gender && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Gender</span> <span className="font-medium text-slate-800">{m.gender}</span></p>}
+                            {m.age && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Age</span> <span className="font-medium text-slate-800">{m.age}</span></p>}
+                            {m.institutionName && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Institution</span> <span className="font-medium text-slate-800">{m.institutionName}</span></p>}
+                            {m.idCard !== undefined && (
+                              <div className="col-span-1 sm:col-span-2 mt-2">
+                                <span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-2">Institution ID Card</span> 
+                                {typeof m.idCard === 'string' && (m.idCard.startsWith('http') || m.idCard.startsWith('/')) ? (
+                                  <a href={m.idCard} target="_blank" rel="noopener noreferrer" className="block relative h-40 w-full max-w-xs overflow-hidden rounded-xl border border-slate-200 group">
+                                    <img src={m.idCard} alt={`${m.name} ID Card`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                    <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                                      <span className="text-white bg-slate-900/80 px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm shadow-xl">Open Full Image</span>
+                                    </div>
+                                  </a>
+                                ) : (
+                                  <span className="font-medium text-slate-800 text-[10px]">Attached</span>
+                                )}
+                              </div>
+                            )}
+                            {m._group && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Event Group</span> <span className="uppercase text-slate-600 font-bold">{m._group}</span></p>}
                           </div>
                         </div>
                       ));
@@ -899,40 +951,41 @@ export default function Registrations() {
               )}
 
               {/* Payment Details */}
-              <div className="col-span-2 border-t border-slate-200 pt-4 mt-2">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Payment & Security</p>
+              <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
+                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Payment & Security</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Payment Amount</p>
-                <p className="font-bold text-slate-900 bg-slate-50 p-2.5 border border-slate-200 rounded-lg">
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Payment Amount</p>
+                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
                   {getDisplayPaymentAmount(selectedReg)}
                 </p>
               </div>
               {selectedReg.coupon && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[11px] font-medium text-slate-500 mb-1">Coupon Applied</p>
-                  <p className="font-bold text-xs text-emerald-800 bg-emerald-50 p-2.5 border border-emerald-200 rounded-lg font-mono">
+                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Coupon Applied</p>
+                  <p className="font-bold text-[13px] text-slate-600 bg-white p-3 border border-slate-200 rounded-xl font-mono">
                     {selectedReg.coupon}
                   </p>
                 </div>
               )}
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-medium text-slate-500 mb-1">Transaction / Order ID</p>
-                <p className="font-mono text-xs text-slate-700 bg-slate-50 p-2.5 border border-slate-200 rounded-lg break-all">{selectedReg.orderId || selectedReg.paymentId || 'N/A'}</p>
+                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Transaction / Order ID</p>
+                <p className="font-mono text-[13px] font-bold text-slate-800 bg-white/80 p-3 border border-slate-100 rounded-xl break-all">{selectedReg.orderId || selectedReg.paymentId || 'N/A'}</p>
               </div>
 
               {/* QR Code */}
-              <div className="col-span-2 flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200 rounded-xl mt-2">
-                <p className="text-[11px] font-semibold text-slate-500 mb-2">Ticket QR Code</p>
+              <div className="col-span-2 flex flex-col items-center justify-center p-6 bg-white/80 border border-slate-100 rounded-2xl mt-4 relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-white rounded-full blur-[30px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-4 relative z-10">Ticket QR Code</p>
                 <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${selectedReg.id}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${selectedReg.id}&color=ffffff&bgcolor=000000`} 
                   alt="Registration QR Code" 
-                  className="w-28 h-28 bg-white border border-slate-200 p-1.5 rounded-lg shadow-xs"
+                  className="w-32 h-32 rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.1)] relative z-10 opacity-90 mix-blend-screen"
                 />
               </div>
               
               {/* Actions */}
-              <div className="col-span-2 border-t border-slate-200 pt-4 mt-2 flex flex-col sm:flex-row justify-end gap-2.5">
+              <div className="col-span-2 border-t border-slate-200 pt-5 mt-4 flex flex-col sm:flex-row justify-end gap-3">
                 <button
                   type="button"
                   onClick={async () => {
@@ -946,25 +999,25 @@ export default function Registrations() {
                         const result = await res.json();
                         if (res.ok) {
                           alert('Email sent successfully!');
-                          setSelectedReg((prev: any) => ({ ...prev, emailSent: true }));
+                          setSelectedReg((prev: any) => (prev ? { ...prev, emailSent: true } : null));
                         } else {
                           alert(`Failed to send email: ${result.error}`);
                         }
                       } catch (err: any) {
-                        alert(`Network error: ${err.message}`);
+                        alert(`Network error: ${err?.message || err}`);
                       }
                     }
                   }}
-                  className="px-3.5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  className="px-5 py-3.5 bg-white hover:bg-blue-500/20 text-slate-600 border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
                 >
                   Resend Confirmation Email
                 </button>
                 <a 
                   href={`/api/receipt?id=${selectedReg.id}`}
                   download
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="px-5 py-3.5 bg-white hover:bg-white/90 text-black shadow-[0_0_20px_rgba(255,255,255,0.2)] rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center"
                 >
-                  Download Receipt PDF
+                  Download Receipt
                 </a>
               </div>
             </div>

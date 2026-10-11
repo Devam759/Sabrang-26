@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 export default function CursorFollower() {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin") || pathname?.startsWith("/scanner") || pathname === "/login";
+  const isAdmin = false; // Always show the custom dot cursor
 
   const [mounted, setMounted] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -25,20 +25,25 @@ export default function CursorFollower() {
       mouseX = e.clientX;
       mouseY = e.clientY;
 
-      // Hover detection - expand white circle over interactive elements
       const target = e.target as HTMLElement | null;
       const interactive = !!(
-        target?.closest?.('a, button, input, select, textarea, [role="button"]')
+        target?.closest?.('a, button, input, select, textarea, [role="button"], th, td, tr')
       );
       if (dotRef.current) {
-        dotRef.current.style.transform = interactive ? "scale(1.6)" : "scale(1)";
-        dotRef.current.style.opacity = interactive ? "0.9" : "1";
+        dotRef.current.style.transform = interactive ? "scale(1.8)" : "scale(1)";
+        dotRef.current.style.opacity = interactive ? "0.6" : "1";
       }
     };
 
     const update = () => {
-      currentX = mouseX;
-      currentY = mouseY;
+      // Smooth linear interpolation (lerp) for the buttery cursor feel
+      const dx = mouseX - currentX;
+      const dy = mouseY - currentY;
+      
+      // Speed factor (higher is faster, lower is smoother/slower)
+      currentX += dx * 0.25;
+      currentY += dy * 0.25;
+
       if (wrapRef.current) {
         wrapRef.current.style.transform = `translate3d(${currentX - 8}px, ${currentY - 8}px, 0)`;
       }
