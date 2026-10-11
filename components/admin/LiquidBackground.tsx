@@ -6,11 +6,21 @@ export default function LiquidBackground() {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-slate-50 pointer-events-none">
       {/* 
-        High-performance ambient glow background.
-        We use CSS transform animations and direct element blurring rather than expensive SVG matrix filters.
-        This runs at a buttery smooth 60fps on GPU.
+        Mobile Experience: Lightweight, static ambient radial tint.
+        Zero GPU blur thrashing, zero battery drain, instant 120Hz native scrolling.
       */}
-      <div className="absolute inset-0 opacity-40 mix-blend-multiply">
+      <div 
+        className="md:hidden absolute inset-0 opacity-60" 
+        style={{
+          background: 'radial-gradient(ellipse 80% 60% at 50% 20%, rgba(224, 231, 255, 0.5) 0%, rgba(243, 232, 255, 0.4) 45%, rgba(248, 250, 252, 0) 100%)'
+        }}
+      />
+
+      {/* 
+        Desktop Experience (md+): Smooth fluid ambient glow background.
+        High-end desktop GPUs easily handle these blurs.
+      */}
+      <div className="hidden md:block absolute inset-0 opacity-40 mix-blend-multiply">
         {/* Blob 1: Bright Purple */}
         <div className="absolute w-[800px] h-[800px] bg-purple-300/40 rounded-full blur-[120px] animate-liquid-1"
              style={{ top: '0%', left: '10%', willChange: 'transform' }} />
@@ -28,8 +38,8 @@ export default function LiquidBackground() {
              style={{ top: '15%', left: '45%', willChange: 'transform' }} />
       </div>
 
-      {/* Beautiful CSS noise grain for texture and character */}
-      <div className="absolute inset-0 opacity-[0.08] mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+      {/* CSS noise grain on desktop only (hidden on mobile to save rasterization) */}
+      <div className="hidden md:block absolute inset-0 opacity-[0.08] mix-blend-multiply pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
     </div>
   );
 }

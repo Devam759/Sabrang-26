@@ -409,13 +409,14 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Hamburger Header */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <Link href="/admin" className="flex items-center p-1">
+      <div className={`md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-50 transition-transform duration-200 ${isVisible ? 'translate-y-0' : '-translate-y-full'} shadow-xs`}>
+        <Link href="/admin" className="flex items-center p-1 active:scale-95 transition-transform">
           <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-10 w-auto object-contain" />
         </Link>
         <button 
           onClick={() => setIsOpen(!isOpen)} 
-          className="text-slate-600 p-2 cursor-pointer focus:outline-none"
+          className="text-slate-700 p-2.5 cursor-pointer focus:outline-none active:scale-95 transition-transform rounded-xl hover:bg-slate-50"
+          aria-label="Toggle menu"
         >
           {isOpen ? <CustomCloseIcon size={24} /> : <CustomMenuIcon size={24} />}
         </button>
@@ -424,7 +425,7 @@ export default function Sidebar() {
       {/* Sidebar Overlay for Mobile */}
       {isOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40"
+          className="md:hidden fixed inset-0 bg-slate-900/30 z-40 transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
