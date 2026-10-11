@@ -409,14 +409,14 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Hamburger Header */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className={`md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <Link href="/admin" className="flex items-center gap-2 p-1">
-          <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain" />
-          <span className="text-sm font-bold text-slate-900">Sabrang Admin</span>
+          <img src="/sabrang-logo/Sabrang_Logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain " />
+          <span className="text-sm font-bold text-slate-900 font-space-grotesk">Sabrang Admin</span>
         </Link>
         <button 
           onClick={() => setIsOpen(!isOpen)} 
-          className="text-slate-700 p-2 cursor-pointer focus:outline-none"
+          className="text-slate-600 p-2 cursor-pointer focus:outline-none"
         >
           {isOpen ? <CustomCloseIcon size={24} /> : <CustomMenuIcon size={24} />}
         </button>
@@ -425,30 +425,29 @@ export default function Sidebar() {
       {/* Sidebar Overlay for Mobile */}
       {isOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40"
+          className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Sidebar Contents */}
+      {/* Sidebar Contents - Floating Island Design */}
       <aside 
-        className={`fixed md:sticky top-0 left-0 h-[100dvh] w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 z-50 shadow-xs ${
+        className={`fixed md:sticky top-0 left-0 h-[100dvh] md:h-[calc(100dvh-48px)] md:w-64 md:m-6 md:rounded-[32px] bg-white backdrop-blur-[40px] border border-slate-200 flex flex-col transition-all duration-500 z-50 shadow-[0_8px_32px_rgba(0,0,0,0.06)] ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Sidebar Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-200 bg-white shrink-0">
-          <Link href="/admin" className="flex items-center gap-3 p-1">
-            <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain" />
+        <div className="h-20 flex items-center px-6 border-b border-slate-200 shrink-0">
+          <Link href="/admin" className="flex items-center gap-3 p-1 group">
+            <img src="/sabrang-logo/Sabrang_Logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-110 group-hover:drop-shadow-md " />
             <div>
-              <p className="text-sm font-bold text-slate-900 leading-tight">Sabrang '26</p>
-              <p className="text-[11px] text-slate-500 font-medium">Administration</p>
+              <p className="text-[13px] font-black text-slate-900 font-space-grotesk leading-tight uppercase tracking-widest">Sabrang '26</p>
             </div>
           </Link>
         </div>
 
         {/* Navigation list */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 scrollbar-none">
           {navItems.map((item: any) => {
             const Icon = item.icon;
             
@@ -475,15 +474,25 @@ export default function Sidebar() {
                 key={item.name} 
                 href={href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`flex items-center justify-between px-4 py-3 rounded-2xl text-[13px] font-medium transition-all duration-500 relative group overflow-hidden ${
                   isActive 
-                    ? 'bg-slate-900 text-white font-semibold shadow-xs' 
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                    ? 'text-slate-900' 
+                    : 'text-slate-500 hover:text-slate-900 hover:bg-white'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400'} />
-                  <span>{item.name}</span>
+                {/* Active State Background & Glow */}
+                {isActive && (
+                  <div className="absolute inset-0 bg-slate-50 border border-slate-300 rounded-2xl shadow-sm" />
+                )}
+                
+                {/* Active Indicator Bar */}
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-white rounded-r-full shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
+                )}
+
+                <div className="flex items-center gap-3.5 relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+                  <Icon size={18} className={`transition-all duration-300 ${isActive ? 'text-slate-900 drop-drop-shadow-sm' : 'text-slate-400 group-hover:text-slate-700'}`} />
+                  <span className={isActive ? 'font-semibold tracking-wide' : 'tracking-wide'}>{item.name}</span>
                 </div>
               </Link>
             );
@@ -491,12 +500,12 @@ export default function Sidebar() {
         </nav>
 
         {/* Sidebar Footer / Logout */}
-        <div className="p-3 pb-6 md:pb-3 border-t border-slate-200 bg-white shrink-0">
+        <div className="p-4 pb-8 md:pb-4 border-t border-slate-200 shrink-0">
           <button 
             onClick={handleLogoutClick}
-            className="flex items-center gap-3 px-3.5 py-2.5 w-full rounded-lg text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer text-xs font-medium"
+            className="flex items-center gap-3.5 px-4 py-3 w-full rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-white transition-all duration-300 cursor-pointer text-[13px] font-medium tracking-wide group"
           >
-            <CustomLogoutIcon size={16} />
+            <CustomLogoutIcon size={18} className="transition-transform duration-300 group-hover:-translate-x-1" />
             <span>Sign Out</span>
           </button>
         </div>
@@ -504,25 +513,25 @@ export default function Sidebar() {
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Sign Out</h3>
-              <p className="text-sm text-slate-600 mb-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-2 font-space-grotesk">Sign Out</h3>
+              <p className="text-sm text-slate-500 mb-6">
                 Are you sure you want to sign out of the Sabrang administration dashboard?
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
                   disabled={isLoggingOut}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-slate-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmLogout}
                   disabled={isLoggingOut}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-[110px] justify-center"
+                  className="px-4 py-2 text-sm font-medium text-slate-900 bg-red-600/80 hover:bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)] rounded-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-[110px] justify-center border border-red-500/50"
                 >
                   {isLoggingOut ? (
                     <>
@@ -544,4 +553,3 @@ export default function Sidebar() {
     </>
   );
 }
-

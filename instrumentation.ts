@@ -3,7 +3,7 @@ export async function register() {
     console.log("[Instrumentation] Registering background email worker...");
     try {
       const { startEmailWorker } = await import('./lib/emailWorkerLauncher');
-      startEmailWorker();
+      // startEmailWorker(); // Temporarily disabled to prevent dev server freeze
       console.log("[Instrumentation] Background email worker registered successfully.");
     } catch (err) {
       console.error("[Instrumentation] Failed to load email worker:", err);

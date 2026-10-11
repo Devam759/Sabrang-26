@@ -121,127 +121,93 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div className="space-y-8 text-slate-800 font-sans">
+    <div className="space-y-12 text-slate-900 font-body pb-12">
       {/* Formal Clean Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard Overview</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-tight text-slate-900 font-space-grotesk">Overview</h1>
+          <p className="text-slate-500 uppercase tracking-[0.2em] text-[10px] mt-2 font-semibold">Live Festival Metrics</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href="/admin/scanner"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="group relative inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-full hover:text-slate-900 text-xs font-bold transition-colors duration-300 cursor-pointer overflow-hidden shadow-md"
           >
-            <span>Open Scanner</span>
+            <div className="absolute inset-0 bg-slate-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-0" />
+            <span className="relative z-10 tracking-widest uppercase">Scanner</span>
           </Link>
           <Link
             href="/admin/registrations"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="group inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-900 rounded-full text-xs font-bold transition-all cursor-pointer border border-slate-200"
           >
-            <span>Registrations</span>
-            <ArrowUpRight size={14} />
+            <span className="tracking-widest uppercase text-slate-700 group-hover:text-slate-900 transition-colors">Directory</span>
+            <ArrowUpRight size={14} className="text-slate-500 group-hover:text-slate-900 transition-colors" />
           </Link>
         </div>
       </div>
 
-      {/* Registration & Attendance Metrics */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Registration & Attendance
-          </h2>
+      {stats.loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
-
-        {stats.loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Registrations */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all">
-              <span className="text-xs font-medium text-slate-500 block mb-2">Total Registrations</span>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalRegistrations.toLocaleString('en-IN')}</p>
-            </div>
-            
-            {/* Today's Registrations */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all">
-              <span className="text-xs font-medium text-slate-500 block mb-2">Registrations Today</span>
-              <p className="text-2xl font-bold text-slate-900">{stats.todayRegistrations.toLocaleString('en-IN')}</p>
-            </div>
-
-            {/* Total Check-Ins */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all">
-              <span className="text-xs font-medium text-slate-500 block mb-2">Total Check-Ins</span>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalEntries.toLocaleString('en-IN')}</p>
-            </div>
-
-            {/* Entries Today */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all">
-              <span className="text-xs font-medium text-slate-500 block mb-2">Gate Entries Today</span>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalEntriesToday.toLocaleString('en-IN')}</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 auto-rows-[minmax(180px,auto)]">
+          
+          {/* Revenue Bento (Wide) */}
+          <div className="md:col-span-4 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[32px] p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10">Total Collection</span>
+            <div className="mt-8 relative z-10 flex items-baseline gap-2">
+              <span className="text-4xl md:text-5xl font-light text-slate-500">₹</span>
+              <span className="text-6xl md:text-8xl font-light tracking-tighter text-slate-900 font-space-grotesk">{stats.totalRevenue.toLocaleString('en-IN')}</span>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Financial Collections (Total Collection & Today's Collection) */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Financial Collections
-          </h2>
-          <span className="text-xs text-slate-400 font-medium">INR (₹)</span>
-        </div>
-
-        {stats.loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Total Collection */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs hover:border-slate-300 transition-all">
-              <div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Total Collection
-                </span>
-                <div className="flex items-baseline gap-1.5 mt-2">
-                  <span className="text-xl font-bold text-slate-500">₹</span>
-                  <span className="text-3xl font-bold tracking-tight text-slate-900">
-                    {stats.totalRevenue.toLocaleString('en-IN')}
-                  </span>
-                </div>
-              </div>
+          {/* Today's Revenue Bento (Square) */}
+          <div className="md:col-span-2 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[32px] p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-50 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4 group-hover:bg-green-500/20 transition-all duration-700 ease-out" />
+            <div className="flex justify-between items-start relative z-10">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Today's Revenue</span>
+              <span className="text-[9px] px-2 py-1 bg-white border border-slate-200 rounded-full text-slate-600 tracking-widest">{todayFormatted}</span>
             </div>
+            <div className="mt-8 relative z-10 flex items-baseline gap-1">
+              <span className="text-2xl font-light text-green-400/60">₹</span>
+              <span className="text-5xl md:text-6xl font-light tracking-tighter text-slate-900 font-space-grotesk">{stats.todayRevenue.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
 
-            {/* Today's Collection */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs hover:border-slate-300 transition-all">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Today's Collection
-                  </span>
-                  <span className="text-[11px] font-medium px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-md">
-                    {todayFormatted}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1.5 mt-2">
-                  <span className="text-xl font-bold text-slate-500">₹</span>
-                  <span className="text-3xl font-bold tracking-tight text-slate-900">
-                    {stats.todayRevenue.toLocaleString('en-IN')}
-                  </span>
-                </div>
+          {/* Registrations Bento */}
+          <div className="md:col-span-2 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[32px] p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07]">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Total Registrations</span>
+            <div className="mt-8">
+              <span className="text-5xl md:text-7xl font-light tracking-tighter text-slate-900 font-space-grotesk">{stats.totalRegistrations.toLocaleString('en-IN')}</span>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                <span className="text-[10px] text-slate-500 tracking-widest uppercase">+{stats.todayRegistrations} Today</span>
               </div>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Gate Entries Bento */}
+          <div className="md:col-span-4 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[32px] p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
+            <div className="absolute top-1/2 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[70px] -translate-y-1/2 translate-x-1/4 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10">Festival Check-Ins</span>
+            <div className="mt-8 relative z-10 flex items-end justify-between">
+              <div>
+                <span className="text-6xl md:text-8xl font-light tracking-tighter text-slate-900 font-space-grotesk">{stats.totalEntries.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-3xl md:text-5xl font-light tracking-tighter text-slate-700 font-space-grotesk">{stats.totalEntriesToday.toLocaleString('en-IN')}</span>
+                <span className="block text-[10px] text-slate-500 tracking-widest uppercase mt-1">Entered Today</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
     </div>
   );
 }
-

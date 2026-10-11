@@ -493,8 +493,9 @@ export default function AdminScannerView() {
 
   if (!authorized) return null;
 
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-14rem)]  font-adminBody animate-in fade-in duration-200">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-14rem)] font-adminBody animate-in fade-in duration-200 text-slate-900">
       
       {/* Centered Work Container */}
       <div className="w-full max-w-lg">
@@ -502,8 +503,8 @@ export default function AdminScannerView() {
         {/* Status Banners */}
         {status.message && (
           <div className={`w-full p-4 mb-4 border rounded-xl flex items-center gap-3 animate-in fade-in shadow-xs ${
-            status.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
-            status.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-white text-slate-800 border-slate-200'
+            status.type === 'success' ? 'bg-green-50 text-green-400 border-green-500/20' :
+            status.type === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-white text-slate-900 border-slate-200'
           }`}>
             {status.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
             <span className="font-semibold text-xs leading-none">{status.message}</span>
@@ -511,52 +512,44 @@ export default function AdminScannerView() {
         )}
 
         {/* Event Selector for Event-Specific Entry Scanning */}
-        <div className="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-xs mb-4">
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+        <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs mb-4">
+          <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-3">
             Scanning For Event
           </label>
           <select
             value={selectedScanEvent}
             onChange={(e) => setSelectedScanEvent(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold text-xs rounded-lg py-2.5 px-3 focus:outline-none focus:border-purple-500 cursor-pointer"
+            className="w-full bg-white border border-slate-200 text-slate-900 font-bold text-xs rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500/50 cursor-pointer appearance-none"
           >
-            <option value="all">All Events (Global Fest Entry)</option>
+            <option value="all" className="bg-[#1a1525]">All Events (Global Fest Entry)</option>
             {availableEvents.map((evt) => (
-              <option key={evt} value={evt}>{evt}</option>
+              <option key={evt} value={evt} className="bg-[#1a1525]">{evt}</option>
             ))}
           </select>
-          <p className="text-[10px] text-slate-400 mt-1 font-medium">
+          <p className="text-[10px] text-slate-500 mt-3 font-medium">
             Tickets for other events will be rejected with "WRONG EVENT" when a specific event is selected.
           </p>
         </div>
 
-        {/* Viewfinder Card - Always mounted to prevent DOM unmount race-conditions and camera resource leaks */}
-        <div className={`bg-white border border-slate-200 p-6 rounded-xl shadow-xs flex-col items-center gap-5 justify-center w-full ${scannedData ? 'hidden' : 'flex'}`}>
+        {/* Viewfinder Card */}
+        <div className={`bg-white backdrop-blur-[40px] border border-slate-200 p-6 rounded-[32px] shadow-xs flex-col items-center gap-6 justify-center w-full ${scannedData ? 'hidden' : 'flex'}`}>
           {/* QR Scanner view box wrapper */}
-          <div className="w-full max-w-sm aspect-square bg-slate-900 border border-slate-200 overflow-hidden relative rounded-xl shadow-inner">
+          <div className="w-full max-w-sm aspect-square bg-white/90 border border-slate-200 overflow-hidden relative rounded-2xl shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
             
             {/* Camera Viewfinder DOM element */}
             <div 
               id="qr-reader" 
-              className={`w-full h-full bg-slate-900 relative z-10 ${isFrontCamera ? 'mirrored' : ''}`}
+              className={`w-full h-full bg-transparent relative z-10 ${isFrontCamera ? 'mirrored' : ''}`}
             ></div>
 
             {/* Stopped Camera Placeholder overlay */}
             {!cameraActive && (
-              <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-6 text-center bg-slate-50 z-20">
-                <div className="p-3 bg-white text-slate-700 rounded-xl border border-slate-200 shadow-xs mb-3">
-                  <AlertCircle className="text-purple-600" size={24} />
+              <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-6 text-center bg-slate-900/40 backdrop-blur-md z-20">
+                <div className="p-4 bg-white text-slate-500 rounded-2xl border border-slate-200 shadow-xs mb-4">
+                  <AlertCircle className="text-slate-600" size={28} />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Camera Inactive</h3>
-                <p className="text-xs text-slate-500 mt-1">Click Start Camera to begin scanning</p>
-              </div>
-            )}
-
-            {/* Error Placeholder overlay */}
-            {cameraActive && cameraError && (
-              <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-8 text-center bg-white z-20">
-                <AlertCircle className="text-rose-600 mb-2" size={32} />
-                <p className="text-xs font-semibold text-slate-700">Camera Access Blocked</p>
+                <h3 className="text-sm font-bold text-slate-900 font-space-grotesk tracking-wide">Camera Inactive</h3>
+                <p className="text-xs text-slate-500 mt-1">Tap start to begin scanning tickets.</p>
               </div>
             )}
           </div>
@@ -564,10 +557,10 @@ export default function AdminScannerView() {
           {/* Toggle Camera Button */}
           <button 
             onClick={toggleCamera}
-            className={`w-full max-w-sm font-semibold text-xs rounded-lg py-3 transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
+            className={`w-full max-w-sm font-semibold text-xs rounded-xl py-3.5 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
               cameraActive 
-                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' 
-                : 'bg-slate-900 hover:bg-slate-800 text-white'
+                ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20' 
+                : 'bg-white hover:bg-white/90 text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]'
             }`}
           >
             {cameraActive ? 'Stop Camera' : 'Start Camera'}
@@ -575,18 +568,18 @@ export default function AdminScannerView() {
 
           {/* Camera Selection Dropdown */}
           {cameraActive && cameras.length > 1 && (
-            <div className="w-full max-w-sm flex flex-col gap-1.5 mt-2">
-              <label className="text-[11px] font-medium text-slate-500">
+            <div className="w-full max-w-sm flex flex-col gap-2 mt-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 Select Video Camera
               </label>
               <div className="relative w-full">
                 <select
                   value={selectedCameraId}
                   onChange={handleCameraChange}
-                  className="w-full bg-white text-slate-800 border border-slate-200 text-xs rounded-lg py-2.5 px-3 focus:outline-none cursor-pointer pr-10 shadow-xs"
+                  className="w-full bg-white text-slate-900 border border-slate-200 text-xs rounded-xl py-3 px-4 focus:outline-none cursor-pointer appearance-none"
                 >
                   {cameras.map((camera) => (
-                    <option key={camera.id} value={camera.id}>
+                    <option key={camera.id} value={camera.id} className="bg-[#1a1525]">
                       {camera.label || `Camera ${camera.id.slice(0, 8)}`}
                     </option>
                   ))}
@@ -598,20 +591,21 @@ export default function AdminScannerView() {
 
         {/* Dossier Verification Card (Visible when ticket is scanned) */}
         {scannedData && (
-          <div className="w-full bg-white border border-slate-200 p-6 flex flex-col animate-in zoom-in-95 duration-200 rounded-xl shadow-sm my-2">
+          <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-8 flex flex-col animate-in zoom-in-95 duration-300 rounded-[32px] shadow-2xl my-2 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
             
             {/* Header with simple title & Status badge */}
-            <div className="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+            <div className="flex justify-between items-center mb-6 pb-5 border-b border-slate-200 relative z-10">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Verify Ticket</h2>
-                <p className="text-slate-400 font-mono text-[11px] mt-0.5">
+                <h2 className="text-xl font-light text-slate-900 font-space-grotesk tracking-wide">Verify Ticket</h2>
+                <p className="text-slate-500 font-mono text-[10px] mt-1 tracking-widest">
                   ID: {scannedData.id}
                 </p>
               </div>
               
               <div className="flex items-center gap-3">
                 {scannedData.hasEntered && (
-                  <div className="px-2.5 py-1 text-[11px] font-semibold rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
                     Already Inside
                   </div>
                 )}
@@ -619,7 +613,7 @@ export default function AdminScannerView() {
                 {/* Dismiss Cross Button */}
                 <button
                   onClick={dismissDossier}
-                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
+                  className="p-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl transition-all cursor-pointer flex items-center justify-center border border-slate-100"
                   title="Close"
                 >
                   <X size={16} />
@@ -628,45 +622,45 @@ export default function AdminScannerView() {
             </div>
 
             {/* Main details */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-8 relative z-10">
               {(() => {
                 const regInfo = extractRegistrationInfo(scannedData);
                 return (
-                  <div className="bg-slate-50 p-4 border border-slate-200/80 rounded-xl flex flex-col gap-2">
+                  <div className="bg-white/80 p-5 border border-slate-100 rounded-2xl flex flex-col gap-4">
                     <div>
-                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">Attendee Name</span>
-                      <span className="text-lg font-bold text-slate-900 leading-tight block">{regInfo.name}</span>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Attendee Name</span>
+                      <span className="text-2xl font-light text-slate-900 leading-tight block font-space-grotesk">{regInfo.name}</span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-3">
+                    <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">Application Number</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Application Number</span>
                         <span className="text-xs font-semibold text-slate-800 block font-mono">{regInfo.rollNumber}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">Mobile</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Mobile</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.phone}</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-3">
+                    <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">Event Name</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Event Name</span>
                         <span className="text-xs font-semibold text-slate-800 block">{getScannedEventName(scannedData)}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">Event Type</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Event Type</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.eventType}</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-3">
+                    <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">Team Name</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Team Name</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.teamName}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-0.5">No. of Teammates</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">No. of Teammates</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.noOfTeammates}</span>
                       </div>
                     </div>
@@ -676,15 +670,15 @@ export default function AdminScannerView() {
 
               {/* Already Checked In Detail Alert */}
               {scannedData.hasEntered && (
-                <div className="bg-rose-50 text-rose-900 border border-rose-200 p-3.5 rounded-xl flex gap-2.5 items-start">
-                  <AlertCircle size={16} className="text-rose-700 shrink-0 mt-0.5" />
+                <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-4 rounded-2xl flex gap-3 items-start">
+                  <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
                   <div className="text-xs leading-relaxed">
-                    <p className="font-bold text-rose-800">Warning: Already Entered</p>
-                    <p className="text-[11px] text-rose-700/80 mt-0.5">
+                    <p className="font-bold text-red-400 uppercase tracking-wide text-[11px]">Warning: Already Entered</p>
+                    <p className="text-[11px] text-red-400/80 mt-1.5 font-mono">
                       Checked in at: {scannedData.enteredAt ? new Date(scannedData.enteredAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
                     </p>
                     {scannedData.enteredBy && (
-                      <p className="text-[11px] text-rose-700/80">Operator: {scannedData.enteredBy}</p>
+                      <p className="text-[11px] text-red-400/80 font-mono mt-0.5">Operator: {scannedData.enteredBy}</p>
                     )}
                   </div>
                 </div>
@@ -692,20 +686,20 @@ export default function AdminScannerView() {
             </div>
 
             {/* Action buttons (Decline/Approve) */}
-            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100 shrink-0">
+            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-200 shrink-0 relative z-10">
               <button 
                 disabled={processingAction}
                 onClick={() => handleAction(false)}
-                className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg py-2.5 transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-bold uppercase tracking-widest rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
-                <X size={14} /> Decline
+                <X size={16} /> Decline
               </button>
               <button 
                 disabled={processingAction || scannedData.hasEntered}
                 onClick={() => handleAction(true)}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg py-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="bg-white hover:bg-white/90 text-black text-xs font-bold uppercase tracking-widest rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
               >
-                <Check size={14} /> Approve Check-In
+                <Check size={16} /> Approve
               </button>
             </div>
           </div>
@@ -713,12 +707,12 @@ export default function AdminScannerView() {
       </div>
 
       <style jsx global>{`
-        #qr-reader { border: none !important; width: 100% !important; height: 100% !important; }
-        #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; }
+        #qr-reader { border: none !important; width: 100% !important; height: 100% !important; border-radius: 16px; overflow: hidden; }
+        #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; border-radius: 16px; }
         #qr-reader.mirrored video { transform: scaleX(-1) !important; }
         .scrollbar-thin::-webkit-scrollbar { width: 4px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(3, 4, 4, 0.15); border-radius: 10px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
       `}</style>
     </div>
   );

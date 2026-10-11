@@ -44,7 +44,7 @@ export default function TeamClient() {
   function getMemberImage(name: string): string {
     return (
       TEAM_IMAGES[name] ||
-      "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto,w_800/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png"
+      "/sabrang-logo/jklu_logo.png"
     );
   }
 

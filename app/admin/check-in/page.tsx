@@ -118,7 +118,7 @@ export default function QRCheckIn() {
           <button
             disabled={processing || !manualCode}
             onClick={() => markAttendance(manualCode)}
-            className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 transition-all"
+            className="bg-indigo-600 text-slate-900 px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 transition-all"
           >
             Mark
           </button>

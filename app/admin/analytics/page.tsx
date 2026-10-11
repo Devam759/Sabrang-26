@@ -1514,7 +1514,7 @@ function FeedbackAnalyticsContent() {
                         onClick={() => handleToggleComplaintStatus(item.id, item.status)}
                         className={`border-2 border-brand-ink font-display text-[11px] font-black px-4 py-2.5 rounded shadow-[3px_3px_0px_0px_#030404] hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none transition-all duration-100 cursor-pointer uppercase tracking-wider ${
                           isPending 
-                            ? 'bg-green-500 hover:bg-green-600 text-white' 
+                            ? 'bg-green-500 hover:bg-green-600 text-slate-900' 
                             : 'bg-brand-orange hover:bg-brand-orange/90 text-brand-ink'
                         }`}
                       >
@@ -1672,7 +1672,7 @@ function FeedbackAnalyticsContent() {
                         onClick={() => handleToggleSuggestionStatus(item.id, item.status)}
                         className={`border-2 border-brand-ink font-display text-[11px] font-black px-4 py-2.5 rounded shadow-[3px_3px_0px_0px_#030404] hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-[0px] active:translate-y-[0px] active:shadow-none transition-all duration-100 cursor-pointer uppercase tracking-wider ${
                           isPending 
-                            ? 'bg-green-500 hover:bg-green-600 text-white' 
+                            ? 'bg-green-500 hover:bg-green-600 text-slate-900' 
                             : 'bg-brand-orange hover:bg-brand-orange/90 text-brand-ink'
                         }`}
                       >
@@ -1766,7 +1766,7 @@ function FeedbackAnalyticsContent() {
                     onClick={() => setIsFormOpen(true)}
                     className={`flex-1 py-2.5 px-4 font-display text-xs font-black uppercase tracking-wider transition-all rounded-md cursor-pointer border-2 ${
                       isFormOpen
-                        ? 'bg-green-500 text-white border-brand-ink shadow-[3px_3px_0px_0px_#030404] translate-x-[-1px] translate-y-[-1px]'
+                        ? 'bg-green-500 text-slate-900 border-brand-ink shadow-[3px_3px_0px_0px_#030404] translate-x-[-1px] translate-y-[-1px]'
                         : 'bg-white text-brand-ink/65 border-brand-ink shadow-[3px_3px_0px_0px_#030404] hover:bg-brand-cloud'
                     }`}
                   >
@@ -1778,7 +1778,7 @@ function FeedbackAnalyticsContent() {
                     onClick={() => setIsFormOpen(false)}
                     className={`flex-1 py-2.5 px-4 font-display text-xs font-black uppercase tracking-wider transition-all rounded-md cursor-pointer border-2 ${
                       !isFormOpen
-                        ? 'bg-red-500 text-white border-brand-ink shadow-[3px_3px_0px_0px_#030404] translate-x-[-1px] translate-y-[-1px]'
+                        ? 'bg-red-500 text-slate-900 border-brand-ink shadow-[3px_3px_0px_0px_#030404] translate-x-[-1px] translate-y-[-1px]'
                         : 'bg-white text-brand-ink/65 border-brand-ink shadow-[3px_3px_0px_0px_#030404] hover:bg-brand-cloud'
                     }`}
                   >
@@ -1887,7 +1887,7 @@ function FeedbackAnalyticsContent() {
                       onClick={() => setConfigActiveBatch(batch)}
                       className={`py-2.5 px-5 font-display text-xs font-black uppercase tracking-wider transition-all rounded-md cursor-pointer border-2 ${
                         configActiveBatch === batch
-                          ? 'bg-brand-blue text-white border-brand-ink shadow-[3px_3px_0px_0px_#030404] translate-x-[-1px] translate-y-[-1px]'
+                          ? 'bg-brand-blue text-slate-900 border-brand-ink shadow-[3px_3px_0px_0px_#030404] translate-x-[-1px] translate-y-[-1px]'
                           : 'bg-white text-brand-ink/65 border-brand-ink shadow-[3px_3px_0px_0px_#030404] hover:bg-brand-cloud'
                       }`}
                     >
@@ -2116,7 +2116,7 @@ function PureReactColumnChart({ data }: { data: { label: string; count: number; 
           const heightPercent = Math.max((bar.count / maxCount) * 100, 4);
           return (
             <div key={i} className="flex-1 flex flex-col items-center group h-full justify-end ">
-              <div className="opacity-0 group-hover:opacity-100 bg-brand-ink text-white text-[9px] font-black px-2 py-1 rounded border border-white/20 mb-2 transition-all duration-100 pointer-events-none uppercase tracking-wide shrink-0">
+              <div className="opacity-0 group-hover:opacity-100 bg-brand-ink text-slate-900 text-[9px] font-black px-2 py-1 rounded border border-slate-300 mb-2 transition-all duration-100 pointer-events-none uppercase tracking-wide shrink-0">
                 {bar.count} Ratings ({Math.round(bar.percentage)}%)
               </div>
               <div 

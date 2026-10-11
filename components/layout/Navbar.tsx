@@ -139,7 +139,7 @@ export default function Navbar() {
               className="flex flex-col items-start outline-none transition-transform hover:scale-105 active:scale-95 py-2"
             >
               <Image
-                src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091528/sabrang-2026/sabrang-logo/sabrang-logo-dark.png"
+                src="/sabrang-logo/Sabrang_Logo.png"
                 alt="Sabrang Logo"
                 width={200}
                 height={80}
@@ -186,7 +186,7 @@ export default function Navbar() {
             }`}
           >
             <Image
-              src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png"
+              src="/sabrang-logo/jklu_logo.png"
               alt="JKLU Logo"
               width={64}
               height={56}

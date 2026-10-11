@@ -271,8 +271,8 @@ export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) 
   const { sendBrevoEmail } = await import('./brevo');
 
   // Use absolute URLs for images to prevent Gmail from clipping the email (Base64 strings are too large)
-  const sabrangLogoTag = `<img src="https://res.cloudinary.com/eprhemvt/image/upload/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang '26 Logo" style="max-height: 70px; width: auto; display: block;" />`;
-  const jkluLogoTag = `<img src="https://res.cloudinary.com/eprhemvt/image/upload/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png" alt="JKLU Logo" style="max-height: 55px; width: auto; display: block;" />`;
+  const sabrangLogoTag = `<img src="/sabrang-logo/Sabrang_Logo.png" alt="Sabrang '26 Logo" style="max-height: 70px; width: auto; display: block;" />`;
+  const jkluLogoTag = `<img src="/sabrang-logo/jklu_logo.png" alt="JKLU Logo" style="max-height: 55px; width: auto; display: block;" />`;
 
   const htmlContent = `
     <!DOCTYPE html>
