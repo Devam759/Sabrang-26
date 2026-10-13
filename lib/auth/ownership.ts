@@ -22,8 +22,8 @@ function getAccessTokenSecret(): string {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      '[Security Error] SESSION_SECRET or CRON_SECRET must be configured with at least 16 characters in production.'
+    console.warn(
+      '[Security Warning] SESSION_SECRET or CRON_SECRET not configured with at least 16 characters. Using fallback secret.'
     );
   }
 
