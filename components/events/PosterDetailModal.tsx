@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Download, FileText, Trophy, Users, ChevronRight, Phone } from "lucide-react";
+import { Download, FileText, Trophy, Users, ChevronRight, Phone, Gamepad2 } from "lucide-react";
 import { GalleryItem } from "@/lib/highlights-data";
 
 /**
@@ -242,15 +242,31 @@ export default function PosterDetailModal({
             )}
 
             <a
-              href="/docs/Sabrang_2026_Event_Rulebook.pdf"
+              href="/docs/Sabrang%20Rule%20Book'26_20261009_233355_0000.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              download="Sabrang_2026_Event_Rulebook.pdf"
+              download="Sabrang Rule Book'26_20261009_233355_0000.pdf"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-400/30 bg-black/50 hover:bg-indigo-950/40 text-slate-200 text-xs font-semibold transition-all shadow-sm active:scale-95"
             >
               <FileText className="w-4 h-4 text-indigo-300" />
               <span>Rulebook (PDF)</span>
             </a>
+
+            {(item.category?.toLowerCase().includes("esport") ||
+              item.title?.toLowerCase().includes("bgmi") ||
+              item.title?.toLowerCase().includes("free fire") ||
+              item.title?.toLowerCase().includes("valorant")) && (
+              <a
+                href="/docs/E-sports%20rule%20book.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                download="E-sports rule book.pdf"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-400/40 bg-black/50 hover:bg-emerald-950/40 text-emerald-200 text-xs font-semibold transition-all shadow-sm active:scale-95"
+              >
+                <Gamepad2 className="w-4 h-4 text-emerald-300" />
+                <span>E-sports Rulebook (PDF)</span>
+              </a>
+            )}
 
             <a
               href="/docs/Sabrang_2026_Brochure.pdf"

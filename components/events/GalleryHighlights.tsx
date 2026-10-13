@@ -15,7 +15,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Download, FileText, Users, ArrowRight } from "lucide-react";
+import { Download, FileText, Users, ArrowRight, Gamepad2 } from "lucide-react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
 import { createWheelGesture } from "@/lib/gestureStepper";
 import PosterDetailModal from "./PosterDetailModal";
@@ -157,10 +157,10 @@ function ArchiveHeading({
           </a>
 
           <a
-            href="/docs/Sabrang_2026_Event_Rulebook.pdf"
+            href="/docs/Sabrang%20Rule%20Book'26_20261009_233355_0000.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            download="Sabrang_2026_Event_Rulebook.pdf"
+            download="Sabrang Rule Book'26_20261009_233355_0000.pdf"
             className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-cyan-400/40 hover:border-cyan-300 bg-black/60 hover:bg-[#06141a]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(6,182,212,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(6,182,212,0.35)_35%,transparent_70%)] before:pointer-events-none"
             title="Download Sabrang 2026 Event Rulebook (PDF)"
           >
@@ -170,6 +170,22 @@ function ArchiveHeading({
               Event Rulebook
             </span>
             <ArrowRight className="w-3 h-3 text-cyan-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
+          </a>
+
+          <a
+            href="/docs/E-sports%20rule%20book.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            download="E-sports rule book.pdf"
+            className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-emerald-400/40 hover:border-emerald-300 bg-black/60 hover:bg-[#061a12]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(16,185,129,0.35)_35%,transparent_70%)] before:pointer-events-none"
+            title="Download Sabrang 2026 E-sports Rulebook (PDF)"
+          >
+            <Gamepad2 className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)] whitespace-nowrap">
+              E-sports Rulebook
+            </span>
+            <ArrowRight className="w-3 h-3 text-emerald-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </a>
         </div>
       </div>
@@ -214,10 +230,10 @@ function StaticArchive({
         </a>
 
         <a
-          href="/docs/Sabrang_2026_Event_Rulebook.pdf"
+          href="/docs/Sabrang%20Rule%20Book'26_20261009_233355_0000.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          download="Sabrang_2026_Event_Rulebook.pdf"
+          download="Sabrang Rule Book'26_20261009_233355_0000.pdf"
           className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-cyan-400/40 hover:border-cyan-300 bg-black/60 hover:bg-[#06141a]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(6,182,212,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(6,182,212,0.35)_35%,transparent_70%)] before:pointer-events-none"
         >
           <FileText className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
@@ -226,6 +242,21 @@ function StaticArchive({
             Event Rulebook
           </span>
           <ArrowRight className="w-3 h-3 text-cyan-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
+        </a>
+
+        <a
+          href="/docs/E-sports%20rule%20book.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          download="E-sports rule book.pdf"
+          className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-emerald-400/40 hover:border-emerald-300 bg-black/60 hover:bg-[#061a12]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(16,185,129,0.35)_35%,transparent_70%)] before:pointer-events-none"
+        >
+          <Gamepad2 className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+          <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+          <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)]">
+            E-sports Rulebook
+          </span>
+          <ArrowRight className="w-3 h-3 text-emerald-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
         </a>
       </div>
 
