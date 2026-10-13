@@ -3,9 +3,18 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { generatePDF, sendEmail } from '@/lib/registrationHelper';
 import { logSystemError } from '@/lib/errorAlertService';
+import { verifyAdmin } from '@/lib/auth/serverAuth';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
+    const authCheck = await verifyAdmin(req);
+    if (!authCheck.authorized) {
+      return authCheck.response;
+    }
+
     const body = await req.json().catch(() => ({}));
     const { ids, sendAllUnsent } = body;
 

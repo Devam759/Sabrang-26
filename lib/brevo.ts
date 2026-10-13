@@ -1,3 +1,7 @@
+if (typeof window !== 'undefined') {
+  throw new Error('SECURITY VIOLATION: lib/brevo.ts is a server-only module and must never be loaded on the client.');
+}
+
 /**
  * Brevo (Sendinblue) Transactional Email Client for Sabrang 2026
  *

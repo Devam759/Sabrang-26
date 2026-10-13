@@ -30,120 +30,134 @@ service cloud.firestore {
       );
     }
 
+    // Default deny for all unmatched collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
     // Users collection (Sabrang user profiles)
+    // Enforces user ownership: users can only read and update their own document
     match /users/{userId} {
       allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isScanner());
       allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow update: if isSignedIn() && (
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) 
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'admin'])) 
         || isAdmin()
       );
       allow delete: if isAdmin();
     }
 
-    // Roles collection rules
+    // Roles collection: Admin writes only; Users can only read their own role
     match /roles/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow write: if isAdmin();
     }
 
-    // Registrations collection
+    // Registrations collection: Users only read their own registration records
     match /registrations/{id} {
       allow read: if isAdmin() || isScanner() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      // Registrations are created server-side via Admin SDK (bypasses rules)
-      allow create: if false;
+      allow create: if false; // Created strictly server-side via Admin SDK
       allow update: if isAdmin() || isScanner();
       allow delete: if isAdmin();
     }
 
-    // Pending Registrations collection
+    // Server-Only Collections: Completely closed to direct public internet access
+    // Only accessible via backend Firebase Admin SDK (which bypasses security rules)
     match /pendingRegistrations/{id} {
-      allow read, write: if false; // Only Admin SDK can read/write
+      allow read, write: if false;
     }
 
-    // Notifications/Announcements collections
+    match /webhookLogs/{id} {
+      allow read, write: if false;
+    }
+
+    match /websiteLogs/{id} {
+      allow read, write: if false;
+    }
+
+    match /entryLocks/{id} {
+      allow read, write: if false;
+    }
+
+    match /systemErrors/{id} {
+      allow read, write: if false; // Written strictly by server-side error logging
+    }
+
+    // Notifications: Scoped strictly to the owning user or admin
     match /notifications/{id} {
-      allow read, update, delete: if isSignedIn();
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && isAdmin();
     }
     
+    // Public Announcements
     match /announcements/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Scan logs collection
+    // Scan & Entry logs: Restricted to staff scanners and admins
     match /scanLogs/{id} {
       allow read: if isAdmin() || isScanner();
       allow write: if isAdmin() || isScanner();
     }
 
-    // Entry logs collection
     match /entryLogs/{id} {
       allow read, write: if isAdmin() || isScanner();
     }
 
-    // System Errors collection
-    match /systemErrors/{id} {
-      allow read, write: if isAdmin();
-    }
-
-    // Referrals collection
+    // Referrals: Scoped to owner or admin
     match /referrals/{id} {
-      allow read: if isAdmin() || isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.referrerId == request.auth.uid));
       allow write: if isAdmin();
     }
 
-    // Events (public schedule)
+    // Events (Public schedule viewable by all; manageable only by admin)
     match /events/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Audit logs collection
+    // Audit logs: Strictly immutable to client browsers; readable only by admin
     match /auditLogs/{id} {
       allow read, update, delete: if isAdmin();
-      allow create: if isSignedIn();
+      allow create: if false; // Must be created via server Admin SDK
     }
 
-    // Feedback collection
-    match /feedback/{id} {
-      allow create: if true;
-      allow read: if isAdmin();
-      allow update, delete: if isAdmin();
-    }
-
-    // Complaints collection
-    match /complaints/{id} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-
-    // Suggestions collection
-    match /suggestions/{id} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-
-    // Settings (e.g. active day settings)
-    match /settings/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Scanner Accounts collection
+    // Scanner Accounts: Protected staff records
     match /scannerAccounts/{id} {
       allow read: if isSignedIn() && (request.auth.uid == id || isAdmin());
       allow write: if isAdmin();
     }
 
-    // Coupons collection
+    // Coupons: Public read for catalog discount verification; admin write
     match /coupons/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Contact Messages collection
+    // Settings (e.g. active festival day, early bird flags)
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Feedback, Complaints, Suggestions: Admin review only
+    match /feedback/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /complaints/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /suggestions/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Contact messages
     match /contact_messages/{id} {
       allow create: if true;
       allow read, update, delete: if isAdmin();

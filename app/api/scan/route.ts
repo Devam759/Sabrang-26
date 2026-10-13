@@ -1,49 +1,20 @@
 import { NextResponse } from 'next/server';
-import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
+import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { normalizeEventKey } from '@/lib/couponHelper';
+import { verifyScannerOrAdmin } from '@/lib/auth/serverAuth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized: Missing or invalid Authorization header" }, { status: 401 });
+    const authCheck = await verifyScannerOrAdmin(req);
+    if (!authCheck.authorized) {
+      return authCheck.response;
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (authErr: any) {
-      console.error("Token verification failed:", authErr);
-      return NextResponse.json({ error: `Unauthorized: Token verification failed (${authErr.message})` }, { status: 401 });
-    }
-
-    // Role check
-    const userDoc = await adminDb.collection("users").doc(decodedToken.uid).get();
-    let userRole = userDoc.data()?.role;
-    if (!userRole) {
-      const roleDoc = await adminDb.collection("roles").doc(decodedToken.uid).get();
-      userRole = roleDoc.data()?.role;
-    }
-    
-    // Match frontend behavior: default to 'admin' if no role is found in database
-    const normalizedRole = userRole ? String(userRole).toLowerCase() : "admin";
-    const normalizedTokenRole = decodedToken.role ? String(decodedToken.role).toLowerCase() : "admin";
-
-    if (
-      normalizedRole !== "admin" && 
-      normalizedRole !== "scanner" && 
-      decodedToken.admin !== true && 
-      normalizedTokenRole !== "admin" && 
-      normalizedTokenRole !== "scanner"
-    ) {
-      console.error(`Forbidden: User ${decodedToken.uid} has role '${userRole}' (Token role: '${decodedToken.role}')`);
-      return NextResponse.json({ error: `Forbidden: Your account role '${userRole || 'NONE'}' is not authorized to scan` }, { status: 403 });
-    }
+    const decodedToken = authCheck.user.token;
 
     const body = await req.json().catch(() => ({}));
     const { 
@@ -56,15 +27,19 @@ export async function POST(req: Request) {
       volunteerName = 'Staff Member' 
     } = body;
 
-    const rawIdentifier = (ticketId || registrationID || qrData || '').trim();
+    const idParam = typeof ticketId === 'string' ? ticketId : (typeof registrationID === 'string' ? registrationID : (typeof qrData === 'string' ? qrData : ''));
+    const rawIdentifier = idParam.trim();
 
-    if (!rawIdentifier) {
+    if (!rawIdentifier || !/^[a-zA-Z0-9_\-\.:]{1,128}$/.test(rawIdentifier)) {
       return NextResponse.json({
         success: false,
         code: 'INVALID_TICKET',
-        error: 'No ticket or QR data provided.'
+        error: 'Invalid or missing ticket or QR data provided.'
       }, { status: 400 });
     }
+
+    const safeScannerId = typeof scannerId === 'string' ? scannerId.replace(/[^a-zA-Z0-9_\-]/g, '').slice(0, 50) : 'ADMIN_STAFF';
+    const safeVolunteerName = typeof volunteerName === 'string' ? volunteerName.replace(/[^a-zA-Z0-9_\- ]/g, '').slice(0, 50) : 'Staff Member';
 
     if (!adminDb) {
       return NextResponse.json({

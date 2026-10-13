@@ -1,5 +1,9 @@
 import crypto from 'crypto';
 
+if (typeof window !== 'undefined') {
+  throw new Error('SECURITY VIOLATION: lib/security.ts is a server-only module and must never be loaded on the client.');
+}
+
 // 1. In-memory Rate Limiting Map
 const rateLimitMap = new Map<string, { count: number; firstRequest: number }>();
 
@@ -98,6 +102,109 @@ export function sanitizeObject(obj: any): any {
     }
   }
   return sanitized;
+}
+
+/**
+ * Detects common malicious injection vectors in strings:
+ * - SQL Injection keywords & comments
+ * - Command Injection metacharacters
+ * - Script Injection (XSS)
+ * - Path traversal (directory traversal)
+ */
+export function detectMaliciousPayload(val: unknown): boolean {
+  if (typeof val !== 'string') return false;
+  const str = val.trim();
+  if (!str) return false;
+
+  // 1. Path traversal & sensitive file probe
+  if (/(\.\.[\/\\]|win\.ini|\/etc\/passwd|\.env)/i.test(str)) {
+    return true;
+  }
+
+  // 2. Script injection (XSS)
+  if (/(<script|javascript:|vbscript:|data:text\/html|onload\s*=|onerror\s*=|alert\s*\()/i.test(str)) {
+    return true;
+  }
+
+  // 3. Command injection
+  if (/([;&|`$]|\x00|%00)/i.test(str)) {
+    return true;
+  }
+
+  // 4. SQL injection
+  if (/(union[\s+]+select|select[\s+]+null|information_schema|drop[\s+]+table|--\s*$|\/\*.*?\*\/)/i.test(str)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Validates a document identifier, ticket ID, or key.
+ * Only permits alphanumeric characters, dashes, underscores, and dots up to maxLength chars.
+ */
+export function validateIdentifier(id: unknown, fieldName = 'Identifier', maxLength = 128): string {
+  if (typeof id !== 'string') {
+    throw new Error(`${fieldName} must be a valid string.`);
+  }
+  const trimmed = id.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`${fieldName} cannot be empty.`);
+  }
+  if (trimmed.length > maxLength) {
+    throw new Error(`${fieldName} exceeds maximum length of ${maxLength} characters.`);
+  }
+  if (!/^[a-zA-Z0-9_\-\.:]+$/.test(trimmed)) {
+    throw new Error(`${fieldName} contains invalid or illegal characters.`);
+  }
+  if (detectMaliciousPayload(trimmed)) {
+    throw new Error(`${fieldName} contains disallowed exploit patterns.`);
+  }
+  return trimmed;
+}
+
+/**
+ * Validates an email address format and length according to RFC standards.
+ */
+export function validateEmail(email: unknown): string {
+  if (typeof email !== 'string') {
+    throw new Error('Email must be a valid string.');
+  }
+  const trimmed = email.trim().toLowerCase();
+  if (trimmed.length === 0 || trimmed.length > 254) {
+    throw new Error('Email length is invalid.');
+  }
+  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmed)) {
+    throw new Error('Invalid email address format.');
+  }
+  if (detectMaliciousPayload(trimmed)) {
+    throw new Error('Email contains disallowed characters or injection probes.');
+  }
+  return trimmed;
+}
+
+/**
+ * Validates and limits safe text strings (names, titles, messages) up to a max length.
+ */
+export function validateSafeString(
+  val: unknown,
+  options: { minLength?: number; maxLength?: number; fieldName?: string; sanitize?: boolean } = {}
+): string {
+  const { minLength = 1, maxLength = 500, fieldName = 'Field', sanitize = true } = options;
+  if (typeof val !== 'string') {
+    throw new Error(`${fieldName} must be a valid string.`);
+  }
+  let str = val.trim();
+  if (str.length < minLength) {
+    throw new Error(`${fieldName} must be at least ${minLength} characters.`);
+  }
+  if (str.length > maxLength) {
+    throw new Error(`${fieldName} exceeds maximum allowed length of ${maxLength} characters.`);
+  }
+  if (detectMaliciousPayload(str)) {
+    throw new Error(`${fieldName} contains illegal script or injection payloads.`);
+  }
+  return sanitize ? sanitizeInput(str) : str;
 }
 
 export const isProd = (process.env.NEXT_PUBLIC_CASHFREE_ENV || '').replace(/['"]/g, '').trim().toUpperCase() === 'PRODUCTION';

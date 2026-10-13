@@ -49,11 +49,40 @@ export default function ScannerAccounts() {
     
     let secondaryApp;
     try {
-      const generateSecurePassword = (length = 8): string => {
-        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const array = new Uint8Array(length);
+      const generateSecurePassword = (length = 16): string => {
+        const lower = 'abcdefghijklmnopqrstuvwxyz';
+        const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const digits = '0123456789';
+        const symbols = '!@#$%^&*()_+-=';
+        const allChars = lower + upper + digits + symbols;
+        
+        const array = new Uint8Array(length * 2);
         window.crypto.getRandomValues(array);
-        return Array.from(array, byte => chars[byte % chars.length]).join('');
+        
+        const pwdChars: string[] = [
+          lower[array[0] % lower.length],
+          lower[array[1] % lower.length],
+          upper[array[2] % upper.length],
+          upper[array[3] % upper.length],
+          digits[array[4] % digits.length],
+          digits[array[5] % digits.length],
+          symbols[array[6] % symbols.length],
+          symbols[array[7] % symbols.length],
+        ];
+
+        for (let i = pwdChars.length; i < length; i++) {
+          pwdChars.push(allChars[array[i] % allChars.length]);
+        }
+
+        // Fisher-Yates shuffle
+        for (let i = pwdChars.length - 1; i > 0; i--) {
+          const j = array[i + length] % (i + 1);
+          const temp = pwdChars[i];
+          pwdChars[i] = pwdChars[j];
+          pwdChars[j] = temp;
+        }
+
+        return pwdChars.join('');
       };
 
       const generateSecureScannerId = (): string => {
@@ -64,7 +93,7 @@ export default function ScannerAccounts() {
       };
 
       const generatedEmail = `scanner_${Date.now()}@sabrang.com`;
-      const generatedPassword = generateSecurePassword(8);
+      const generatedPassword = generateSecurePassword(16);
       
       // Initialize a secondary app to create a user without signing out the admin
       const secondaryAppName = `secondary_${Date.now()}`;

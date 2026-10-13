@@ -66,6 +66,15 @@ export async function POST(req: Request) {
 
     if (honeypot) {
       console.warn("Honeypot triggered by IP:", ip);
+      import('@/lib/security/securityLogger').then(({ logSecurityEvent }) => {
+        logSecurityEvent({
+          type: 'EXPLOIT_PROBE_BLOCKED',
+          severity: 'MEDIUM',
+          ip,
+          path: '/api/register',
+          details: 'Automated bot caught by hidden honeypot field',
+        }).catch(() => {});
+      });
       return NextResponse.json({ error: 'Bot detected' }, { status: 400 });
     }
 
@@ -179,9 +188,11 @@ export async function POST(req: Request) {
 
 
     if (action === 'CREATE_ORDER') {
-      // CREATE_ORDER: strict - max 5 per minute per IP to prevent order spam
-      if (isRateLimited(`${ip}:order`, 5, 60 * 1000)) {
-        return NextResponse.json({ error: 'Too many payment attempts. Please wait a minute and try again.' }, { status: 429 });
+      // CREATE_ORDER: strict account creation & order abuse limiter (max 5 per 15 min per IP)
+      const { checkAccountCreationRateLimit, createRateLimitResponse } = await import('@/lib/auth/rateLimiter');
+      const orderRateLimit = checkAccountCreationRateLimit(ip);
+      if (!orderRateLimit.allowed) {
+        return createRateLimitResponse(orderRateLimit, 5);
       }
       try {
         if (!data.registrationNumber && !data.rollNumber && !data.email) {
@@ -323,11 +334,14 @@ export async function POST(req: Request) {
       }
       const dbFormData = pendingData.formData;
 
+      const { generateSignedAccessToken } = await import('@/lib/auth/ownership');
+
       // If we are in Sandbox, don't have keys, or it's a 100% discount, allow bypass
       if (!isProd || !cashfreeAppId || pendingData.amount === 0) {
         console.warn("Sandbox mode, Cashfree App ID missing, or amount is 0. Bypassing verification.");
         // For free tickets, there is no webhook, so the frontend MUST run the background tasks.
         const regId = await finalizeRegistration(dbFormData, "mock_payment_id", sanitizedOrderId, true);
+        const accessToken = generateSignedAccessToken(regId);
         after(async () => {
           try {
             await finalizeRegistration(dbFormData, "mock_payment_id", sanitizedOrderId, false);
@@ -335,7 +349,7 @@ export async function POST(req: Request) {
             console.error("Error in background task for mock/free order:", err);
           }
         });
-        return NextResponse.json({ success: true, id: regId, email: dbFormData.email });
+        return NextResponse.json({ success: true, id: regId, email: dbFormData.email, accessToken });
       }
 
       const response = await cashfree.PGOrderFetchPayments(sanitizedOrderId);
@@ -350,6 +364,7 @@ export async function POST(req: Request) {
       console.log("Payment verified successfully:", successPayment.cf_payment_id);
       const paymentIdStr = successPayment.cf_payment_id ? successPayment.cf_payment_id.toString() : 'N/A';
       const regId = await finalizeRegistration(dbFormData, paymentIdStr, sanitizedOrderId, true);
+      const accessToken = generateSignedAccessToken(regId);
       after(async () => {
         try {
           await finalizeRegistration(dbFormData, paymentIdStr, sanitizedOrderId, false);
@@ -357,7 +372,7 @@ export async function POST(req: Request) {
           console.error("Error in background task for order:", err);
         }
       });
-      return NextResponse.json({ success: true, id: regId, email: dbFormData.email });
+      return NextResponse.json({ success: true, id: regId, email: dbFormData.email, accessToken });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

@@ -1,41 +1,33 @@
 import { NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/lib/firebase/admin";
+import { adminDb } from "@/lib/firebaseAdmin";
+import { verifyScannerOrAdmin } from "@/lib/auth/serverAuth";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authCheck = await verifyScannerOrAdmin(req);
+    if (!authCheck.authorized) {
+      return authCheck.response;
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const decodedToken = authCheck.user.token;
 
-    // Admin or Scanner check
-    const userDoc = await adminDb
-      .collection("users")
-      .doc(decodedToken.uid)
-      .get();
-    const userRole = userDoc.data()?.role;
-    if (userRole !== "admin" && userRole !== "scanner") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { qrCode } = await req.json();
-    if (!qrCode) {
+    const body = await req.json().catch(() => ({}));
+    const { qrCode } = body;
+    if (!qrCode || typeof qrCode !== 'string' || !/^[a-zA-Z0-9_\-\.:]{1,256}$/.test(qrCode.trim())) {
       return NextResponse.json(
-        { error: "QR Code is required" },
+        { error: "Valid QR Code is required" },
         { status: 400 },
       );
     }
+    const cleanQrCode = qrCode.trim();
 
     // Find registration by QR Code
     const regQuery = await adminDb
       .collection("registrations")
-      .where("qrCode", "==", qrCode)
+      .where("qrCode", "==", cleanQrCode)
       .get();
 
     if (regQuery.empty) {

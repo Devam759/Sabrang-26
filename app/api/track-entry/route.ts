@@ -13,19 +13,25 @@ export async function POST(req: Request) {
       ? clientIp.split('.').slice(0, 3).join('.') + '.xxx'
       : (clientIp.includes(':') ? clientIp.split(':').slice(0, 3).join(':') + '::xxx' : 'Anonymous');
 
-    const country = req.headers.get('x-vercel-ip-country') || 'India';
-    const city = req.headers.get('x-vercel-ip-city') || 'Jaipur';
+    const country = (req.headers.get('x-vercel-ip-country') || 'India').slice(0, 50);
+    const city = (req.headers.get('x-vercel-ip-city') || 'Jaipur').slice(0, 50);
+
+    const safeTrim = (val: unknown, fallback: string, maxLen = 250): string => {
+      if (typeof val !== 'string') return fallback;
+      const clean = val.replace(/<[^>]*>?/gm, '').trim();
+      return clean.slice(0, maxLen) || fallback;
+    };
 
     if (adminDb) {
       await adminDb.collection('websiteLogs').add({
-        path: body.path || '/',
-        fullUrl: body.fullUrl || '/',
-        referrer: body.referrer || 'Direct / Organic',
-        device: body.device || 'Desktop',
-        browser: body.browser || 'Browser',
-        os: body.os || 'OS',
-        screenResolution: body.screenResolution || 'Unknown',
-        sessionId: body.sessionId || 'sid_anon',
+        path: safeTrim(body.path, '/', 200),
+        fullUrl: safeTrim(body.fullUrl, '/', 300),
+        referrer: safeTrim(body.referrer, 'Direct / Organic', 200),
+        device: safeTrim(body.device, 'Desktop', 50),
+        browser: safeTrim(body.browser, 'Browser', 50),
+        os: safeTrim(body.os, 'OS', 50),
+        screenResolution: safeTrim(body.screenResolution, 'Unknown', 30),
+        sessionId: safeTrim(body.sessionId, 'sid_anon', 100),
         maskedIp,
         city,
         country,

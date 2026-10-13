@@ -6,6 +6,10 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 
+if (typeof window !== 'undefined') {
+  throw new Error('SECURITY VIOLATION: lib/firebaseAdmin.ts is a server-only module and must never be loaded on the client.');
+}
+
 function initFirebaseAdmin(): App | null {
   const apps = getApps();
   if (apps.length > 0) {

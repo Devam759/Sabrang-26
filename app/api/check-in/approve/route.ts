@@ -3,16 +3,29 @@ import { after } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getStudentBatchDetails, sendCheckInEmail } from '@/lib/batchHelper';
+import { verifyScannerOrAdmin } from '@/lib/auth/serverAuth';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const { registrationID, scannerId, volunteerName } = await req.json();
-
-    if (!registrationID) {
-      return NextResponse.json({ error: 'Missing registrationID' }, { status: 400 });
+    const authCheck = await verifyScannerOrAdmin(req);
+    if (!authCheck.authorized) {
+      return authCheck.response;
     }
 
-    const regRef = adminDb.collection('registrations').doc(registrationID);
+    const { registrationID, scannerId, volunteerName } = await req.json().catch(() => ({}));
+
+    if (!registrationID || typeof registrationID !== 'string' || !/^[a-zA-Z0-9_\-\.:]{1,128}$/.test(registrationID.trim())) {
+      return NextResponse.json({ error: 'Invalid or missing registrationID' }, { status: 400 });
+    }
+    const cleanRegId = registrationID.trim();
+    const cleanVolunteer = typeof volunteerName === 'string' 
+      ? volunteerName.replace(/[^a-zA-Z0-9_\- ]/g, '').slice(0, 50) 
+      : (typeof scannerId === 'string' ? scannerId.replace(/[^a-zA-Z0-9_\- ]/g, '').slice(0, 50) : 'UNKNOWN');
+
+    const regRef = adminDb.collection('registrations').doc(cleanRegId);
     const regDoc = await regRef.get();
 
     if (!regDoc.exists) {

@@ -1,3 +1,7 @@
+if (typeof window !== 'undefined') {
+  throw new Error('SECURITY VIOLATION: lib/recaptcha.ts is a server-only module and must never be loaded on the client.');
+}
+
 /**
  * Google reCAPTCHA v3 Server-Side Verification Utility
  */

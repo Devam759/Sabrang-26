@@ -35,11 +35,18 @@ export const app: FirebaseApp =
     : initializeApp(
         firebaseConfig.apiKey
           ? firebaseConfig
-          : {
-              apiKey: "AIzaSyDummyApiKeyForLocalDevelopment01",
-              projectId: "sabrang-26",
-              authDomain: "sabrang-26.firebaseapp.com",
-            }
+          : (() => {
+              if (process.env.NODE_ENV === 'production') {
+                throw new Error(
+                  '[Security Error] NEXT_PUBLIC_FIREBASE_API_KEY must be configured in production environment.'
+                );
+              }
+              return {
+                apiKey: 'dummy-local-api-key',
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'sabrang-26',
+                authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'sabrang-26.firebaseapp.com',
+              };
+            })()
       );
 
 export const auth: Auth = getAuth(app);

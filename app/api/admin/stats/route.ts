@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { verifyAdmin } from '@/lib/auth/serverAuth';
 
-export async function GET() {
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: Request) {
   try {
+    // Enforce administrator authentication and authorization
+    const authCheck = await verifyAdmin(req);
+    if (!authCheck.authorized) {
+      return authCheck.response;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -12,6 +22,18 @@ export async function GET() {
     let totalEntries = 0;
     let totalRevenue = 0;
     let todayRevenue = 0;
+
+    if (!adminDb) {
+      return NextResponse.json({
+        success: true,
+        totalRegistrations: 0,
+        todayRegistrations: 0,
+        totalEntriesToday: 0,
+        totalEntries: 0,
+        totalRevenue: 0,
+        todayRevenue: 0,
+      });
+    }
 
     try {
       const regsSnap = await adminDb.collection('registrations').get();

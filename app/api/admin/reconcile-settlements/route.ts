@@ -668,13 +668,12 @@ async function performReconciliation(isManual: boolean) {
 // GET method for Google Cloud Scheduler / Cron-Job.org triggers
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const secret = searchParams.get('secret');
-    const expectedSecret = process.env.CRON_SECRET || 'reconcile_cron_secret_token';
-
-    // Verify token to secure the endpoint from public queries
-    if (secret !== expectedSecret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { verifyCronSecret } = await import('@/lib/auth/serverAuth');
+    if (!verifyCronSecret(req)) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Missing or invalid cron authorization secret.' },
+        { status: 401 }
+      );
     }
 
     const result = await performReconciliation(false);
@@ -688,29 +687,10 @@ export async function GET(req: Request) {
 // POST method for manual triggers from the Admin Dashboard
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (authErr) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Role check
-    const userDoc = await adminDb.collection("users").doc(decodedToken.uid).get();
-    let userRole = userDoc.data()?.role;
-    if (!userRole) {
-      const roleDoc = await adminDb.collection("roles").doc(decodedToken.uid).get();
-      userRole = roleDoc.data()?.role;
-    }
-    
-    if (userRole !== "admin" && decodedToken.admin !== true && decodedToken.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { verifyAdmin } = await import('@/lib/auth/serverAuth');
+    const authCheck = await verifyAdmin(req);
+    if (!authCheck.authorized) {
+      return authCheck.response;
     }
 
     const body = await req.json().catch(() => ({}));
