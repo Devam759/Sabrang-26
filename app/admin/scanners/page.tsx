@@ -183,7 +183,7 @@ export default function ScannerAccounts() {
                       </span>
                     </td>
                     <td className="p-4 text-slate-500">
-                      {scanner.lastActiveAt ? scanner.lastActiveAt.toDate().toLocaleString('en-IN') : 'Never'}
+                      {scanner.lastActiveAt ? scanner.lastActiveAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'Never'}
                     </td>
                     <td className="p-4 flex items-center justify-end gap-2">
                       <button 

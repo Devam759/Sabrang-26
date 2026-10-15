@@ -1090,6 +1090,6 @@ export const FAQS: FAQItem[] = [
   {
     question: "Concert and Pro-Nite Charges?",
     answer:
-      "Charges are mentioned on the website checkout portal: ₹499 for Outsiders and ₹299 for JKLU students (Early Bird: ₹199 for JKLU students), providing full-day access for all 3 days (Days 1, 2 & 3).",
+      "Charges are mentioned on the website checkout portal: ₹499 for Outsiders and ₹299 for JKLU students, providing full-day access for all 3 days (Days 1, 2 & 3).",
   },
 ];

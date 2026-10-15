@@ -629,7 +629,7 @@ function FeedbackAnalyticsContent() {
     const stats: Record<string, { ratings: number[]; comments: { rating: number; text: string; date: string }[]; textAnswers: { text: string; date: string }[]; mcqCounts: Record<string, number> }> = {};
 
     filteredSubmissions.forEach((f) => {
-      const dateStr = f.submittedAt?.toDate ? f.submittedAt.toDate().toLocaleDateString() : '';
+      const dateStr = f.submittedAt?.toDate ? f.submittedAt.toDate().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) : '';
       const answers = f.answers || {};
 
       Object.keys(answers).forEach((qId) => {
@@ -784,7 +784,7 @@ function FeedbackAnalyticsContent() {
       const excelRows: any[] = [];
 
       filteredSubmissions.forEach((f) => {
-        const dateStr = f.submittedAt?.toDate ? f.submittedAt.toDate().toLocaleString() : '';
+        const dateStr = f.submittedAt?.toDate ? f.submittedAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '';
         const answers = f.answers || {};
 
         Object.keys(answers).forEach((qId) => {
@@ -1445,7 +1445,7 @@ function FeedbackAnalyticsContent() {
               </div>
             ) : (
               filteredComplaints.map((item) => {
-                const dateStr = item.submittedAt?.toDate ? item.submittedAt.toDate().toLocaleString() : 'N/A';
+                const dateStr = item.submittedAt?.toDate ? item.submittedAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
                 const isPending = item.status !== 'resolved';
                 
                 return (
@@ -1612,7 +1612,7 @@ function FeedbackAnalyticsContent() {
               </div>
             ) : (
               filteredSuggestions.map((item) => {
-                const dateStr = item.submittedAt?.toDate ? item.submittedAt.toDate().toLocaleString() : 'N/A';
+                const dateStr = item.submittedAt?.toDate ? item.submittedAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
                 const isPending = item.status !== 'reviewed';
                 
                 return (

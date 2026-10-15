@@ -840,7 +840,7 @@ export default function AdminScannerView() {
                   <div className="text-xs leading-relaxed">
                     <p className="font-semibold text-rose-800 text-xs">Warning: Already Entered</p>
                     <p className="text-xs text-rose-700/90 mt-1 font-mono">
-                      Checked in at: {scannedData.enteredAt ? new Date(scannedData.enteredAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+                      Checked in at: {scannedData.enteredAt ? new Date(scannedData.enteredAt.seconds * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Unknown'}
                     </p>
                     {scannedData.enteredBy && (
                       <p className="text-[11px] text-red-400/80 font-mono mt-0.5">Operator: {scannedData.enteredBy}</p>

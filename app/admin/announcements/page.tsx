@@ -144,7 +144,7 @@ export default function Announcements() {
                       {ann.title}
                     </td>
                     <td className="p-4 text-slate-500">
-                      {ann.postedAt ? ann.postedAt.toDate().toLocaleString('en-IN') : 'Just now'}
+                      {ann.postedAt ? ann.postedAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'Just now'}
                     </td>
                     <td className="p-4">
                       <button 

@@ -213,7 +213,7 @@ export default function EventEntryLogsPage() {
     if (filteredLogs.length === 0) return alert('No entry logs to export.');
     const headers = ['S.No', 'Attendee Name', 'Roll Number', 'Email', 'Event', 'Ticket ID', 'Registration ID', 'Entry Time', 'Scanned By'];
     const rows = filteredLogs.map((l, index) => {
-      const timeStr = l.entryTime?.toDate ? l.entryTime.toDate().toLocaleString('en-IN') : (l.createdAt || 'N/A');
+      const timeStr = l.entryTime?.toDate ? l.entryTime.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : (l.createdAt || 'N/A');
       return [
         index + 1,
         l.attendeeName || 'N/A',
@@ -447,10 +447,10 @@ export default function EventEntryLogsPage() {
                       <td className="p-5">
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900 text-xs">
-                            {entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {entryDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' })}
                           </p>
                           <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                            {entryDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {entryDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                           </p>
                         </div>
                       </td>

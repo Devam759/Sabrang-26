@@ -10,6 +10,7 @@ import { X, Maximize2, Loader2 } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
 import { getDisplayPaymentAmount } from '@/lib/registrationDataHelper';
+import { isDateInTodayIST } from '@/lib/dateUtils';
 
 // ============================================================================
 // BESPOKE CUSTOM GEOMETRIC SVG ICONS (Gradient-free, Sharp, Heavy-mitre)
@@ -416,14 +417,10 @@ export default function Registrations() {
   const paginatedRegistrations = sortedRegistrations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(sortedRegistrations.length / itemsPerPage);
 
-  // Calculate Today's Registrations
+  // Calculate Today's Registrations (IST standardized)
   const todaysRegistrationsCount = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     return registrations.filter(reg => {
-      if (!reg.registeredAt) return false;
-      const regDate = reg.registeredAt.toDate();
-      return regDate >= today;
+      return isDateInTodayIST(reg.registeredAt);
     }).length;
   }, [registrations]);
 
@@ -492,7 +489,7 @@ export default function Registrations() {
     const masterRows = validRegistrations.map((r, index) => {
       const pin = r.pincode || (r.address ? (r.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A');
       const state = r.region || r.state || 'N/A';
-      const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }).replace(/ /g, '-') : 'N/A');
+      const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' }).replace(/ /g, '-') : 'N/A');
       const payAmount = getDisplayPaymentAmount(r);
       const recAmount = getDisplayPaymentAmount(r);
       const unifiedData = extractRegistrationInfo(r, r.id);
@@ -551,7 +548,7 @@ export default function Registrations() {
       const eventRows = matchingRegs.map((r, index) => {
         const pin = r.pincode || (r.address ? (r.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A');
         const state = r.region || r.state || 'N/A';
-        const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }).replace(/ /g, '-') : 'N/A');
+        const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' }).replace(/ /g, '-') : 'N/A');
         const payAmount = getDisplayPaymentAmount(r);
         const recAmount = getDisplayPaymentAmount(r);
         const unifiedData = extractRegistrationInfo(r, r.id);
@@ -884,8 +881,8 @@ export default function Registrations() {
                     <td className="p-5 whitespace-nowrap">
                       {reg.registeredAt && reg.registeredAt.toDate ? (
                         <div className="space-y-1">
-                          <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
-                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
+                          <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</div>
+                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</div>
                         </div>
                       ) : <span className="text-slate-400">-</span>}
                     </td>
@@ -1016,7 +1013,7 @@ export default function Registrations() {
               <div className="col-span-2 sm:col-span-1">
                 <p className="text-xs font-medium text-slate-500 mb-1">Registered At</p>
                 <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
-                  {selectedReg.registeredAt?.toDate ? selectedReg.registeredAt.toDate().toLocaleString('en-IN') : 'N/A'}
+                  {selectedReg.registeredAt?.toDate ? selectedReg.registeredAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A'}
                 </p>
               </div>
               <div className="col-span-2 sm:col-span-1">
@@ -1050,7 +1047,7 @@ export default function Registrations() {
                         <div className="space-y-2">
                           <button 
                             type="button"
-                            onClick={() => setPreviewImage({ url: cardUrl!, title: `${selectedReg.name} — Institution ID Card` })}
+                            onClick={() => setPreviewImage({ url: cardUrl!, title: `${selectedReg.name} - Institution ID Card` })}
                             className="block relative h-44 w-full max-w-[240px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-xs cursor-pointer text-left focus:outline-none"
                           >
                             <img 
@@ -1077,7 +1074,7 @@ export default function Registrations() {
                           </button>
                           <button 
                             type="button"
-                            onClick={() => setPreviewImage({ url: cardUrl!, title: `${selectedReg.name} — Institution ID Card` })}
+                            onClick={() => setPreviewImage({ url: cardUrl!, title: `${selectedReg.name} - Institution ID Card` })}
                             className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer"
                           >
                             <Maximize2 size={12} />
@@ -1197,7 +1194,7 @@ export default function Registrations() {
                                     <div className="space-y-1.5">
                                       <button 
                                         type="button"
-                                        onClick={() => setPreviewImage({ url: memberCardUrl, title: `${m.name} — Institution ID Card` })}
+                                        onClick={() => setPreviewImage({ url: memberCardUrl, title: `${m.name} - Institution ID Card` })}
                                         className="block relative h-40 w-full max-w-xs overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-xs cursor-pointer text-left focus:outline-none"
                                       >
                                         <img 
@@ -1224,7 +1221,7 @@ export default function Registrations() {
                                       </button>
                                       <button 
                                         type="button"
-                                        onClick={() => setPreviewImage({ url: memberCardUrl, title: `${m.name} — Institution ID Card` })}
+                                        onClick={() => setPreviewImage({ url: memberCardUrl, title: `${m.name} - Institution ID Card` })}
                                         className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer"
                                       >
                                         <Maximize2 size={12} />

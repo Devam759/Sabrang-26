@@ -515,7 +515,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   },
   {
     id: "pronite_outsider",
-    title: "PRO-NITE & Concert (All 3 Days) – Outsiders",
+    title: "PRO-NITE & Concert (All 3 Days) - Outsiders",
     subtitle: "Full-day access for all 3 days, including PRO-NITE & Concert",
     category: "General Entry",
     minTeam: 1,
@@ -530,7 +530,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   },
   {
     id: "pronite_jklu",
-    title: "PRO-NITE & Concert (All 3 Days) – JKLU",
+    title: "PRO-NITE & Concert (All 3 Days) - JKLU",
     subtitle: "Full-day access for all 3 days, including PRO-NITE & Concert",
     category: "General Entry",
     minTeam: 1,
@@ -540,8 +540,6 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     extraMemberFee: 0,
     isTeam: false,
     type: "generic",
-    earlyBirdPricingLabel: "₹199 per pass",
-    earlyBirdPrice: 199,
     pricingLabel: "₹299 per pass",
     prizes: { remarks: "JKLU student pass (Valid for all 3 days)" },
   }

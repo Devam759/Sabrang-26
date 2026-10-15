@@ -143,7 +143,7 @@ export default function EventManagement() {
                     <td className="p-4 font-medium">{evt.title}</td>
                     <td className="p-4 capitalize">{evt.category}</td>
                     <td className="p-4 text-sm">
-                      {evt.date instanceof Timestamp ? evt.date.toDate().toLocaleDateString() : new Date(evt.date).toLocaleDateString()} at {evt.time}
+                      {evt.date instanceof Timestamp ? evt.date.toDate().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : new Date(evt.date).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })} at {evt.time}
                     </td>
                     <td className="p-4 text-sm">{evt.venue}</td>
                     <td className="p-4">

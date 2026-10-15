@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   images: {
     // Serve AVIF first (≈40% smaller than WebP for photos), then WebP as fallback.
     formats: ["image/avif", "image/webp"],
-    // Quality 90 removed — 85 is visually indistinguishable for festival photography.
+    // Quality 90 removed - 85 is visually indistinguishable for festival photography.
     qualities: [65, 75, 85],
     // Cache optimised variants on the CDN for 30 days. Without this, Vercel re-optimises
     // on every cold request after the default short TTL expires.
