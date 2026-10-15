@@ -2066,10 +2066,10 @@ export default function CheckoutForm() {
       </div>
       ) : (
         /* Verification Status / Result Screen when redirected back from Cashfree */
-        <div className="flex-grow flex items-center justify-center w-full py-12">
-          <div className="w-full max-w-2xl bg-[#0c0c0e] border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="flex-grow flex items-center justify-center w-full py-8 sm:py-12">
+          <div className="w-full max-w-2xl bg-[#0c0c0e] border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
             {verificationStatus === "verifying" && (
-              <div className="py-12 px-6 text-center space-y-6 max-w-md mx-auto">
+              <div className="py-10 px-4 sm:px-6 text-center space-y-6 max-w-md mx-auto">
                 <div className="w-16 h-16 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center mx-auto">
                   <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
                 </div>
@@ -2083,7 +2083,7 @@ export default function CheckoutForm() {
             )}
 
             {verificationStatus === "success" && verifiedOrder && (
-              <div className="py-8 px-6 text-center space-y-6 max-w-lg mx-auto">
+              <div className="py-6 sm:py-8 px-1 sm:px-6 text-center space-y-6 max-w-lg mx-auto">
                 <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(16,185,129,0.3)]">
                   <CheckCircle2 className="w-10 h-10 text-emerald-400" />
                 </div>
@@ -2097,19 +2097,25 @@ export default function CheckoutForm() {
                   </p>
                 </div>
 
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5 text-left space-y-3 font-sans text-sm">
-                  <div className="flex justify-between border-b border-white/10 pb-3">
-                    <span className="text-white/50">Order ID:</span>
-                    <span className="text-white font-medium">{verifiedOrder.orderId}</span>
+                <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4 sm:p-5 text-left space-y-3.5 font-sans text-sm backdrop-blur-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 border-b border-white/10 pb-3">
+                    <span className="text-white/50 text-xs sm:text-sm font-medium tracking-wide shrink-0">Order ID:</span>
+                    <span className="text-white font-mono text-xs sm:text-sm font-medium break-all sm:text-right select-all">
+                      {verifiedOrder.orderId}
+                    </span>
                   </div>
-                  <div className="flex justify-between border-b border-white/10 pb-3">
-                    <span className="text-white/50">Registration ID:</span>
-                    <span className="text-violet-300 font-medium">{verifiedOrder.registrationId}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 border-b border-white/10 pb-3">
+                    <span className="text-white/50 text-xs sm:text-sm font-medium tracking-wide shrink-0">Registration ID:</span>
+                    <span className="text-violet-300 font-mono text-xs sm:text-sm font-semibold break-all sm:text-right select-all">
+                      {verifiedOrder.registrationId}
+                    </span>
                   </div>
                   {verifiedOrder.email && (
-                    <div className="flex justify-between">
-                      <span className="text-white/50">Pass Delivered To:</span>
-                      <span className="text-white/90">{verifiedOrder.email}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 pt-0.5">
+                      <span className="text-white/50 text-xs sm:text-sm font-medium tracking-wide shrink-0">Pass Delivered To:</span>
+                      <span className="text-white/90 font-sans text-xs sm:text-sm font-medium break-all sm:text-right select-all">
+                        {verifiedOrder.email}
+                      </span>
                     </div>
                   )}
                 </div>
