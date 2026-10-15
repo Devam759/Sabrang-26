@@ -205,7 +205,7 @@ export default function CheckoutForm() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
-  const [verifiedOrder, setVerifiedOrder] = useState<{ orderId: string; registrationId: string; email?: string } | null>(null);
+  const [verifiedOrder, setVerifiedOrder] = useState<{ orderId: string; registrationId: string; email?: string; token?: string } | null>(null);
 
   const verifyOrderPayment = useCallback(async (orderId: string) => {
     setVerificationStatus("verifying");
@@ -226,7 +226,21 @@ export default function CheckoutForm() {
           orderId,
           registrationId: data.id,
           email: data.email,
+          token: data.token,
         });
+
+        // Safely strip ?order_id=... from the browser address bar so page refreshes do not re-request verification
+        if (typeof window !== "undefined" && window.history?.replaceState) {
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("order_id");
+            const newSearch = url.searchParams.toString();
+            const newUrl = url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash;
+            window.history.replaceState({}, document.title, newUrl);
+          } catch {
+            // Non-critical fallback
+          }
+        }
       } else {
         setVerificationStatus("error");
         setPaymentError(data.error || "Payment verification failed or was cancelled.");
@@ -331,8 +345,8 @@ export default function CheckoutForm() {
         throw new Error(data?.error || `Server error (${res.status}). Please try again.`);
       }
 
-      // If mock mode (e.g. Free pass / 100% coupon discount)
-      if (data.is_mock) {
+      // If zero-amount order (e.g. Free pass / 100% coupon discount) or mock mode
+      if (data.is_zero_amount || data.is_mock) {
         await verifyOrderPayment(data.order_id);
         setIsProcessingPayment(false);
         return;
@@ -2222,7 +2236,7 @@ export default function CheckoutForm() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                   <a
-                    href={`/api/receipt?id=${encodeURIComponent(verifiedOrder.registrationId)}`}
+                    href={`/api/receipt?id=${encodeURIComponent(verifiedOrder.registrationId)}&order_id=${encodeURIComponent(verifiedOrder.orderId)}${verifiedOrder.token ? `&token=${encodeURIComponent(verifiedOrder.token)}` : ''}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-6 py-3.5 bg-violet-600 hover:bg-violet-500 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)] transition-all"

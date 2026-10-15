@@ -118,13 +118,11 @@ export const cashfreeSecretKey = isProd
 export function verifyCashfreeSignature(signature: string, rawBody: string, timestamp: string): boolean {
   const secretKey = cashfreeSecretKey;
   if (!secretKey) {
-    console.warn("Cashfree Secret Key missing in environment variables.");
-    if (isProd || process.env.NODE_ENV === 'production') {
-      console.error("Signature verification failed: Cashfree Secret Key is missing in production.");
-      return false;
-    }
-    console.warn("Signature verification bypassed (non-production environment).");
-    return true;
+    console.error("Signature verification failed: Cashfree Secret Key is missing.");
+    return false;
+  }
+  if (!signature || !timestamp || !rawBody) {
+    return false;
   }
   
   const data = timestamp + rawBody;
@@ -138,6 +136,53 @@ export function verifyCashfreeSignature(signature: string, rawBody: string, time
     const expectedBuf = Buffer.from(computedSignature, 'base64');
     const receivedBuf = Buffer.from(signature, 'base64');
     return expectedBuf.length === receivedBuf.length && crypto.timingSafeEqual(expectedBuf, receivedBuf);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Secret used for signing receipt download tokens.
+ * Falls back to Cashfree secret or an environment-specific key.
+ */
+const receiptSigningSecret = process.env.RECEIPT_SIGNING_SECRET || cashfreeSecretKey || 'sabrang_receipt_token_signing_secret_2026';
+
+/**
+ * Creates a cryptographically signed HMAC token for authorized receipt downloads.
+ * Scoped to the specific registrationId and orderId, with an expiration timestamp.
+ */
+export function createReceiptToken(registrationId: string, orderId: string, expiresInHours: number = 72): string {
+  const expiresAt = Date.now() + expiresInHours * 60 * 60 * 1000;
+  const payload = `${registrationId}:${orderId}:${expiresAt}`;
+  const signature = crypto
+    .createHmac('sha256', receiptSigningSecret)
+    .update(payload)
+    .digest('hex');
+  return `${expiresAt}.${signature}`;
+}
+
+/**
+ * Verifies a receipt download token against the given registrationId and orderId.
+ */
+export function verifyReceiptToken(token: string, registrationId: string, orderId: string): boolean {
+  if (!token || typeof token !== 'string' || !registrationId || !orderId) return false;
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+  const [expiresAtStr, signature] = parts;
+  const expiresAt = parseInt(expiresAtStr, 10);
+  if (isNaN(expiresAt) || Date.now() > expiresAt) {
+    return false; // Token expired
+  }
+  const payload = `${registrationId}:${orderId}:${expiresAt}`;
+  const expectedSig = crypto
+    .createHmac('sha256', receiptSigningSecret)
+    .update(payload)
+    .digest('hex');
+
+  try {
+    const expectedBuf = Buffer.from(expectedSig, 'hex');
+    const actualBuf = Buffer.from(signature, 'hex');
+    return expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf);
   } catch {
     return false;
   }
@@ -167,5 +212,6 @@ export function maskEmail(email: string): string {
   if (name.length <= 2) return `***@${domain}`;
   return `${name[0]}***${name[name.length - 1]}@${domain}`;
 }
+
 
 

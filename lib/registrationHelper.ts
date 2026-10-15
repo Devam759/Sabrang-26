@@ -389,6 +389,8 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   const basePrice = Number(formData.amount || formData.price || formData.originalPrice || 500);
   let paymentAmount = basePrice;
   const couponCode = (formData.coupon || '').trim().toLowerCase();
+  let couponDocRef: any = null;
+
   if (couponCode) {
     try {
       let docSnap = await adminDb.collection('coupons').doc(couponCode).get();
@@ -409,6 +411,7 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
         });
         if (res.valid) {
           paymentAmount = res.finalPrice;
+          couponDocRef = docSnap.ref;
         }
       }
     } catch (err) {
@@ -433,48 +436,108 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   const parentPhone = (formData.parentPhone || formData.fatherMobile || formData.motherMobile || 'N/A').trim() || 'N/A';
   const parentEmail = (formData.parentEmail || formData.fatherEmail || formData.motherEmail || 'N/A').trim() || 'N/A';
   
-  // 1. Prevent duplicate database entries using an atomic lock
-  let docId = "";
+  // 1. Establish or retrieve canonical registration ID for this order
   const lockRef = adminDb.collection('registrationLocks').doc(orderId);
-  try {
-    await lockRef.create({ lockedAt: FieldValue.serverTimestamp() });
-    
-    const ownRoll = formData.registrationNumber || formData.rollNumber;
+  const pendingRef = adminDb.collection('pendingRegistrations').doc(orderId);
 
-    // Robust resolution of primary idCard from formData top level or team members
-    let resolvedIdCard = typeof formData.idCard === 'string' && formData.idCard.trim() ? formData.idCard.trim() : null;
-    if (!resolvedIdCard && formData.teamMembers && typeof formData.teamMembers === 'object') {
-      for (const group of Object.keys(formData.teamMembers)) {
-        const members = Array.isArray(formData.teamMembers[group]) ? formData.teamMembers[group] : [];
-        for (const m of members) {
-          if (m && typeof m.idCard === 'string' && m.idCard.trim()) {
-            resolvedIdCard = m.idCard.trim();
-            break;
-          }
+  // Fast check: has this order already been finalized?
+  const existingLockSnap = await lockRef.get();
+  if (existingLockSnap.exists && existingLockSnap.data()?.registrationId) {
+    const existingDocId = existingLockSnap.data()!.registrationId;
+    console.log(`Order ${orderId} already finalized with registration ID: ${existingDocId}`);
+    return existingDocId;
+  }
+
+  const existingPendingSnap = await pendingRef.get();
+  if (existingPendingSnap.exists && existingPendingSnap.data()?.status === 'completed' && existingPendingSnap.data()?.registrationId) {
+    const existingDocId = existingPendingSnap.data()!.registrationId;
+    console.log(`Order ${orderId} already completed in pendingRegistrations with ID: ${existingDocId}`);
+    // Backfill lock for consistency
+    await lockRef.set({
+      lockedAt: FieldValue.serverTimestamp(),
+      registrationId: existingDocId,
+      status: 'completed'
+    }, { merge: true });
+    return existingDocId;
+  }
+
+  // Backward compatibility: check if existing registration already exists in `registrations` with this orderId
+  const existingQuery = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
+  if (!existingQuery.empty) {
+    const existingDocId = existingQuery.docs[0].id;
+    console.log(`Order ${orderId} found in existing registrations query with ID: ${existingDocId}. Linking lock.`);
+    await lockRef.set({
+      lockedAt: FieldValue.serverTimestamp(),
+      registrationId: existingDocId,
+      status: 'completed'
+    }, { merge: true });
+    if (existingPendingSnap.exists) {
+      await pendingRef.update({
+        status: 'completed',
+        registrationId: existingDocId,
+        completedAt: FieldValue.serverTimestamp()
+      });
+    }
+    return existingDocId;
+  }
+
+  // Robust resolution of primary idCard from formData top level or team members
+  let resolvedIdCard = typeof formData.idCard === 'string' && formData.idCard.trim() ? formData.idCard.trim() : null;
+  if (!resolvedIdCard && formData.teamMembers && typeof formData.teamMembers === 'object') {
+    for (const group of Object.keys(formData.teamMembers)) {
+      const members = Array.isArray(formData.teamMembers[group]) ? formData.teamMembers[group] : [];
+      for (const m of members) {
+        if (m && typeof m.idCard === 'string' && m.idCard.trim()) {
+          resolvedIdCard = m.idCard.trim();
+          break;
         }
-        if (resolvedIdCard) break;
+      }
+      if (resolvedIdCard) break;
+    }
+  }
+
+  // Clean up team member idCard fields so Firestore never stores `{}` as an empty object
+  const cleanedTeamMembers = formData.teamMembers ? { ...formData.teamMembers } : {};
+  if (typeof cleanedTeamMembers === 'object') {
+    for (const group of Object.keys(cleanedTeamMembers)) {
+      if (Array.isArray(cleanedTeamMembers[group])) {
+        cleanedTeamMembers[group] = cleanedTeamMembers[group].map((m: any) => {
+          if (!m) return m;
+          const cardVal = typeof m.idCard === 'string' && m.idCard.trim() ? m.idCard.trim() : (m.idCard?.url || null);
+          return {
+            ...m,
+            idCard: cardVal,
+          };
+        });
       }
     }
+  }
 
-    // Clean up team member idCard fields so Firestore never stores `{}` as an empty object
-    const cleanedTeamMembers = formData.teamMembers ? { ...formData.teamMembers } : {};
-    if (typeof cleanedTeamMembers === 'object') {
-      for (const group of Object.keys(cleanedTeamMembers)) {
-        if (Array.isArray(cleanedTeamMembers[group])) {
-          cleanedTeamMembers[group] = cleanedTeamMembers[group].map((m: any) => {
-            if (!m) return m;
-            const cardVal = typeof m.idCard === 'string' && m.idCard.trim() ? m.idCard.trim() : (m.idCard?.url || null);
-            return {
-              ...m,
-              idCard: cardVal,
-            };
-          });
-        }
-      }
+  const newRegRef = adminDb.collection('registrations').doc();
+  const newRegId = newRegRef.id;
+  let docId = "";
+
+  // Perform atomic claim and document creation inside a Firestore transaction
+  await adminDb.runTransaction(async (transaction) => {
+    // 1. ALL READS FIRST (Firestore requirement: all reads must precede any writes)
+    const lockDoc = await transaction.get(lockRef);
+    if (lockDoc.exists && lockDoc.data()?.registrationId) {
+      docId = lockDoc.data()!.registrationId;
+      return;
     }
 
-    // We got the lock! Save data to Firestore Registration Collection
-    const docRef = await adminDb.collection('registrations').add({
+    const pendingDoc = await transaction.get(pendingRef);
+    if (pendingDoc.exists && pendingDoc.data()?.status === 'completed' && pendingDoc.data()?.registrationId) {
+      docId = pendingDoc.data()!.registrationId;
+      return;
+    }
+
+    let couponDocSnap: FirebaseFirestore.DocumentSnapshot | null = null;
+    if (couponDocRef) {
+      couponDocSnap = await transaction.get(couponDocRef as FirebaseFirestore.DocumentReference);
+    }
+
+    const regData = {
       ...formData,
       idCard: resolvedIdCard,
       teamMembers: cleanedTeamMembers,
@@ -502,55 +565,45 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       emailSentAt: null,
       emailError: null,
       registeredAt: FieldValue.serverTimestamp(),
-    });
-    docId = docRef.id;
-    console.log("Registration saved. Firestore ID:", docId);
-  } catch (err: any) {
-    if (err.code === 6 || err.message?.includes('ALREADY_EXISTS')) {
-      console.log(`Database lock exists for order ${orderId}. Fetching existing ID...`);
-      // Wait for the other process to finish writing the actual registration
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const existingRegQuery = await adminDb.collection('registrations').where('orderId', '==', orderId).get();
-      if (!existingRegQuery.empty) {
-        docId = existingRegQuery.docs[0].id;
-      } else {
-        console.warn("Database lock existed but registration not found. Creating fallback registration document...");
-        const ownRoll = formData.registrationNumber || formData.rollNumber;
+    };
 
-        const docRef = await adminDb.collection('registrations').add({
-          ...formData,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.mobile,
-          rollNumber: formData.registrationNumber,
-          gender: formData.gender || 'N/A',
-          course: formData.course || 'N/A',
-          pincode: formData.pincode || (formData.address ? (formData.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A'),
-          region: formData.region || 'N/A',
-          city: formData.city || 'N/A',
-          parentName: parentName,
-          parentPhone: parentPhone,
-          parentEmail: parentEmail,
-          paymentAmount: paymentAmount,
-          receivedAmount: paymentAmount,
-          dateOfPayment: dateOfPayment,
-          dateGroup: dateGroup,
-          hasEntered: false,
-          paymentId: paymentId,
-          orderId: orderId,
-          sheetSynced: false,
-          emailSent: false,
-          emailSentAt: null,
-          emailError: null,
-          registeredAt: FieldValue.serverTimestamp(),
-        });
-        docId = docRef.id;
-        console.log("Registration saved via lock fallback. Firestore ID:", docId);
-      }
+    // 2. ALL WRITES AFTER READS
+    transaction.set(newRegRef, regData);
+    transaction.set(lockRef, {
+      lockedAt: FieldValue.serverTimestamp(),
+      registrationId: newRegId,
+      status: 'completed'
+    });
+
+    if (pendingDoc.exists) {
+      transaction.update(pendingRef, {
+        status: 'completed',
+        registrationId: newRegId,
+        completedAt: FieldValue.serverTimestamp()
+      });
+    }
+
+    if (couponDocSnap && couponDocSnap.exists) {
+      transaction.update(couponDocRef as FirebaseFirestore.DocumentReference, {
+        usedCount: FieldValue.increment(1)
+      });
+    }
+
+    docId = newRegId;
+  });
+
+  if (!docId) {
+    // Bounded fallback in the rare event transaction returned without setting docId
+    const finalCheck = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
+    if (!finalCheck.empty) {
+      docId = finalCheck.docs[0].id;
     } else {
-      throw err;
+      throw new Error(`Failed to establish or retrieve canonical registration for order ${orderId}`);
     }
   }
+
+  console.log("Canonical registration finalized. Firestore ID:", docId);
+
 
   // 2. Delegate background tasks
   if (skipBackgroundTasks) {

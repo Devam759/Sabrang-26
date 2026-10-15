@@ -1333,7 +1333,7 @@ export default function Registrations() {
                   Resend Confirmation Email
                 </button>
                 <a 
-                  href={`/api/receipt?id=${selectedReg.id}`}
+                  href={`/api/receipt?id=${selectedReg.id}&order_id=${selectedReg.orderId || ''}`}
                   download
                   className="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center shadow-sm"
                 >
