@@ -264,11 +264,11 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
 
 
 // ============================================================================
-// BREVO EMAIL NOTIFICATION helper (Transactional Email via REST API)
+// TRANSACTIONAL EMAIL NOTIFICATION helper (Primary Brevo + Fallback Mailjet)
 // ============================================================================
 
 export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) {
-  const { sendBrevoEmail } = await import('./brevo');
+  const { sendTransactionalEmail } = await import('./emailService');
 
   // Use absolute URLs for images to prevent Gmail from clipping the email (Base64 strings are too large)
   const sabrangLogoTag = `<img src="https://res.cloudinary.com/eprhemvt/image/upload/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang '26 Logo" style="max-height: 70px; width: auto; display: block;" />`;
@@ -339,32 +339,26 @@ export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) 
 
   const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
 
-  const maxRetries = 2;
-  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
-    try {
-      const result = await sendBrevoEmail({
-        to: [{ email: to, name }],
-        subject: 'Welcome to Sabrang 2026 - Registration Confirmed!',
-        htmlContent,
-        textContent: `Hi ${name}, your registration for Sabrang 2026 is confirmed! Your receipt is attached.`,
-        attachment: [
-          {
-            content: pdfBase64,
-            name: 'Sabrang_Registration_Receipt.pdf',
-          },
-        ],
-      });
-      if (result.success) {
-        console.log(`[Brevo] Registration email sent on attempt ${attempt}. MessageId:`, result.messageId);
-        return;
-      }
-      throw new Error(result.error || 'Brevo send failed');
-    } catch (err) {
-      console.warn(`[Brevo] sendEmail attempt ${attempt} failed:`, err);
-      if (attempt > maxRetries) throw err;
-      await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-    }
+  const result = await sendTransactionalEmail({
+    to: [{ email: to, name }],
+    subject: 'Welcome to Sabrang 2026 - Registration Confirmed!',
+    htmlContent,
+    textContent: `Hi ${name}, your registration for Sabrang 2026 is confirmed! Your receipt is attached.`,
+    attachment: [
+      {
+        content: pdfBase64,
+        name: 'Sabrang_Registration_Receipt.pdf',
+        contentType: 'application/pdf',
+      },
+    ],
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to send confirmation email via configured email providers');
   }
+
+  console.log(`[EmailService] Registration email delivered via ${result.provider}. MessageId: ${result.messageId}`);
+  return result;
 }
 
 export async function sendSystemErrorEmail(performedBy: string, targetEntity: string, details: string) {
@@ -564,6 +558,10 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       emailSent: false,
       emailSentAt: null,
       emailError: null,
+      emailProvider: null,
+      emailProviderMessageId: null,
+      emailAttemptCount: 0,
+      lastEmailAttemptAt: null,
       registeredAt: FieldValue.serverTimestamp(),
     };
 
@@ -633,24 +631,41 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       const isProduction = process.env.NODE_ENV === 'production' || 
                            (process.env.NEXT_PUBLIC_CASHFREE_ENV || '').trim().toUpperCase() === 'PRODUCTION';
       console.log("Attempting to send confirmation email to:", isProduction ? maskEmail(formData.email) : formData.email);
-      await sendEmail(formData.email, formData.name, pdfBytes);
-      console.log("Email sent successfully.");
+      const emailResult = await sendEmail(formData.email, formData.name, pdfBytes);
+      console.log(`Email sent successfully via ${emailResult.provider}.`);
 
       if (docId) {
         await adminDb.collection('registrations').doc(docId).update({
           emailSent: true,
           emailSentAt: FieldValue.serverTimestamp(),
-          emailError: null
+          emailError: null,
+          emailProvider: emailResult.provider,
+          emailProviderMessageId: emailResult.messageId || null,
+          emailAttemptCount: FieldValue.increment(1),
+          lastEmailAttemptAt: FieldValue.serverTimestamp(),
         }).catch(err => console.error("Failed to update emailSent status in Firestore:", err));
       }
     } catch (emailError: any) {
       console.error("Email generation/delivery failed:", emailError);
       
       if (docId) {
-        await adminDb.collection('registrations').doc(docId).update({
-          emailSent: false,
-          emailError: emailError.message || String(emailError)
-        }).catch(err => console.error("Failed to update emailError status in Firestore:", err));
+        // Prevent concurrent race overwriting a successful delivery with stale failure
+        try {
+          const freshSnap = await adminDb.collection('registrations').doc(docId).get();
+          if (freshSnap.exists && freshSnap.data()?.emailSent === true) {
+            console.log(`[RegistrationHelper] Doc ${docId} already has emailSent=true; skipping overwrite.`);
+          } else {
+            await adminDb.collection('registrations').doc(docId).update({
+              emailSent: false,
+              emailError: emailError.message || String(emailError),
+              emailProvider: 'none',
+              emailAttemptCount: FieldValue.increment(1),
+              lastEmailAttemptAt: FieldValue.serverTimestamp(),
+            });
+          }
+        } catch (dbErr) {
+          console.error("Failed to update emailError status in Firestore:", dbErr);
+        }
       }
 
 

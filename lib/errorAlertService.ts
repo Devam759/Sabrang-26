@@ -46,17 +46,18 @@ export function sanitizeErrorDetails(input: string | null | undefined): string {
 /**
  * Sends an error alert email via Brevo.
  */
-async function sendAlertEmail(to: { email: string; name?: string }[], subject: string, htmlContent: string, textContent: string): Promise<void> {
-  const { sendBrevoEmail } = await import('./brevo');
-  const result = await sendBrevoEmail({
+async function sendAlertEmail(to: { email: string; name?: string }[], subject: string, htmlContent: string, textContent: string): Promise<string> {
+  const { sendTransactionalEmail } = await import('./emailService');
+  const result = await sendTransactionalEmail({
     to,
     subject,
     htmlContent,
     textContent,
   });
   if (!result.success) {
-    throw new Error(result.error || 'Brevo alert dispatch failed');
+    throw new Error(result.error || 'Alert email dispatch failed');
   }
+  return result.provider;
 }
 
 /**
@@ -208,8 +209,8 @@ Stack Trace:
 ${cleanStack.substring(0, 1000)}
     `.trim();
 
-    await sendAlertEmail(toList, subject, htmlContent, textContent);
-    console.log(`[ErrorAlertService] Error notification email sent successfully to ${recipientSummary} for Error ID: ${errorId}`);
+    const provider = await sendAlertEmail(toList, subject, htmlContent, textContent);
+    console.log(`[ErrorAlertService] Error notification email sent successfully via ${provider} to ${recipientSummary} for Error ID: ${errorId}`);
 
     // Update Firestore error record notification status if errorId exists
     if (errorId !== 'N/A' && adminDb) {
@@ -228,7 +229,7 @@ ${cleanStack.substring(0, 1000)}
     if (payload.errorId && payload.errorId !== 'N/A' && adminDb) {
       adminDb.collection('systemErrors').doc(payload.errorId).update({
         notificationStatus: 'FAILED',
-        notificationError: (sendErr as any)?.message || 'Brevo dispatch failed',
+        notificationError: (sendErr as any)?.message || 'Email alert dispatch failed',
       }).catch(() => {});
     }
 

@@ -99,31 +99,14 @@ export async function sendCheckInEmail(
 ) {
   console.log(`Preparing to send check-in email to ${toEmail} for batch ${batchName}...`);
 
-  const { sendBrevoEmail } = await import('./brevo');
+  const { sendTransactionalEmail } = await import('./emailService');
 
   const cohort = getStudentCohort(appNumber);
   const leaderDetails = cohort ? getCohortLeaderDetails(cohort) : null;
 
-  // Load logos as base64 for inline embedding
-  let sabrangLogoBase64: string | undefined;
-  let jkluLogoBase64: string | undefined;
-  try {
-    const sabrangPath = path.join(process.cwd(), 'public', 'sabrang-logo', 'Sabrang_Logo.png');
-    sabrangLogoBase64 = (await fs.readFile(sabrangPath)).toString('base64');
-
-    const jkluPath = path.join(process.cwd(), 'public', 'sabrang-logo', 'jklu_logo.png');
-    jkluLogoBase64 = (await fs.readFile(jkluPath)).toString('base64');
-  } catch (err) {
-    console.warn('Failed to load branding logos for check-in email:', err);
-  }
-
-  const sabrangLogoTag = sabrangLogoBase64
-    ? `<img src="data:image/png;base64,${sabrangLogoBase64}" alt="Sabrang '26 Logo" style="max-height: 70px; width: auto; display: block;" />`
-    : `<span style="font-size: 20px; font-weight: bold; color: #7C3AED;">SABRANG 2026</span>`;
-
-  const jkluLogoTag = jkluLogoBase64
-    ? `<img src="data:image/png;base64,${jkluLogoBase64}" alt="JKLU Logo" style="max-height: 55px; width: auto; display: block;" />`
-    : `<span style="font-size: 13px; font-weight: 700; color: #333;">JKLU</span>`;
+  // Use absolute Cloudinary URLs for branding logos to prevent Gmail from clipping the email (Base64 strings are too large)
+  const sabrangLogoTag = `<img src="https://res.cloudinary.com/eprhemvt/image/upload/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang '26 Logo" style="max-height: 70px; width: auto; display: block;" />`;
+  const jkluLogoTag = `<img src="https://res.cloudinary.com/eprhemvt/image/upload/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png" alt="JKLU Logo" style="max-height: 55px; width: auto; display: block;" />`;
 
   const safeName = htmlEscape(studentName);
   const safeAppNum = htmlEscape(appNumber);
@@ -201,7 +184,7 @@ export async function sendCheckInEmail(
     </html>
   `;
 
-  const result = await sendBrevoEmail({
+  const result = await sendTransactionalEmail({
     to: [{ email: toEmail, name: studentName }],
     subject,
     htmlContent,
@@ -209,7 +192,7 @@ export async function sendCheckInEmail(
   });
 
   if (!result.success) {
-    throw new Error(`[Brevo] Check-in email failed for ${toEmail}: ${result.error}`);
+    throw new Error(`[EmailService] Check-in email failed for ${toEmail}: ${result.error}`);
   }
-  console.log(`[Brevo] Check-in email sent successfully to ${toEmail}.`);
+  console.log(`[EmailService] Check-in email sent successfully to ${toEmail} via ${result.provider}.`);
 }
