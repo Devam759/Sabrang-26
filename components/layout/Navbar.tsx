@@ -44,17 +44,8 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    let lastY = window.scrollY;
-    const handleScroll = () => {
-      const y = window.scrollY;
-      if (y <= 20) setIsVisible(true);
-      else if (y > lastY && y > 60) setIsVisible(false);
-      else if (y < lastY) setIsVisible(true);
-      lastY = y;
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Keep navbar always visible so Menu bar is never lost during scrolling
+    setIsVisible(true);
   }, []);
 
   useEffect(() => {

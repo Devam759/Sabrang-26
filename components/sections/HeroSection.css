@@ -40,8 +40,10 @@
 }
 
 .hero-info .hero-date {
+    font-family: 'FlorasDisplay', serif;
     opacity: 1;
     font-weight: 700;
+    letter-spacing: 0.25em;
     color: var(--color-white);
 }
 

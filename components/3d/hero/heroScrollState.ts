@@ -24,7 +24,7 @@ export const heroScrollState = {
  */
 /** Viewport heights of scroll the whole pinned hero sequence spans. Raise to slow
  * every phase down, lower to speed them up -- it is the only pacing knob. */
-export const HERO_PIN_VH = 0.5
+export const HERO_PIN_VH = 1.0
 
 export const HERO_PIN_END = () => '+=' + window.innerHeight * HERO_PIN_VH
 
