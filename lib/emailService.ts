@@ -93,6 +93,43 @@ export function getMailjetConfig() {
 }
 
 /**
+ * In-memory cache for Brevo available credits to prevent silent background queue drops
+ */
+let cachedBrevoCredits: { credits: number; expiresAt: number } | null = null;
+
+export async function getBrevoAvailableCredits(apiKey: string): Promise<number | null> {
+  const now = Date.now();
+  if (cachedBrevoCredits && cachedBrevoCredits.expiresAt > now) {
+    return cachedBrevoCredits.credits;
+  }
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/account", {
+      headers: { "api-key": apiKey },
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const freePlan = data.plan?.find((p: any) => p.creditsType === 'sendLimit' || p.type === 'free');
+    const credits = freePlan ? freePlan.credits : (data.plan?.[0]?.credits ?? null);
+
+    if (typeof credits === 'number') {
+      cachedBrevoCredits = { credits, expiresAt: now + 60 * 1000 };
+      return credits;
+    }
+    return null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+export function setBrevoCreditsExhausted() {
+  cachedBrevoCredits = { credits: 0, expiresAt: Date.now() + 15 * 60 * 1000 };
+}
+
+/**
  * Dispatches an email through Brevo REST API v3.
  * Returns success only when Brevo confirms acceptance (messageId returned).
  */
@@ -378,39 +415,50 @@ export async function sendTransactionalEmail(payload: EmailPayload): Promise<Ema
   // 1. Primary Attempt: Brevo
   let brevoError = '';
   if (brevoConfig.apiKey) {
-    attemptedProviders.push('brevo');
-    console.log(`[EmailService] Attempting primary delivery via Brevo to ${payload.to.map(r => r.email).join(', ')}...`);
+    // Proactively verify Brevo available sending credits to prevent silent background queue drops
+    const availableCredits = await getBrevoAvailableCredits(brevoConfig.apiKey);
+    if (availableCredits !== null && availableCredits <= 0) {
+      console.warn(`[EmailService] Brevo account has 0 credits remaining. Proactively skipping directly to Mailjet.`);
+      brevoError = 'Brevo daily credits exhausted (0 remaining)';
+    } else {
+      attemptedProviders.push('brevo');
+      console.log(`[EmailService] Attempting primary delivery via Brevo to ${payload.to.map(r => r.email).join(', ')}...`);
 
-    const brevoResult = await sendBrevoProvider(payload);
+      const brevoResult = await sendBrevoProvider(payload);
 
-    if (brevoResult.success) {
-      console.log(`[EmailService] Brevo accepted message. MessageID: ${brevoResult.messageId}`);
-      return {
-        success: true,
-        provider: 'brevo',
-        messageId: brevoResult.messageId,
-        attemptedProviders,
-      };
-    }
+      if (brevoResult.success) {
+        console.log(`[EmailService] Brevo accepted message. MessageID: ${brevoResult.messageId}`);
+        return {
+          success: true,
+          provider: 'brevo',
+          messageId: brevoResult.messageId,
+          attemptedProviders,
+        };
+      }
 
-    brevoError = brevoResult.error || 'Unknown Brevo failure';
-    console.warn(`[EmailService] Brevo delivery failed: ${brevoError}`);
+      brevoError = brevoResult.error || 'Unknown Brevo failure';
+      console.warn(`[EmailService] Brevo delivery failed: ${brevoError}`);
 
-    // Conservative Duplicate Email Prevention:
-    // If Brevo timed out waiting for an HTTP response, the message may already have been
-    // accepted by Brevo's queue. To prevent duplicate ticket delivery, do not immediately
-    // blast the fallback provider unless allowAmbiguousFallback is explicitly true.
-    if (brevoResult.isAmbiguous && !payload.allowAmbiguousFallback) {
-      console.warn(
-        `[EmailService] Ambiguous Brevo timeout detected. Withholding immediate fallback to prevent duplicate email delivery.`
-      );
-      return {
-        success: false,
-        provider: 'none',
-        error: `Brevo delivery timeout (ambiguous acceptance; fallback withheld to prevent duplicate): ${brevoError}`,
-        attemptedProviders,
-        isAmbiguous: true,
-      };
+      if (brevoError.toLowerCase().includes('credit') || brevoError.toLowerCase().includes('quota')) {
+        setBrevoCreditsExhausted();
+      }
+
+      // Conservative Duplicate Email Prevention:
+      // If Brevo timed out waiting for an HTTP response, the message may already have been
+      // accepted by Brevo's queue. To prevent duplicate ticket delivery, do not immediately
+      // blast the fallback provider unless allowAmbiguousFallback is explicitly true.
+      if (brevoResult.isAmbiguous && !payload.allowAmbiguousFallback) {
+        console.warn(
+          `[EmailService] Ambiguous Brevo timeout detected. Withholding immediate fallback to prevent duplicate email delivery.`
+        );
+        return {
+          success: false,
+          provider: 'none',
+          error: `Brevo delivery timeout (ambiguous acceptance; fallback withheld to prevent duplicate): ${brevoError}`,
+          attemptedProviders,
+          isAmbiguous: true,
+        };
+      }
     }
   } else {
     brevoError = 'BREVO_API_KEY not configured';
