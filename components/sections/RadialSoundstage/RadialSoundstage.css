@@ -1,0 +1,143 @@
+/* ==========================================================================
+   SABRANG 2026 — PRISMATIC SOUNDSTAGE (HAUTE COUTURE NOCTURNE)
+   ========================================================================== */
+
+.radial-soundstage-section {
+  position: relative;
+  width: 100%;
+  height: 360vh; /* Smooth continuous horizontal runway scroll distance */
+  margin-top: 0;
+  background: transparent;
+  color: #ffffff;
+}
+
+.radial-soundstage-viewport {
+  position: sticky;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: radial-gradient(circle at 50% 50%, #08080c 0%, #020204 100%);
+  contain: paint layout;
+}
+
+/* ── CONTINUOUS HORIZONTAL RUNWAY FILMSTRIP ── */
+.radial-runway-track {
+  display: flex;
+  width: 300vw;
+  height: 100%;
+  min-height: 0;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.radial-artist-panel {
+  width: 100vw;
+  height: 100%;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.radial-headline-display {
+  font-family: 'FlorasDisplay', serif !important;
+  font-weight: normal;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 0 35px rgba(255, 255, 255, 0.35), 0 0 80px rgba(255, 255, 255, 0.12);
+}
+
+.radial-headline-word {
+  display: inline-block;
+  letter-spacing: 0.05em;
+  margin-right: 0.18em;
+}
+
+/* Subtle cinematic noise overlay */
+.radial-noise-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Hide scrollbar for gallery filmstrip */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── 120FPS GPU BASS-PULSE KEYFRAME (ZERO REACT RE-RENDERS) ── */
+@keyframes radialSubBassPulse {
+  0%, 100% {
+    transform: scale(1, 1);
+  }
+  14% {
+    transform: scale(1.026, 1.01);
+  }
+  28% {
+    transform: scale(1, 1);
+  }
+  42% {
+    transform: scale(1.014, 1.006);
+  }
+  56% {
+    transform: scale(1, 1);
+  }
+}
+
+.radial-headline-pulse {
+  animation: radialSubBassPulse var(--beat-duration, 0.46s) cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  transform-origin: left bottom;
+  will-change: transform;
+}
+
+/* ── UNIFIED TYPOGRAPHIC SYSTEM ── */
+.radial-repertoire-track {
+  font-family: var(--font-space-grotesk), 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  transition: color 0.25s ease;
+}
+
+.radial-repertoire-track:hover {
+  color: #fde68a; /* amber-200 */
+}
+
+.radial-repertoire-movie {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.radial-eyebrow-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.radial-cta-btn {
+  font-family: 'FlorasDisplay', 'Space Grotesk', serif !important;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+
+

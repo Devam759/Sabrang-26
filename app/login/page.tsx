@@ -100,12 +100,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="admin-portal-scope min-h-screen bg-slate-50/70 text-slate-900 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans select-none">
+    <div className="admin-portal-scope min-h-[100dvh] bg-slate-50 text-slate-900 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans select-none">
       <LiquidBackground />
 
-      {/* Atmospheric Background Layer: Fine Engineering Grid */}
+      {/* Atmospheric Background Layer: Fine Engineering Grid (Desktop Only) */}
       <div 
-        className="fixed inset-0 pointer-events-none z-0 opacity-[0.45] mix-blend-multiply"
+        className="hidden md:block fixed inset-0 pointer-events-none z-0 opacity-[0.35] mix-blend-multiply"
         style={{
           backgroundImage: `
             linear-gradient(to right, rgba(99, 102, 241, 0.08) 1px, transparent 1px),
@@ -117,8 +117,8 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Vinyl Record Player Background Element */}
-      <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden">
+      {/* Vinyl Record Player Background Element - Desktop Only to ensure maximum mobile smoothness */}
+      <div className="hidden sm:flex fixed inset-0 pointer-events-none z-0 items-center justify-center overflow-hidden">
         {/* Spinning Vinyl Disc Container */}
         <div className="relative w-[780px] h-[780px] sm:w-[920px] sm:h-[920px] flex items-center justify-center animate-[spin_24s_linear_infinite]">
           {/* Vinyl Grooves Body (Concentric rings with record sheen) */}
@@ -194,26 +194,26 @@ export default function LoginPage() {
         <div className="absolute w-[460px] h-[460px] rounded-full bg-gradient-to-tr from-indigo-300/20 via-purple-300/20 to-pink-300/20 blur-3xl pointer-events-none" />
       </div>
 
-      {/* Main Glassmorphic Card */}
-      <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-2xl border border-white/90 rounded-[32px] p-7 sm:p-10 shadow-[0_24px_70px_rgba(15,23,42,0.08),0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-slate-900/[0.04] relative z-10 animate-in fade-in zoom-in-95 duration-300">
+      {/* Main Glassmorphic Card - Highly optimized for mobile */}
+      <div className="w-full max-w-[400px] bg-white/95 sm:bg-white/85 sm:backdrop-blur-xl border border-slate-200/90 rounded-3xl sm:rounded-[32px] p-6 sm:p-9 shadow-lg sm:shadow-[0_24px_70px_rgba(15,23,42,0.08)] relative z-10 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Top Branding Section */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <Link href="/" className="group mb-4 inline-block transition-transform duration-300 hover:scale-105 active:scale-95 focus:outline-none">
+        <div className="flex flex-col items-center text-center mb-6 sm:mb-8">
+          <Link href="/" className="group mb-3 inline-block transition-transform duration-200 active:scale-95 focus:outline-none">
             <img
               src="/sabrang-logo/Sabrang_Logo.png"
               alt="Sabrang 2026 Logo"
-              className="h-16 sm:h-20 w-auto object-contain drop-shadow-sm transition-all"
+              className="h-14 sm:h-18 w-auto object-contain drop-shadow-xs transition-all"
             />
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-space-grotesk">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-space-grotesk">
             Sabrang Portal
           </h1>
         </div>
 
         {/* Error Feedback Banner */}
         {error && (
-          <div className="mb-6 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs leading-relaxed font-semibold flex items-start gap-2.5 animate-in fade-in duration-200 shadow-xs">
+          <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs leading-relaxed font-semibold flex items-start gap-2.5 animate-in fade-in duration-200 shadow-xs">
             <AlertCircle size={16} className="shrink-0 mt-0.5 text-rose-600" />
             <span>{error}</span>
           </div>
@@ -236,7 +236,7 @@ export default function LoginPage() {
                 placeholder="coordinator@sabrang.org"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-2xl text-slate-900 placeholder:text-slate-400 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium"
+                className="w-full pl-10 pr-4 py-3 sm:py-3.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-2xl text-slate-900 placeholder:text-slate-400 text-base sm:text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium"
               />
             </div>
           </div>
@@ -256,7 +256,7 @@ export default function LoginPage() {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-11 py-3.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-2xl text-slate-900 placeholder:text-slate-400 text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium"
+                className="w-full pl-10 pr-11 py-3 sm:py-3.5 bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-2xl text-slate-900 placeholder:text-slate-400 text-base sm:text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium"
               />
               <button
                 type="button"

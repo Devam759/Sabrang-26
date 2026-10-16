@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import HeroSection from '@/components/sections/HeroSection'
 import HeroScene from '@/components/3d/hero/HeroScene'
-import ArtistReveal from '@/components/artist_reveal/ArtistReveal'
+import RadialSoundstage from '@/components/sections/RadialSoundstage/RadialSoundstage'
 import { heroScrollState } from '@/components/3d/hero/heroScrollState'
 import './hero-theme.css'
 
@@ -49,7 +49,7 @@ export default function HomeClient() {
       <Link
         ref={btnRef}
         href="/register"
-        className="register-now-btn group fixed bottom-8 right-6 md:right-10 z-[45] flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/25 hover:border-white/40 backdrop-blur-md px-5 py-2.5 md:px-6 md:py-3 rounded-full text-white text-[10px] md:text-[11px] font-bold tracking-widest uppercase shadow-[0_0_24px_rgba(255,255,255,0.08)] hover:shadow-[0_0_36px_rgba(255,255,255,0.18)] transition-all duration-300"
+        className="register-now-btn group fixed bottom-8 right-6 md:right-10 z-[45] flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/25 hover:border-white/40 backdrop-blur-md px-5 py-2.5 md:px-6 md:py-3 rounded-full text-white text-[10px] md:text-[11px] font-['FlorasDisplay',serif] font-bold tracking-widest uppercase shadow-[0_0_24px_rgba(255,255,255,0.08)] hover:shadow-[0_0_36px_rgba(255,255,255,0.18)] transition-all duration-300"
         style={{ willChange: 'opacity, transform' }}
       >
         REGISTER NOW
@@ -66,18 +66,11 @@ export default function HomeClient() {
         </svg>
       </Link>
 
-      <div className="relative w-full">
+      <div id="hero-scroll-track" className="relative w-full h-[200vh]">
         <HeroSection />
-
-        {/* Scroll Triggers (Main Hero Logic) - the pin adds the real scroll
-            length, see HERO_PIN_END. The page ends when the pin releases,
-            with PHASE_03 still on screen. */}
-        <div id="scroll-trigger" className="relative w-full z-10 pointer-events-none -mt-[100vh]">
-          <section className="h-[50vh] pointer-events-none" data-label="Zoom Phase" />
-        </div>
       </div>
 
-      <ArtistReveal />
+      <RadialSoundstage />
     </main>
   )
 }

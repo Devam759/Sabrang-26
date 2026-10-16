@@ -169,8 +169,8 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-6 gap-6 auto-rows-[minmax(180px,auto)]">
           
           {/* Revenue Bento (Wide) */}
-          <div className="md:col-span-4 bg-white backdrop-blur-[40px] border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
+          <div className="md:col-span-4 bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-300 overflow-hidden relative shadow-xs">
+            <div className="hidden sm:block absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 transition-all duration-500" />
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10">Total Collection</span>
             <div className="mt-6 sm:mt-8 relative z-10 flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl md:text-5xl font-light text-slate-500">₹</span>
@@ -179,11 +179,11 @@ export default function AdminDashboard() {
           </div>
 
           {/* Today's Revenue Bento (Square) */}
-          <div className="md:col-span-2 bg-white backdrop-blur-[40px] border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-50 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4 group-hover:bg-green-500/20 transition-all duration-700 ease-out" />
+          <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-300 overflow-hidden relative shadow-xs">
+            <div className="hidden sm:block absolute bottom-0 left-0 w-64 h-64 bg-green-50 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4 transition-all duration-500" />
             <div className="flex justify-between items-start relative z-10">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Today's Revenue</span>
-              <span className="text-[9px] px-2 py-1 bg-white border border-slate-200 rounded-full text-slate-600 tracking-widest">{todayFormatted}</span>
+              <span className="text-[9px] px-2 py-1 bg-slate-50 border border-slate-200 rounded-full text-slate-600 tracking-widest">{todayFormatted}</span>
             </div>
             <div className="mt-6 sm:mt-8 relative z-10 flex items-baseline gap-1">
               <span className="text-2xl font-light text-green-400/60">₹</span>
@@ -192,20 +192,20 @@ export default function AdminDashboard() {
           </div>
 
           {/* Registrations Bento */}
-          <div className="md:col-span-2 bg-white backdrop-blur-[40px] border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07]">
+          <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-300 shadow-xs">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Total Registrations</span>
             <div className="mt-6 sm:mt-8">
               <span className="text-4xl sm:text-5xl md:text-7xl font-light tracking-tighter text-slate-900 font-space-grotesk">{stats.totalRegistrations.toLocaleString('en-IN')}</span>
               <div className="mt-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                 <span className="text-[10px] text-slate-500 tracking-widest uppercase">+{stats.todayRegistrations} Today</span>
               </div>
             </div>
           </div>
 
           {/* Gate Entries Bento */}
-          <div className="md:col-span-4 bg-white backdrop-blur-[40px] border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
-            <div className="absolute top-1/2 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[70px] -translate-y-1/2 translate-x-1/4 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
+          <div className="md:col-span-4 bg-white border border-slate-200 rounded-2xl sm:rounded-[32px] p-6 sm:p-8 md:p-10 flex flex-col justify-between group transition-all duration-300 overflow-hidden relative shadow-xs">
+            <div className="hidden sm:block absolute top-1/2 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[70px] -translate-y-1/2 translate-x-1/4 transition-all duration-500" />
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10">Festival Check-Ins</span>
             <div className="mt-6 sm:mt-8 relative z-10 flex items-end justify-between">
               <div>

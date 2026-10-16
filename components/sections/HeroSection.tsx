@@ -16,7 +16,6 @@ export default function HeroSection() {
   useEffect(() => {
     if (!containerRef.current) return
     const container = containerRef.current
-    const triggerEl = document.getElementById('scroll-trigger')
 
     const ctx = gsap.context(() => {
       // Entrance Animation
@@ -45,36 +44,34 @@ export default function HeroSection() {
       window.addEventListener('mousemove', handleMouseMove)
 
       // MAIN HERO SCROLL TRIGGER
-      if (triggerEl) {
-        const actualTrigger = containerRef.current?.parentElement || triggerEl;
-        
+      const track = containerRef.current?.parentElement || document.getElementById('hero-scroll-track')
+      if (track) {
         ScrollTrigger.create({
-          trigger: actualTrigger,
+          trigger: track,
           start: 'top top',
-          end: HERO_PIN_END,
-          pin: triggerEl,
+          end: 'bottom bottom',
           scrub: HERO_SCRUB,
           onUpdate: (self) => {
             heroScrollState.progress = self.progress
           }
         })
 
-        // Fade out the countdown smoothly as soon as scrolling starts
+        // Fade out the countdown smoothly as soon as scrolling starts (first 25% of scroll)
         gsap.timeline({
           scrollTrigger: {
-            trigger: actualTrigger,
+            trigger: track,
             start: 'top top',
-            end: HERO_PIN_END,
+            end: 'bottom bottom',
             scrub: HERO_SCRUB,
           }
         })
-          .to('.hero-countdown', {
-            y: () => window.innerHeight * 0.24,
-            scale: 0.6,
+          .to('.hero-countdown, .hero-footer', {
+            y: () => window.innerHeight * 0.18,
+            scale: 0.75,
             opacity: 0,
-            duration: 12,
+            duration: 25,
             ease: 'power2.inOut',
-          }, 8)
+          }, 0)
           .set({}, {}, 100) // force total duration to 100 == progress 1
       }
       
@@ -169,7 +166,7 @@ function TimeUnit({ value, label }: { value: string, label: string }) {
       <div className="text-white/90 text-3xl sm:text-5xl font-light tracking-widest font-mono tabular-nums min-w-[3rem] sm:min-w-[4rem] text-center drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
         {value}
       </div>
-      <span className="text-[0.6rem] sm:text-[0.65rem] text-white/50 tracking-[0.3em] mt-2 font-sans font-medium uppercase">{label}</span>
+      <span className="text-[0.6rem] sm:text-[0.65rem] text-white/60 tracking-[0.3em] mt-2 font-['FlorasDisplay',serif] uppercase">{label}</span>
     </div>
   )
 }

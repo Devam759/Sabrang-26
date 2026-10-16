@@ -254,7 +254,7 @@ export default function SystemErrors() {
                   disabled={currentPage === 1} 
                   onClick={() => {
                     setCurrentPage(p => p - 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo(0, 0);
                   }}
                   className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-[10px] uppercase tracking-[0.25em] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
@@ -264,7 +264,7 @@ export default function SystemErrors() {
                   disabled={currentPage === totalPages} 
                   onClick={() => {
                     setCurrentPage(p => p + 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo(0, 0);
                   }}
                   className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-[10px] uppercase tracking-[0.25em] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >

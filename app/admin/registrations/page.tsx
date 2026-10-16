@@ -701,15 +701,15 @@ export default function Registrations() {
       {/* Live Counter Cards - Bento Boxes (Side-by-side on mobile, compact vertical footprint) */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {/* Total Registrations */}
-        <div className="bg-white backdrop-blur-[40px] border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-white rounded-full blur-[30px] sm:blur-[50px] -translate-y-1/2 translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
-          <h2 className="text-xs sm:text-sm font-semibold text-slate-500 relative z-10 mb-2 sm:mb-8 truncate">Total Registrations</h2>
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 overflow-hidden relative">
+          <div className="hidden sm:block absolute top-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-purple-500/10 rounded-full blur-[30px] sm:blur-[50px] -translate-y-1/2 translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
+          <h2 className="text-[10px] sm:text-xs md:text-sm font-bold sm:font-semibold text-slate-500 uppercase tracking-widest sm:tracking-normal relative z-10 mb-2 sm:mb-8 truncate">Total Registrations</h2>
           <div className="relative z-10">
             <p className="text-3xl sm:text-6xl md:text-8xl font-light tracking-tighter text-slate-900 font-space-grotesk leading-none">
               {loading ? '-' : registrations.length.toLocaleString('en-IN')}
             </p>
             {filteredRegistrations.length !== registrations.length && (
-              <p className="text-xs font-semibold text-slate-600 mt-1.5 sm:mt-3 bg-white px-2.5 sm:px-3 py-1 border border-slate-200 rounded-lg inline-block">
+              <p className="text-[10px] sm:text-xs font-semibold text-slate-600 mt-1.5 sm:mt-3 bg-white px-2.5 sm:px-3 py-1 border border-slate-200 rounded-lg inline-block">
                 Filtered: {filteredRegistrations.length}
               </p>
             )}
@@ -717,9 +717,9 @@ export default function Registrations() {
         </div>
         
         {/* Today's Registrations */}
-        <div className="bg-white backdrop-blur-[40px] border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
-          <div className="absolute bottom-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-white rounded-full blur-[30px] sm:blur-[50px] translate-y-1/2 translate-x-1/4 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
-          <h2 className="text-xs sm:text-sm font-semibold text-slate-500 relative z-10 mb-2 sm:mb-8 truncate">Today's Registrations</h2>
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 overflow-hidden relative">
+          <div className="hidden sm:block absolute bottom-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-blue-500/10 rounded-full blur-[30px] sm:blur-[50px] translate-y-1/2 translate-x-1/4 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
+          <h2 className="text-[10px] sm:text-xs md:text-sm font-bold sm:font-semibold text-slate-500 uppercase tracking-widest sm:tracking-normal relative z-10 mb-2 sm:mb-8 truncate">Today's Registrations</h2>
           <div className="relative z-10 flex items-end">
             <p className="text-3xl sm:text-6xl md:text-8xl font-light tracking-tighter text-slate-600 font-space-grotesk leading-none">
               {loading ? '-' : todaysRegistrationsCount.toLocaleString('en-IN')}
@@ -831,12 +831,12 @@ export default function Registrations() {
         </div>
       </div>
 
-      {/* Main Table Segment - Glassmorphic */}
+      {/* Main Table Segment - Crisp Performance Container */}
       {loading ? (
         <SkeletonTable rows={10} />
       ) : (
-        <div className="bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] shadow-xs overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
+        <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-[24px] shadow-xs overflow-hidden flex flex-col">
+          <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-600 text-xs font-semibold">
@@ -954,7 +954,7 @@ export default function Registrations() {
                   disabled={currentPage === 1} 
                   onClick={() => {
                     setCurrentPage(p => p - 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo(0, 0);
                   }}
                   className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-[10px] uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
@@ -964,7 +964,7 @@ export default function Registrations() {
                   disabled={currentPage === totalPages} 
                   onClick={() => {
                     setCurrentPage(p => p + 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo(0, 0);
                   }}
                   className="px-4 py-2 border border-slate-200 rounded-xl bg-white text-[10px] uppercase tracking-widest font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
