@@ -34,7 +34,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         </div>
         
         {/* Modal Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto relative z-10 flex-1 overscroll-contain">
+        <div className="p-4 sm:p-6 overflow-y-auto relative z-10 flex-1 overscroll-contain admin-scrollbar">
           {children}
         </div>
       </div>

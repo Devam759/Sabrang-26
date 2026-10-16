@@ -213,7 +213,7 @@ export default function EventEntryLogsPage() {
     if (filteredLogs.length === 0) return alert('No entry logs to export.');
     const headers = ['S.No', 'Attendee Name', 'Roll Number', 'Email', 'Event', 'Ticket ID', 'Registration ID', 'Entry Time', 'Scanned By'];
     const rows = filteredLogs.map((l, index) => {
-      const timeStr = l.entryTime?.toDate ? l.entryTime.toDate().toLocaleString('en-IN') : (l.createdAt || 'N/A');
+      const timeStr = l.entryTime?.toDate ? l.entryTime.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : (l.createdAt || 'N/A');
       return [
         index + 1,
         l.attendeeName || 'N/A',
@@ -260,14 +260,14 @@ export default function EventEntryLogsPage() {
         <div className="p-6 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-[40px] -translate-y-1/2 translate-x-1/3 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
           <div className="flex items-center justify-between mb-8 relative z-10">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Registered</span>
+            <span className="text-xs font-semibold text-slate-500">Registered</span>
             <div className="p-2 bg-white text-slate-600 rounded-lg border border-slate-200">
               <Users size={16} />
             </div>
           </div>
           <div className="relative z-10">
             <p className="text-5xl font-light tracking-tighter text-slate-900 font-space-grotesk">{eventStats.registered.toLocaleString()}</p>
-            <p className="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">
+            <p className="text-xs text-slate-500 mt-2 font-medium">
               {selectedEvent === 'all' ? 'Total festival registrations' : `For ${selectedEvent}`}
             </p>
           </div>
@@ -277,14 +277,14 @@ export default function EventEntryLogsPage() {
         <div className="p-6 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative lg:col-span-2">
           <div className="absolute bottom-0 right-0 w-48 h-48 bg-white rounded-full blur-[50px] translate-y-1/2 translate-x-1/4 group-hover:bg-green-500/20 transition-all duration-700 ease-out" />
           <div className="flex items-center justify-between mb-8 relative z-10">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Entered (Checked-In)</span>
+            <span className="text-xs font-semibold text-slate-500">Entered (Checked-In)</span>
             <div className="p-2 bg-white text-slate-600 rounded-lg border border-slate-200">
               <UserCheck size={16} />
             </div>
           </div>
           <div className="relative z-10 flex items-end justify-between">
             <p className="text-6xl md:text-7xl font-light tracking-tighter text-slate-900 font-space-grotesk">{eventStats.entered.toLocaleString()}</p>
-            <p className="text-[12px] text-slate-600 mt-1 font-bold tracking-widest uppercase bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+            <p className="text-xs text-slate-700 mt-1 font-semibold bg-white px-3 py-1.5 rounded-lg border border-slate-200">
               {eventStats.attendanceRate}% turn-out
             </p>
           </div>
@@ -294,14 +294,14 @@ export default function EventEntryLogsPage() {
         <div className="p-6 bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] flex flex-col justify-between group transition-all duration-500 hover:bg-white/[0.07] overflow-hidden relative">
           <div className="absolute top-1/2 left-0 w-32 h-32 bg-white rounded-full blur-[40px] -translate-y-1/2 -translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
           <div className="flex items-center justify-between mb-8 relative z-10">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Selected Event</span>
+            <span className="text-xs font-semibold text-slate-500">Selected Event</span>
             <div className="p-2 bg-white text-slate-600 rounded-lg border border-slate-200">
               <Calendar size={16} />
             </div>
           </div>
           <div className="relative z-10">
             <p className="text-lg font-bold text-slate-900 truncate" title={selectedEvent === 'all' ? 'All Events' : selectedEvent}>{selectedEvent === 'all' ? 'All Events (Global)' : selectedEvent}</p>
-            <p className="text-[10px] text-slate-600 mt-2 tracking-widest uppercase font-semibold">
+            <p className="text-xs text-slate-500 mt-2 font-medium">
               {filteredLogs.length} verified records
             </p>
           </div>
@@ -329,27 +329,52 @@ export default function EventEntryLogsPage() {
           <select
             value={selectedEvent}
             onChange={(e) => setSelectedEvent(e.target.value)}
-            className="block w-full pl-4 pr-10 py-3 bg-white/80 border border-slate-100 rounded-xl text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
+            className="block w-full pl-4 pr-10 py-3 bg-white/80 border border-slate-100 rounded-xl text-xs text-slate-900 font-bold focus:outline-none cursor-pointer"
           >
             <option value="all">All Events (Global)</option>
             {availableEvents.map(evt => (
               <option key={evt} value={evt}>{evt}</option>
             ))}
           </select>
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-             <ChevronRight className="h-4 w-4 text-slate-500 rotate-90" />
+        </div>
+
+        {/* Date Filter (From & To) */}
+        <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+          <div className="relative flex-1 md:flex-initial">
+            <input
+              type="date"
+              title="From Date"
+              className="block w-full px-3 py-3 bg-white/80 border border-slate-100 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-purple-500/50 custom-date-input"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+            />
+          </div>
+          <span className="text-xs text-slate-400 font-medium">to</span>
+          <div className="relative flex-1 md:flex-initial">
+            <input
+              type="date"
+              title="To Date"
+              className="block w-full px-3 py-3 bg-white/80 border border-slate-100 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-purple-500/50 custom-date-input"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+            />
           </div>
         </div>
 
-        {/* Date Filter */}
-        <div className="relative w-full md:w-48 shrink-0 flex items-center gap-2">
-          <input
-            type="date"
-            className="block w-full px-4 py-3 bg-white/80 border border-slate-100 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-purple-500/50 custom-date-input"
-            value={filterDateFrom}
-            onChange={(e) => setFilterDateFrom(e.target.value)}
-          />
-        </div>
+        {/* Clear Filters Button */}
+        {(selectedEvent !== 'all' || searchQuery || filterDateFrom || filterDateTo) && (
+          <button
+            onClick={() => {
+              setSelectedEvent('all');
+              setSearchQuery('');
+              setFilterDateFrom('');
+              setFilterDateTo('');
+            }}
+            className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {/* Main Table - Glassmorphic */}
@@ -370,13 +395,13 @@ export default function EventEntryLogsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs whitespace-nowrap border-collapse">
               <thead>
-                <tr className="bg-white/80 border-b border-slate-200">
-                  <th className="p-5 font-bold uppercase tracking-[0.2em] text-[9px] text-slate-500 w-16 text-center">#</th>
-                  <th className="p-5 font-bold uppercase tracking-[0.2em] text-[9px] text-slate-500">Attendee</th>
-                  <th className="p-5 font-bold uppercase tracking-[0.2em] text-[9px] text-slate-500">Event</th>
-                  <th className="p-5 font-bold uppercase tracking-[0.2em] text-[9px] text-slate-500">Ticket ID</th>
-                  <th className="p-5 font-bold uppercase tracking-[0.2em] text-[9px] text-slate-500">Entry Time</th>
-                  <th className="p-5 font-bold uppercase tracking-[0.2em] text-[9px] text-slate-500 text-right">Scanned By</th>
+                <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-600 font-semibold">
+                  <th className="p-4 w-16 text-center">#</th>
+                  <th className="p-4">Attendee</th>
+                  <th className="p-4">Event</th>
+                  <th className="p-4">Ticket ID</th>
+                  <th className="p-4">Entry Time</th>
+                  <th className="p-4 text-right">Scanned By</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -422,10 +447,10 @@ export default function EventEntryLogsPage() {
                       <td className="p-5">
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900 text-xs">
-                            {entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {entryDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' })}
                           </p>
                           <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                            {entryDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {entryDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                           </p>
                         </div>
                       </td>

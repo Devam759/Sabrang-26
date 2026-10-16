@@ -72,7 +72,7 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
   return (
     <div className="admin-portal-scope flex min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
       <Sidebar />
-      <main className="flex-1 w-full md:w-[calc(100%-16rem)] pt-16 md:pt-0 overflow-y-auto relative bg-[#f8fafc]">
+      <main className="flex-1 w-full md:w-[calc(100%-16rem)] pt-16 md:pt-0 overflow-y-auto relative bg-[#f8fafc] admin-scrollbar">
         <header className="sticky top-0 z-30 bg-white px-6 md:px-8 h-16 hidden md:flex items-center justify-between border-b border-slate-200 shadow-xs">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             Sabrang 2026 Scanner
@@ -81,40 +81,6 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
 
         <div className="p-6 md:p-10 max-w-7xl mx-auto">{children}</div>
       </main>
-
-      <style jsx global>{`
-        .admin-portal-scope,
-        .admin-portal-scope *,
-        html:has(.admin-portal-scope),
-        body:has(.admin-portal-scope),
-        body:has(.admin-portal-scope) * {
-          cursor: auto !important;
-        }
-        .admin-portal-scope a,
-        .admin-portal-scope button,
-        .admin-portal-scope [role="button"],
-        .admin-portal-scope select,
-        .admin-portal-scope .cursor-pointer,
-        body:has(.admin-portal-scope) a,
-        body:has(.admin-portal-scope) button,
-        body:has(.admin-portal-scope) [role="button"],
-        body:has(.admin-portal-scope) select,
-        body:has(.admin-portal-scope) .cursor-pointer {
-          cursor: pointer !important;
-        }
-        .admin-portal-scope input,
-        .admin-portal-scope textarea,
-        body:has(.admin-portal-scope) input,
-        body:has(.admin-portal-scope) textarea {
-          cursor: text !important;
-        }
-        .admin-portal-scope button:disabled,
-        .admin-portal-scope .cursor-not-allowed,
-        body:has(.admin-portal-scope) button:disabled,
-        body:has(.admin-portal-scope) .cursor-not-allowed {
-          cursor: not-allowed !important;
-        }
-      `}</style>
     </div>
   );
 }

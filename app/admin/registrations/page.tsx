@@ -6,10 +6,11 @@ import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp
 import { db, auth } from '../../../lib/firebase';
 import { SkeletonTable } from '../../../components/admin/SkeletonLoader';
 import { Modal } from '../../../components/admin/Modal';
-import { X, Maximize2 } from 'lucide-react';
+import { X, Maximize2, Loader2 } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
 import { getDisplayPaymentAmount } from '@/lib/registrationDataHelper';
+import { isDateInTodayIST } from '@/lib/dateUtils';
 
 // ============================================================================
 // BESPOKE CUSTOM GEOMETRIC SVG ICONS (Gradient-free, Sharp, Heavy-mitre)
@@ -138,6 +139,29 @@ const getEventTitles = (reg: any): { full: string; short: string; list: string[]
   return { full, short: full, list: titles };
 };
 
+/**
+ * Robustly extract a valid image URL for ID card from string, object, or fallbacks.
+ */
+const extractIdCardUrl = (val: any): string | null => {
+  if (!val) return null;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/') || trimmed.startsWith('data:image/')) {
+      return trimmed;
+    }
+    return null;
+  }
+  if (typeof val === 'object') {
+    if (typeof val.url === 'string' && (val.url.startsWith('http') || val.url.startsWith('/'))) {
+      return val.url.trim();
+    }
+    if (typeof val.secure_url === 'string' && (val.secure_url.startsWith('http') || val.secure_url.startsWith('/'))) {
+      return val.secure_url.trim();
+    }
+  }
+  return null;
+};
+
 export default function Registrations() {
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -198,7 +222,71 @@ export default function Registrations() {
     }
   };
 
-  // 1. Fetch Registrations Data& Sorting
+  const [isTogglingCheckIn, setIsTogglingCheckIn] = useState(false);
+
+  const handleToggleCheckIn = async () => {
+    if (!selectedReg || isTogglingCheckIn) return;
+    const newEntered = !selectedReg.hasEntered;
+    const actionLabel = newEntered ? 'CHECK IN' : 'UNDO check-in for';
+    if (!confirm(`Are you sure you want to ${actionLabel} attendee ${selectedReg.name}?`)) return;
+
+    setIsTogglingCheckIn(true);
+    try {
+      const regRef = doc(db, 'registrations', selectedReg.id);
+      const adminIdentifier = auth?.currentUser?.email || auth?.currentUser?.uid || 'Admin';
+      
+      await updateDoc(regRef, {
+        hasEntered: newEntered,
+        enteredAt: newEntered ? serverTimestamp() : null,
+        enteredBy: newEntered ? adminIdentifier : null,
+      });
+
+      if (newEntered) {
+        await addDoc(collection(db, 'entryLogs'), {
+          registrationId: selectedReg.id,
+          ticketId: selectedReg.id,
+          attendeeName: selectedReg.name || '',
+          attendeeRoll: selectedReg.rollNumber || '',
+          attendeeEmail: selectedReg.email || '',
+          eventTitle: Array.isArray(selectedReg.selectedEvents) 
+            ? selectedReg.selectedEvents.join(', ') 
+            : (selectedReg.eventName || selectedReg.eventTitle || 'General Fest Entry'),
+          entryTime: serverTimestamp(),
+          scannedBy: adminIdentifier,
+          scannerId: 'ADMIN_CONSOLE',
+        });
+      }
+
+      await logAdminAction(
+        newEntered ? 'MANUAL_CHECKIN' : 'MANUAL_UNDO_CHECKIN',
+        `registrations/${selectedReg.id}`,
+        `Admin manually ${newEntered ? 'checked in' : 'undid check-in for'} ${selectedReg.name} (${selectedReg.id})`,
+        adminIdentifier
+      );
+
+      // Update state locally
+      setSelectedReg((prev: any) => prev ? {
+        ...prev,
+        hasEntered: newEntered,
+        enteredAt: newEntered ? { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) } : null,
+        enteredBy: newEntered ? adminIdentifier : null,
+      } : null);
+
+      setRegistrations((prev) => prev.map(r => r.id === selectedReg.id ? {
+        ...r,
+        hasEntered: newEntered,
+        enteredAt: newEntered ? { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) } : null,
+        enteredBy: newEntered ? adminIdentifier : null,
+      } : r));
+    } catch (err: any) {
+      console.error('Check-in error:', err);
+      alert('Failed to update check-in status: ' + (err?.message || err));
+    } finally {
+      setIsTogglingCheckIn(false);
+    }
+  };
+
+  // 1. Fetch Registrations Data & Sorting
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState('registeredAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -329,14 +417,10 @@ export default function Registrations() {
   const paginatedRegistrations = sortedRegistrations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(sortedRegistrations.length / itemsPerPage);
 
-  // Calculate Today's Registrations
+  // Calculate Today's Registrations (IST standardized)
   const todaysRegistrationsCount = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     return registrations.filter(reg => {
-      if (!reg.registeredAt) return false;
-      const regDate = reg.registeredAt.toDate();
-      return regDate >= today;
+      return isDateInTodayIST(reg.registeredAt);
     }).length;
   }, [registrations]);
 
@@ -405,7 +489,7 @@ export default function Registrations() {
     const masterRows = validRegistrations.map((r, index) => {
       const pin = r.pincode || (r.address ? (r.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A');
       const state = r.region || r.state || 'N/A';
-      const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }).replace(/ /g, '-') : 'N/A');
+      const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' }).replace(/ /g, '-') : 'N/A');
       const payAmount = getDisplayPaymentAmount(r);
       const recAmount = getDisplayPaymentAmount(r);
       const unifiedData = extractRegistrationInfo(r, r.id);
@@ -464,7 +548,7 @@ export default function Registrations() {
       const eventRows = matchingRegs.map((r, index) => {
         const pin = r.pincode || (r.address ? (r.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A');
         const state = r.region || r.state || 'N/A';
-        const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }).replace(/ /g, '-') : 'N/A');
+        const formattedDate = r.dateOfPayment || (r.registeredAt ? r.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' }).replace(/ /g, '-') : 'N/A');
         const payAmount = getDisplayPaymentAmount(r);
         const recAmount = getDisplayPaymentAmount(r);
         const unifiedData = extractRegistrationInfo(r, r.id);
@@ -617,15 +701,15 @@ export default function Registrations() {
       {/* Live Counter Cards - Bento Boxes (Side-by-side on mobile, compact vertical footprint) */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {/* Total Registrations */}
-        <div className="bg-white border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-300 overflow-hidden relative">
-          <div className="hidden sm:block absolute top-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-purple-500/10 rounded-full blur-[30px] sm:blur-[50px] -translate-y-1/2 translate-x-1/3 transition-all duration-500" />
-          <h2 className="text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] relative z-10 mb-2 sm:mb-8 truncate">Total Registrations</h2>
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 overflow-hidden relative">
+          <div className="hidden sm:block absolute top-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-purple-500/10 rounded-full blur-[30px] sm:blur-[50px] -translate-y-1/2 translate-x-1/3 group-hover:bg-purple-500/20 transition-all duration-700 ease-out" />
+          <h2 className="text-[10px] sm:text-xs md:text-sm font-bold sm:font-semibold text-slate-500 uppercase tracking-widest sm:tracking-normal relative z-10 mb-2 sm:mb-8 truncate">Total Registrations</h2>
           <div className="relative z-10">
             <p className="text-3xl sm:text-6xl md:text-8xl font-light tracking-tighter text-slate-900 font-space-grotesk leading-none">
               {loading ? '-' : registrations.length.toLocaleString('en-IN')}
             </p>
             {filteredRegistrations.length !== registrations.length && (
-              <p className="text-[8px] sm:text-[10px] font-bold text-slate-600 mt-1.5 sm:mt-3 tracking-wider sm:tracking-widest uppercase bg-slate-50 px-2 sm:px-3 py-0.5 sm:py-1.5 border border-slate-200 rounded-md sm:rounded-lg inline-block">
+              <p className="text-[10px] sm:text-xs font-semibold text-slate-600 mt-1.5 sm:mt-3 bg-white px-2.5 sm:px-3 py-1 border border-slate-200 rounded-lg inline-block">
                 Filtered: {filteredRegistrations.length}
               </p>
             )}
@@ -633,9 +717,9 @@ export default function Registrations() {
         </div>
         
         {/* Today's Registrations */}
-        <div className="bg-white border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-300 overflow-hidden relative">
-          <div className="hidden sm:block absolute bottom-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-blue-500/10 rounded-full blur-[30px] sm:blur-[50px] translate-y-1/2 translate-x-1/4 transition-all duration-500" />
-          <h2 className="text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] relative z-10 mb-2 sm:mb-8 truncate">Today's Registrations</h2>
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-[32px] shadow-xs flex flex-col justify-between group transition-all duration-500 overflow-hidden relative">
+          <div className="hidden sm:block absolute bottom-0 right-0 w-24 h-24 sm:w-48 sm:h-48 bg-blue-500/10 rounded-full blur-[30px] sm:blur-[50px] translate-y-1/2 translate-x-1/4 group-hover:bg-blue-500/20 transition-all duration-700 ease-out" />
+          <h2 className="text-[10px] sm:text-xs md:text-sm font-bold sm:font-semibold text-slate-500 uppercase tracking-widest sm:tracking-normal relative z-10 mb-2 sm:mb-8 truncate">Today's Registrations</h2>
           <div className="relative z-10 flex items-end">
             <p className="text-3xl sm:text-6xl md:text-8xl font-light tracking-tighter text-slate-600 font-space-grotesk leading-none">
               {loading ? '-' : todaysRegistrationsCount.toLocaleString('en-IN')}
@@ -730,6 +814,20 @@ export default function Registrations() {
             <option value="sent">Email: Sent</option>
             <option value="unsent">Email: Unsent</option>
           </select>
+
+          {(searchQuery || statusFilter !== 'all' || eventFilter !== 'all' || emailFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('all');
+                setEventFilter('all');
+                setEmailFilter('all');
+              }}
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       </div>
 
@@ -741,23 +839,23 @@ export default function Registrations() {
           <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-white/80 border-b border-slate-200 text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em]">
-                  <th className="p-5 w-14 text-center">#</th>
-                  <th className="p-5 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('name')}>
+                <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-600 text-xs font-semibold">
+                  <th className="p-4 w-14 text-center">#</th>
+                  <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('name')}>
                     Name {sortField === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="p-5 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('email')}>
+                  <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('email')}>
                     Contact {sortField === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
 
 
                   </th>
-                  <th className="p-5 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('registeredAt')}>
+                  <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('registeredAt')}>
                     Registered {sortField === 'registeredAt' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="p-5">Events</th>
-                  <th className="p-5">Entry Status</th>
-                  <th className="p-5">Email Status</th>
-                  <th className="p-5 text-right">Action</th>
+                  <th className="p-4">Events</th>
+                  <th className="p-4">Entry Status</th>
+                  <th className="p-4">Email Status</th>
+                  <th className="p-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
@@ -783,8 +881,8 @@ export default function Registrations() {
                     <td className="p-5 whitespace-nowrap">
                       {reg.registeredAt && reg.registeredAt.toDate ? (
                         <div className="space-y-1">
-                          <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
-                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
+                          <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</div>
+                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</div>
                         </div>
                       ) : <span className="text-slate-400">-</span>}
                     </td>
@@ -884,102 +982,120 @@ export default function Registrations() {
           <div className="space-y-6 text-slate-900 text-xs">
             <div className="grid grid-cols-2 gap-4">
               {/* Student Details */}
-              <div className="col-span-2 border-b border-slate-200 pb-3">
-                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Student Credentials</p>
+              <div className="col-span-2 border-b border-slate-200 pb-2">
+                <p className="text-xs font-semibold text-slate-700">Student Credentials</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Full Name</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">{selectedReg.name}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Full Name</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">{selectedReg.name}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Email Address</p>
-                <p className="font-medium text-xs text-slate-800 bg-white/80 p-3 border border-slate-100 rounded-xl break-all lowercase">{selectedReg.email}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Email Address</p>
+                <p className="font-medium text-xs text-slate-800 bg-white/80 p-3 border border-slate-200 rounded-xl break-all lowercase">{selectedReg.email}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Phone Number</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono tracking-widest">{selectedReg.phone}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Phone Number</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl font-mono">{selectedReg.phone}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Gender</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">{selectedReg.gender || 'N/A'}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Gender</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">{selectedReg.gender || 'N/A'}</p>
               </div>
               
               {/* Additional Information */}
               <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
-                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Additional Information</p>
+                <p className="text-xs font-semibold text-slate-700">Additional Information</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Registration ID</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono tracking-widest">{selectedReg.rollNumber || selectedReg.registrationNumber || 'N/A'}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Registration ID</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl font-mono">{selectedReg.rollNumber || selectedReg.registrationNumber || 'N/A'}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Registered At</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
-                  {selectedReg.registeredAt?.toDate ? selectedReg.registeredAt.toDate().toLocaleString('en-IN') : 'N/A'}
+                <p className="text-xs font-medium text-slate-500 mb-1">Registered At</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
+                  {selectedReg.registeredAt?.toDate ? selectedReg.registeredAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A'}
                 </p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Address / Locality</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">{selectedReg.address || 'N/A'}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Address / Locality</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">{selectedReg.address || 'N/A'}</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Institution ID Card</p>
-                <div className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
-                  {selectedReg.idCard !== undefined ? (
-                    typeof selectedReg.idCard === 'string' && (selectedReg.idCard.startsWith('http') || selectedReg.idCard.startsWith('/')) ? (
-                      <div className="space-y-2">
-                        <button 
-                          type="button"
-                          onClick={() => setPreviewImage({ url: selectedReg.idCard, title: `${selectedReg.name} — Institution ID Card` })}
-                          className="block relative h-44 w-full max-w-[240px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-xs cursor-pointer text-left focus:outline-none"
-                        >
-                          <img 
-                            src={selectedReg.idCard} 
-                            alt="ID Card" 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              target.style.display = 'none';
-                              const fallback = target.nextElementSibling as HTMLElement;
-                              if (fallback) fallback.style.display = 'flex';
-                            }}
-                          />
-                          <div style={{ display: 'none' }} className="w-full h-full flex-col items-center justify-center p-3 text-center text-slate-500 text-[10px] gap-1">
-                            <span className="font-bold text-slate-700">Preview Unavailable</span>
-                            <span className="text-[9px] text-slate-400">Click to view image</span>
-                          </div>
-                          <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
-                            <span className="text-white bg-slate-900/80 px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm shadow-xl flex items-center gap-1.5">
-                              <Maximize2 size={12} />
-                              View Image
-                            </span>
-                          </div>
-                        </button>
-                        <button 
-                          type="button"
-                          onClick={() => setPreviewImage({ url: selectedReg.idCard, title: `${selectedReg.name} — Institution ID Card` })}
-                          className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer"
-                        >
-                          <Maximize2 size={12} />
-                          View Image (Current Tab)
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-[12px]">Attached</span>
-                    )
-                  ) : (
-                    <span className="text-slate-400 text-[12px]">Not provided</span>
-                  )}
+                <p className="text-xs font-medium text-slate-500 mb-1">Institution ID Card</p>
+                <div className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
+                  {(() => {
+                    let cardUrl = extractIdCardUrl(selectedReg.idCard);
+                    if (!cardUrl && selectedReg.idCards) {
+                      for (const k of Object.keys(selectedReg.idCards)) {
+                        cardUrl = extractIdCardUrl(selectedReg.idCards[k]);
+                        if (cardUrl) break;
+                      }
+                    }
+                    if (!cardUrl && selectedReg.teamMembers) {
+                      for (const group of Object.keys(selectedReg.teamMembers)) {
+                        const members = Array.isArray(selectedReg.teamMembers[group]) ? selectedReg.teamMembers[group] : [];
+                        for (const mem of members) {
+                          cardUrl = extractIdCardUrl(mem?.idCard);
+                          if (cardUrl) break;
+                        }
+                        if (cardUrl) break;
+                      }
+                    }
+
+                    if (cardUrl) {
+                      return (
+                        <div className="space-y-2">
+                          <button 
+                            type="button"
+                            onClick={() => setPreviewImage({ url: cardUrl!, title: `${selectedReg.name} - Institution ID Card` })}
+                            className="block relative h-44 w-full max-w-[240px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-xs cursor-pointer text-left focus:outline-none"
+                          >
+                            <img 
+                              src={cardUrl} 
+                              alt="ID Card" 
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.style.display = 'none';
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                            <div style={{ display: 'none' }} className="w-full h-full flex-col items-center justify-center p-3 text-center text-slate-500 text-[10px] gap-1">
+                              <span className="font-bold text-slate-700">Preview Unavailable</span>
+                              <span className="text-[9px] text-slate-400">Click to view image</span>
+                            </div>
+                            <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                              <span className="text-white bg-slate-900/80 px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm shadow-xl flex items-center gap-1.5">
+                                <Maximize2 size={12} />
+                                View Image
+                              </span>
+                            </div>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => setPreviewImage({ url: cardUrl!, title: `${selectedReg.name} - Institution ID Card` })}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer"
+                          >
+                            <Maximize2 size={12} />
+                            View Image (Current Tab)
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return <span className="text-slate-400 text-[12px]">Not uploaded / No image attached</span>;
+                  })()}
                 </div>
               </div>
               <div className="col-span-2 sm:col-span-2">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Enrolled Events</p>
-                <div className="flex flex-wrap gap-2 bg-white/80 p-3 border border-slate-100 rounded-xl">
+                <p className="text-xs font-medium text-slate-500 mb-1">Enrolled Events</p>
+                <div className="flex flex-wrap gap-2 bg-white/80 p-3 border border-slate-200 rounded-xl">
                   {getEventTitles(selectedReg).list.length === 0 ? (
-                    <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">N/A</span>
+                    <span className="text-slate-500 font-semibold text-xs">N/A</span>
                   ) : (
                     getEventTitles(selectedReg).list.map((title, i) => (
-                      <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[9px] uppercase tracking-widest font-bold">
+                      <span key={i} className="inline-flex items-center px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold">
                         {title}
                       </span>
                     ))
@@ -990,24 +1106,24 @@ export default function Registrations() {
               {/* Other Specific Fields */}
               {(selectedReg.teamName || selectedReg.bgmi_teamName || selectedReg.valorant_teamName || selectedReg.freefire_teamName || selectedReg.generic_teamName) && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Team Name</p>
-                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl break-all">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Team Name</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl break-all">
                     {selectedReg.teamName || selectedReg.bgmi_teamName || selectedReg.valorant_teamName || selectedReg.freefire_teamName || selectedReg.generic_teamName}
                   </p>
                 </div>
               )}
               {selectedReg.generic_vaadVivaadRepresentative && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Vaad Vivaad Representative</p>
-                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Vaad Vivaad Representative</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
                     {selectedReg.generic_vaadVivaadRepresentative}
                   </p>
                 </div>
               )}
               {selectedReg.bgmi_leaderIgn && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">BGMI Leader IGN</p>
-                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
+                  <p className="text-xs font-medium text-slate-500 mb-1">BGMI Leader IGN</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl font-mono">
                     {selectedReg.bgmi_leaderIgn}
                   </p>
                 </div>
@@ -1016,24 +1132,24 @@ export default function Registrations() {
               )}
               {selectedReg.bgmi_leaderUid && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">BGMI Leader UID</p>
-                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
+                  <p className="text-xs font-medium text-slate-500 mb-1">BGMI Leader UID</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl font-mono">
                     {selectedReg.bgmi_leaderUid}
                   </p>
                 </div>
               )}
               {selectedReg.valorant_leaderRiotId && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Valorant Leader Riot ID</p>
-                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Valorant Leader Riot ID</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl font-mono">
                     {selectedReg.valorant_leaderRiotId}
                   </p>
                 </div>
               )}
               {selectedReg.freefire_leaderUid && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Free Fire Leader UID</p>
-                  <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl font-mono">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Free Fire Leader UID</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl font-mono">
                     {selectedReg.freefire_leaderUid}
                   </p>
                 </div>
@@ -1042,7 +1158,7 @@ export default function Registrations() {
               {/* Team Members */}
               {selectedReg.teamMembers && (
                 <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
-                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-4">Team Members</p>
+                  <p className="text-xs font-semibold text-slate-700 mb-4">Team Members</p>
                   <div className="space-y-4">
                     {(() => {
                       let membersToRender = [];
@@ -1069,52 +1185,59 @@ export default function Registrations() {
                             {m.gender && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Gender</span> <span className="font-medium text-slate-800">{m.gender}</span></p>}
                             {m.age && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Age</span> <span className="font-medium text-slate-800">{m.age}</span></p>}
                             {m.institutionName && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Institution</span> <span className="font-medium text-slate-800">{m.institutionName}</span></p>}
-                            {m.idCard !== undefined && (
-                              <div className="col-span-1 sm:col-span-2 mt-2">
-                                <span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-2">Institution ID Card</span> 
-                                {typeof m.idCard === 'string' && (m.idCard.startsWith('http') || m.idCard.startsWith('/')) ? (
-                                  <div className="space-y-1.5">
-                                    <button 
-                                      type="button"
-                                      onClick={() => setPreviewImage({ url: m.idCard, title: `${m.name} — Institution ID Card` })}
-                                      className="block relative h-40 w-full max-w-xs overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-xs cursor-pointer text-left focus:outline-none"
-                                    >
-                                      <img 
-                                        src={m.idCard} 
-                                        alt={`${m.name} ID Card`} 
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                                        onError={(e) => {
-                                          const target = e.currentTarget;
-                                          target.style.display = 'none';
-                                          const fallback = target.nextElementSibling as HTMLElement;
-                                          if (fallback) fallback.style.display = 'flex';
-                                        }}
-                                      />
-                                      <div style={{ display: 'none' }} className="w-full h-full flex-col items-center justify-center p-3 text-center text-slate-500 text-[10px] gap-1">
-                                        <span className="font-bold text-slate-700">Preview Unavailable</span>
-                                        <span className="text-[9px] text-slate-400">Click to view image</span>
-                                      </div>
-                                      <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
-                                        <span className="text-white bg-slate-900/80 px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm shadow-xl flex items-center gap-1.5">
-                                          <Maximize2 size={12} />
-                                          View Image
-                                        </span>
-                                      </div>
-                                    </button>
-                                    <button 
-                                      type="button"
-                                      onClick={() => setPreviewImage({ url: m.idCard, title: `${m.name} — Institution ID Card` })}
-                                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer"
-                                    >
-                                      <Maximize2 size={12} />
-                                      View Image (Current Tab)
-                                    </button>
+                            {(() => {
+                              const memberCardUrl = extractIdCardUrl(m.idCard);
+                              if (memberCardUrl) {
+                                return (
+                                  <div className="col-span-1 sm:col-span-2 mt-2">
+                                    <span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-2">Institution ID Card</span> 
+                                    <div className="space-y-1.5">
+                                      <button 
+                                        type="button"
+                                        onClick={() => setPreviewImage({ url: memberCardUrl, title: `${m.name} - Institution ID Card` })}
+                                        className="block relative h-40 w-full max-w-xs overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-xs cursor-pointer text-left focus:outline-none"
+                                      >
+                                        <img 
+                                          src={memberCardUrl} 
+                                          alt={`${m.name} ID Card`} 
+                                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                          onError={(e) => {
+                                            const target = e.currentTarget;
+                                            target.style.display = 'none';
+                                            const fallback = target.nextElementSibling as HTMLElement;
+                                            if (fallback) fallback.style.display = 'flex';
+                                          }}
+                                        />
+                                        <div style={{ display: 'none' }} className="w-full h-full flex-col items-center justify-center p-3 text-center text-slate-500 text-[10px] gap-1">
+                                          <span className="font-bold text-slate-700">Preview Unavailable</span>
+                                          <span className="text-[9px] text-slate-400">Click to view image</span>
+                                        </div>
+                                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                                          <span className="text-white bg-slate-900/80 px-3 py-1.5 rounded-full text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm shadow-xl flex items-center gap-1.5">
+                                            <Maximize2 size={12} />
+                                            View Image
+                                          </span>
+                                        </div>
+                                      </button>
+                                      <button 
+                                        type="button"
+                                        onClick={() => setPreviewImage({ url: memberCardUrl, title: `${m.name} - Institution ID Card` })}
+                                        className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer"
+                                      >
+                                        <Maximize2 size={12} />
+                                        View Image (Current Tab)
+                                      </button>
+                                    </div>
                                   </div>
-                                ) : (
-                                  <span className="font-medium text-slate-800 text-[10px]">Attached</span>
-                                )}
-                              </div>
-                            )}
+                                );
+                              }
+                              return (
+                                <div className="col-span-1 sm:col-span-2 mt-2">
+                                  <span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Institution ID Card</span> 
+                                  <span className="font-medium text-slate-400 text-[11px]">Not uploaded / No image attached</span>
+                                </div>
+                              );
+                            })()}
                             {m._group && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Event Group</span> <span className="uppercase text-slate-600 font-bold">{m._group}</span></p>}
                           </div>
                         </div>
@@ -1126,30 +1249,30 @@ export default function Registrations() {
 
               {/* Payment Details */}
               <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
-                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Payment & Security</p>
+                <p className="text-xs font-semibold text-slate-700">Payment & Security</p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Payment Amount</p>
-                <p className="font-medium text-sm text-slate-900 bg-white/80 p-3 border border-slate-100 rounded-xl">
+                <p className="text-xs font-medium text-slate-500 mb-1">Payment Amount</p>
+                <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
                   {getDisplayPaymentAmount(selectedReg)}
                 </p>
               </div>
               {selectedReg.coupon && (
                 <div className="col-span-2 sm:col-span-1">
-                  <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Coupon Applied</p>
-                  <p className="font-bold text-[13px] text-slate-600 bg-white p-3 border border-slate-200 rounded-xl font-mono">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Coupon Applied</p>
+                  <p className="font-semibold text-sm text-indigo-700 bg-indigo-50/50 p-3 border border-indigo-200 rounded-xl font-mono">
                     {selectedReg.coupon}
                   </p>
                 </div>
               )}
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-1">Transaction / Order ID</p>
-                <p className="font-mono text-[13px] font-bold text-slate-800 bg-white/80 p-3 border border-slate-100 rounded-xl break-all">{selectedReg.orderId || selectedReg.paymentId || 'N/A'}</p>
+                <p className="text-xs font-medium text-slate-500 mb-1">Transaction / Order ID</p>
+                <p className="font-mono text-xs font-semibold text-slate-800 bg-white/80 p-3 border border-slate-200 rounded-xl break-all">{selectedReg.orderId || selectedReg.paymentId || 'N/A'}</p>
               </div>
 
               {/* QR Code */}
               <div className="col-span-2 flex flex-col items-center justify-center p-6 bg-slate-50/80 border border-slate-200 rounded-2xl mt-4">
-                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-3">Ticket QR Code</p>
+                <p className="text-xs font-semibold text-slate-700 mb-3">Ticket QR Code</p>
                 <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-center">
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(selectedReg.id)}&color=0f172a&bgcolor=ffffff`} 
@@ -1157,11 +1280,29 @@ export default function Registrations() {
                     className="w-36 h-36 rounded-lg object-contain"
                   />
                 </div>
-                <p className="text-[10px] text-slate-500 font-mono tracking-wider mt-2.5 select-all">{selectedReg.id}</p>
+                <p className="text-xs text-slate-500 font-mono mt-2.5 select-all">{selectedReg.id}</p>
               </div>
               
               {/* Actions */}
-              <div className="col-span-2 border-t border-slate-200 pt-5 mt-4 flex flex-col sm:flex-row justify-end gap-3">
+              <div className="col-span-2 border-t border-slate-200 pt-5 mt-4 flex flex-wrap items-center justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={isTogglingCheckIn}
+                  onClick={handleToggleCheckIn}
+                  className={`px-5 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2 ${
+                    selectedReg.hasEntered
+                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                  }`}
+                >
+                  {isTogglingCheckIn ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : selectedReg.hasEntered ? (
+                    'Undo Check-In'
+                  ) : (
+                    'Check In Attendee'
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={async () => {
@@ -1184,21 +1325,21 @@ export default function Registrations() {
                       }
                     }
                   }}
-                  className="px-5 py-3.5 bg-white hover:bg-blue-500/20 text-slate-600 border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
+                  className="px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
                 >
                   Resend Confirmation Email
                 </button>
                 <a 
-                  href={`/api/receipt?id=${selectedReg.id}`}
+                  href={`/api/receipt?id=${selectedReg.id}&order_id=${selectedReg.orderId || ''}`}
                   download
-                  className="px-5 py-3.5 bg-white hover:bg-white/90 text-black shadow-[0_0_20px_rgba(255,255,255,0.2)] rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center"
+                  className="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center shadow-sm"
                 >
                   Download Receipt
                 </a>
                 <button
                   type="button"
                   onClick={() => setSelectedReg(null)}
-                  className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center sm:hidden"
+                  className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center"
                 >
                   Close
                 </button>

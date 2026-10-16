@@ -7,13 +7,13 @@ export interface SabrangEvent {
   id: string;
   title: string;
   subtitle: string;
-  category: 
-    | "Flagship Events - Team"
-    | "Flagship Events - Solo / Duo"
-    | "Non-Flagship - Esports"
-    | "Non-Flagship - Other Events"
-    | "Activities - Gifts & Hampers"
-    | "General Entry";
+  category:
+  | "Flagship Events - Team"
+  | "Flagship Events - Solo / Duo"
+  | "Non-Flagship - Esports"
+  | "Non-Flagship - Other Events"
+  | "Activities - Gifts & Hampers"
+  | "General Entry";
   minTeam: number;
   maxTeam: number;
   baseIncludedMembers: number;
@@ -27,8 +27,8 @@ export interface SabrangEvent {
   pricingLabel: string;
   earlyBirdPricingLabel?: string;
   prizes: {
-    winnerCash?: number;
-    runnerUpCash?: number;
+    winnerCash?: number | string;
+    runnerUpCash?: number | string;
     totalCash?: number;
     remarks?: string;
   };
@@ -170,7 +170,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   },
   {
     id: "persona",
-    title: "Persona",
+    title: "Personna",
     subtitle: "Solo/Duo Performance",
     category: "Flagship Events - Solo / Duo",
     minTeam: 1,
@@ -195,14 +195,14 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     subtitle: "Sufi Night & Acoustic Melodies",
     category: "Flagship Events - Solo / Duo",
     minTeam: 1,
-    maxTeam: 2,
+    maxTeam: 1,
     baseIncludedMembers: 1,
     basePrice: 649,
-    extraMemberFee: 649,
-    isTeam: true,
+    extraMemberFee: 0,
+    isTeam: false,
     type: "generic",
     earlyBirdPricingLabel: "₹449 per head",
-    earlyBirdExtraMemberFee: 449,
+    earlyBirdExtraMemberFee: 0,
     earlyBirdPrice: 449,
     pricingLabel: "₹649 per head",
     prizes: {
@@ -217,14 +217,14 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     subtitle: "Poetry Slam & Literary Debates",
     category: "Flagship Events - Solo / Duo",
     minTeam: 1,
-    maxTeam: 2,
+    maxTeam: 1,
     baseIncludedMembers: 1,
     basePrice: 649,
-    extraMemberFee: 649,
-    isTeam: true,
+    extraMemberFee: 0,
+    isTeam: false,
     type: "generic",
     earlyBirdPricingLabel: "₹449 per head",
-    earlyBirdExtraMemberFee: 449,
+    earlyBirdExtraMemberFee: 0,
     earlyBirdPrice: 449,
     pricingLabel: "₹649 per head",
     prizes: {
@@ -249,9 +249,9 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     type: "bgmi",
     pricingLabel: "₹749 per team",
     prizes: {
-      winnerCash: 9000,
-      runnerUpCash: 6000,
-      totalCash: 15000,
+      winnerCash: "As per Krafton",
+      runnerUpCash: "As per Krafton",
+      totalCash: 20000,
       remarks: "Fee is per team",
     },
   },
@@ -295,6 +295,26 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
       remarks: "Fee is per team",
     },
   },
+  {
+    id: "real_cricket",
+    title: "Real Cricket",
+    subtitle: "Mobile Cricket Esports Tournament",
+    category: "Non-Flagship - Esports",
+    minTeam: 1,
+    maxTeam: 1,
+    baseIncludedMembers: 1,
+    basePrice: 299,
+    extraMemberFee: 0,
+    isTeam: false,
+    type: "generic",
+    pricingLabel: "₹299 per head",
+    prizes: {
+      winnerCash: "As per Krafton",
+      runnerUpCash: "As per Krafton",
+      totalCash: 5000,
+      remarks: "Fee is per head",
+    },
+  },
 
   // --- Non-Flagship - Other Events ---
   {
@@ -326,16 +346,17 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     category: "Non-Flagship - Other Events",
     minTeam: 2,
     maxTeam: 4,
-    baseIncludedMembers: 1,
-    basePrice: 299,
-    extraMemberFee: 299,
+    baseIncludedMembers: 4,
+    basePrice: 399,
+    extraMemberFee: 0,
     isTeam: true,
     type: "generic",
-    pricingLabel: "₹299 per head",
+    pricingLabel: "₹399 per team",
     prizes: {
       winnerCash: 6000,
       runnerUpCash: 4000,
       totalCash: 10000,
+      remarks: "Fee is per team",
     },
   },
   {
@@ -345,16 +366,17 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     category: "Non-Flagship - Other Events",
     minTeam: 3,
     maxTeam: 5,
-    baseIncludedMembers: 1,
-    basePrice: 299,
-    extraMemberFee: 299,
+    baseIncludedMembers: 5,
+    basePrice: 399,
+    extraMemberFee: 0,
     isTeam: true,
     type: "generic",
-    pricingLabel: "₹299 per head",
+    pricingLabel: "₹399 per team",
     prizes: {
       winnerCash: 6000,
       runnerUpCash: 4000,
       totalCash: 10000,
+      remarks: "Fee is per team",
     },
   },
   {
@@ -365,15 +387,16 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     minTeam: 3,
     maxTeam: 3,
     baseIncludedMembers: 1,
-    basePrice: 299,
-    extraMemberFee: 299,
+    basePrice: 199,
+    extraMemberFee: 199,
     isTeam: true,
     type: "generic",
-    pricingLabel: "₹299 per head",
+    pricingLabel: "₹199 per head",
     prizes: {
       winnerCash: 4000,
       runnerUpCash: 3000,
       totalCash: 7000,
+      remarks: "Fee is per head",
     },
   },
   {
@@ -427,6 +450,9 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     extraMemberFee: 299,
     isTeam: true,
     type: "generic",
+    earlyBirdPricingLabel: "₹149 per head",
+    earlyBirdExtraMemberFee: 149,
+    earlyBirdPrice: 149,
     pricingLabel: "₹299 per head",
     prizes: {
       winnerCash: 3000,
@@ -435,8 +461,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     },
   },
 
-  // --- Activities - Gifts & Hampers (Temporarily Commented Out) ---
-  /*
+  // --- Activities - Gifts & Hampers ---
   {
     id: "art_relay",
     title: "Art Relay",
@@ -471,24 +496,6 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
       remarks: "Gifts & Hampers",
     },
   },
-  {
-    id: "chai_pe_charcha",
-    title: "Chai Pe Charcha",
-    subtitle: "Conversations & Open Mic Session",
-    category: "Activities - Gifts & Hampers",
-    minTeam: 1,
-    maxTeam: 1,
-    baseIncludedMembers: 1,
-    basePrice: 111,
-    extraMemberFee: 0,
-    isTeam: false,
-    type: "generic",
-    pricingLabel: "₹111 per head",
-    prizes: {
-      remarks: "Gifts & Hampers",
-    },
-  },
-  */
 
   // --- General Entry ---
   {
@@ -499,34 +506,32 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     minTeam: 1,
     maxTeam: 1,
     baseIncludedMembers: 1,
-    basePrice: 99,
+    basePrice: 69,
     extraMemberFee: 0,
     isTeam: false,
     type: "visitor",
-    pricingLabel: "₹99 per pass",
+    pricingLabel: "₹69 per pass",
     prizes: { remarks: "Standard Visitor Pass (Pro-Nite not included)" },
   },
   {
     id: "pronite_outsider",
-    title: "PRO-NITE - Outsiders",
-    subtitle: "Full-day access, including PRO-NITE - Days 1 & 2",
+    title: "PRO-NITE & Concert (All 3 Days) - Outsiders",
+    subtitle: "Full-day access for all 3 days, including PRO-NITE & Concert",
     category: "General Entry",
     minTeam: 1,
     maxTeam: 1,
     baseIncludedMembers: 1,
-    basePrice: 599,
+    basePrice: 499,
     extraMemberFee: 0,
     isTeam: false,
     type: "generic",
-    earlyBirdPricingLabel: "₹499 per pass",
-    earlyBirdPrice: 499,
-    pricingLabel: "₹599 per pass",
-    prizes: { remarks: "Outsider pass" },
+    pricingLabel: "₹499 per pass",
+    prizes: { remarks: "Outsider pass (Valid for all 3 days)" },
   },
   {
     id: "pronite_jklu",
-    title: "PRO-NITE - JKLU",
-    subtitle: "Full-day access, including PRO-NITE - Days 1 & 2",
+    title: "PRO-NITE & Concert (All 3 Days) - JKLU",
+    subtitle: "Full-day access for all 3 days, including PRO-NITE & Concert",
     category: "General Entry",
     minTeam: 1,
     maxTeam: 1,
@@ -535,10 +540,8 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     extraMemberFee: 0,
     isTeam: false,
     type: "generic",
-    earlyBirdPricingLabel: "₹299 per pass",
-    earlyBirdPrice: 299,
     pricingLabel: "₹299 per pass",
-    prizes: { remarks: "JKLU student pass" },
+    prizes: { remarks: "JKLU student pass (Valid for all 3 days)" },
   }
 ];
 
@@ -571,7 +574,13 @@ export interface VisitorPassConfig {
 export function calculateVisitorPassFee(count: number, daysCount: number): number {
   const people = Math.max(1, count || 1);
   const days = Math.max(1, daysCount || 1);
-  return people * days * 99;
+  return people * days * 69;
+}
+
+export function calculateVisitorBandFee(daysCount: number, visitorCount: number = 1): number {
+  const days = Math.max(1, daysCount || 1);
+  const people = Math.max(1, visitorCount || 1);
+  return FLAGSHIP_BAND_FEE_PER_PERSON * days * people;
 }
 
 /**
@@ -610,8 +619,111 @@ export function calculateEventItemPrice(
 }
 
 /**
+ * Checks if an event uses a per-head fee collection system.
+ * Competitive/showcase events (Flagship, Non-Flagship, Activities) where registration
+ * is charged per individual have a per-head fee, while Esports is charged per team flat.
+ */
+export function isPerHeadFeeEvent(event: SabrangEvent): boolean {
+  if (!event) return false;
+  // Esports events are flat per team
+  if (event.type === "bgmi" || event.type === "freefire" || event.type === "valorant") {
+    return false;
+  }
+  // Visitor pass and general entry passes
+  if (event.id === "visitor" || event.category === "General Entry") {
+    return false;
+  }
+  // Check pricing label
+  return event.pricingLabel?.toLowerCase().includes("per head") ?? false;
+}
+
+/**
+ * Gets the standard per-head fee for an event (respects early bird if active).
+ */
+export function getEventPerHeadFee(event: SabrangEvent, isEarlyBird?: boolean): number {
+  if (isEarlyBird && event.earlyBirdPrice !== undefined) {
+    return event.earlyBirdPrice;
+  }
+  return event.basePrice;
+}
+
+/**
+ * Calculates event item price, optionally capping the per-head fee if the event has a per-head fee collection system.
+ */
+export function calculateEventItemPriceWithCap(
+  event: SabrangEvent,
+  totalMembers: number = 1,
+  visitorConfig?: VisitorPassConfig,
+  isEarlyBird?: boolean,
+  perHeadCap?: number
+): number {
+  if (perHeadCap !== undefined && perHeadCap >= 0 && isPerHeadFeeEvent(event)) {
+    const regularPerHead = getEventPerHeadFee(event, isEarlyBird);
+    const effectivePerHead = Math.min(regularPerHead, perHeadCap);
+    const members = !event.isTeam ? 1 : Math.max(1, totalMembers);
+    return members * effectivePerHead;
+  }
+  return calculateEventItemPrice(event, totalMembers, visitorConfig, isEarlyBird);
+}
+
+export const FLAGSHIP_BAND_FEE_PER_PERSON = 7;
+export const FLAGSHIP_BANK_FEE_PER_PERSON = FLAGSHIP_BAND_FEE_PER_PERSON;
+export const FLAGSHIP_TEAM_BANK_FEE_PER_PERSON = FLAGSHIP_BAND_FEE_PER_PERSON;
+export const FLAGSHIP_TEAM_BANK_CHARGE_PER_PERSON = FLAGSHIP_BAND_FEE_PER_PERSON;
+export const FLAGSHIP_TEAM_BAND_CHARGE_PER_PERSON = FLAGSHIP_BAND_FEE_PER_PERSON;
+
+/**
+ * Checks if Band Fee (₹7/person) applies to an event:
+ * Flagship Team, Flagship Solo, and Pro-Nite & Concert passes (Outsiders & JKLU).
+ */
+export function isBandFeeApplicable(event?: SabrangEvent | null): boolean {
+  if (!event) return false;
+  return (
+    event.category === "Flagship Events - Team" ||
+    event.category === "Flagship Events - Solo / Duo" ||
+    event.id === "pronite_outsider" ||
+    event.id === "pronite_jklu"
+  );
+}
+
+/**
+ * Checks if an event belongs to Flagship category or Pro-Nite passes that require band fee
+ */
+export function isFlagshipEvent(event?: SabrangEvent | null): boolean {
+  return isBandFeeApplicable(event);
+}
+
+/**
+ * Checks if an event belongs to Flagship Team category (Panache, SYNC, Band Jam)
+ */
+export function isFlagshipTeamEvent(event?: SabrangEvent | null): boolean {
+  if (!event) return false;
+  return event.category === "Flagship Events - Team";
+}
+
+/**
+ * Checks if an event belongs to Flagship Solo category (Step Up, Personna, Echoes of Noor, Verse Vaad)
+ */
+export function isFlagshipSoloEvent(event?: SabrangEvent | null): boolean {
+  if (!event) return false;
+  return event.category === "Flagship Events - Solo / Duo";
+}
+
+/**
+ * Calculates the Band Fee (₹7 per person) for Flagship and Pro-Nite events.
+ */
+export function calculateFlagshipBandFee(event: SabrangEvent, totalMembers: number = 1): number {
+  if (!isBandFeeApplicable(event)) return 0;
+  const count = event.isTeam ? Math.max(1, totalMembers) : 1;
+  return count * FLAGSHIP_BAND_FEE_PER_PERSON;
+}
+export const calculateFlagshipBankFee = calculateFlagshipBandFee;
+export const calculateFlagshipBankCharge = calculateFlagshipBandFee;
+export const calculateFlagshipBandCharge = calculateFlagshipBandFee;
+
+/**
  * Calculates the total registration fee across all selected events taking into account
- * team member additions per group and visitor pass configuration.
+ * team member additions per group, visitor pass configuration, and Band fees.
  */
 export function calculateTotalRegistrationFee(
   selectedEventIds: string[],
@@ -631,6 +743,9 @@ export function calculateTotalRegistrationFee(
 
     if (eventId === "visitor") {
       total += calculateEventItemPrice(event, 1, visitorConfig, isEarlyBird);
+      const daysCount = visitorConfig?.days?.length ?? 1;
+      const count = visitorConfig?.count ?? 1;
+      total += calculateVisitorBandFee(daysCount, count);
       continue;
     }
 
@@ -638,6 +753,17 @@ export function calculateTotalRegistrationFee(
     const totalMembers = 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
 
     total += calculateEventItemPrice(event, totalMembers, visitorConfig, isEarlyBird);
+
+    // Apply Band Fee (₹7 * no. of persons):
+    // For Flagship Team: when team members are entered (totalMembers > 1)
+    // For Flagship Solo & Pro-Nite passes: 1 person (₹7)
+    if (isFlagshipTeamEvent(event)) {
+      if (totalMembers > 1) {
+        total += calculateFlagshipBandFee(event, totalMembers);
+      }
+    } else if (isFlagshipSoloEvent(event) || event.id === "pronite_outsider" || event.id === "pronite_jklu") {
+      total += calculateFlagshipBandFee(event, 1);
+    }
   }
 
   return total;

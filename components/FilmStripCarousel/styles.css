@@ -35,7 +35,7 @@
   z-index: 2;
   pointer-events: none;
   white-space: nowrap;
-  font-family: 'Bodoni Moda', 'Cinzel', Georgia, serif;
+  font-family: Georgia, 'Bodoni Moda', 'Cinzel', serif;
   font-size: clamp(7rem, 22vw, 20rem);
   font-weight: 700;
   line-height: 0.9;
@@ -68,9 +68,10 @@
 }
 
 .fsc-title {
-  font-family: 'Bodoni Moda', 'Cinzel', Georgia, 'Times New Roman', serif;
+  font-family: Georgia, 'Bodoni Moda', 'Cinzel', 'Times New Roman', serif;
   font-size: clamp(2.4rem, 6vw, 4.6rem);
-  font-weight: 600;
+  font-weight: 700;
+  font-variation-settings: 'opsz' 14, 'wght' 800;
   color: #fff;
   line-height: 1.05;
   margin: 0;

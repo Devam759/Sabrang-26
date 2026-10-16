@@ -116,6 +116,7 @@ export const formatDate = (date: any) => {
   if (!date) return "";
   const d = date.toDate ? date.toDate() : new Date(date);
   return d.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
     year: "numeric",

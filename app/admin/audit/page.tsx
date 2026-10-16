@@ -81,7 +81,7 @@ export default function AuditLogs() {
     if (filteredLogs.length === 0) return alert('No audit records to export.');
     const headers = ['S.No', 'Timestamp', 'Action Type', 'Performed By', 'Target Entity', 'Details'];
     const rows = filteredLogs.map((log, index) => {
-      const timeStr = log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString('en-IN') : 'N/A';
+      const timeStr = log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
       return [
         index + 1,
         timeStr,
@@ -215,10 +215,10 @@ export default function AuditLogs() {
                       <td className="p-5">
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900 text-[13px]">
-                            {logDate ? logDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                            {logDate ? logDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }) : 'N/A'}
                           </p>
                           <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-                            {logDate ? logDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''}
+                            {logDate ? logDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' }) : ''}
                           </p>
                         </div>
                       </td>

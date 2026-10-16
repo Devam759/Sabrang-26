@@ -66,7 +66,7 @@ export default function SystemErrors() {
     if (filteredLogs.length === 0) return alert('No system errors to export.');
     const headers = ['S.No', 'Timestamp', 'Target Module', 'Component / Performer', 'Alert Status', 'Error Details'];
     const rows = filteredLogs.map((log, index) => {
-      const timeStr = log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString('en-IN') : 'N/A';
+      const timeStr = log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
       return [
         index + 1,
         timeStr,
@@ -191,9 +191,9 @@ export default function SystemErrors() {
                     <td className="p-5 whitespace-nowrap">
                       {log.timestamp && log.timestamp.toDate ? (
                         <div className="space-y-1">
-                          <div className="font-medium text-sm text-slate-900">{log.timestamp.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                          <div className="font-medium text-sm text-slate-900">{log.timestamp.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}</div>
                           <div className="text-[9px] text-slate-500 uppercase tracking-widest">
-                            {log.timestamp.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {log.timestamp.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' })}
                           </div>
                         </div>
                       ) : <span className="text-slate-400">-</span>}

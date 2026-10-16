@@ -1,6 +1,6 @@
 # Sabrang 2026 - College Festival Management Portal
 
-A modern, high-performance web application built for **Sabrang 2026** — managing event registrations, interactive schedules, user passes, and admin controls with real-time Firebase backend integration and WebGL interactive visual effects.
+A modern, high-performance web application built for **Sabrang 2026** - managing event registrations, interactive schedules, user passes, and admin controls with real-time Firebase backend integration and WebGL interactive visual effects.
 
 ---
 

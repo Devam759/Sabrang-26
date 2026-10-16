@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, db } from '../../lib/firebase';
+import { getStartOfTodayIST, getEndOfTodayIST, getFormattedTodayIST, parseDateValue } from '../../lib/dateUtils';
 import { SkeletonCard } from '../../components/admin/SkeletonLoader';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
@@ -18,10 +19,26 @@ export default function AdminDashboard() {
     todayRevenue: 0,
     loading: true
   });
+  const [dateKey, setDateKey] = useState(() => getFormattedTodayIST());
+
+  // Periodically check if the date changed in IST (e.g. crossing midnight)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentFormatted = getFormattedTodayIST();
+      setDateKey((prev) => {
+        if (prev !== currentFormatted) {
+          return currentFormatted;
+        }
+        return prev;
+      });
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    // 1. Fetch server-side stats via Admin SDK API
-    fetch('/api/admin/stats')
+    // 1. Fetch server-side stats via Admin SDK API with cache: 'no-store'
+    fetch('/api/admin/stats', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data && data.success) {
@@ -50,12 +67,14 @@ export default function AdminDashboard() {
       if (!user) return;
 
       try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const startOfToday = getStartOfTodayIST();
+        const endOfToday = getEndOfTodayIST();
 
         unsubRegs = onSnapshot(
           collection(db, 'registrations'),
           (snap) => {
+            const currentStart = getStartOfTodayIST();
+            const currentEnd = getEndOfTodayIST();
             const allRegs = snap.docs.map(d => d.data());
             const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true);
             
@@ -67,12 +86,10 @@ export default function AdminDashboard() {
               const amountNum = parseFloat(reg.receivedAmount || reg.paymentAmount || reg.amount || reg.price || '0') || 0;
               totalRev += amountNum;
 
-              if (reg.registeredAt || reg.createdAt) {
-                const regDate = reg.registeredAt?.toDate ? reg.registeredAt.toDate() : new Date(reg.registeredAt || reg.createdAt);
-                if (regDate >= today) {
-                  todayCount++;
-                  todayRev += amountNum;
-                }
+              const regDate = parseDateValue(reg.registeredAt) || parseDateValue(reg.createdAt);
+              if (regDate && regDate >= currentStart && regDate <= currentEnd) {
+                todayCount++;
+                todayRev += amountNum;
               }
             });
 
@@ -94,7 +111,7 @@ export default function AdminDashboard() {
         );
 
         unsubScans = onSnapshot(
-          query(collection(db, 'scanLogs'), where('timestamp', '>=', today), where('result', '==', 'accepted')),
+          query(collection(db, 'scanLogs'), where('timestamp', '>=', startOfToday), where('result', '==', 'accepted')),
           (snap) => {
             setStats(s => ({ ...s, totalEntriesToday: snap.size }));
           },
@@ -112,13 +129,9 @@ export default function AdminDashboard() {
       unsubRegs();
       unsubScans();
     };
-  }, []);
+  }, [dateKey]);
 
-  const todayFormatted = new Date().toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
+  const todayFormatted = dateKey;
 
   return (
     <div className="space-y-12 text-slate-900 font-body pb-12">

@@ -1,8 +1,159 @@
 import { useEffect, useRef, useState } from 'react';
-import { FlippingWordSwap } from '@/components/ui/FlippingWordSwap';
+import gsap from 'gsap';
 import { damp } from './carouselMath';
 import { MAX_VELOCITY } from './constants';
 import type { Project } from './types';
+
+const graphemeSegmenter =
+  typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null;
+
+function segmentCharacters(text: string) {
+  if (!graphemeSegmenter) return Array.from(text);
+  return Array.from(graphemeSegmenter.segment(text), ({ segment }) => segment);
+}
+
+interface CarouselFlippingTitleProps {
+  title: string;
+  onClick: () => void;
+  reducedMotion?: boolean;
+}
+
+function CarouselFlippingTitle({ title, onClick, reducedMotion }: CarouselFlippingTitleProps) {
+  const [pair, setPair] = useState<{ from: string; to: string; animating: boolean }>({
+    from: title,
+    to: title,
+    animating: false,
+  });
+  const prevTitleRef = useRef(title);
+  const containerRef = useRef<HTMLButtonElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+
+  useEffect(() => {
+    if (prevTitleRef.current === title) return;
+    const oldTitle = prevTitleRef.current;
+    prevTitleRef.current = title;
+
+    if (reducedMotion) {
+      setPair({ from: title, to: title, animating: false });
+      return;
+    }
+
+    if (tlRef.current) {
+      tlRef.current.kill();
+      tlRef.current = null;
+    }
+
+    setPair({ from: oldTitle, to: title, animating: true });
+  }, [title, reducedMotion]);
+
+  useEffect(() => {
+    if (!pair.animating || pair.from === pair.to) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const fromEls = container.querySelectorAll<HTMLElement>('[data-flip="from"]');
+    const toEls = container.querySelectorAll<HTMLElement>('[data-flip="to"]');
+
+    gsap.set(fromEls, {
+      rotationX: 0,
+      opacity: 1,
+      transformOrigin: 'center top',
+    });
+    gsap.set(toEls, {
+      rotationX: -80,
+      opacity: 0,
+      transformOrigin: 'center bottom',
+    });
+
+    const duration = 0.35;
+    const stagger = 0.032;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setPair({ from: pair.to, to: pair.to, animating: false });
+      },
+    });
+
+    tl.to(fromEls, {
+      rotationX: 80,
+      opacity: 0,
+      duration,
+      stagger,
+      ease: 'power2.in',
+    }).to(
+      toEls,
+      {
+        rotationX: 0,
+        opacity: 1,
+        duration,
+        stagger,
+        ease: 'power2.out',
+      },
+      `<${duration * 0.45}`,
+    );
+
+    tlRef.current = tl;
+
+    return () => {
+      tl.kill();
+    };
+  }, [pair.from, pair.to, pair.animating]);
+
+  return (
+    <button
+      ref={containerRef}
+      type="button"
+      className="fsc-title-flip relative inline-grid cursor-pointer select-none border-0 bg-transparent p-0 align-baseline font-[inherit] leading-[inherit] tracking-[inherit] text-[inherit]"
+      aria-label={`Go to ${title}`}
+      onClick={onClick}
+    >
+      <span className="col-start-1 row-start-1 inline-grid overflow-visible py-[0.06em] [perspective:800px]">
+        {pair.animating && pair.from !== pair.to ? (
+          <>
+            <span
+              className="col-start-1 row-start-1 inline-flex items-baseline justify-center gap-[0.012em] whitespace-pre"
+              aria-hidden="true"
+            >
+              {segmentCharacters(pair.from).map((char, i) => (
+                <span
+                  key={`from-${i}-${char}`}
+                  data-flip="from"
+                  className="inline-block whitespace-pre [backface-visibility:hidden] [will-change:transform,opacity]"
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              ))}
+            </span>
+            <span
+              className="col-start-1 row-start-1 inline-flex items-baseline justify-center gap-[0.012em] whitespace-pre"
+              aria-hidden="true"
+            >
+              {segmentCharacters(pair.to).map((char, i) => (
+                <span
+                  key={`to-${i}-${char}`}
+                  data-flip="to"
+                  className="inline-block whitespace-pre [backface-visibility:hidden] [will-change:transform,opacity]"
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              ))}
+            </span>
+          </>
+        ) : (
+          <span className="col-start-1 row-start-1 inline-flex items-baseline justify-center gap-[0.012em] whitespace-pre">
+            {segmentCharacters(title).map((char, i) => (
+              <span key={`char-${i}-${char}`} className="inline-block whitespace-pre">
+                {char === ' ' ? '\u00A0' : char}
+              </span>
+            ))}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
 
 interface ProjectOverlayProps {
   project: Project;
@@ -15,16 +166,6 @@ interface ProjectOverlayProps {
 /**
  * Title + subtitle, cross-fading with a blur when the active project changes,
  * and - the part that matters - physically coupled to the strip.
- *
- * The headline sits on its own plane in the composition and inherits the
- * carousel's angular velocity: while the strip turns, the plane rotates in
- * perspective (one end nearer and larger, the other further and smaller),
- * blurs, and then counter-rotates back to level as the motion decays. It is a
- * sign bolted to the rotating assembly, not a label that crossfades.
- *
- * Behind it, an oversized ghost of the same title occupies a much deeper
- * plane at a fraction of the parallax - background typography, so the title
- * reads as being *in* the environment rather than on top of it.
  *
  * Driven from a rAF loop reading the simulation refs directly: the transform
  * changes every frame and must never become React state.
@@ -76,27 +217,6 @@ export default function ProjectOverlay({
     return () => cancelAnimationFrame(raf);
   }, [reducedMotion, sim, expandRef]);
 
-  // The heading is the one thing here that must not crossfade. It flips,
-  // character by character, from the item leaving the centre to the one
-  // arriving - so the title reads as the same object being re-lettered rather
-  // than as two labels dissolving into each other.
-  //
-  // `armed` exists because the flip has to start from the outgoing word: the
-  // pair is rendered at rest for one frame, then armed on the next, which is
-  // what gives GSAP something to animate away from.
-  const [swap, setSwap] = useState({ from: project.title, to: project.title });
-  const [armed, setArmed] = useState(false);
-  const shown = useRef(project.title);
-
-  useEffect(() => {
-    if (shown.current === project.title) return;
-    setSwap({ from: shown.current, to: project.title });
-    setArmed(false);
-    shown.current = project.title;
-    const id = requestAnimationFrame(() => setArmed(true));
-    return () => cancelAnimationFrame(id);
-  }, [project.title]);
-
   return (
     <>
       <div className="fsc-ghost-title" ref={ghostRef} aria-hidden="true">
@@ -105,21 +225,11 @@ export default function ProjectOverlay({
 
       <div className="fsc-titlebox" ref={boxRef} aria-live="polite">
         <div className="fsc-titlegroup">
-          {/* The headline IS the menu item: it flips to the next item's name as
-              the strip turns, and clicking it navigates. Keyed on the pair so a
-              new swap rebuilds the timeline instead of animating stale
-              characters. */}
           <h2 className="fsc-title">
-            <FlippingWordSwap
-              key={`${swap.from}→${swap.to}`}
-              word1={swap.from}
-              word2={swap.to}
-              swapped={armed}
-              duration={350}
-              stagger={25}
-              className="fsc-title-flip"
-              ariaLabel={`Go to ${project.title}`}
+            <CarouselFlippingTitle
+              title={project.title}
               onClick={() => onSelect(project)}
+              reducedMotion={reducedMotion}
             />
           </h2>
         </div>

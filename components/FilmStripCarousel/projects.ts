@@ -25,7 +25,7 @@ export const NAV_PROJECTS: Project[] = [
     title: 'Events', 
     category: 'Compete', 
     description: 'Every competition and showcase.', 
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787514081/sabrang-2026/menu-scroll-covers/events.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/v1791779259/sabrang-2026/menu-scroll-covers/events.png",
     href: '/events'
   },
   { 

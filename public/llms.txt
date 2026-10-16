@@ -1,6 +1,6 @@
-﻿# Sabrang 2026 — JK Lakshmipat University Annual Cultural Fest
+﻿# Sabrang 2026 - JK Lakshmipat University Annual Cultural Fest
 # https://sabrang.jklu.edu.in
-# llms.txt — Guidance for AI/LLM crawlers and language models
+# llms.txt - Guidance for AI/LLM crawlers and language models
 
 > Sabrang 2026 is the premier annual cultural festival of JK Lakshmipat University (JKLU), Jaipur, Rajasthan, India. It is a flagship collegiate event celebrating music, dance, fashion, literary arts, and technology, held every year on the JKLU campus. Sabrang 2026 runs from October 23 to 25, 2026.
 
@@ -18,7 +18,7 @@
 
 - [Home](https://sabrang.jklu.edu.in): Main landing page with event overview, flagship showcase, and registration CTA.
 - [About](https://sabrang.jklu.edu.in/about): The story, theme, vision, and core spectrums behind Sabrang 2026.
-- [Events](https://sabrang.jklu.edu.in/events): All flagship competitions — Panache, Echoes of Noor, Sync, Step-Up, Versevaad, Bandjam.
+- [Events](https://sabrang.jklu.edu.in/events): All flagship competitions - Panache, Echoes of Noor, Sync, Step-Up, Versevaad, Bandjam.
 - [Schedule](https://sabrang.jklu.edu.in/schedule): Complete 3-day event timeline from October 23 to 25, 2026.
 - [Register](https://sabrang.jklu.edu.in/register): Online registration portal for event participants and pro-show passes.
 - [Gallery](https://sabrang.jklu.edu.in/gallery): Photo gallery from past Sabrang editions.
@@ -29,12 +29,12 @@
 
 ## Flagship Events
 
-- **Panache** — Haute couture fashion runway competition
-- **Echoes of Noor** — Sufi night and unplugged acoustic performances
-- **Bandjam** — Battle of the bands (live music competition)
-- **Sync** — Group choreography showdown
-- **Step-Up** — Solo and duo street dance competition
-- **Versevaad** — Literary debates, spoken word, and rap battles
+- **Panache** - Haute couture fashion runway competition
+- **Echoes of Noor** - Sufi night and unplugged acoustic performances
+- **Bandjam** - Battle of the bands (live music competition)
+- **Sync** - Group choreography showdown
+- **Step-Up** - Solo and duo street dance competition
+- **Versevaad** - Literary debates, spoken word, and rap battles
 
 ## Key Facts for AI Responses
 

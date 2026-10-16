@@ -52,13 +52,34 @@ service cloud.firestore {
       allow read: if isAdmin() || isScanner() || (isSignedIn() && resource.data.userId == request.auth.uid);
       // Registrations are created server-side via Admin SDK (bypasses rules)
       allow create: if false;
-      allow update: if isAdmin() || isScanner();
+      allow update: if isAdmin() || (
+        isScanner() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasEntered', 'enteredAt', 'scannerId', 'scannerName', 'checkInLogs'])
+      );
       allow delete: if isAdmin();
     }
 
-    // Pending Registrations collection
+    // Pending Registrations collection (Admin SDK only)
     match /pendingRegistrations/{id} {
-      allow read, write: if false; // Only Admin SDK can read/write
+      allow read, write: if false;
+    }
+
+    // Registration and Background Task Locks (Admin SDK only)
+    match /registrationLocks/{id} {
+      allow read, write: if false;
+    }
+
+    match /backgroundTaskLocks/{id} {
+      allow read, write: if false;
+    }
+
+    match /processedWebhookEvents/{id} {
+      allow read, write: if false;
+    }
+
+    match /webhookLogs/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     // Notifications/Announcements collections

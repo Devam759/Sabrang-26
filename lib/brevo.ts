@@ -1,21 +1,23 @@
 /**
  * Brevo (Sendinblue) Transactional Email Client for Sabrang 2026
  *
- * Sends festival passes, QR registration tickets, and confirmation emails
- * using the official Brevo v3 REST API.
+ * Sends festival passes, QR registration tickets, and confirmation emails.
+ * Powered by unified emailService with automatic Mailjet fallback.
  */
 
-interface SendEmailParams {
+import { sendTransactionalEmail, sendBrevoProvider, EmailProviderName } from './emailService';
+
+export interface SendEmailParams {
   to: { email: string; name?: string }[];
   subject: string;
   htmlContent: string;
   textContent?: string;
   sender?: { email: string; name: string };
   replyTo?: { email: string; name: string };
-  attachment?: { url?: string; content?: string; name: string }[];
+  attachment?: { url?: string; content?: string; name: string; contentType?: string }[];
 }
 
-interface TicketPassParams {
+export interface TicketPassParams {
   toEmail: string;
   toName: string;
   registrationId: string;
@@ -26,52 +28,29 @@ interface TicketPassParams {
   eventVenue?: string;
 }
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const DEFAULT_SENDER = {
-  email: process.env.BREVO_SENDER_EMAIL || "sabrang@jklu.edu.in",
-  name: process.env.BREVO_SENDER_NAME || "Sabrang 2026 | JKLU",
-};
+/**
+ * Sends transactional email with automatic Mailjet secondary provider fallback.
+ */
+export async function sendBrevoEmail(params: SendEmailParams): Promise<{
+  success: boolean;
+  messageId?: string;
+  provider?: EmailProviderName;
+  error?: string;
+}> {
+  const result = await sendTransactionalEmail(params);
+  return {
+    success: result.success,
+    messageId: result.messageId,
+    provider: result.provider,
+    error: result.error,
+  };
+}
 
 /**
- * Low-level function to send any transactional email via Brevo.
+ * Direct Brevo REST call bypassing secondary provider fallback.
  */
-export async function sendBrevoEmail(params: SendEmailParams) {
-  if (!BREVO_API_KEY) {
-    console.warn("[Brevo] BREVO_API_KEY is not set. Email not sent.");
-    return { success: false, error: "BREVO_API_KEY not configured" };
-  }
-
-  try {
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": BREVO_API_KEY,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        sender: params.sender || DEFAULT_SENDER,
-        to: params.to,
-        subject: params.subject,
-        htmlContent: params.htmlContent,
-        textContent: params.textContent,
-        replyTo: params.replyTo || DEFAULT_SENDER,
-        attachment: params.attachment,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("[Brevo Error]:", data);
-      return { success: false, error: data.message || "Failed to send email" };
-    }
-
-    return { success: true, messageId: data.messageId };
-  } catch (error: any) {
-    console.error("[Brevo Exception]:", error);
-    return { success: false, error: error.message || "Network error" };
-  }
+export async function sendBrevoDirect(params: SendEmailParams) {
+  return sendBrevoProvider(params);
 }
 
 /**

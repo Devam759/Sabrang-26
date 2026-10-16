@@ -101,6 +101,8 @@ export default function TubesCursor() {
     };
   }, [hidden]); // <-- Add hidden to dependency array!
 
+  if (hidden) return null;
+
   return (
     <div
       className="tubes-cursor-container"
@@ -114,9 +116,7 @@ export default function TubesCursor() {
         pointerEvents: "none",
         zIndex: 9999,
         mixBlendMode: "screen",
-        // Hide on excluded pages without unmounting - keeps the canvas ref
-        // attached so the effect always initialises successfully on first mount.
-        visibility: hidden ? "hidden" : "visible",
+        visibility: "visible",
       }}
     >
       <canvas

@@ -62,7 +62,7 @@ export default function SchedulePage() {
       events: [
         { time: "9:30 AM", event: "Inaugural", venue: "Admin", category: "Mandatory", description: "9:30 AM - 11:00 AM" },
         { time: "11:30 AM", event: "Echoes of Noor", venue: "Main Stage", category: "Fun", description: "11:30 AM - 1:30 PM" },
-        { time: "2:00 PM", event: "Persona", venue: "Main Stage", category: "Competition", description: "2:00 PM - 4:00 PM" },
+        { time: "2:00 PM", event: "Personna", venue: "Main Stage", category: "Competition", description: "2:00 PM - 4:00 PM" },
         { time: "2:00 PM", event: "Court Room", venue: "IM Amphitheater", category: "Competition", description: "2:00 PM - 4:00 PM" },
         { time: "2:00 PM", event: "Dumb Show", venue: "IET Amphitheater", category: "Fun", description: "2:00 PM - 4:00 PM" },
         { time: "5:00 PM", event: "Panache", venue: "Main Stage", category: "Competition", description: "5:00 PM - 7:00 PM" },

@@ -10,13 +10,14 @@ export interface User {
   createdAt: Timestamp | Date;
 }
 
-export type CouponDiscountType = "percentage" | "fixed";
+export type CouponDiscountType = "percentage" | "fixed" | "per_head_cap";
 
 export interface Coupon {
   id?: string;
   code: string;
   discountType: CouponDiscountType;
-  discountValue: number; // percentage (e.g. 20 for 20%) or fixed price (e.g. 300 for ₹300)
+  discountValue: number; // percentage (e.g. 20 for 20%), fixed price (e.g. 300 for ₹300), or per-head cap (e.g. 250 for max ₹250/head)
+  perHeadCap?: number;
   amount?: number; // legacy backward compatibility for fixed amount
   discountPercentage?: number; // legacy backward compatibility
   applicableEvents?: string[]; // List of event IDs / titles this coupon applies to. If empty or ['ALL'], applies to all events.

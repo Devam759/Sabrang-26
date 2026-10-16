@@ -264,11 +264,11 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
 
 
 // ============================================================================
-// BREVO EMAIL NOTIFICATION helper (Transactional Email via REST API)
+// TRANSACTIONAL EMAIL NOTIFICATION helper (Primary Brevo + Fallback Mailjet)
 // ============================================================================
 
 export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) {
-  const { sendBrevoEmail } = await import('./brevo');
+  const { sendTransactionalEmail } = await import('./emailService');
 
   // Use absolute URLs for images to prevent Gmail from clipping the email (Base64 strings are too large)
   const sabrangLogoTag = `<img src="https://res.cloudinary.com/eprhemvt/image/upload/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang '26 Logo" style="max-height: 70px; width: auto; display: block;" />`;
@@ -339,32 +339,26 @@ export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) 
 
   const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
 
-  const maxRetries = 2;
-  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
-    try {
-      const result = await sendBrevoEmail({
-        to: [{ email: to, name }],
-        subject: 'Welcome to Sabrang 2026 - Registration Confirmed!',
-        htmlContent,
-        textContent: `Hi ${name}, your registration for Sabrang 2026 is confirmed! Your receipt is attached.`,
-        attachment: [
-          {
-            content: pdfBase64,
-            name: 'Sabrang_Registration_Receipt.pdf',
-          },
-        ],
-      });
-      if (result.success) {
-        console.log(`[Brevo] Registration email sent on attempt ${attempt}. MessageId:`, result.messageId);
-        return;
-      }
-      throw new Error(result.error || 'Brevo send failed');
-    } catch (err) {
-      console.warn(`[Brevo] sendEmail attempt ${attempt} failed:`, err);
-      if (attempt > maxRetries) throw err;
-      await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-    }
+  const result = await sendTransactionalEmail({
+    to: [{ email: to, name }],
+    subject: 'Welcome to Sabrang 2026 - Registration Confirmed!',
+    htmlContent,
+    textContent: `Hi ${name}, your registration for Sabrang 2026 is confirmed! Your receipt is attached.`,
+    attachment: [
+      {
+        content: pdfBase64,
+        name: 'Sabrang_Registration_Receipt.pdf',
+        contentType: 'application/pdf',
+      },
+    ],
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to send confirmation email via configured email providers');
   }
+
+  console.log(`[EmailService] Registration email delivered via ${result.provider}. MessageId: ${result.messageId}`);
+  return result;
 }
 
 export async function sendSystemErrorEmail(performedBy: string, targetEntity: string, details: string) {
@@ -389,6 +383,8 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   const basePrice = Number(formData.amount || formData.price || formData.originalPrice || 500);
   let paymentAmount = basePrice;
   const couponCode = (formData.coupon || '').trim().toLowerCase();
+  let couponDocRef: any = null;
+
   if (couponCode) {
     try {
       let docSnap = await adminDb.collection('coupons').doc(couponCode).get();
@@ -398,9 +394,18 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       if (docSnap.exists) {
         const { calculateCouponDiscount } = await import('@/lib/couponHelper');
         const eventTarget = formData.eventId || formData.event || formData.eventName || formData.eventTitle || '';
-        const res = calculateCouponDiscount(docSnap.data(), basePrice, eventTarget);
+        const eventList = Array.isArray(formData.selectedEvents) && formData.selectedEvents.length > 0
+          ? formData.selectedEvents
+          : (formData.eventId ? [formData.eventId] : []);
+        const res = calculateCouponDiscount(docSnap.data(), basePrice, eventTarget, {
+          selectedEvents: eventList,
+          teamMembers: formData.teamMembers,
+          visitorConfig: formData.visitorConfig,
+          isEarlyBird: formData.isEarlyBird,
+        });
         if (res.valid) {
           paymentAmount = res.finalPrice;
+          couponDocRef = docSnap.ref;
         }
       }
     } catch (err) {
@@ -425,17 +430,111 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   const parentPhone = (formData.parentPhone || formData.fatherMobile || formData.motherMobile || 'N/A').trim() || 'N/A';
   const parentEmail = (formData.parentEmail || formData.fatherEmail || formData.motherEmail || 'N/A').trim() || 'N/A';
   
-  // 1. Prevent duplicate database entries using an atomic lock
-  let docId = "";
+  // 1. Establish or retrieve canonical registration ID for this order
   const lockRef = adminDb.collection('registrationLocks').doc(orderId);
-  try {
-    await lockRef.create({ lockedAt: FieldValue.serverTimestamp() });
-    
-    const ownRoll = formData.registrationNumber || formData.rollNumber;
+  const pendingRef = adminDb.collection('pendingRegistrations').doc(orderId);
 
-    // We got the lock! Save data to Firestore Registration Collection
-    const docRef = await adminDb.collection('registrations').add({
+  // Fast check: has this order already been finalized?
+  const existingLockSnap = await lockRef.get();
+  if (existingLockSnap.exists && existingLockSnap.data()?.registrationId) {
+    const existingDocId = existingLockSnap.data()!.registrationId;
+    console.log(`Order ${orderId} already finalized with registration ID: ${existingDocId}`);
+    return existingDocId;
+  }
+
+  const existingPendingSnap = await pendingRef.get();
+  if (existingPendingSnap.exists && existingPendingSnap.data()?.status === 'completed' && existingPendingSnap.data()?.registrationId) {
+    const existingDocId = existingPendingSnap.data()!.registrationId;
+    console.log(`Order ${orderId} already completed in pendingRegistrations with ID: ${existingDocId}`);
+    // Backfill lock for consistency
+    await lockRef.set({
+      lockedAt: FieldValue.serverTimestamp(),
+      registrationId: existingDocId,
+      status: 'completed'
+    }, { merge: true });
+    return existingDocId;
+  }
+
+  // Backward compatibility: check if existing registration already exists in `registrations` with this orderId
+  const existingQuery = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
+  if (!existingQuery.empty) {
+    const existingDocId = existingQuery.docs[0].id;
+    console.log(`Order ${orderId} found in existing registrations query with ID: ${existingDocId}. Linking lock.`);
+    await lockRef.set({
+      lockedAt: FieldValue.serverTimestamp(),
+      registrationId: existingDocId,
+      status: 'completed'
+    }, { merge: true });
+    if (existingPendingSnap.exists) {
+      await pendingRef.update({
+        status: 'completed',
+        registrationId: existingDocId,
+        completedAt: FieldValue.serverTimestamp()
+      });
+    }
+    return existingDocId;
+  }
+
+  // Robust resolution of primary idCard from formData top level or team members
+  let resolvedIdCard = typeof formData.idCard === 'string' && formData.idCard.trim() ? formData.idCard.trim() : null;
+  if (!resolvedIdCard && formData.teamMembers && typeof formData.teamMembers === 'object') {
+    for (const group of Object.keys(formData.teamMembers)) {
+      const members = Array.isArray(formData.teamMembers[group]) ? formData.teamMembers[group] : [];
+      for (const m of members) {
+        if (m && typeof m.idCard === 'string' && m.idCard.trim()) {
+          resolvedIdCard = m.idCard.trim();
+          break;
+        }
+      }
+      if (resolvedIdCard) break;
+    }
+  }
+
+  // Clean up team member idCard fields so Firestore never stores `{}` as an empty object
+  const cleanedTeamMembers = formData.teamMembers ? { ...formData.teamMembers } : {};
+  if (typeof cleanedTeamMembers === 'object') {
+    for (const group of Object.keys(cleanedTeamMembers)) {
+      if (Array.isArray(cleanedTeamMembers[group])) {
+        cleanedTeamMembers[group] = cleanedTeamMembers[group].map((m: any) => {
+          if (!m) return m;
+          const cardVal = typeof m.idCard === 'string' && m.idCard.trim() ? m.idCard.trim() : (m.idCard?.url || null);
+          return {
+            ...m,
+            idCard: cardVal,
+          };
+        });
+      }
+    }
+  }
+
+  const newRegRef = adminDb.collection('registrations').doc();
+  const newRegId = newRegRef.id;
+  let docId = "";
+
+  // Perform atomic claim and document creation inside a Firestore transaction
+  await adminDb.runTransaction(async (transaction) => {
+    // 1. ALL READS FIRST (Firestore requirement: all reads must precede any writes)
+    const lockDoc = await transaction.get(lockRef);
+    if (lockDoc.exists && lockDoc.data()?.registrationId) {
+      docId = lockDoc.data()!.registrationId;
+      return;
+    }
+
+    const pendingDoc = await transaction.get(pendingRef);
+    if (pendingDoc.exists && pendingDoc.data()?.status === 'completed' && pendingDoc.data()?.registrationId) {
+      docId = pendingDoc.data()!.registrationId;
+      return;
+    }
+
+    let couponDocSnap: FirebaseFirestore.DocumentSnapshot | null = null;
+    if (couponDocRef) {
+      couponDocSnap = await transaction.get(couponDocRef as FirebaseFirestore.DocumentReference);
+    }
+
+    const regData = {
       ...formData,
+      idCard: resolvedIdCard,
+      teamMembers: cleanedTeamMembers,
       name: formData.name,
       email: formData.email,
       phone: formData.mobile,
@@ -459,56 +558,50 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       emailSent: false,
       emailSentAt: null,
       emailError: null,
+      emailProvider: null,
+      emailProviderMessageId: null,
+      emailAttemptCount: 0,
+      lastEmailAttemptAt: null,
       registeredAt: FieldValue.serverTimestamp(),
-    });
-    docId = docRef.id;
-    console.log("Registration saved. Firestore ID:", docId);
-  } catch (err: any) {
-    if (err.code === 6 || err.message?.includes('ALREADY_EXISTS')) {
-      console.log(`Database lock exists for order ${orderId}. Fetching existing ID...`);
-      // Wait for the other process to finish writing the actual registration
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const existingRegQuery = await adminDb.collection('registrations').where('orderId', '==', orderId).get();
-      if (!existingRegQuery.empty) {
-        docId = existingRegQuery.docs[0].id;
-      } else {
-        console.warn("Database lock existed but registration not found. Creating fallback registration document...");
-        const ownRoll = formData.registrationNumber || formData.rollNumber;
+    };
 
-        const docRef = await adminDb.collection('registrations').add({
-          ...formData,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.mobile,
-          rollNumber: formData.registrationNumber,
-          gender: formData.gender || 'N/A',
-          course: formData.course || 'N/A',
-          pincode: formData.pincode || (formData.address ? (formData.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A'),
-          region: formData.region || 'N/A',
-          city: formData.city || 'N/A',
-          parentName: parentName,
-          parentPhone: parentPhone,
-          parentEmail: parentEmail,
-          paymentAmount: paymentAmount,
-          receivedAmount: paymentAmount,
-          dateOfPayment: dateOfPayment,
-          dateGroup: dateGroup,
-          hasEntered: false,
-          paymentId: paymentId,
-          orderId: orderId,
-          sheetSynced: false,
-          emailSent: false,
-          emailSentAt: null,
-          emailError: null,
-          registeredAt: FieldValue.serverTimestamp(),
-        });
-        docId = docRef.id;
-        console.log("Registration saved via lock fallback. Firestore ID:", docId);
-      }
+    // 2. ALL WRITES AFTER READS
+    transaction.set(newRegRef, regData);
+    transaction.set(lockRef, {
+      lockedAt: FieldValue.serverTimestamp(),
+      registrationId: newRegId,
+      status: 'completed'
+    });
+
+    if (pendingDoc.exists) {
+      transaction.update(pendingRef, {
+        status: 'completed',
+        registrationId: newRegId,
+        completedAt: FieldValue.serverTimestamp()
+      });
+    }
+
+    if (couponDocSnap && couponDocSnap.exists) {
+      transaction.update(couponDocRef as FirebaseFirestore.DocumentReference, {
+        usedCount: FieldValue.increment(1)
+      });
+    }
+
+    docId = newRegId;
+  });
+
+  if (!docId) {
+    // Bounded fallback in the rare event transaction returned without setting docId
+    const finalCheck = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
+    if (!finalCheck.empty) {
+      docId = finalCheck.docs[0].id;
     } else {
-      throw err;
+      throw new Error(`Failed to establish or retrieve canonical registration for order ${orderId}`);
     }
   }
+
+  console.log("Canonical registration finalized. Firestore ID:", docId);
+
 
   // 2. Delegate background tasks
   if (skipBackgroundTasks) {
@@ -538,24 +631,41 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       const isProduction = process.env.NODE_ENV === 'production' || 
                            (process.env.NEXT_PUBLIC_CASHFREE_ENV || '').trim().toUpperCase() === 'PRODUCTION';
       console.log("Attempting to send confirmation email to:", isProduction ? maskEmail(formData.email) : formData.email);
-      await sendEmail(formData.email, formData.name, pdfBytes);
-      console.log("Email sent successfully.");
+      const emailResult = await sendEmail(formData.email, formData.name, pdfBytes);
+      console.log(`Email sent successfully via ${emailResult.provider}.`);
 
       if (docId) {
         await adminDb.collection('registrations').doc(docId).update({
           emailSent: true,
           emailSentAt: FieldValue.serverTimestamp(),
-          emailError: null
+          emailError: null,
+          emailProvider: emailResult.provider,
+          emailProviderMessageId: emailResult.messageId || null,
+          emailAttemptCount: FieldValue.increment(1),
+          lastEmailAttemptAt: FieldValue.serverTimestamp(),
         }).catch(err => console.error("Failed to update emailSent status in Firestore:", err));
       }
     } catch (emailError: any) {
       console.error("Email generation/delivery failed:", emailError);
       
       if (docId) {
-        await adminDb.collection('registrations').doc(docId).update({
-          emailSent: false,
-          emailError: emailError.message || String(emailError)
-        }).catch(err => console.error("Failed to update emailError status in Firestore:", err));
+        // Prevent concurrent race overwriting a successful delivery with stale failure
+        try {
+          const freshSnap = await adminDb.collection('registrations').doc(docId).get();
+          if (freshSnap.exists && freshSnap.data()?.emailSent === true) {
+            console.log(`[RegistrationHelper] Doc ${docId} already has emailSent=true; skipping overwrite.`);
+          } else {
+            await adminDb.collection('registrations').doc(docId).update({
+              emailSent: false,
+              emailError: emailError.message || String(emailError),
+              emailProvider: 'none',
+              emailAttemptCount: FieldValue.increment(1),
+              lastEmailAttemptAt: FieldValue.serverTimestamp(),
+            });
+          }
+        } catch (dbErr) {
+          console.error("Failed to update emailError status in Firestore:", dbErr);
+        }
       }
 
 

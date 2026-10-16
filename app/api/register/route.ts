@@ -69,7 +69,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Bot detected' }, { status: 400 });
     }
 
-    const checkCoupon = async (code: string, originalPrice: number = 500, eventIdOrTitle?: string) => {
+    const checkCoupon = async (
+      code: string, 
+      originalPrice: number = 500, 
+      eventIdOrTitle?: string,
+      context?: import('@/lib/couponHelper').CouponCalculationContext
+    ) => {
       if (!code) return { valid: false, amount: originalPrice, finalPrice: originalPrice, error: 'No coupon code provided.' };
       try {
         const lowerCode = code.trim().toLowerCase();
@@ -83,7 +88,7 @@ export async function POST(req: Request) {
         if (docSnap.exists) {
           const couponData = docSnap.data();
           const { calculateCouponDiscount } = await import('@/lib/couponHelper');
-          const res = calculateCouponDiscount(couponData, originalPrice, eventIdOrTitle);
+          const res = calculateCouponDiscount(couponData, originalPrice, eventIdOrTitle, context);
           return {
             valid: res.valid,
             amount: res.finalPrice,
@@ -127,7 +132,12 @@ export async function POST(req: Request) {
         basePrice = 500;
       }
 
-      const couponStatus = await checkCoupon(code, basePrice, eventTarget);
+      const couponStatus = await checkCoupon(code, basePrice, eventTarget, {
+        selectedEvents: eventList,
+        teamMembers: data.teamMembers,
+        visitorConfig: data.visitorConfig,
+        isEarlyBird,
+      });
       return NextResponse.json(couponStatus);
     }
 
@@ -193,13 +203,22 @@ export async function POST(req: Request) {
       const settingsSnap = await settingsRef.get();
       const isEarlyBird = settingsSnap.exists ? settingsSnap.data()?.active : false;
 
-      let basePrice = calculateTotalRegistrationFee(eventList, data.teamMembers, data.visitorConfig, isEarlyBird);
-        if (basePrice <= 0) {
-          basePrice = 500;
+        let basePrice = calculateTotalRegistrationFee(eventList, data.teamMembers, data.visitorConfig, isEarlyBird);
+        if (basePrice <= 0 && typeof data.basePrice === 'number' && data.basePrice > 0) {
+          basePrice = data.basePrice;
         }
 
-        const couponStatus = await checkCoupon(couponCode, basePrice, eventTarget);
-        const orderAmount = couponStatus.valid ? couponStatus.finalPrice : basePrice;
+        let orderAmount = basePrice;
+        if (couponCode) {
+          const couponBasePrice = basePrice <= 0 ? 500 : basePrice;
+          const couponStatus = await checkCoupon(couponCode, couponBasePrice, eventTarget, {
+            selectedEvents: eventList,
+            teamMembers: data.teamMembers,
+            visitorConfig: data.visitorConfig,
+            isEarlyBird,
+          });
+          orderAmount = couponStatus.valid ? couponStatus.finalPrice : basePrice;
+        }
 
         console.log("Saving pending registration for order ID:", orderId);
         // 1. Save pending registration details under pendingRegistrations using Admin SDK
@@ -212,13 +231,19 @@ export async function POST(req: Request) {
         });
         console.log("Pending registration saved.");
 
-        // MOCK MODE: If not in production (Sandbox), no keys, OR order amount is 0, return a mock session
-        if (!isProd || !cashfreeAppId || orderAmount === 0) {
+        // If order amount is 0 (authorized free ticket / 100% discount), return a zero-amount session
+        if (orderAmount === 0) {
           return NextResponse.json({ 
             order_id: orderId,
-            payment_session_id: "mock_session_id",
-            is_mock: true
+            payment_session_id: "free_order_session",
+            is_zero_amount: true
           });
+        }
+
+        // For non-zero amounts: Gateway credentials MUST be present (both sandbox and production)
+        if (!cashfreeAppId || !cashfreeSecretKey) {
+          console.error("Payment gateway credentials missing for paid order.");
+          return NextResponse.json({ error: 'Payment gateway configuration is missing. Please contact support.' }, { status: 500 });
         }
 
         console.log("Creating Cashfree Order via PGCreateOrder...");
@@ -286,7 +311,7 @@ export async function POST(req: Request) {
       const { orderId } = data;
 
       // Validate orderId format before using as a Firestore document ID
-      // Cashfree order IDs must match: order_<digits> (e.g. order_1234567890)
+      // Cashfree order IDs must match: order_<digits/uuid> (e.g. order_1234567890)
       if (!orderId || typeof orderId !== 'string' || !/^order_[0-9a-zA-Z_\-]{1,50}$/.test(orderId.trim())) {
         console.warn('Invalid orderId format rejected:', orderId);
         return NextResponse.json({ error: 'Invalid order ID format' }, { status: 400 });
@@ -308,33 +333,150 @@ export async function POST(req: Request) {
       }
       const dbFormData = pendingData.formData;
 
-      // If we are in Sandbox, don't have keys, or it's a 100% discount, allow bypass
-      if (!isProd || !cashfreeAppId || pendingData.amount === 0) {
-        console.warn("Sandbox mode, Cashfree App ID missing, or amount is 0. Bypassing verification.");
-        // For free tickets, there is no webhook, so the frontend MUST run the background tasks.
-        const regId = await finalizeRegistration(dbFormData, "mock_payment_id", sanitizedOrderId, true);
-        after(async () => {
-          try {
-            await finalizeRegistration(dbFormData, "mock_payment_id", sanitizedOrderId, false);
-          } catch (err) {
-            console.error("Error in background task for mock/free order:", err);
-          }
+      // 1. Fast Path: Check if order was ALREADY completed (Idempotency)
+      if (pendingData.status === 'completed' && pendingData.registrationId) {
+        console.log(`Order ${sanitizedOrderId} already completed with registration ID: ${pendingData.registrationId}. Returning existing registration.`);
+        const { createReceiptToken } = await import('@/lib/security');
+        const token = createReceiptToken(pendingData.registrationId, sanitizedOrderId);
+        return NextResponse.json({ 
+          success: true, 
+          id: pendingData.registrationId, 
+          email: dbFormData?.email,
+          token,
+          alreadyCompleted: true
         });
-        return NextResponse.json({ success: true, id: regId, email: dbFormData.email });
       }
 
-      const response = await cashfree.PGOrderFetchPayments(sanitizedOrderId);
-      const payments = response.data;
-      const successPayment = payments?.find((p: any) => p.payment_status === 'SUCCESS');
-
-      if (!successPayment) {
-        console.warn("No successful payment found for order:", sanitizedOrderId);
-        return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
+      // Check registrationLocks collection as well
+      const lockRef = adminDb.collection('registrationLocks').doc(sanitizedOrderId);
+      const lockSnap = await lockRef.get();
+      if (lockSnap.exists && lockSnap.data()?.registrationId) {
+        const existingId = lockSnap.data()!.registrationId;
+        console.log(`Order ${sanitizedOrderId} lock already finalized with ID: ${existingId}. Returning existing registration.`);
+        await pendingRef.update({
+          status: 'completed',
+          registrationId: existingId,
+          completedAt: FieldValue.serverTimestamp()
+        }).catch(() => {});
+        const { createReceiptToken } = await import('@/lib/security');
+        const token = createReceiptToken(existingId, sanitizedOrderId);
+        return NextResponse.json({ 
+          success: true, 
+          id: existingId, 
+          email: dbFormData?.email,
+          token,
+          alreadyCompleted: true
+        });
       }
 
-      console.log("Payment verified successfully:", successPayment.cf_payment_id);
-      const paymentIdStr = successPayment.cf_payment_id ? successPayment.cf_payment_id.toString() : 'N/A';
+      let paymentIdStr = "";
+
+      // 2. Handle Zero-Amount (100% discount / free) registration under strict server-authorized policy
+      if (pendingData.amount === 0) {
+        // Enforce server-side price re-verification: Do NOT trust client-submitted zero amounts
+        const couponCode = (dbFormData.coupon || '').trim().toUpperCase();
+        const eventTarget = dbFormData.eventId || dbFormData.event || dbFormData.eventName || dbFormData.eventTitle || '';
+        const eventList = Array.isArray(dbFormData.selectedEvents) && dbFormData.selectedEvents.length > 0
+          ? dbFormData.selectedEvents
+          : (dbFormData.eventId ? [dbFormData.eventId] : []);
+
+        const settingsRef = adminDb.collection('settings').doc('earlyBird');
+        const settingsSnap = await settingsRef.get();
+        const isEarlyBird = settingsSnap.exists ? settingsSnap.data()?.active : false;
+
+        let originalBasePrice = calculateTotalRegistrationFee(eventList, dbFormData.teamMembers, dbFormData.visitorConfig, isEarlyBird);
+        if (originalBasePrice <= 0 && typeof dbFormData.basePrice === 'number' && dbFormData.basePrice > 0) {
+          originalBasePrice = dbFormData.basePrice;
+        }
+
+        let calculatedAmount = originalBasePrice;
+        if (couponCode) {
+          const couponBasePrice = originalBasePrice <= 0 ? 500 : originalBasePrice;
+          const couponStatus = await checkCoupon(couponCode, couponBasePrice, eventTarget, {
+            selectedEvents: eventList,
+            teamMembers: dbFormData.teamMembers,
+            visitorConfig: dbFormData.visitorConfig,
+            isEarlyBird,
+          });
+          if (couponStatus.valid) {
+            calculatedAmount = couponStatus.finalPrice;
+            paymentIdStr = `FREE_COUPON_${couponCode}`;
+          } else {
+            calculatedAmount = originalBasePrice;
+          }
+        } else {
+          paymentIdStr = 'FREE_REGISTRATION';
+        }
+
+        if (calculatedAmount !== 0) {
+          console.error(`Fraud alert: Order ${sanitizedOrderId} claimed amount 0 but server recalculated amount is ${calculatedAmount}`);
+          return NextResponse.json({ error: 'Zero-amount registration is unauthorized or coupon is no longer valid.' }, { status: 400 });
+        }
+
+        if (!paymentIdStr) {
+          paymentIdStr = 'FREE_REGISTRATION';
+        }
+      } else {
+        // 3. For paid orders: Verify strictly against Cashfree Gateway (both Sandbox & Production)
+        if (!cashfreeAppId || !cashfreeSecretKey) {
+          console.error("Cashfree API credentials missing on server.");
+          return NextResponse.json({ error: 'Payment gateway configuration is missing. Please contact support.' }, { status: 500 });
+        }
+
+        let paymentsResponse;
+        try {
+          paymentsResponse = await cashfree.PGOrderFetchPayments(sanitizedOrderId);
+        } catch (fetchErr: any) {
+          console.error("Cashfree PGOrderFetchPayments error:", fetchErr.response?.data || fetchErr.message);
+          return NextResponse.json({ error: 'Unable to verify payment with payment gateway. Please try again.' }, { status: 502 });
+        }
+
+        const payments = paymentsResponse.data;
+        if (!Array.isArray(payments) || payments.length === 0) {
+          console.warn("No payments found on gateway for order:", sanitizedOrderId);
+          return NextResponse.json({ error: 'No payment attempts found for this order.' }, { status: 400 });
+        }
+
+        // Authoritative payment status validation
+        const successPayment = payments.find((p: any) => p.payment_status === 'SUCCESS');
+        if (!successPayment) {
+          const pendingPayment = payments.find((p: any) => p.payment_status === 'PENDING');
+          if (pendingPayment) {
+            return NextResponse.json({ error: 'Payment is still pending confirmation by your bank. Please wait a moment.' }, { status: 400 });
+          }
+          const failedPayment = payments.find((p: any) => 
+            p.payment_status === 'FAILED' || p.payment_status === 'CANCELLED' || p.payment_status === 'USER_DROPPED'
+          );
+          if (failedPayment) {
+            const statusStr = String(failedPayment.payment_status || 'failed').toLowerCase().replace(/_/g, ' ');
+            return NextResponse.json({ error: `Payment ${statusStr}. Please try again.` }, { status: 400 });
+          }
+          console.warn("No successful payment found for order:", sanitizedOrderId);
+          return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
+        }
+
+        // Validate currency and amount
+        const paidAmount = Number(successPayment.payment_amount || 0);
+        const paidCurrency = successPayment.payment_currency || 'INR';
+
+        if (paidCurrency !== 'INR') {
+          console.error(`Invalid payment currency: expected INR, got ${paidCurrency}`);
+          return NextResponse.json({ error: 'Invalid payment currency.' }, { status: 400 });
+        }
+
+        if (Math.abs(paidAmount - pendingData.amount) > 0.01 && paidAmount < pendingData.amount) {
+          console.error(`Payment amount mismatch: expected ${pendingData.amount}, got ${paidAmount}`);
+          return NextResponse.json({ error: 'Payment amount does not match order amount.' }, { status: 400 });
+        }
+
+        paymentIdStr = successPayment.cf_payment_id ? successPayment.cf_payment_id.toString() : 'N/A';
+        console.log("Payment verified successfully with gateway:", paymentIdStr);
+      }
+
+      // 4. Finalize registration atomically
       const regId = await finalizeRegistration(dbFormData, paymentIdStr, sanitizedOrderId, true);
+
+      // Run background tasks (email, PDF, sheet sync) exactly once
       after(async () => {
         try {
           await finalizeRegistration(dbFormData, paymentIdStr, sanitizedOrderId, false);
@@ -342,7 +484,16 @@ export async function POST(req: Request) {
           console.error("Error in background task for order:", err);
         }
       });
-      return NextResponse.json({ success: true, id: regId, email: dbFormData.email });
+
+      const { createReceiptToken } = await import('@/lib/security');
+      const token = createReceiptToken(regId, sanitizedOrderId);
+
+      return NextResponse.json({ 
+        success: true, 
+        id: regId, 
+        email: dbFormData.email,
+        token
+      });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

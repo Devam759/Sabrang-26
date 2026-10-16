@@ -11,12 +11,15 @@ import {
   calculateEventItemPrice,
   calculateTotalRegistrationFee,
   getGroupTeamRequirements,
+  isFlagshipEvent,
+  calculateFlagshipBankFee,
   SabrangEvent,
   VAAD_VIVAAD_REPRESENTATIVES,
   FESTIVAL_DAYS,
   VisitorPassConfig,
   calculateVisitorPassFee,
 } from "@/lib/eventPricing";
+import RegistrationCoordinatorsDropdown from "@/components/auth/RegistrationCoordinatorsDropdown";
 
 type StepId = "select" | "forms" | "review";
 
@@ -36,6 +39,7 @@ type TeamMember = {
   gender: string;
   age: string;
   institutionName: string;
+  institutionSelect?: string;
   address: string;
   idCard: string | null; idCardName?: string;
 };
@@ -201,7 +205,7 @@ export default function CheckoutForm() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
-  const [verifiedOrder, setVerifiedOrder] = useState<{ orderId: string; registrationId: string; email?: string } | null>(null);
+  const [verifiedOrder, setVerifiedOrder] = useState<{ orderId: string; registrationId: string; email?: string; token?: string } | null>(null);
 
   const verifyOrderPayment = useCallback(async (orderId: string) => {
     setVerificationStatus("verifying");
@@ -222,7 +226,21 @@ export default function CheckoutForm() {
           orderId,
           registrationId: data.id,
           email: data.email,
+          token: data.token,
         });
+
+        // Safely strip ?order_id=... from the browser address bar so page refreshes do not re-request verification
+        if (typeof window !== "undefined" && window.history?.replaceState) {
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("order_id");
+            const newSearch = url.searchParams.toString();
+            const newUrl = url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash;
+            window.history.replaceState({}, document.title, newUrl);
+          } catch {
+            // Non-critical fallback
+          }
+        }
       } else {
         setVerificationStatus("error");
         setPaymentError(data.error || "Payment verification failed or was cancelled.");
@@ -283,10 +301,12 @@ export default function CheckoutForm() {
 
       const regNum = getField(primaryGroup, "registrationNumber") || getField(primaryGroup, "rollNumber") || `REG_${Date.now()}`;
 
+      const primaryIdCard = idCards[primaryGroup]?.url || Object.values(idCards).find(v => v !== null)?.url || null;
+
       const payload = {
         action: "CREATE_ORDER",
-        idCard: Object.values(idCards).find(v => v !== null)?.url || null,
         ...formData,
+        idCard: primaryIdCard,
         name,
         email,
         mobile,
@@ -325,8 +345,8 @@ export default function CheckoutForm() {
         throw new Error(data?.error || `Server error (${res.status}). Please try again.`);
       }
 
-      // If mock mode (e.g. Free pass / 100% coupon discount)
-      if (data.is_mock) {
+      // If zero-amount order (e.g. Free pass / 100% coupon discount) or mock mode
+      if (data.is_zero_amount || data.is_mock) {
         await verifyOrderPayment(data.order_id);
         setIsProcessingPayment(false);
         return;
@@ -389,10 +409,13 @@ export default function CheckoutForm() {
           const neededExtra = req.min - 1;
           if (currentMembers.length < neededExtra) {
             const toAdd = neededExtra - currentMembers.length;
+            const leaderInst = getField(group, 'institutionName') || getField("generic", "institutionName");
+            const leaderSelect = getField(group, 'institutionSelect') || getField("generic", "institutionSelect") || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
             const newItems = Array.from({ length: toAdd }, () => ({
               id: Math.random().toString(36).substr(2, 9),
               name: "", email: "", mobileNumber: "", gender: "", age: "",
-              institutionName: getField(group, 'institutionName') || getField("generic", "institutionName"),
+              institutionName: leaderInst,
+              institutionSelect: leaderSelect,
               address: getField(group, 'address') || getField("generic", "address"),
               idCard: null,
             }));
@@ -426,10 +449,16 @@ export default function CheckoutForm() {
   };
 
   const calculateTotal = () => {
-    const rawTotal = calculateTotalRegistrationFee(selectedEvents, teamMembers, {
-      count: visitorCount,
-      days: visitorDays,
-    }, isEarlyBirdActive);
+    const isStep1 = currentStep === "select";
+    const rawTotal = calculateTotalRegistrationFee(
+      selectedEvents,
+      isStep1 ? undefined : teamMembers,
+      {
+        count: visitorCount,
+        days: visitorDays,
+      },
+      isEarlyBirdActive
+    );
     
     if (promoApplied && couponData?.valid) {
       return Math.max(0, couponData.finalPrice);
@@ -512,6 +541,8 @@ export default function CheckoutForm() {
 
       if (currentList.length < neededExtra) {
         const toAdd = neededExtra - currentList.length;
+        const leaderInst = getField("visitor", "institutionName") || getField("generic", "institutionName");
+        const leaderSelect = getField("visitor", "institutionSelect") || getField("generic", "institutionSelect") || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
         const newItems: TeamMember[] = Array.from({ length: toAdd }, () => ({
           id: Math.random().toString(36).substr(2, 9),
           name: "",
@@ -519,7 +550,8 @@ export default function CheckoutForm() {
           mobileNumber: "",
           gender: "",
           age: "",
-          institutionName: getField("visitor", "institutionName") || getField("generic", "institutionName"),
+          institutionName: leaderInst,
+          institutionSelect: leaderSelect,
           address: getField("visitor", "address") || getField("generic", "address"),
           idCard: null,
         }));
@@ -567,7 +599,7 @@ export default function CheckoutForm() {
       const newData = { ...prev, [`${group}_${field}`]: finalValue };
       
       // Auto-sync personal details across groups for better UX
-      const personalFields = ['name', 'email', 'mobileNumber', 'gender', 'age', 'institutionName', 'address'];
+      const personalFields = ['name', 'email', 'mobileNumber', 'gender', 'age', 'institutionName', 'institutionSelect', 'address'];
       if (personalFields.includes(field)) {
         // Sync to all other active groups
         const activeGroups = getActiveGroups();
@@ -598,6 +630,9 @@ export default function CheckoutForm() {
 
   // Team Member Management
   const addTeamMember = (group: string) => {
+    const leaderInst = getField(group, 'institutionName');
+    const leaderSelect = getField(group, 'institutionSelect') || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
+
     const newMember: TeamMember = {
       id: Math.random().toString(36).substr(2, 9),
       name: "",
@@ -605,7 +640,8 @@ export default function CheckoutForm() {
       mobileNumber: "",
       gender: "",
       age: "",
-      institutionName: getField(group, 'institutionName'), // copy from leader by default
+      institutionName: leaderInst, // copy from leader by default
+      institutionSelect: leaderSelect,
       address: getField(group, 'address'),
       idCard: null,
     };
@@ -872,20 +908,65 @@ export default function CheckoutForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/80 flex justify-between">
-              <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
-            </label>
-            <input
-              type="text"
-              value={getField(group, 'institutionName')}
-              onBlur={() => handleBlur(`${group}_institutionName`)}
-              onChange={(e) => updateField(group, 'institutionName', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
-                touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-              }`}
-              placeholder="Your school/college/university"
-            />
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80 flex justify-between">
+                <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
+              </label>
+              <select
+                value={
+                  getField(group, 'institutionSelect') ||
+                  (getField(group, 'institutionName') === "JK Lakshmipat University"
+                    ? "JK Lakshmipat University"
+                    : getField(group, 'institutionName')
+                    ? "other"
+                    : "")
+                }
+                onBlur={() => handleBlur(`${group}_institutionName`)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField(group, 'institutionSelect', val);
+                  if (val === "JK Lakshmipat University") {
+                    updateField(group, 'institutionName', "JK Lakshmipat University");
+                  } else if (val === "other") {
+                    if (getField(group, 'institutionName') === "JK Lakshmipat University") {
+                      updateField(group, 'institutionName', "");
+                    }
+                  } else {
+                    updateField(group, 'institutionName', "");
+                  }
+                }}
+                className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
+                  touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                }`}
+              >
+                <option value="" className="bg-[#020202]">Select Institution</option>
+                <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
+                <option value="other" className="bg-[#020202]">Others</option>
+              </select>
+            </div>
+
+            {(getField(group, 'institutionSelect') === "other" ||
+              (!getField(group, 'institutionSelect') &&
+                getField(group, 'institutionName') &&
+                getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <label className="text-sm font-medium text-white/80 flex justify-between">
+                  <span>Enter Institution Name <span className="text-violet-400">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  value={getField(group, 'institutionName')}
+                  onBlur={() => handleBlur(`${group}_institutionName`)}
+                  onChange={(e) => updateField(group, 'institutionName', e.target.value)}
+                  className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                  }`}
+                  placeholder="Your school/college/university"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -1082,15 +1163,55 @@ export default function CheckoutForm() {
                         placeholder="e.g., 20"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/80">Institution Name <span className="text-violet-400">*</span></label>
-                      <input
-                        type="text"
-                        value={member.institutionName}
-                        onChange={(e) => updateTeamMember(group, member.id, 'institutionName', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
-                        placeholder="Your school/college"
-                      />
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-white/80">Institution Name <span className="text-violet-400">*</span></label>
+                        <select
+                          value={
+                            member.institutionSelect ||
+                            (member.institutionName === "JK Lakshmipat University"
+                              ? "JK Lakshmipat University"
+                              : member.institutionName
+                              ? "other"
+                              : "")
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateTeamMember(group, member.id, 'institutionSelect', val);
+                            if (val === "JK Lakshmipat University") {
+                              updateTeamMember(group, member.id, 'institutionName', "JK Lakshmipat University");
+                            } else if (val === "other") {
+                              if (member.institutionName === "JK Lakshmipat University") {
+                                updateTeamMember(group, member.id, 'institutionName', "");
+                              }
+                            } else {
+                              updateTeamMember(group, member.id, 'institutionName', "");
+                            }
+                          }}
+                          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                        >
+                          <option value="" className="bg-[#020202]">Select Institution</option>
+                          <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
+                          <option value="other" className="bg-[#020202]">Others</option>
+                        </select>
+                      </div>
+
+                      {(member.institutionSelect === "other" ||
+                        (!member.institutionSelect &&
+                          member.institutionName &&
+                          member.institutionName !== "JK Lakshmipat University")) && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                          <label className="text-sm font-medium text-white/80">Enter Institution Name <span className="text-violet-400">*</span></label>
+                          <input
+                            type="text"
+                            value={member.institutionName}
+                            onChange={(e) => updateTeamMember(group, member.id, 'institutionName', e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 placeholder-white/40"
+                            placeholder="Your school/college"
+                            autoFocus
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-white/80 flex justify-between">
@@ -1326,18 +1447,18 @@ export default function CheckoutForm() {
                   "Flagship Events - Solo / Duo",
                   "Non-Flagship - Esports",
                   "Non-Flagship - Other Events",
-                  // "Activities - Gifts & Hampers",
+                  "Activities - Gifts & Hampers",
                   "General Entry",
                 ] as SabrangEvent["category"][]).map((category) => {
                   const categoryEvents = EVENTS.filter((e) => e.category === category);
                   if (categoryEvents.length === 0) return null;
 
                   const categoryLabel = 
-                    category === "Flagship Events - Team" ? "Flagship" :
-                    category === "Flagship Events - Solo / Duo" ? "Flagship Solo / Duo" :
+                    category === "Flagship Events - Team" ? "Flagship Team" :
+                    category === "Flagship Events - Solo / Duo" ? "Flagship Solo" :
                     category === "Non-Flagship - Esports" ? "E-Sports" :
                     category === "Non-Flagship - Other Events" ? "Competitions & Events" :
-                    category === "Activities - Gifts & Hampers" ? "Activities & Hampers" :
+                    category === "Activities - Gifts & Hampers" ? "Activities (Per Head)" :
                     "General Visitor Pass";
 
                   return (
@@ -1370,12 +1491,17 @@ export default function CheckoutForm() {
                                   <h5 className="font-black text-base uppercase tracking-wider text-white mb-1.5">
                                     {event.title}
                                   </h5>
+                                  {event.subtitle && (
+                                    <p className="text-xs text-white/60 mb-2 font-sans">
+                                      {event.subtitle}
+                                    </p>
+                                  )}
                                   <div className="flex flex-wrap items-center gap-3">
                                     {event.id === "visitor" ? (
                                       <span className="font-sans text-sm font-bold text-cyan-400">
                                         {isSelected
-                                          ? `₹${calculateVisitorPassFee(visitorCount, visitorDays.length)} (₹99/day/person)`
-                                          : "₹99 per person per day"}
+                                          ? `₹${calculateVisitorPassFee(visitorCount, visitorDays.length)} (₹69/day/person)`
+                                          : "₹69 per person per day"}
                                       </span>
                                     ) : isEarlyBirdActive && event.earlyBirdPricingLabel ? (
                                       <div className="flex items-center gap-2">
@@ -1506,7 +1632,7 @@ export default function CheckoutForm() {
                                   {/* Calculated Subtotal pill */}
                                   <div className="p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-500/20 flex justify-between items-center text-xs">
                                     <span className="text-white/70 font-sans text-[11px]">
-                                      {visitorCount} visitor{visitorCount > 1 ? "s" : ""} × {visitorDays.length} day{visitorDays.length > 1 ? "s" : ""} @ ₹99/person/day
+                                      {visitorCount} visitor{visitorCount > 1 ? "s" : ""} × {visitorDays.length} day{visitorDays.length > 1 ? "s" : ""} @ ₹69/person/day
                                     </span>
                                     <span className="font-sans font-bold text-cyan-400 text-sm">
                                       ₹{calculateVisitorPassFee(visitorCount, visitorDays.length)}
@@ -1691,28 +1817,49 @@ export default function CheckoutForm() {
                     days: visitorDays,
                   }, isEarlyBirdActive);
 
+                  const isFlagship = isFlagshipEvent(ev);
+                  const membersCount = ev.isTeam ? totalMembers : 1;
+                  const showBankFee = isFlagship && (!ev.isTeam || totalMembers > 1);
+                  const bankFee = showBankFee ? calculateFlagshipBankFee(ev, membersCount) : 0;
+
                   return (
-                    <div key={eventId} className="flex justify-between items-start text-white/90 py-1.5 border-b border-white/5 last:border-0">
-                      <div>
-                        <div className="font-semibold text-sm">{ev.title}</div>
-                        <div className="text-[11px] text-white/40 font-sans">{ev.category}</div>
-                        {eventId === "visitor" && (
-                          <div className="text-[11px] text-cyan-400 font-sans mt-0.5">
-                            {visitorCount} attendee{visitorCount > 1 ? "s" : ""} • {visitorDays.length} day{visitorDays.length > 1 ? "s" : ""} ({visitorDays.map(d => FESTIVAL_DAYS.find(f => f.id === d)?.label).join(", ")})
-                          </div>
-                        )}
-                        {ev.isTeam && ev.extraMemberFee > 0 && totalMembers > ev.baseIncludedMembers && (
-                          <div className="text-[11px] text-violet-400 font-sans mt-0.5">
-                            {totalMembers} members ({ev.baseIncludedMembers} base + {totalMembers - ev.baseIncludedMembers} extra @ ₹{isEarlyBirdActive && ev.earlyBirdExtraMemberFee !== undefined ? ev.earlyBirdExtraMemberFee : ev.extraMemberFee})
-                          </div>
-                        )}
-                        {ev.isTeam && ev.extraMemberFee === 0 && (
-                          <div className="text-[11px] text-white/50 font-sans mt-0.5">
-                            Team of {totalMembers} members (flat team fee)
-                          </div>
-                        )}
+                    <div key={eventId} className="py-2 border-b border-white/5 last:border-0 space-y-2">
+                      <div className="flex justify-between items-start text-white/90">
+                        <div>
+                          <div className="font-semibold text-sm">{ev.title}</div>
+                          <div className="text-[11px] text-white/40 font-sans">{ev.category}</div>
+                          {eventId === "visitor" && (
+                            <div className="text-[11px] text-cyan-400 font-sans mt-0.5">
+                              {visitorCount} attendee{visitorCount > 1 ? "s" : ""} • {visitorDays.length} day{visitorDays.length > 1 ? "s" : ""} ({visitorDays.map(d => FESTIVAL_DAYS.find(f => f.id === d)?.label).join(", ")})
+                            </div>
+                          )}
+                          {(eventId === "pronite_jklu" || eventId === "pronite_outsider") && (
+                            <div className="text-[11px] text-amber-400 font-sans mt-0.5 font-medium">
+                              Full-day access for all 3 days (Days 1, 2 & 3)
+                            </div>
+                          )}
+                          {ev.isTeam && ev.extraMemberFee > 0 && totalMembers > ev.baseIncludedMembers && (
+                            <div className="text-[11px] text-violet-400 font-sans mt-0.5">
+                              {totalMembers} members ({ev.baseIncludedMembers} base + {totalMembers - ev.baseIncludedMembers} extra @ ₹{isEarlyBirdActive && ev.earlyBirdExtraMemberFee !== undefined ? ev.earlyBirdExtraMemberFee : ev.extraMemberFee})
+                            </div>
+                          )}
+                          {ev.isTeam && ev.extraMemberFee === 0 && (
+                            <div className="text-[11px] text-white/50 font-sans mt-0.5">
+                              Team of {totalMembers} members (flat team fee)
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-sans text-sm font-bold text-violet-300">₹ {itemPrice}</span>
                       </div>
-                      <span className="font-sans text-sm font-bold text-violet-300">₹ {itemPrice}</span>
+
+                      {showBankFee && (
+                        <div className="flex justify-between items-center text-xs font-sans pl-2.5 py-1.5 border-l-2 border-amber-400/50 bg-amber-400/10 rounded-r">
+                          <span className="text-amber-300 font-medium">
+                            Band Fee: 7 * {membersCount} (no of person) =
+                          </span>
+                          <span className="font-bold font-sans text-amber-300">₹ {bankFee}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1784,7 +1931,13 @@ export default function CheckoutForm() {
                   {promoApplied && couponData && (
                     <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex justify-between items-center text-emerald-400 text-sm text-white/80">
                       <span>
-                        Coupon {promoCode} applied ({couponData.discountType === 'fixed' ? `Special Price ₹${couponData.finalPrice}` : `${couponData.discountValue}% Off`})
+                        Coupon {promoCode} applied ({
+                          couponData.discountType === 'fixed' 
+                            ? `Special Price ₹${couponData.finalPrice}` 
+                            : couponData.discountType === 'per_head_cap'
+                            ? `Cap ₹${couponData.discountValue}/head`
+                            : `${couponData.discountValue}% Off`
+                        })
                       </span>
                       <span className="font-bold">- ₹ {couponData.discountAmount}</span>
                     </div>
@@ -1898,19 +2051,37 @@ export default function CheckoutForm() {
                   days: visitorDays,
                 }, isEarlyBirdActive);
 
+                const isFlagship = isFlagshipEvent(ev);
+                const membersCount = ev.isTeam ? totalMembers : 1;
+                const showBankFee = isFlagship && currentStep !== "select" && (!ev.isTeam || totalMembers > 1);
+                const bankFee = showBankFee ? calculateFlagshipBankFee(ev, membersCount) : 0;
+
                 return (
-                  <div key={id} className="flex justify-between items-start text-xs py-2 border-b border-white/5 last:border-0">
-                    <div>
-                      <div className="font-bold text-white uppercase tracking-wide">{ev.title}</div>
-                      <div className="text-[10px] text-white/40 font-sans">
-                        {id === "visitor"
-                          ? `${visitorCount} Attendee${visitorCount > 1 ? "s" : ""} • ${visitorDays.length} Day${visitorDays.length > 1 ? "s" : ""}`
-                          : ev.category}
+                  <div key={id} className="py-2 border-b border-white/5 last:border-0 space-y-1.5">
+                    <div className="flex justify-between items-start text-xs">
+                      <div>
+                        <div className="font-bold text-white uppercase tracking-wide">{ev.title}</div>
+                        <div className="text-[10px] text-white/40 font-sans">
+                          {id === "visitor"
+                            ? `${visitorCount} Attendee${visitorCount > 1 ? "s" : ""} • ${visitorDays.length} Day${visitorDays.length > 1 ? "s" : ""}`
+                            : ev.category}
+                        </div>
                       </div>
+                      <span className="font-sans text-cyan-400 font-bold text-xs shrink-0">
+                        {ev.isTeam ? `Team ₹${price}` : `₹${price}`}
+                      </span>
                     </div>
-                    <span className="font-sans text-cyan-400 font-bold text-xs shrink-0">
-                      {ev.isTeam ? `Team ₹${price}` : `₹${price}`}
-                    </span>
+
+                    {showBankFee && (
+                      <div className="flex justify-between items-center text-[11px] font-sans pl-2 border-l-2 border-amber-400/50 py-0.5 bg-amber-400/10 rounded-r">
+                        <span className="text-amber-300 font-medium">
+                          Band Fee: 7 * {membersCount} (no of person) =
+                        </span>
+                        <span className="font-bold font-sans text-amber-300 shrink-0">
+                          ₹{bankFee}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -1998,6 +2169,9 @@ export default function CheckoutForm() {
             </div>
           )}
         </div>
+
+        {/* Event Coordinators Dropdown Menu */}
+        <RegistrationCoordinatorsDropdown />
       </div>
       </div>
       ) : (
@@ -2062,7 +2236,7 @@ export default function CheckoutForm() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                   <a
-                    href={`/api/receipt?id=${encodeURIComponent(verifiedOrder.registrationId)}`}
+                    href={`/api/receipt?id=${encodeURIComponent(verifiedOrder.registrationId)}&order_id=${encodeURIComponent(verifiedOrder.orderId)}${verifiedOrder.token ? `&token=${encodeURIComponent(verifiedOrder.token)}` : ''}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-6 py-3.5 bg-violet-600 hover:bg-violet-500 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)] transition-all"

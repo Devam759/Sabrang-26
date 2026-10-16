@@ -1018,88 +1018,78 @@ export interface FAQItem {
 
 export const FAQS: FAQItem[] = [
   {
-    question: "What is Sabrang?",
+    question: "When and where is Sabrang 2026 happening?",
     answer:
-      "Sabrang is the annual cultural festival of JK Lakshmipat University, Jaipur. It features exciting events including dance battles, fashion runways, music band jams, literary slams, e-sports, and celebrity pro-shows over three days.",
+      "Sabrang 2026 will be held from October 23 to October 25, 2026 at JK Lakshmipat University (JKLU), Jaipur.",
   },
   {
-    question: "When and where is Sabrang 2026?",
+    question: "Is there an entry fee for Sabrang?",
     answer:
-      "Sabrang 2026 will be held at JK Lakshmipat University, Mahapura, Ajmer Road, Jaipur, Rajasthan 302026.",
+      "Participants: Event-wise fee varies depending on the competition and is shown during online registration.\nVisitors: A Visitor Pass of ₹69 per day is required.",
   },
   {
-    question: "Who can participate?",
+    question: "How do I register for Sabrang Events?",
     answer:
-      "All college students from recognized universities across India can participate in Sabrang. Some events may have specific eligibility criteria, so please check individual event details.",
+      "Registration is online only through the official website https://sabrang.jklu.edu.in/. Select the event(s), add them to the cart, and complete the checkout process. On-site registration is not available.",
   },
   {
-    question: "How do I register for events?",
+    question: "Will I need to show ID at the venue?",
     answer:
-      "Create an account on our website, browse the events page, and click \"Register Now\" for any event you're interested in. You'll receive a unique QR code for entry.",
+      "Yes. Participants and visitors must carry a valid photo ID (college ID or government-issued ID) along with the event/visitor pass for entry.",
   },
   {
-    question: "Is there an entry fee?",
+    question: "Is there any accommodation available for outstation participants?",
     answer:
-      "Entry to the festival is free for JKLU students. External participants may need to pay a nominal registration fee for certain events. Check individual event pages for details.",
+      "Yes, accommodation is available on a chargeable basis. Contact the registration team for details about hostels, partner hotels, and booking procedures.",
   },
   {
-    question: "What is the total prize pool?",
+    question: "Are there parking arrangements for visitors?",
     answer:
-      "The total prize pool exceeds ₹2.5 Lakhs, distributed across all cultural and flagship events.",
+      "Yes, parking arrangements are available at the venue.",
   },
   {
-    question: "Can I participate in multiple events?",
+    question: "Is there a pick-up and drop facility for participants?",
     answer:
-      "Yes! You can register for as many events as you want, provided there are no scheduling conflicts.",
+      "Yes. Shuttle services are available at pre-decided stops. Additionally, if a team or a certain number of participants are coming from the same university, transport can be provided for them with a minimal charge.",
   },
   {
-    question: "Will there be accommodation available?",
+    question: "Do visitors also need to register or only participants?",
     answer:
-      "Yes, limited accommodation is available on campus on a first-come, first-served basis. Please contact us in advance to arrange accommodation.",
+      "Visitors must also register and purchase a Visitor Pass (₹69 per day).",
   },
   {
-    question: "Is food available on campus?",
+    question: "Who do I contact for event-related queries after registration?",
     answer:
-      "Absolutely! We'll have a food festival with multiple vendors offering a variety of cuisines. Food courts will be operational throughout the festival.",
+      "Registration Core:\n• Jayash Gahlot: +91 83062 74199 (jayashgahlot@jklu.edu.in)\n• Ankit Joshi: +91 93541 16261 (ankitjoshi@jklu.edu.in)",
   },
   {
-    question: "How do I get my QR code?",
+    question: "Is onsite registration open?",
     answer:
-      "After successful registration for any event, your unique QR code will be available in your dashboard. You can also find the QR string below the code for manual entry.",
+      "No. Only online registration is valid.",
   },
   {
-    question: "Can I get a refund if I cancel my registration?",
+    question: "I made a mistake during my registration. Can I register again?",
     answer:
-      "Refund policies vary by event. Please check the specific event's terms and conditions or contact our support team.",
+      "Yes, you can register again. In case of errors, you may also contact the registration team for corrections.",
   },
   {
-    question: "Is there parking available?",
+    question: "Can we register for more than one event?",
     answer:
-      "Yes, parking is available on campus for both two-wheelers and four-wheelers. Follow the signage on the day of the event.",
+      "Yes, participants may register for multiple events, subject to schedule.",
   },
   {
-    question: "Are outside food/drinks allowed?",
+    question: "When will the registrations open and close?",
     answer:
-      "Outside food and drinks are not permitted inside the venue. However, we have plenty of food options available at affordable prices.",
+      "Online registrations are already open and will remain open until the last day of Sabrang, October 25, 2026.",
   },
   {
-    question: "How can I contact the organizing team?",
+    question: "Will the registrations be refundable or not?",
     answer:
-      "You can reach out to the organizing team through our contact page or email us at sabrang@jklu.edu.in.",
+      "No, registrations are non-refundable.",
   },
   {
-    question: "Can I sponsor Sabrang?",
+    question: "Concert and Pro-Nite Charges?",
     answer:
-      "Yes! We offer various sponsorship packages. Contact our sponsorship team or reach out via our contact page for more details.",
-  },
-  {
-    question: "Will there be live streaming of events?",
-    answer:
-      "Select events will be live-streamed on our social media channels. Follow us on Instagram and YouTube for updates.",
-  },
-  {
-    question: "What should I bring to the festival?",
-    answer:
-      "Bring your college ID, registration QR code, comfortable clothes, and lots of energy! Some events may require specific equipment - check event rules.",
+      "Charges are mentioned on the website checkout portal: ₹499 for Outsiders and ₹299 for JKLU students, providing full-day access for all 3 days (Days 1, 2 & 3).",
   },
 ];

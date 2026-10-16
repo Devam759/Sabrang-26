@@ -63,14 +63,18 @@ export async function POST(req: Request) {
         );
 
         // 2. Dispatch email
-        await sendEmail(regData.email, regData.name, pdfBytes);
-        console.log(`Email successfully sent to ${regData.email}.`);
+        const emailResult = await sendEmail(regData.email, regData.name, pdfBytes);
+        console.log(`Email successfully sent to ${regData.email} via ${emailResult.provider}.`);
 
         // 3. Update database
         await doc.ref.update({
           emailSent: true,
           emailSentAt: FieldValue.serverTimestamp(),
-          emailError: null
+          emailError: null,
+          emailProvider: emailResult.provider,
+          emailProviderMessageId: emailResult.messageId || null,
+          emailAttemptCount: FieldValue.increment(1),
+          lastEmailAttemptAt: FieldValue.serverTimestamp(),
         });
 
         // 4. Log in audit logs
@@ -79,7 +83,7 @@ export async function POST(req: Request) {
           action: 'EMAIL_RESEND',
           performedBy: 'Admin Console',
           targetEntity: `registration/${regId}`,
-          details: `Resent registration confirmation email to ${regData.email} via admin console.`
+          details: `Resent registration confirmation email to ${regData.email} via admin console (${emailResult.provider}).`
         });
 
         successCount++;
@@ -89,7 +93,10 @@ export async function POST(req: Request) {
         // Update database with error
         await doc.ref.update({
           emailSent: false,
-          emailError: err.message || String(err)
+          emailError: err.message || String(err),
+          emailProvider: 'none',
+          emailAttemptCount: FieldValue.increment(1),
+          lastEmailAttemptAt: FieldValue.serverTimestamp(),
         }).catch(() => {});
 
         failures.push(`${regData.name} (${regData.email}): ${err.message || err}`);

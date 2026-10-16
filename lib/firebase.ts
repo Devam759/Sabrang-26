@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { initializeFirestore, getFirestore, persistentLocalCache, Firestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider, CustomProvider } from 'firebase/app-check';
 
@@ -11,6 +11,7 @@ export const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 /** True when real Firebase web config is present in env (not placeholders). */
@@ -28,7 +29,7 @@ export function isFirebaseConfigured(): boolean {
 export const FIREBASE_SETUP_MESSAGE =
   'Firebase is not configured. Copy .env.example to .env.local, add your Firebase web app keys from the Firebase Console (project: sabrang-26), then restart `npm run dev`.';
 
-const app: FirebaseApp =
+export const app: FirebaseApp =
   getApps().length > 0
     ? getApp()
     : initializeApp(
@@ -45,7 +46,9 @@ export const auth: Auth = getAuth(app);
 export const db: Firestore = (() => {
   try {
     return initializeFirestore(app, {
-      localCache: typeof window !== 'undefined' ? persistentLocalCache() : undefined,
+      localCache: typeof window !== 'undefined' 
+        ? persistentLocalCache({ tabManager: persistentMultipleTabManager() }) 
+        : undefined,
     });
   } catch {
     return getFirestore(app);
@@ -61,7 +64,7 @@ export let appCheck: any = null;
 
 if (app) {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-  const debugToken = process.env.APP_CHECK_DEBUG_TOKEN;
+  const debugToken = process.env.APP_CHECK_DEBUG_TOKEN || process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN;
 
   if (typeof window !== 'undefined') {
     // Client-side initialization (requires public siteKey)

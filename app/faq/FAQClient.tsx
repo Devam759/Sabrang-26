@@ -53,7 +53,7 @@ function FaqItem({ faq, index }: { faq: any; index: number }) {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-white/90 leading-relaxed border-t border-white/10 pt-4 bg-black/30"
+              className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-white/90 leading-relaxed border-t border-white/10 pt-4 bg-black/30 whitespace-pre-line"
             >
               {faq.answer}
             </motion.div>

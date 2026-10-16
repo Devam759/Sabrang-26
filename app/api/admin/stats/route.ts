@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { getStartOfTodayIST, getEndOfTodayIST, parseDateValue } from '@/lib/dateUtils';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfToday = getStartOfTodayIST();
+    const endOfToday = getEndOfTodayIST();
 
     let totalRegistrations = 0;
     let todayRegistrations = 0;
@@ -23,12 +27,10 @@ export async function GET() {
         const amountNum = parseFloat(reg.receivedAmount || reg.paymentAmount || reg.amount || reg.price || '0') || 0;
         totalRevenue += amountNum;
 
-        if (reg.registeredAt || reg.createdAt) {
-          const regDate = reg.registeredAt?.toDate ? reg.registeredAt.toDate() : new Date(reg.registeredAt || reg.createdAt);
-          if (regDate >= today) {
-            todayRegistrations++;
-            todayRevenue += amountNum;
-          }
+        const regDate = parseDateValue(reg.registeredAt) || parseDateValue(reg.createdAt);
+        if (regDate && regDate >= startOfToday && regDate <= endOfToday) {
+          todayRegistrations++;
+          todayRevenue += amountNum;
         }
       });
 
@@ -39,7 +41,7 @@ export async function GET() {
 
     try {
       const scansSnap = await adminDb.collection('scanLogs')
-        .where('timestamp', '>=', today)
+        .where('timestamp', '>=', startOfToday)
         .where('result', '==', 'accepted')
         .get();
       totalEntriesToday = scansSnap.size;
@@ -55,6 +57,12 @@ export async function GET() {
       totalEntries,
       totalRevenue,
       todayRevenue,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error: any) {
     console.error("Admin stats API error:", error);
@@ -66,6 +74,10 @@ export async function GET() {
       totalEntries: 0,
       totalRevenue: 0,
       todayRevenue: 0,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      }
     });
   }
 }

@@ -1,14 +1,47 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '../../../lib/firebase';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Check, X, User, AlertCircle, Mail, Phone, Loader2 } from 'lucide-react';
+import { Check, X, User, AlertCircle, Mail, Phone, Loader2, Search } from 'lucide-react';
 import { OFFICIAL_EVENTS, getEventById } from '@/lib/eventPricing';
 import { extractRegistrationInfo } from '@/lib/registrationDataHelper';
+
+function playAudioTone(freq: number, type: OscillatorType, duration: number) {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch {}
+}
+
+function playSuccessChime() {
+  playAudioTone(880, 'sine', 0.12);
+  setTimeout(() => playAudioTone(1174.66, 'sine', 0.22), 110);
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    try { navigator.vibrate([70, 30, 70]); } catch {}
+  }
+}
+
+function playErrorBeep() {
+  playAudioTone(320, 'sawtooth', 0.25);
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    try { navigator.vibrate([180]); } catch {}
+  }
+}
 
 function getScannedEventName(data: any): string {
   if (!data) return 'N/A';
@@ -97,6 +130,77 @@ export default function AdminScannerView() {
   const [cameras, setCameras] = useState<Array<{ id: string, label: string }>>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const [selectedScanEvent, setSelectedScanEvent] = useState<string>('all');
+
+  // Manual ticket lookup states
+  const [manualQuery, setManualQuery] = useState('');
+  const [searchingManual, setSearchingManual] = useState(false);
+  const [manualError, setManualError] = useState('');
+
+  const handleManualSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const q = manualQuery.trim();
+    if (!q) return;
+
+    setSearchingManual(true);
+    setManualError('');
+
+    try {
+      // 1. Direct Document ID lookup
+      const regDoc = await getDoc(doc(db, 'registrations', q));
+      if (regDoc.exists()) {
+        await runSafeCameraTransition(stopCameraInternal);
+        setScannedData({ ...regDoc.data(), id: regDoc.id });
+        playSuccessChime();
+        setSearchingManual(false);
+        return;
+      }
+
+      // 2. Query by rollNumber / application no
+      const rollQuery = query(collection(db, 'registrations'), where('rollNumber', '==', q));
+      const rollSnap = await getDocs(rollQuery);
+      if (!rollSnap.empty) {
+        const found = rollSnap.docs[0];
+        await runSafeCameraTransition(stopCameraInternal);
+        setScannedData({ ...found.data(), id: found.id });
+        playSuccessChime();
+        setSearchingManual(false);
+        return;
+      }
+
+      // 3. Query by phone
+      const phoneQuery = query(collection(db, 'registrations'), where('phone', '==', q));
+      const phoneSnap = await getDocs(phoneQuery);
+      if (!phoneSnap.empty) {
+        const found = phoneSnap.docs[0];
+        await runSafeCameraTransition(stopCameraInternal);
+        setScannedData({ ...found.data(), id: found.id });
+        playSuccessChime();
+        setSearchingManual(false);
+        return;
+      }
+
+      // 4. Query by email
+      const emailQuery = query(collection(db, 'registrations'), where('email', '==', q.toLowerCase()));
+      const emailSnap = await getDocs(emailQuery);
+      if (!emailSnap.empty) {
+        const found = emailSnap.docs[0];
+        await runSafeCameraTransition(stopCameraInternal);
+        setScannedData({ ...found.data(), id: found.id });
+        playSuccessChime();
+        setSearchingManual(false);
+        return;
+      }
+
+      playErrorBeep();
+      setManualError('No registration found matching ticket ID, application no, or phone.');
+    } catch (err: any) {
+      console.error('Manual search error:', err);
+      playErrorBeep();
+      setManualError('Search error: ' + (err?.message || 'Failed to search'));
+    } finally {
+      setSearchingManual(false);
+    }
+  };
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isScanning = useRef(true);
@@ -216,9 +320,27 @@ export default function AdminScannerView() {
       
       const targetDevice = deviceIdOverride || selectedCameraId || { facingMode: "environment" };
       
+      // Calculate responsive qrbox size based on actual container width
+      const qrBoxSize = (viewfinderWidth: number, viewfinderHeight: number) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        return {
+          width: Math.floor(minEdge * 0.72),
+          height: Math.floor(minEdge * 0.72),
+        };
+      };
+
       await scanner.start(
         targetDevice,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        { 
+          fps: 12, 
+          qrbox: qrBoxSize,
+          aspectRatio: 1.0,
+          videoConstraints: {
+            facingMode: targetDevice === selectedCameraId ? undefined : "environment",
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 }
+          }
+        },
         onScanSuccess,
         () => {}
       );
@@ -357,6 +479,7 @@ export default function AdminScannerView() {
       const regDoc = await getDoc(doc(db, 'registrations', regID));
 
       if (!regDoc.exists()) {
+        playErrorBeep();
         setStatus({ type: 'error', message: 'INVALID QR CODE' });
         setTimeout(() => {
           setStatus({ type: 'idle', message: '' });
@@ -364,11 +487,13 @@ export default function AdminScannerView() {
           runSafeCameraTransition(startCameraInternal);
         }, 2000);
       } else {
+        playSuccessChime();
         const data = regDoc.data();
         setScannedData({ ...data, id: regID });
       }
     } catch (error) {
       console.error("Scan fetch error:", error);
+      playErrorBeep();
       setStatus({ type: 'error', message: 'FETCH ERROR' });
       setTimeout(() => {
         setStatus({ type: 'idle', message: '' });
@@ -387,6 +512,7 @@ export default function AdminScannerView() {
         await auth.authStateReady(); // Ensure Firebase Auth is loaded
         const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
         if (!idToken) {
+          playErrorBeep();
           setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
           setProcessingAction(false);
           return;
@@ -410,17 +536,20 @@ export default function AdminScannerView() {
 
         const result = await res.json();
         if (res.ok && result.success) {
+          playSuccessChime();
           setStatus({ 
             type: 'success', 
             message: `ENTRY SUCCESSFUL • ${result.attendee?.name || scannedData.name}` 
           });
         } else {
+          playErrorBeep();
           setStatus({ 
             type: 'error', 
             message: result.error || result.code || 'ENTRY VALIDATION FAILED' 
           });
         }
       } else {
+        playErrorBeep();
         await addDoc(collection(db, 'scanLogs'), {
           scannerId: 'ADMIN',
           volunteerName: adminEmail,
@@ -443,6 +572,7 @@ export default function AdminScannerView() {
         setStatus({ type: 'idle', message: 'ENTRY DECLINED' });
       }
     } catch (e) {
+      playErrorBeep();
       setStatus({ type: 'error', message: 'ACTION FAILED' });
     }
 
@@ -507,13 +637,13 @@ export default function AdminScannerView() {
 
         {/* Event Selector for Event-Specific Entry Scanning */}
         <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs mb-4">
-          <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-3">
-            Scanning For Event
+          <label className="block text-xs font-semibold text-slate-700 mb-2">
+            Scanning for Event
           </label>
           <select
             value={selectedScanEvent}
             onChange={(e) => setSelectedScanEvent(e.target.value)}
-            className="w-full bg-white border border-slate-200 text-slate-900 font-bold text-xs rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500/50 cursor-pointer appearance-none"
+            className="w-full bg-white border border-slate-200 text-slate-900 font-semibold text-xs rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500/50 cursor-pointer appearance-none"
           >
             <option value="all">All Events (Global Fest Entry)</option>
             {OFFICIAL_EVENTS.map((evt) => (
@@ -523,8 +653,8 @@ export default function AdminScannerView() {
             ))}
             <option value="visitor">Visitor Pass (General Fest Entry)</option>
           </select>
-          <p className="text-[10px] text-slate-500 mt-3 font-medium">
-            Tickets for other events will be rejected with "WRONG EVENT" when a specific event is selected.
+          <p className="text-xs text-slate-500 mt-2 font-medium">
+            Tickets for other events will be rejected with "Wrong Event" when a specific event is selected.
           </p>
         </div>
 
@@ -556,8 +686,8 @@ export default function AdminScannerView() {
             onClick={toggleCamera}
             className={`w-full max-w-sm font-semibold text-xs rounded-xl py-3.5 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
               cameraActive 
-                ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20' 
-                : 'bg-white hover:bg-white/90 text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' 
+                : 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm'
             }`}
           >
             {cameraActive ? 'Stop Camera' : 'Start Camera'}
@@ -586,6 +716,44 @@ export default function AdminScannerView() {
           )}
         </div>
 
+        {/* Manual Lookup Card (When camera is unavailable or QR is unscannable) */}
+        {!scannedData && (
+          <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs mt-4">
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
+              Manual Ticket Lookup
+            </label>
+            <form onSubmit={handleManualSearch} className="flex flex-col sm:flex-row gap-2.5">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                <input
+                  type="text"
+                  value={manualQuery}
+                  onChange={(e) => {
+                    setManualQuery(e.target.value);
+                    if (manualError) setManualError('');
+                  }}
+                  placeholder="Ticket ID, Application No, Phone, or Email..."
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl py-3 pl-10 pr-3 focus:outline-none focus:border-purple-500/50 font-mono"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={searchingManual || !manualQuery.trim()}
+                className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shrink-0 shadow-sm"
+              >
+                {searchingManual ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                <span>Find Ticket</span>
+              </button>
+            </form>
+            {manualError && (
+              <p className="text-[11px] text-rose-600 font-medium mt-2.5 flex items-center gap-1.5">
+                <AlertCircle size={13} className="shrink-0" />
+                <span>{manualError}</span>
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Dossier Verification Card (Visible when ticket is scanned) */}
         {scannedData && (
           <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-8 flex flex-col animate-in zoom-in-95 duration-300 rounded-[32px] shadow-2xl my-2 relative overflow-hidden">
@@ -595,14 +763,14 @@ export default function AdminScannerView() {
             <div className="flex justify-between items-center mb-6 pb-5 border-b border-slate-200 relative z-10">
               <div>
                 <h2 className="text-xl font-light text-slate-900 font-space-grotesk tracking-wide">Verify Ticket</h2>
-                <p className="text-slate-500 font-mono text-[10px] mt-1 tracking-widest">
+                <p className="text-slate-500 font-mono text-xs mt-1">
                   ID: {scannedData.id}
                 </p>
               </div>
               
               <div className="flex items-center gap-3">
                 {scannedData.hasEntered && (
-                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
+                  <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
                     Already Inside
                   </div>
                 )}
@@ -625,39 +793,39 @@ export default function AdminScannerView() {
                 return (
                   <div className="bg-white/80 p-5 border border-slate-100 rounded-2xl flex flex-col gap-4">
                     <div>
-                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Attendee Name</span>
+                      <span className="text-xs font-medium text-slate-500 block mb-1">Attendee Name</span>
                       <span className="text-2xl font-light text-slate-900 leading-tight block font-space-grotesk">{regInfo.name}</span>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Application Number</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Application Number</span>
                         <span className="text-xs font-semibold text-slate-800 block font-mono">{regInfo.rollNumber}</span>
                       </div>
                       <div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Mobile</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Mobile</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.phone}</span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Event Name</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Event Name</span>
                         <span className="text-xs font-semibold text-slate-800 block">{getScannedEventName(scannedData)}</span>
                       </div>
                       <div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Event Type</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Event Type</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.eventType}</span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">Team Name</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Team Name</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.teamName}</span>
                       </div>
                       <div>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-1">No. of Teammates</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">No. of Teammates</span>
                         <span className="text-xs font-semibold text-slate-800 block">{regInfo.noOfTeammates}</span>
                       </div>
                     </div>
@@ -667,12 +835,12 @@ export default function AdminScannerView() {
 
               {/* Already Checked In Detail Alert */}
               {scannedData.hasEntered && (
-                <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-4 rounded-2xl flex gap-3 items-start">
-                  <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+                <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
+                  <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
                   <div className="text-xs leading-relaxed">
-                    <p className="font-bold text-red-400 uppercase tracking-wide text-[11px]">Warning: Already Entered</p>
-                    <p className="text-[11px] text-red-400/80 mt-1.5 font-mono">
-                      Checked in at: {scannedData.enteredAt ? new Date(scannedData.enteredAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+                    <p className="font-semibold text-rose-800 text-xs">Warning: Already Entered</p>
+                    <p className="text-xs text-rose-700/90 mt-1 font-mono">
+                      Checked in at: {scannedData.enteredAt ? new Date(scannedData.enteredAt.seconds * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Unknown'}
                     </p>
                     {scannedData.enteredBy && (
                       <p className="text-[11px] text-red-400/80 font-mono mt-0.5">Operator: {scannedData.enteredBy}</p>
@@ -687,14 +855,14 @@ export default function AdminScannerView() {
               <button 
                 disabled={processingAction}
                 onClick={() => handleAction(false)}
-                className="bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-bold uppercase tracking-widest rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
               >
                 <X size={16} /> Decline
               </button>
               <button 
                 disabled={processingAction || scannedData.hasEntered}
                 onClick={() => handleAction(true)}
-                className="bg-white hover:bg-white/90 text-black text-xs font-bold uppercase tracking-widest rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >
                 <Check size={16} /> Approve
               </button>
@@ -707,9 +875,10 @@ export default function AdminScannerView() {
         #qr-reader { border: none !important; width: 100% !important; height: 100% !important; border-radius: 16px; overflow: hidden; }
         #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; border-radius: 16px; }
         #qr-reader.mirrored video { transform: scaleX(-1) !important; }
-        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #64748b; }
       `}</style>
     </div>
   );

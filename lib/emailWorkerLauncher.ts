@@ -131,16 +131,20 @@ async function processDoc(
     );
 
     // Send the email
-    await sendEmail(data.email, data.name, pdfBytes);
+    const emailResult = await sendEmail(data.email, data.name, pdfBytes);
 
     // Mark as sent in Firestore
     await registrationsRef.doc(docId).update({
       emailSent: true,
       emailSentAt: FieldValue.serverTimestamp(),
       emailError: null,
+      emailProvider: emailResult.provider,
+      emailProviderMessageId: emailResult.messageId || null,
+      emailAttemptCount: FieldValue.increment(1),
+      lastEmailAttemptAt: FieldValue.serverTimestamp(),
     });
 
-    console.log(`[EmailWorker] Email sent successfully to ${data.email} (Doc: ${docId})`);
+    console.log(`[EmailWorker] Email sent successfully to ${data.email} via ${emailResult.provider} (Doc: ${docId})`);
   } catch (err: any) {
     console.error(`[EmailWorker] Failed to process doc ${docId}:`, err);
 
@@ -148,6 +152,9 @@ async function processDoc(
     await registrationsRef.doc(docId).update({
       emailSent: 'failed',
       emailError: err.message || 'SMTP or PDF generation error',
+      emailProvider: 'none',
+      emailAttemptCount: FieldValue.increment(1),
+      lastEmailAttemptAt: FieldValue.serverTimestamp(),
     }).catch((dbErr) =>
       console.error(`[EmailWorker] Could not write failure status for ${docId}:`, dbErr)
     );

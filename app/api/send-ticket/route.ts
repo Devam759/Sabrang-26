@@ -78,8 +78,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Ticket pass sent successfully via Brevo",
+      message: `Ticket pass sent successfully via ${result.provider || 'email'}`,
       messageId: result.messageId,
+      provider: result.provider,
     });
   } catch (error: any) {
     console.error("[Send Ticket API Error]:", error);

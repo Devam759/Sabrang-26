@@ -15,11 +15,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Users, ArrowRight, Gamepad2 } from "lucide-react";
 import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
 import { createWheelGesture } from "@/lib/gestureStepper";
 import PosterDetailModal from "./PosterDetailModal";
 import EventsFilterDropdown from "./EventsFilterDropdown";
+import EventCoordinatorsDirectory from "./EventCoordinatorsDirectory";
 
 const ArchiveScene = dynamic(() => import("./ArchiveScene"), { ssr: false });
 
@@ -46,7 +47,7 @@ function ArchivePlate({ item, index, onSelect }: { item: GalleryItem; index: num
   return (
     <figure
       onClick={onSelect}
-      className="group relative overflow-hidden bg-[#0e1018] outline outline-white/10 rounded-xl cursor-pointer hover:outline-amber-400/50 transition-all duration-300 hover:scale-[1.02] shadow-lg"
+      className="group relative overflow-hidden bg-[#0c0d16] outline outline-white/10 rounded-2xl cursor-pointer hover:outline-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.25)] transition-all duration-300 hover:scale-[1.02] shadow-xl"
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center pointer-events-none">
         <span className="text-4xl font-black tracking-tighter text-white/85">
@@ -65,24 +66,33 @@ function ArchivePlate({ item, index, onSelect }: { item: GalleryItem; index: num
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
-          className={`relative aspect-[3/4] w-full object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-            }`}
+          className={`relative aspect-[3/4] w-full object-cover transition-all duration-500 group-hover:scale-105 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
         />
       )}
 
       {failed && <div className="aspect-[3/4] w-full" />}
 
-      <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent p-4 flex flex-col gap-1 z-10">
-        <p className="text-sm font-bold uppercase tracking-tight text-white group-hover:text-amber-200 transition-colors">
+      {/* Subtle top badge for category */}
+      <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
+        <span className="text-[9px] font-mono font-medium uppercase tracking-wider px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-slate-300 border border-white/10">
+          {item.category.split("-")[0]?.trim()}
+        </span>
+      </div>
+
+      <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent p-3.5 sm:p-4 flex flex-col gap-1.5 z-10">
+        <p className="text-sm font-black uppercase tracking-tight text-white font-[family-name:var(--font-space-grotesk)] text-neon-rgb transition-colors">
           {item.title}
         </p>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-200 border border-purple-500/30">
             {typeof item.totalCash === "number"
               ? `₹${item.totalCash.toLocaleString("en-IN")}`
               : item.totalCash || (item.prizesRemarks || "Prize Pool")}
           </span>
-          <span className="text-[10px] text-white/50 uppercase tracking-wider">
+          <span className="text-[10px] font-medium text-slate-300 flex items-center gap-1">
+            <Users className="w-3 h-3 text-[#e6e6fa]" />
             {item.minTeam === 1 && item.maxTeam === 1
               ? "Solo"
               : item.minTeam
@@ -90,6 +100,11 @@ function ArchivePlate({ item, index, onSelect }: { item: GalleryItem; index: num
               : ""}
           </span>
         </div>
+        {item.coordinators && item.coordinators.length > 0 && (
+          <div className="text-[10px] text-slate-400 font-mono mt-0.5 line-clamp-1">
+            Head: {item.coordinators[0].name}
+          </div>
+        )}
       </figcaption>
     </figure>
   );
@@ -98,9 +113,6 @@ function ArchivePlate({ item, index, onSelect }: { item: GalleryItem; index: num
 /**
  * One heading, rendered either as an overlay on the pinned stage or in normal
  * flow above the static archive - never twice, never in two different voices.
- *
- * The optional `dropdownProps` attach the EventsFilterDropdown to the right
- * edge of the heading bar so both elements share the same baseline.
  */
 function ArchiveHeading({
   className = "",
@@ -126,38 +138,59 @@ function ArchiveHeading({
           Events
         </h1>
 
-        {/* Download links */}
-        <div className="pointer-events-auto flex items-center gap-2">
+        {/* Action & download links */}
+        <div className="pointer-events-auto flex items-center gap-2 sm:gap-2.5 flex-wrap">
           <a
             href="/docs/Sabrang_2026_Brochure.pdf"
             target="_blank"
             rel="noopener noreferrer"
             download="Sabrang_2026_Brochure.pdf"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-purple-500/40 bg-purple-950/40 hover:bg-purple-900/60 hover:border-purple-300 text-purple-200 text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-all shadow-[0_0_12px_rgba(168,85,247,0.2)] active:scale-95"
+            className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-purple-500/40 hover:border-purple-400 bg-black/60 hover:bg-[#120b1e]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(168,85,247,0.35)_35%,transparent_70%)] before:pointer-events-none"
             title="Download Sabrang 2026 Brochure (PDF)"
           >
-            <Download className="w-3.5 h-3.5 text-purple-300" />
-            <span className="hidden sm:inline">Festival</span>
-            <span>Brochure</span>
+            <Download className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+            <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)] whitespace-nowrap">
+              Festival Brochure
+            </span>
+            <ArrowRight className="w-3 h-3 text-purple-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </a>
 
           <a
-            href="/docs/Sabrang_2026_Event_Rulebook.pdf"
+            href="/docs/Sabrang%20Rule%20Book'26_20261009_233355_0000.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            download="Sabrang_2026_Event_Rulebook.pdf"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 hover:border-cyan-300 text-cyan-200 text-[11px] sm:text-xs font-semibold backdrop-blur-md transition-all shadow-[0_0_12px_rgba(6,182,212,0.2)] active:scale-95"
+            download="Sabrang Rule Book'26_20261009_233355_0000.pdf"
+            className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-cyan-400/40 hover:border-cyan-300 bg-black/60 hover:bg-[#06141a]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(6,182,212,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(6,182,212,0.35)_35%,transparent_70%)] before:pointer-events-none"
             title="Download Sabrang 2026 Event Rulebook (PDF)"
           >
-            <FileText className="w-3.5 h-3.5 text-cyan-300" />
-            <span className="hidden sm:inline">Event</span>
-            <span>Rulebook</span>
+            <FileText className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+            <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)] whitespace-nowrap">
+              Event Rulebook
+            </span>
+            <ArrowRight className="w-3 h-3 text-cyan-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
+          </a>
+
+          <a
+            href="/docs/E-sports%20rule%20book.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            download="E-sports rule book.pdf"
+            className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-emerald-400/40 hover:border-emerald-300 bg-black/60 hover:bg-[#061a12]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(16,185,129,0.35)_35%,transparent_70%)] before:pointer-events-none"
+            title="Download Sabrang 2026 E-sports Rulebook (PDF)"
+          >
+            <Gamepad2 className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)] whitespace-nowrap">
+              E-sports Rulebook
+            </span>
+            <ArrowRight className="w-3 h-3 text-emerald-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </a>
         </div>
       </div>
 
-      {/* Dropdown sits to the right of the title, pointer-events enabled even
-          when the heading is inside the pointer-events-none overlay layer. */}
+      {/* Dropdown sits to the right of the title */}
       {dropdownProps && (
         <div style={{ pointerEvents: "auto" }}>
           <EventsFilterDropdown
@@ -171,35 +204,71 @@ function ArchiveHeading({
   );
 }
 
-function StaticArchive({ items, onSelect }: { items: GalleryItem[]; onSelect: (item: GalleryItem) => void }) {
+function StaticArchive({
+  items,
+  onSelect,
+}: {
+  items: GalleryItem[];
+  onSelect: (item: GalleryItem) => void;
+}) {
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-12">
-      <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+    <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-10">
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-8">
         <a
           href="/docs/Sabrang_2026_Brochure.pdf"
           target="_blank"
           rel="noopener noreferrer"
           download="Sabrang_2026_Brochure.pdf"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/40 bg-purple-950/40 hover:bg-purple-900/60 text-purple-200 text-xs font-semibold backdrop-blur-md transition-all"
+          className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-purple-500/40 hover:border-purple-400 bg-black/60 hover:bg-[#120b1e]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(168,85,247,0.35)_35%,transparent_70%)] before:pointer-events-none"
         >
-          <Download className="w-4 h-4 text-purple-300" />
-          <span>Download Festival Brochure (PDF)</span>
+          <Download className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+          <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+          <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)]">
+            Festival Brochure
+          </span>
+          <ArrowRight className="w-3 h-3 text-purple-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
         </a>
+
         <a
-          href="/docs/Sabrang_2026_Event_Rulebook.pdf"
+          href="/docs/Sabrang%20Rule%20Book'26_20261009_233355_0000.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          download="Sabrang_2026_Event_Rulebook.pdf"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/40 bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-200 text-xs font-semibold backdrop-blur-md transition-all"
+          download="Sabrang Rule Book'26_20261009_233355_0000.pdf"
+          className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-cyan-400/40 hover:border-cyan-300 bg-black/60 hover:bg-[#06141a]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(6,182,212,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(6,182,212,0.35)_35%,transparent_70%)] before:pointer-events-none"
         >
-          <FileText className="w-4 h-4 text-cyan-300" />
-          <span>Download Event Rulebook (PDF)</span>
+          <FileText className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+          <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+          <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)]">
+            Event Rulebook
+          </span>
+          <ArrowRight className="w-3 h-3 text-cyan-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
+        </a>
+
+        <a
+          href="/docs/E-sports%20rule%20book.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          download="E-sports rule book.pdf"
+          className="group relative overflow-hidden inline-flex items-center px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-md border border-emerald-400/40 hover:border-emerald-300 bg-black/60 hover:bg-[#061a12]/80 backdrop-blur-md transition-all duration-200 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.15)] before:absolute before:top-0 before:left-0 before:w-8 before:h-8 before:bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.7)_0%,rgba(16,185,129,0.35)_35%,transparent_70%)] before:pointer-events-none"
+        >
+          <Gamepad2 className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+          <span className="h-4 w-[1px] bg-white/20 mx-1.5 sm:mx-2 shrink-0" />
+          <span className="text-[11px] sm:text-xs font-semibold tracking-normal text-white font-[family-name:var(--font-space-grotesk)]">
+            E-sports Rulebook
+          </span>
+          <ArrowRight className="w-3 h-3 text-emerald-300 ml-1.5 sm:ml-2 group-hover:translate-x-0.5 transition-transform shrink-0" />
         </a>
       </div>
+
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {items.map((item, index) => (
           <ArchivePlate key={item.id} item={item} index={index} onSelect={() => onSelect(item)} />
         ))}
+      </div>
+
+      {/* Embedded Event Coordinators Section */}
+      <div className="mt-16 pt-12 border-t border-white/10">
+        <EventCoordinatorsDirectory />
       </div>
     </div>
   );
@@ -247,9 +316,6 @@ export default function GalleryHighlights({
 
   const step = useCallback(
     (delta: number) => {
-      // Positive modulo: a fast trackpad flick can deliver a delta larger than
-      // the archive, and `(i + delta + len) % len` goes negative past that,
-      // indexing off the end of the array.
       const next = ((((focusedIndex + delta) % items.length) + items.length) % items.length);
       setFocusedIndex(next);
       focusRequestRef.current?.(next);
@@ -257,17 +323,6 @@ export default function GalleryHighlights({
     [focusedIndex, items.length],
   );
 
-  /**
-   * One gesture, one photograph - a hard flick and a gentle nudge both advance
-   * exactly one, so the archive never overshoots what the user aimed at.
-   *
-   * Distance-based stepping is wrong for this surface. A mouse notch is a fixed
-   * 100px so it looks fine, but a trackpad swipe is whatever distance the
-   * fingers covered plus a long inertia tail, so the same flick that moved one
-   * photograph on a mouse moved a handful here. lib/gestureStepper keys off
-   * gesture BOUNDARIES instead of distance, which is also why it ports to touch
-   * unchanged: a swipe's dy feeds the same core.
-   */
   const stepperRef = useRef<ReturnType<typeof createWheelGesture> | null>(null);
 
   const onWheel = useCallback(
@@ -311,7 +366,6 @@ export default function GalleryHighlights({
   }, []);
 
   const onReady = useCallback(() => setReady(true), []);
-  const focused = items[focusedIndex] ?? items[0];
 
   return (
     <>
@@ -320,7 +374,6 @@ export default function GalleryHighlights({
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden flex items-center justify-center mix-blend-screen">
-          {/* Cube video background - scaled down and softened so it stays an accent instead of dominating */}
           <video
             autoPlay
             loop
@@ -335,7 +388,6 @@ export default function GalleryHighlights({
             poster="https://res.cloudinary.com/eprhemvt/video/upload/v1787082832/sabrang-2026/root/cube.jpg"
             src="https://res.cloudinary.com/eprhemvt/video/upload/v1787082832/sabrang-2026/root/cube.mp4"
           />
-          {/* Dark overlay so content stays readable */}
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 
@@ -352,7 +404,10 @@ export default function GalleryHighlights({
                   },
                 }}
               />
-              <StaticArchive items={items} onSelect={(item) => setExpandedItem(item)} />
+              <StaticArchive
+                items={items}
+                onSelect={(item) => setExpandedItem(item)}
+              />
             </>
           ) : (
             <div ref={stageRef} className="relative h-full">
@@ -373,16 +428,12 @@ export default function GalleryHighlights({
                       onReady={onReady}
                       focusRequestRef={focusRequestRef}
                       onTileTap={(itemIndex) => {
-                        // Open modal immediately for any tapped tile.
-                        // (No focusedIndex guard - the snap is async so state
-                        // hasn't updated yet when this fires.)
                         setExpandedItem(items[itemIndex]);
                       }}
                     />
                   )}
                 </div>
 
-                {/* Edges fall away into the dark so photographs recede rather than crop. */}
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(7,8,15,0.55)_72%,#07080f_100%)]"
@@ -402,14 +453,13 @@ export default function GalleryHighlights({
                   />
                 </div>
 
-                {/* SPOTLIGHT METADATA - centered poster info + navigation */}
+                {/* Navigation Buttons - centered */}
                 <div
                   aria-live="polite"
-                  className={`pointer-events-none absolute inset-x-0 bottom-0 pb-16 sm:pb-14 md:pb-10 transition-opacity duration-500 flex flex-col items-center gap-3 px-4 ${ready ? "opacity-100" : "opacity-0"
-                    }`}
+                  className={`pointer-events-none absolute inset-x-0 bottom-0 pb-16 sm:pb-14 md:pb-10 transition-opacity duration-500 flex flex-col items-center gap-3 px-4 ${
+                    ready ? "opacity-100" : "opacity-0"
+                  }`}
                 >
-
-                  {/* Navigation Buttons - centered */}
                   <div className="pointer-events-auto flex items-center gap-3 sm:gap-4 md:gap-6 z-20">
                     <button
                       onClick={() => step(-1)}
@@ -438,7 +488,6 @@ export default function GalleryHighlights({
             </div>
           )}
 
-          {/* The full archive, always in the accessibility tree even in WebGL mode. */}
           <ul className="sr-only">
             {items.map((item) => (
               <li key={item.id}>

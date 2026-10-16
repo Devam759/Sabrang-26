@@ -23,50 +23,31 @@ export async function POST(req: Request) {
     const signature = req.headers.get('x-webhook-signature') || '';
     const timestamp = req.headers.get('x-webhook-timestamp') || '';
     
-    const isProduction = isProd || process.env.NODE_ENV === 'production';
-    
-    if (isProduction) {
-      if (!cashfreeSecretKey) {
-        console.error("CRITICAL SECURITY AUDIT: Webhook signature verification failed. Cashfree Secret Key is missing in production.");
-        return NextResponse.json({ error: 'Signature verification failed: Missing secret key' }, { status: 401 });
-      }
-      if (!signature || !timestamp) {
-        console.warn("Unauthorized: Missing Cashfree signature headers on webhook in production!");
-        return NextResponse.json({ error: 'Missing security signature headers' }, { status: 401 });
-      }
-      const isValid = verifyCashfreeSignature(signature, rawBody, timestamp);
-      if (!isValid) {
-        console.error("CRITICAL SECURITY DANGER: Fake Cashfree Webhook signature mismatch detected in production!");
-        // Log details to Firestore for diagnostic purposes
-        await adminDb.collection('webhookLogs').add({
-          timestamp: FieldValue.serverTimestamp(),
-          ip,
-          signature,
-          timestampHeader: timestamp,
-          rawBodyLength: rawBody.length,
-          success: false,
-          error: 'Signature verification failed',
-          rawBodyPreview: rawBody.slice(0, 300)
-        }).catch(err => console.error("Failed to log signature mismatch to Firestore:", err));
-        return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
-      }
-      console.log("Cashfree Webhook signature successfully verified.");
-    } else {
-      if (cashfreeSecretKey) {
-        if (!signature || !timestamp) {
-          console.warn("Unauthorized: Missing Cashfree signature headers on webhook!");
-          return NextResponse.json({ error: 'Missing security signature headers' }, { status: 401 });
-        }
-        const isValid = verifyCashfreeSignature(signature, rawBody, timestamp);
-        if (!isValid) {
-          console.error("Fake Cashfree Webhook signature mismatch detected!");
-          return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
-        }
-        console.log("Cashfree Webhook signature successfully verified.");
-      } else {
-        console.warn("Bypassing webhook signature verification because Cashfree Secret Key is missing in local environment.");
-      }
+    if (!cashfreeSecretKey) {
+      console.error("CRITICAL SECURITY AUDIT: Webhook signature verification failed. Cashfree Secret Key is missing.");
+      return NextResponse.json({ error: 'Signature verification failed: Missing secret key' }, { status: 500 });
     }
+    if (!signature || !timestamp) {
+      console.warn("Unauthorized: Missing Cashfree signature headers on webhook!");
+      return NextResponse.json({ error: 'Missing security signature headers' }, { status: 401 });
+    }
+    const isValid = verifyCashfreeSignature(signature, rawBody, timestamp);
+    if (!isValid) {
+      console.error("CRITICAL SECURITY DANGER: Fake Cashfree Webhook signature mismatch detected!");
+      // Log details to Firestore for diagnostic purposes
+      await adminDb.collection('webhookLogs').add({
+        timestamp: FieldValue.serverTimestamp(),
+        ip,
+        signature,
+        timestampHeader: timestamp,
+        rawBodyLength: rawBody.length,
+        success: false,
+        error: 'Signature verification failed',
+        rawBodyPreview: rawBody.slice(0, 300)
+      }).catch(err => console.error("Failed to log signature mismatch to Firestore:", err));
+      return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
+    }
+    console.log("Cashfree Webhook signature successfully verified.");
 
     let payload;
     try {
@@ -89,6 +70,7 @@ export async function POST(req: Request) {
     const eventType = payload.event || payload.type || '';
     const data = payload.data || {};
     const order = data.order || {};
+    const payment = data.payment || {};
     const orderId = order.order_id || order.orderId || '';
 
     // Log the incoming verified webhook to Firestore for tracking
@@ -104,58 +86,113 @@ export async function POST(req: Request) {
     }).catch(err => console.error("Failed to log success to Firestore:", err));
     console.log("Cashfree Webhook Received:", eventType);
 
-    // 1. Check if it is a payment success event (Fail-safe for closed tabs)
-    if (eventType === 'payment.success' || eventType === 'PAYMENT_SUCCESS' || eventType === 'PAYMENT_SUCCESS_WEBHOOK') {
-      const payment = data.payment || {};
-      const paymentId = payment.cf_payment_id || payment.cfPaymentId || "";
-      
-      console.log(`Processing payment success webhook for Order: ${orderId}, Payment ID: ${paymentId}`);
-
-      if (orderId && paymentId) {
-        // Check if registration was already finalized using Admin SDK
-        const querySnapshot = await adminDb.collection('registrations')
-          .where('orderId', '==', orderId)
-          .get();
-        
-        if (querySnapshot.empty) {
-          // Retrieve pending registration details from pendingRegistrations
-          const pendingRef = adminDb.collection('pendingRegistrations').doc(orderId);
-          const pendingSnap = await pendingRef.get();
-          
-          if (pendingSnap.exists) {
-            const pendingData = pendingSnap.data();
-            if (!pendingData) {
-              console.warn(`Pending registration data is undefined for order ${orderId}`);
-              return NextResponse.json({ error: 'Pending registration corrupted' }, { status: 400 });
-            }
-            const { finalizeRegistration } = await import('@/lib/registrationHelper');
-            
-            // Finalize registration and mark pending as completed
-            console.log(`Finalizing registration from webhook for order ${orderId}`);
-            const paymentIdStr = paymentId.toString();
-            await finalizeRegistration(pendingData.formData, paymentIdStr, orderId, true);
-            await pendingRef.update({
-              status: 'completed',
-              completedAt: FieldValue.serverTimestamp()
-            });
-            console.log(`Successfully finalized pending registration for order ${orderId} via webhook.`);
-
-            after(async () => {
-              try {
-                const { finalizeRegistration: finalReg } = await import('@/lib/registrationHelper');
-                await finalReg(pendingData.formData, paymentIdStr, orderId, false);
-              } catch (err) {
-                console.error("Error in background task for webhook order:", err);
-              }
-            });
-          } else {
-            console.warn(`No pending registration details found in Firestore for order ${orderId}`);
-          }
-        } else {
-          console.log(`Registration for order ${orderId} already completed. Ignoring duplicate webhook.`);
+    // Event deduplication check
+    const eventId = String(payload.event_time ? `${eventType}_${orderId}_${payload.event_time}` : `${eventType}_${orderId}_${payment.cf_payment_id || 'event'}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (eventId) {
+      const processedEventRef = adminDb.collection('processedWebhookEvents').doc(eventId);
+      try {
+        await processedEventRef.create({
+          processedAt: FieldValue.serverTimestamp(),
+          eventType,
+          orderId
+        });
+      } catch (dupErr: any) {
+        if (dupErr.code === 6 || dupErr.message?.includes('ALREADY_EXISTS')) {
+          console.log(`Webhook event ${eventId} already processed. Returning idempotent 200 OK.`);
+          return NextResponse.json({ success: true, message: "Event already processed" });
         }
       }
+    }
+
+    // 1. Check if it is a payment success event
+    if (eventType === 'payment.success' || eventType === 'PAYMENT_SUCCESS' || eventType === 'PAYMENT_SUCCESS_WEBHOOK') {
+      const paymentId = payment.cf_payment_id || payment.cfPaymentId || "";
+      const paymentStatus = payment.payment_status || payment.paymentStatus || 'SUCCESS';
+      const paymentAmount = Number(payment.payment_amount ?? payment.paymentAmount ?? order.order_amount ?? 0);
+      const paymentCurrency = payment.payment_currency || payment.paymentCurrency || order.order_currency || 'INR';
+
+      console.log(`Processing payment success webhook for Order: ${orderId}, Payment ID: ${paymentId}`);
+
+      if (!orderId || !paymentId) {
+        console.warn("Webhook missing orderId or paymentId:", { orderId, paymentId });
+        return NextResponse.json({ error: 'Missing orderId or paymentId in webhook payload' }, { status: 400 });
+      }
+
+      if (paymentStatus !== 'SUCCESS') {
+        console.warn(`Payment status is not SUCCESS for order ${orderId}: ${paymentStatus}`);
+        return NextResponse.json({ success: false, message: `Payment status is ${paymentStatus}` }, { status: 400 });
+      }
+
+      const pendingRef = adminDb.collection('pendingRegistrations').doc(orderId);
+      const pendingSnap = await pendingRef.get();
+      
+      if (!pendingSnap.exists) {
+        console.warn(`No pending registration details found in Firestore for order ${orderId}`);
+        return NextResponse.json({ error: 'Pending registration not found' }, { status: 404 });
+      }
+
+      const pendingData = pendingSnap.data();
+      if (!pendingData) {
+        console.warn(`Pending registration data is undefined for order ${orderId}`);
+        return NextResponse.json({ error: 'Pending registration corrupted' }, { status: 400 });
+      }
+
+      // Check if order was already finalized
+      if (pendingData.status === 'completed' && pendingData.registrationId) {
+        console.log(`Registration for order ${orderId} already completed (ID: ${pendingData.registrationId}). Webhook idempotent ack.`);
+        return NextResponse.json({ success: true, message: "Order already finalized" });
+      }
+
+      // Validate payment amount and currency against server-side pending record
+      if (paymentCurrency !== 'INR') {
+        console.error(`Invalid currency received in webhook for order ${orderId}: ${paymentCurrency}`);
+        return NextResponse.json({ error: 'Currency mismatch' }, { status: 400 });
+      }
+
+      if (paymentAmount > 0 && pendingData.amount > 0 && Math.abs(paymentAmount - pendingData.amount) > 0.01 && paymentAmount < pendingData.amount) {
+        console.error(`Payment amount mismatch in webhook: expected ${pendingData.amount}, got ${paymentAmount}`);
+        return NextResponse.json({ error: 'Payment amount mismatch' }, { status: 400 });
+      }
+
+      const { finalizeRegistration } = await import('@/lib/registrationHelper');
+      const paymentIdStr = paymentId.toString();
+
+      console.log(`Finalizing registration from webhook for order ${orderId}`);
+      // Finalize registration atomically (delegating background tasks to run here if not already executed)
+      const regId = await finalizeRegistration(pendingData.formData, paymentIdStr, orderId, false);
+      
+      await pendingRef.update({
+        status: 'completed',
+        registrationId: regId,
+        completedAt: FieldValue.serverTimestamp()
+      });
+
+      console.log(`Successfully finalized pending registration for order ${orderId} via webhook. Registration ID: ${regId}`);
       return NextResponse.json({ success: true, message: "Payment processed successfully" });
+    }
+
+    // 2. Handle payment failure or cancellation without overwriting completed orders
+    if (
+      eventType === 'payment.failed' || 
+      eventType === 'PAYMENT_FAILED_WEBHOOK' || 
+      eventType === 'payment.user_dropped' || 
+      eventType === 'PAYMENT_USER_DROPPED_WEBHOOK'
+    ) {
+      if (orderId) {
+        const pendingRef = adminDb.collection('pendingRegistrations').doc(orderId);
+        const pendingSnap = await pendingRef.get();
+        if (pendingSnap.exists && pendingSnap.data()?.status === 'completed') {
+          console.log(`Order ${orderId} already successfully completed. Ignoring subsequent failure webhook event.`);
+          return NextResponse.json({ success: true, message: "Ignored late failure event on completed order" });
+        }
+        if (pendingSnap.exists) {
+          await pendingRef.update({
+            lastPaymentError: `Gateway reported ${eventType}`,
+            lastPaymentErrorAt: FieldValue.serverTimestamp()
+          }).catch(() => {});
+        }
+      }
+      return NextResponse.json({ success: true, message: "Failure event noted" });
     }
     
     // 2. Check if it is a settlement success event

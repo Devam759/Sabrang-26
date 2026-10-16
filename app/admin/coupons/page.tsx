@@ -7,7 +7,7 @@ import { SkeletonTable } from '../../../components/admin/SkeletonLoader';
 import { Modal } from '../../../components/admin/Modal';
 import { logAdminAction } from '../../../lib/audit';
 import { Coupon, CouponDiscountType } from '../../../lib/types';
-import { Plus, Tag, Check, X, Edit3, Trash2, Power, AlertCircle, Percent, DollarSign, Calendar, Layers, Sparkles } from 'lucide-react';
+import { Plus, Tag, Check, X, Edit3, Trash2, Power, AlertCircle, Percent, Calendar, Layers, Sparkles } from 'lucide-react';
 
 import { OFFICIAL_EVENTS } from '@/lib/eventPricing';
 
@@ -29,11 +29,11 @@ export default function CouponsPage() {
   // Form fields
   const [code, setCode] = useState('');
   const [discountType, setDiscountType] = useState<CouponDiscountType>('percentage');
-  const [discountValue, setDiscountValue] = useState<number | ''>(20);
+  const [discountValue, setDiscountValue] = useState<string>('');
   const [applyToAllEvents, setApplyToAllEvents] = useState(true);
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [expiryDate, setExpiryDate] = useState<string>('');
-  const [maxUses, setMaxUses] = useState<number | ''>('');
+  const [maxUses, setMaxUses] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
   const [isSpecialOffer, setIsSpecialOffer] = useState(false);
   const [specialOfferDesc, setSpecialOfferDesc] = useState('');
@@ -74,7 +74,14 @@ export default function CouponsPage() {
           id: docSnap.id,
           code: data.code || docSnap.id,
           discountType: data.discountType || (data.discountPercentage !== undefined ? 'percentage' : 'fixed'),
-          discountValue: data.discountValue ?? (data.discountType === 'percentage' ? (data.discountPercentage ?? 0) : (data.amount ?? 0)),
+          discountValue: data.discountValue ?? (
+            data.discountType === 'percentage' 
+              ? (data.discountPercentage ?? 0) 
+              : data.discountType === 'per_head_cap'
+              ? (data.perHeadCap ?? 0)
+              : (data.amount ?? 0)
+          ),
+          perHeadCap: data.perHeadCap,
           amount: data.amount,
           discountPercentage: data.discountPercentage,
           applicableEvents: data.applicableEvents || ['ALL'],
@@ -140,7 +147,7 @@ export default function CouponsPage() {
     setCurrentCouponId(null);
     setCode('');
     setDiscountType('percentage');
-    setDiscountValue(20);
+    setDiscountValue('');
     setApplyToAllEvents(true);
     setSelectedEvents([]);
     setExpiryDate('');
@@ -158,7 +165,14 @@ export default function CouponsPage() {
     setCode(coupon.code);
     const type: CouponDiscountType = coupon.discountType || (coupon.discountPercentage !== undefined ? 'percentage' : 'fixed');
     setDiscountType(type);
-    setDiscountValue(coupon.discountValue ?? (type === 'percentage' ? (coupon.discountPercentage ?? 0) : (coupon.amount ?? 0)));
+    const rawVal = coupon.discountValue ?? (
+      type === 'percentage' 
+        ? coupon.discountPercentage 
+        : type === 'per_head_cap'
+        ? coupon.perHeadCap 
+        : coupon.amount
+    );
+    setDiscountValue(rawVal !== undefined && rawVal !== null ? String(rawVal) : '');
     
     const isAll = !coupon.applicableEvents || coupon.applicableEvents.length === 0 || coupon.applicableEvents.includes('ALL') || coupon.applicableEvents.includes('*');
     setApplyToAllEvents(isAll);
@@ -177,7 +191,7 @@ export default function CouponsPage() {
       setExpiryDate('');
     }
     
-    setMaxUses(coupon.maxUses !== undefined ? coupon.maxUses : '');
+    setMaxUses(coupon.maxUses !== undefined && coupon.maxUses !== null ? String(coupon.maxUses) : '');
     setIsActive(coupon.active);
     setIsSpecialOffer(coupon.isSpecialOffer || false);
     setSpecialOfferDesc(coupon.specialOfferDesc || '');
@@ -214,6 +228,10 @@ export default function CouponsPage() {
       return alert('Percentage discount must be between 0% and 100%.');
     }
 
+    if (discountType === 'per_head_cap' && Number(discountValue) <= 0) {
+      return alert('Per head cap must be greater than 0.');
+    }
+
     if (!applyToAllEvents && selectedEvents.length === 0) {
       return alert('Please select at least one applicable event or choose "Apply to All Events".');
     }
@@ -239,6 +257,9 @@ export default function CouponsPage() {
       if (discountType === 'percentage') {
         couponPayload.discountPercentage = Number(discountValue);
       }
+      if (discountType === 'per_head_cap') {
+        couponPayload.perHeadCap = Number(discountValue);
+      }
 
       if (expiryDate) {
         couponPayload.expiryDate = new Date(expiryDate);
@@ -262,6 +283,12 @@ export default function CouponsPage() {
         await batch.commit();
       }
 
+      const discountLabel = discountType === 'percentage' 
+        ? `${discountValue}% OFF` 
+        : discountType === 'per_head_cap'
+        ? `Cap ₹${discountValue}/head`
+        : `Fixed ₹${discountValue}`;
+
       if (!isEditing) {
         couponPayload.createdAt = serverTimestamp();
         couponPayload.usedCount = 0;
@@ -269,7 +296,7 @@ export default function CouponsPage() {
         await logAdminAction(
           'CREATE_COUPON',
           'coupons',
-          `Created coupon ${cleanCode}: ${discountType === 'percentage' ? `${discountValue}% OFF` : `Fixed ₹${discountValue}`} for [${applicableEventsList.join(', ')}]`
+          `Created coupon ${cleanCode}: ${discountLabel} for [${applicableEventsList.join(', ')}]`
         );
       } else {
         const targetId = (currentCouponId || cleanCode).trim().toLowerCase();
@@ -277,7 +304,7 @@ export default function CouponsPage() {
         await logAdminAction(
           'UPDATE_COUPON',
           'coupons',
-          `Updated coupon ${targetId}: ${discountType === 'percentage' ? `${discountValue}% OFF` : `Fixed ₹${discountValue}`} for [${applicableEventsList.join(', ')}]`
+          `Updated coupon ${targetId}: ${discountLabel} for [${applicableEventsList.join(', ')}]`
         );
       }
 
@@ -327,9 +354,9 @@ export default function CouponsPage() {
         </div>
         <button 
           onClick={openAddModal}
-          className="group inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer shadow-xs"
+          className="group inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-semibold text-xs transition-all cursor-pointer shadow-xs"
         >
-          <Plus size={15} className="text-slate-700 group-hover:text-slate-900 transition-colors" /> Create Coupon
+          <Plus size={15} className="text-white" /> Create Coupon
         </button>
       </div>
 
@@ -341,12 +368,12 @@ export default function CouponsPage() {
           <h2 className="text-2xl font-light tracking-wide text-slate-900 flex items-center gap-3 font-space-grotesk">
              Global Early Bird
           </h2>
-          <p className="text-[11px] text-slate-500 mt-2 font-medium tracking-wide max-w-lg leading-relaxed">
+          <p className="text-xs text-slate-500 mt-2 font-medium max-w-lg leading-relaxed">
             Enable or disable Early Bird pricing across all events. When enabled, original prices will be shown cut out next to the early bird prices.
           </p>
         </div>
         <div className="flex items-center gap-4 bg-white/80 px-5 py-3 rounded-[16px] border border-slate-200 shadow-sm relative z-10">
-          <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isEarlyBirdActive ? 'text-slate-600' : 'text-slate-500'}`}>
+          <span className={`text-xs font-semibold ${isEarlyBirdActive ? 'text-emerald-700' : 'text-slate-500'}`}>
             {isEarlyBirdActive ? 'Active' : 'Closed'}
           </span>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -369,13 +396,13 @@ export default function CouponsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-white/80 border-b border-slate-200 text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em]">
-                  <th className="p-5 w-16 text-center">S.No</th>
-                  <th className="p-5">Coupon Code</th>
-                  <th className="p-5">Discount Type & Value</th>
-                  <th className="p-5">Applicable Events</th>
-                  <th className="p-5">Status</th>
-                  <th className="p-5 text-right">Actions</th>
+                <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-600 text-xs font-semibold">
+                  <th className="p-4 w-16 text-center">#</th>
+                  <th className="p-4">Coupon Code</th>
+                  <th className="p-4">Discount Type & Value</th>
+                  <th className="p-4">Applicable Events</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -385,52 +412,60 @@ export default function CouponsPage() {
 
                   return (
                     <tr key={coupon.id} className="hover:bg-slate-50 transition-colors font-medium group">
-                      <td className="p-5 text-center text-slate-400 font-bold font-mono">
+                      <td className="p-4 text-center text-slate-400 font-medium font-mono">
                         {idx + 1}
                       </td>
-                      <td className="p-5">
+                      <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <Tag size={14} className="text-slate-600" />
-                          <span className="font-bold text-slate-900 text-sm font-mono tracking-widest">{coupon.code}</span>
+                          <Tag size={14} className="text-slate-500" />
+                          <span className="font-semibold text-slate-900 text-sm font-mono tracking-wide">{coupon.code}</span>
                         </div>
                       </td>
-                      <td className="p-5">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest uppercase ${
-                          isPercentage ? 'bg-white text-slate-600 border border-slate-200' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                      <td className="p-4">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
+                          coupon.discountType === 'percentage' 
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200' 
+                            : coupon.discountType === 'per_head_cap'
+                            ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
-                          {isPercentage ? <Percent size={12} /> : <DollarSign size={12} />}
-                          {isPercentage ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}
+                          {coupon.discountType === 'percentage' && <Percent size={12} />}
+                          {coupon.discountType === 'percentage' 
+                            ? `${coupon.discountValue}% off` 
+                            : coupon.discountType === 'per_head_cap'
+                            ? `Cap ₹${coupon.discountValue} / head`
+                            : `₹${coupon.discountValue} off`}
                         </span>
                       </td>
-                      <td className="p-5">
-                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                      <td className="p-4">
+                        <div className="flex flex-wrap gap-1 max-w-[240px]">
                           {isAllEvents ? (
-                            <span className="inline-flex items-center gap-1 bg-white text-slate-600 border border-slate-200 px-2.5 py-1 rounded-md text-[9px] uppercase tracking-wider font-bold">
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-medium">
                               All Events
                             </span>
                           ) : (
                             coupon.applicableEvents?.map((evt: string) => (
-                              <span key={evt} className="inline-flex items-center gap-1 bg-white text-slate-600 border border-slate-200 px-2.5 py-1 rounded-md text-[9px] uppercase tracking-wider font-bold truncate max-w-[120px]">
+                              <span key={evt} className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-medium truncate max-w-[140px]">
                                 {evt}
                               </span>
                             ))
                           )}
                         </div>
                       </td>
-                      <td className="p-5">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-[0.2em] ${
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold ${
                           coupon.active 
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                            : 'bg-slate-50 text-slate-500 border border-slate-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200'
                         }`}>
                           {coupon.active ? 'Active' : 'Disabled'}
                         </span>
                       </td>
-                      <td className="p-5 text-right space-x-2">
+                      <td className="p-4 text-right space-x-2">
                         <button 
                           onClick={() => openEditModal(coupon)}
                           title="Edit Coupon"
-                          className="p-2 border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
+                          className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
                           <Edit3 size={15} />
                         </button>
@@ -460,8 +495,8 @@ export default function CouponsPage() {
                   <tr>
                     <td colSpan={6} className="p-12 text-center text-slate-500">
                       <Tag className="mx-auto h-8 w-8 mb-3 opacity-50" />
-                      <p className="font-bold text-sm">No coupons found.</p>
-                      <p className="text-[10px] mt-1 uppercase tracking-widest">Create one to get started.</p>
+                      <p className="font-semibold text-sm text-slate-700">No coupons found.</p>
+                      <p className="text-xs text-slate-500 mt-1">Create one to get started.</p>
                     </td>
                   </tr>
                 )}
@@ -480,44 +515,51 @@ export default function CouponsPage() {
         <div className="space-y-5">
           {/* Code */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">Coupon Code (Uppercase)</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Coupon Code</label>
             <input 
               type="text" 
               value={code} 
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="e.g. EARLYBIRD20, DEV100"
               disabled={isEditing}
-              className="w-full bg-white/80 border border-slate-200 rounded-xl py-3 px-4 text-sm font-mono font-bold text-slate-900 placeholder-white/20 focus:outline-none focus:border-purple-500/50 disabled:opacity-50"
+              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3.5 text-sm font-mono font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             {/* Type */}
             <div>
-              <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">Discount Type</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Discount Type</label>
               <select 
                 value={discountType} 
                 onChange={(e) => setDiscountType(e.target.value as CouponDiscountType)}
-                className="w-full bg-white/80 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-500/50 appearance-none"
+                className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-400"
               >
                 <option value="fixed">Fixed Amount (₹)</option>
                 <option value="percentage">Percentage (%)</option>
+                <option value="per_head_cap">Cap on Per Head Fee (₹)</option>
               </select>
             </div>
             
             {/* Value */}
             <div>
-              <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">Discount Value</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                {discountType === 'per_head_cap' ? 'Per Head Cap (₹)' : 'Discount Value'}
+              </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <span className="text-slate-500 font-bold text-xs">{discountType === 'fixed' ? '₹' : '%'}</span>
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <span className="text-slate-400 font-semibold text-sm">{discountType === 'percentage' ? '%' : '₹'}</span>
                 </div>
                 <input 
-                  type="number" 
+                  type="text" 
+                  inputMode="numeric"
                   value={discountValue} 
-                  onChange={(e) => setDiscountValue(Number(e.target.value))}
-                  min="0"
-                  className="w-full bg-white/80 border border-slate-200 rounded-xl py-3 pl-8 pr-4 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-purple-500/50"
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+                    setDiscountValue(clean);
+                  }}
+                  placeholder={discountType === 'per_head_cap' ? 'e.g. 350' : discountType === 'percentage' ? 'e.g. 20' : 'e.g. 100'}
+                  className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-8 pr-3.5 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-slate-400"
                 />
               </div>
             </div>
@@ -525,21 +567,26 @@ export default function CouponsPage() {
 
           {/* Usage Limit */}
           <div>
-            <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em] mb-2">Usage Limit (0 for unlimited)</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Usage Limit (optional)</label>
             <input 
-              type="number" 
+              type="text" 
+              inputMode="numeric"
               value={maxUses} 
-              onChange={(e) => setMaxUses(Number(e.target.value))}
-              min="0"
-              className="w-full bg-white/80 border border-slate-200 rounded-xl py-3 px-4 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-purple-500/50"
+              onChange={(e) => {
+                const clean = e.target.value.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+                setMaxUses(clean);
+              }}
+              placeholder="Leave empty for unlimited"
+              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3.5 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-slate-400"
             />
           </div>
 
           {/* Applicable Events Multi-Select */}
           <div>
-            <div className="flex justify-between items-end mb-2">
-              <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-[0.25em]">Applicable Events</label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700">Applicable Events</label>
               <button 
+                type="button"
                 onClick={() => {
                   if (selectedEvents.length === availableEvents.length || applyToAllEvents) {
                     setApplyToAllEvents(false);
@@ -549,13 +596,13 @@ export default function CouponsPage() {
                     selectAllEvents();
                   }
                 }}
-                className="text-[10px] text-slate-600 hover:text-slate-600 font-bold uppercase tracking-widest cursor-pointer"
+                className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer"
               >
-                {selectedEvents.includes('ALL') ? 'Clear All' : 'Select All'}
+                {selectedEvents.includes('ALL') ? 'Clear all' : 'Select all'}
               </button>
             </div>
             
-            <div className="bg-white/80 border border-slate-200 rounded-xl p-3 shadow-inner">
+            <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-3">
               
               {/* Event Search inside Modal */}
               <div className="relative mb-3">
@@ -564,26 +611,25 @@ export default function CouponsPage() {
                   placeholder="Search events to apply coupon..."
                   value={eventSearch}
                   onChange={(e) => setEventSearch(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-900 placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                  className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400"
                 />
               </div>
 
               {selectedEvents.includes('ALL') ? (
-                <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 gap-2 mb-2">
-                  
-                  <span className="text-xs font-bold uppercase tracking-widest">Valid for all global events</span>
+                <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-700 gap-2 mb-2">
+                  <span className="text-xs font-semibold">Valid for all events</span>
                 </div>
               ) : (
                 /* Event Checkboxes */
-                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 divide-y divide-slate-100 custom-scrollbar">
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 divide-y divide-slate-100 custom-scrollbar">
                   {filteredEventOptions.map((evt) => {
                     const isChecked = selectedEvents.includes(evt.title) || selectedEvents.includes(evt.id);
 
                     return (
                       <label
                         key={evt.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl text-xs font-medium cursor-pointer transition-colors ${
-                          isChecked ? 'bg-purple-500/20 text-slate-600 font-bold border border-purple-500/30' : 'hover:bg-white text-slate-700 border border-transparent'
+                        className={`flex items-center gap-3 p-2.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                          isChecked ? 'bg-indigo-50 text-indigo-900 font-semibold border border-indigo-200' : 'hover:bg-white text-slate-700 border border-transparent'
                         }`}
                       >
                         <input
@@ -593,14 +639,14 @@ export default function CouponsPage() {
                             setApplyToAllEvents(false);
                             toggleEventSelection(evt.title);
                           }}
-                          className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 bg-white/90 border-slate-300"
+                          className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-white border-slate-300"
                         />
                         <span className="truncate">{evt.title}</span>
                       </label>
                     );
                   })}
                   {filteredEventOptions.length === 0 && (
-                    <div className="text-center py-4 text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+                    <div className="text-center py-4 text-slate-500 text-xs font-medium">
                       No events match search.
                     </div>
                   )}
@@ -611,7 +657,7 @@ export default function CouponsPage() {
 
           <button 
             onClick={handleSaveCoupon}
-            className="w-full bg-white hover:bg-white/90 text-black py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-semibold text-sm transition-all shadow-sm cursor-pointer"
           >
             {isEditing ? 'Save Changes' : 'Create Coupon'}
           </button>
@@ -619,9 +665,10 @@ export default function CouponsPage() {
       </Modal>
       
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
       `}</style>
     </div>
   );

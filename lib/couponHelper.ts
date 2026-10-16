@@ -1,15 +1,34 @@
-import { Coupon } from './types';
+import { Coupon, CouponDiscountType } from './types';
+import { 
+  getEventById, 
+  OFFICIAL_EVENTS, 
+  isPerHeadFeeEvent, 
+  getEventPerHeadFee, 
+  calculateEventItemPrice, 
+  calculateEventItemPriceWithCap, 
+  isFlagshipEvent,
+  calculateFlagshipBankFee,
+  calculateVisitorBandFee,
+  VisitorPassConfig 
+} from './eventPricing';
 
 export interface CouponValidationResult {
   valid: boolean;
   error?: string;
   code: string;
-  discountType: 'percentage' | 'fixed';
+  discountType: CouponDiscountType;
   discountValue: number;
   originalPrice: number;
   finalPrice: number;
   discountAmount: number;
   applicableEvents?: string[];
+}
+
+export interface CouponCalculationContext {
+  selectedEvents?: string[];
+  teamMembers?: Record<string, any[] | undefined>;
+  visitorConfig?: VisitorPassConfig;
+  isEarlyBird?: boolean;
 }
 
 /**
@@ -63,12 +82,13 @@ export function isValidCouponFormat(code: string): boolean {
  * Supports:
  *  1. Percentage discount: Final = Original - (Original * Percentage / 100)
  *  2. Fixed price: Final = Fixed Price (Customer pays exact fixed price)
- *  3. Lowercase code formatting and format validation
+ *  3. Per head cap: Sets a ceiling/cap on per-head fee for events with a per-head fee system
  */
 export function calculateCouponDiscount(
   coupon: Partial<Coupon> | null | undefined,
   originalPrice: number = 500,
-  eventIdOrTitle?: string
+  eventIdOrTitle?: string,
+  context?: CouponCalculationContext
 ): CouponValidationResult {
   const safeOriginalPrice = Math.max(0, Number(originalPrice) || 0);
 
@@ -140,7 +160,25 @@ export function calculateCouponDiscount(
   }
 
   // 4. Validate Event Applicability
-  if (eventIdOrTitle && !isCouponApplicableToEvent(coupon, eventIdOrTitle)) {
+  if (context?.selectedEvents && context.selectedEvents.length > 0) {
+    const hasAnyApplicableEvent = context.selectedEvents.some(evtId => {
+      const evt = getEventById(evtId);
+      return isCouponApplicableToEvent(coupon, evtId) || (evt && isCouponApplicableToEvent(coupon, evt.title));
+    });
+    if (!hasAnyApplicableEvent) {
+      return {
+        valid: false,
+        error: 'Coupon is not valid for any of the selected events.',
+        code,
+        discountType: 'percentage',
+        discountValue: 0,
+        originalPrice: safeOriginalPrice,
+        finalPrice: safeOriginalPrice,
+        discountAmount: 0,
+        applicableEvents: coupon.applicableEvents,
+      };
+    }
+  } else if (eventIdOrTitle && !isCouponApplicableToEvent(coupon, eventIdOrTitle)) {
     return {
       valid: false,
       error: 'Coupon is not valid for this event.',
@@ -155,8 +193,14 @@ export function calculateCouponDiscount(
   }
 
   // 5. Determine Discount Type and Value (with legacy backward compatibility)
-  let discountType: 'percentage' | 'fixed' = coupon.discountType || (coupon.discountPercentage !== undefined ? 'percentage' : 'fixed');
-  let discountValue: number = coupon.discountValue ?? (discountType === 'percentage' ? (coupon.discountPercentage ?? 0) : (coupon.amount ?? safeOriginalPrice));
+  let discountType: CouponDiscountType = coupon.discountType || (coupon.discountPercentage !== undefined ? 'percentage' : 'fixed');
+  let discountValue: number = coupon.discountValue ?? (
+    discountType === 'percentage' 
+      ? (coupon.discountPercentage ?? 0) 
+      : discountType === 'per_head_cap'
+      ? (coupon.perHeadCap ?? 0)
+      : (coupon.amount ?? safeOriginalPrice)
+  );
 
   let finalPrice = safeOriginalPrice;
   let discountAmount = 0;
@@ -167,12 +211,131 @@ export function calculateCouponDiscount(
     const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
     discountAmount = Math.round(((safeOriginalPrice * pct) / 100) * 100) / 100;
     finalPrice = Math.max(0, safeOriginalPrice - discountAmount);
-  } else {
+  } else if (discountType === 'fixed') {
     // Fixed price mode:
     // Final price IS the configured fixed value (never negative)
     const fixedPrice = Math.max(0, Number(discountValue) || 0);
     finalPrice = fixedPrice;
     discountAmount = Math.max(0, safeOriginalPrice - fixedPrice);
+  } else if (discountType === 'per_head_cap') {
+    // Per head cap mode:
+    // Imposes a ceiling/cap on the per-head fee for events with a per-head fee collection system
+    const perHeadCap = Math.max(0, Number(discountValue) || 0);
+
+    if (context?.selectedEvents && context.selectedEvents.length > 0) {
+      let totalOriginal = 0;
+      let totalCapped = 0;
+      let hasPerHeadEvent = false;
+
+      for (const evId of context.selectedEvents) {
+        const event = getEventById(evId);
+        if (!event) continue;
+
+        const groupMembers = context.teamMembers?.[event.type];
+        const totalMembers = !event.isTeam ? 1 : 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
+
+        const itemOriginal = calculateEventItemPrice(event, totalMembers, context.visitorConfig, context.isEarlyBird);
+        const membersCount = event.isTeam ? totalMembers : 1;
+        const isVisitor = event.id === "visitor";
+        const visitorDaysCount = context.visitorConfig?.days?.length ?? 1;
+        const visitorCount = context.visitorConfig?.count ?? 1;
+        const bankFee = (isFlagshipEvent(event) && context.teamMembers !== undefined && (!event.isTeam || totalMembers > 1))
+          ? calculateFlagshipBankFee(event, membersCount)
+          : isVisitor
+          ? calculateVisitorBandFee(visitorDaysCount, visitorCount)
+          : 0;
+
+        totalOriginal += (itemOriginal + bankFee);
+
+        const isApplicable = isCouponApplicableToEvent(coupon, event.id) || isCouponApplicableToEvent(coupon, event.title);
+
+        if (isApplicable && isPerHeadFeeEvent(event)) {
+          hasPerHeadEvent = true;
+          const itemCapped = calculateEventItemPriceWithCap(event, totalMembers, context.visitorConfig, context.isEarlyBird, perHeadCap);
+          totalCapped += (itemCapped + bankFee);
+        } else {
+          totalCapped += (itemOriginal + bankFee);
+        }
+      }
+
+      if (!hasPerHeadEvent) {
+        return {
+          valid: false,
+          error: 'This coupon is only valid for events with a per-head fee collection system.',
+          code,
+          discountType,
+          discountValue,
+          originalPrice: safeOriginalPrice,
+          finalPrice: safeOriginalPrice,
+          discountAmount: 0,
+          applicableEvents: coupon.applicableEvents,
+        };
+      }
+
+      finalPrice = Math.max(0, totalCapped);
+      discountAmount = Math.max(0, (totalOriginal > 0 ? totalOriginal : safeOriginalPrice) - totalCapped);
+
+      if (discountAmount <= 0) {
+        return {
+          valid: false,
+          error: `Per-head fee is already within the ₹${perHeadCap}/head cap.`,
+          code,
+          discountType,
+          discountValue,
+          originalPrice: safeOriginalPrice,
+          finalPrice: safeOriginalPrice,
+          discountAmount: 0,
+          applicableEvents: coupon.applicableEvents,
+        };
+      }
+    } else if (eventIdOrTitle) {
+      const event = getEventById(eventIdOrTitle) || OFFICIAL_EVENTS.find(e => normalizeEventKey(e.title) === normalizeEventKey(eventIdOrTitle));
+      if (event && isPerHeadFeeEvent(event)) {
+        const regularPerHead = getEventPerHeadFee(event, context?.isEarlyBird);
+        const effectivePerHead = Math.min(regularPerHead, perHeadCap);
+        const estimatedMembers = Math.max(1, Math.round(safeOriginalPrice / (regularPerHead || 1)));
+        finalPrice = estimatedMembers * effectivePerHead;
+        discountAmount = Math.max(0, safeOriginalPrice - finalPrice);
+
+        if (discountAmount <= 0) {
+          return {
+            valid: false,
+            error: `Per-head fee is already within the ₹${perHeadCap}/head cap.`,
+            code,
+            discountType,
+            discountValue,
+            originalPrice: safeOriginalPrice,
+            finalPrice: safeOriginalPrice,
+            discountAmount: 0,
+            applicableEvents: coupon.applicableEvents,
+          };
+        }
+      } else {
+        return {
+          valid: false,
+          error: 'This coupon is only valid for events with a per-head fee collection system.',
+          code,
+          discountType,
+          discountValue,
+          originalPrice: safeOriginalPrice,
+          finalPrice: safeOriginalPrice,
+          discountAmount: 0,
+          applicableEvents: coupon.applicableEvents,
+        };
+      }
+    } else {
+      return {
+        valid: false,
+        error: 'Please select an event with a per-head fee collection system.',
+        code,
+        discountType,
+        discountValue,
+        originalPrice: safeOriginalPrice,
+        finalPrice: safeOriginalPrice,
+        discountAmount: 0,
+        applicableEvents: coupon.applicableEvents,
+      };
+    }
   }
 
   // Ensure 2 decimal places precision and non-negative values

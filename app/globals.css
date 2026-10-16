@@ -153,30 +153,47 @@
   /* Management & internal portal pages (/admin, /scanner, /login): restore native desktop PC cursor */
   html.management-page,
   html.management-page body,
-  html.management-page body *,
   .admin-portal-scope,
-  .admin-portal-scope *,
-  html:has(.admin-portal-scope),
-  body:has(.admin-portal-scope),
-  body:has(.admin-portal-scope) * {
-    cursor: auto !important;
+  body:has(.admin-portal-scope) {
+    cursor: default;
   }
 
   html.management-page a,
+  html.management-page a *,
   html.management-page button,
+  html.management-page button *,
   html.management-page [role="button"],
+  html.management-page [role="button"] *,
   html.management-page select,
+  html.management-page select *,
+  html.management-page label,
+  html.management-page label *,
   html.management-page .cursor-pointer,
+  html.management-page .cursor-pointer *,
   .admin-portal-scope a,
+  .admin-portal-scope a *,
   .admin-portal-scope button,
+  .admin-portal-scope button *,
   .admin-portal-scope [role="button"],
+  .admin-portal-scope [role="button"] *,
   .admin-portal-scope select,
+  .admin-portal-scope select *,
+  .admin-portal-scope label,
+  .admin-portal-scope label *,
   .admin-portal-scope .cursor-pointer,
+  .admin-portal-scope .cursor-pointer *,
   body:has(.admin-portal-scope) a,
+  body:has(.admin-portal-scope) a *,
   body:has(.admin-portal-scope) button,
+  body:has(.admin-portal-scope) button *,
   body:has(.admin-portal-scope) [role="button"],
+  body:has(.admin-portal-scope) [role="button"] *,
   body:has(.admin-portal-scope) select,
-  body:has(.admin-portal-scope) .cursor-pointer {
+  body:has(.admin-portal-scope) select *,
+  body:has(.admin-portal-scope) label,
+  body:has(.admin-portal-scope) label *,
+  body:has(.admin-portal-scope) .cursor-pointer,
+  body:has(.admin-portal-scope) .cursor-pointer * {
     cursor: pointer !important;
   }
 
@@ -190,13 +207,35 @@
   }
 
   html.management-page button:disabled,
+  html.management-page button:disabled *,
   html.management-page .cursor-not-allowed,
+  html.management-page .cursor-not-allowed *,
   .admin-portal-scope button:disabled,
+  .admin-portal-scope button:disabled *,
   .admin-portal-scope .cursor-not-allowed,
+  .admin-portal-scope .cursor-not-allowed *,
   body:has(.admin-portal-scope) button:disabled,
-  body:has(.admin-portal-scope) .cursor-not-allowed {
+  body:has(.admin-portal-scope) button:disabled *,
+  body:has(.admin-portal-scope) .cursor-not-allowed,
+  body:has(.admin-portal-scope) .cursor-not-allowed * {
     cursor: not-allowed !important;
   }
+}
+
+/* Custom Dropdown Chevron for all select elements in management and admin */
+.admin-portal-scope select,
+html.management-page select,
+body:has(.admin-portal-scope) select,
+select.admin-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 1rem 1rem !important;
+  padding-right: 2.25rem !important;
+  cursor: pointer !important;
 }
 
 /* Ensure custom cursors are completely hidden on mobile/touch screens */
@@ -206,6 +245,29 @@
     display: none !important;
     opacity: 0 !important;
     pointer-events: none !important;
+  }
+}
+
+/* 
+  Mobile performance booster for Admin & Scanner:
+  Replaces heavy GPU-taxing 40px backdrop-filters with clean, crisp, high-performance solid/semi-translucent surfaces
+  on touch screens while preserving the glass aesthetics and typography.
+*/
+@media (max-width: 768px), (pointer: coarse) {
+  .admin-portal-scope [class*="backdrop-blur-[40px]"],
+  .admin-portal-scope [class*="backdrop-blur-xl"],
+  .admin-portal-scope [class*="backdrop-blur-md"] {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* Optimize scrolling rendering on mobile */
+  .admin-portal-scope main,
+  .admin-portal-scope table,
+  .admin-portal-scope .overflow-x-auto,
+  .admin-portal-scope .overflow-y-auto {
+    -webkit-overflow-scrolling: touch !important;
+    transform: translateZ(0);
   }
 }
 
@@ -225,18 +287,69 @@ body.loader-active .custom-cursor-circle {
   pointer-events: none !important;
 }
 
-/* Hide browser scrollbars globally */
-html,
-body {
+/* Hide browser scrollbars on public landing pages */
+html:not(.management-page):not(:has(.admin-portal-scope)),
+html:not(.management-page):not(:has(.admin-portal-scope)) body {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+html:not(.management-page):not(:has(.admin-portal-scope))::-webkit-scrollbar,
+html:not(.management-page):not(:has(.admin-portal-scope)) body::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+/* Visible, elegant, modern scrollbars for Admin, Scanner, Management, Modals, and Tables */
+html.management-page,
+html.management-page body,
+.admin-portal-scope,
+.admin-portal-scope *,
+.admin-scrollbar,
+.admin-scrollbar * {
+  scrollbar-width: thin !important;
+  scrollbar-color: #94a3b8 #f1f5f9 !important;
+}
+
+html.management-page::-webkit-scrollbar,
+html.management-page body::-webkit-scrollbar,
+.admin-portal-scope::-webkit-scrollbar,
+.admin-portal-scope *::-webkit-scrollbar,
+.admin-scrollbar::-webkit-scrollbar,
+.admin-scrollbar *::-webkit-scrollbar {
+  display: block !important;
+  width: 7px !important;
+  height: 7px !important;
+}
+
+html.management-page::-webkit-scrollbar-track,
+html.management-page body::-webkit-scrollbar-track,
+.admin-portal-scope::-webkit-scrollbar-track,
+.admin-portal-scope *::-webkit-scrollbar-track,
+.admin-scrollbar::-webkit-scrollbar-track,
+.admin-scrollbar *::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 9999px !important;
+}
+
+html.management-page::-webkit-scrollbar-thumb,
+html.management-page body::-webkit-scrollbar-thumb,
+.admin-portal-scope::-webkit-scrollbar-thumb,
+.admin-portal-scope *::-webkit-scrollbar-thumb,
+.admin-scrollbar::-webkit-scrollbar-thumb,
+.admin-scrollbar *::-webkit-scrollbar-thumb {
+  background: #94a3b8 !important;
+  border-radius: 9999px !important;
+}
+
+html.management-page::-webkit-scrollbar-thumb:hover,
+html.management-page body::-webkit-scrollbar-thumb:hover,
+.admin-portal-scope::-webkit-scrollbar-thumb:hover,
+.admin-portal-scope *::-webkit-scrollbar-thumb:hover,
+.admin-scrollbar::-webkit-scrollbar-thumb:hover,
+.admin-scrollbar *::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important;
 }
 
 /* Prevent image & video dragging, selection, and browser download overlays */
