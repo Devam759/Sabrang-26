@@ -364,11 +364,11 @@ export default function CouponsPage() {
       <div className="bg-white backdrop-blur-[40px] border border-slate-200 rounded-[24px] p-8 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden group hover:bg-white/[0.07] transition-all duration-500">
         <div className="absolute top-1/2 left-0 w-64 h-64 bg-white rounded-full blur-[60px] -translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:bg-purple-500/20 transition-all duration-700" />
         
-        <div className="relative z-10">
+        <div className="relative z-10 flex-1">
           <h2 className="text-2xl font-light tracking-wide text-slate-900 flex items-center gap-3 font-space-grotesk">
              Global Early Bird
           </h2>
-          <p className="text-xs text-slate-500 mt-2 font-medium max-w-lg leading-relaxed">
+          <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed max-w-2xl">
             Enable or disable Early Bird pricing across all events. When enabled, original prices will be shown cut out next to the early bird prices.
           </p>
         </div>
@@ -434,21 +434,36 @@ export default function CouponsPage() {
                             ? `${coupon.discountValue}% off` 
                             : coupon.discountType === 'per_head_cap'
                             ? `Cap ₹${coupon.discountValue} / head`
-                            : `₹${coupon.discountValue} off`}
+                            : `Pay ₹${coupon.discountValue} (Fixed)`}
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="flex flex-wrap gap-1 max-w-[240px]">
+                        <div className="flex flex-wrap gap-1.5 max-w-sm">
                           {isAllEvents ? (
-                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-medium">
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-semibold">
                               All Events
                             </span>
                           ) : (
-                            coupon.applicableEvents?.map((evt: string) => (
-                              <span key={evt} className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-medium truncate max-w-[140px]">
-                                {evt}
-                              </span>
-                            ))
+                            coupon.applicableEvents?.map((evt: string) => {
+                              // Map legacy names or IDs to current canonical title
+                              const cleanEvt = evt.trim();
+                              const matched = OFFICIAL_EVENTS.find(e => 
+                                e.id.toLowerCase() === cleanEvt.toLowerCase() ||
+                                e.title.toLowerCase() === cleanEvt.toLowerCase() ||
+                                (cleanEvt.toLowerCase().includes('gunj') && e.id === 'echoes_of_noor')
+                              );
+                              const displayTitle = matched ? `${matched.title} (${matched.category})` : cleanEvt;
+
+                              return (
+                                <span 
+                                  key={evt} 
+                                  title={displayTitle}
+                                  className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-medium whitespace-normal break-words leading-tight"
+                                >
+                                  {displayTitle}
+                                </span>
+                              );
+                            })
                           )}
                         </div>
                       </td>
@@ -535,8 +550,8 @@ export default function CouponsPage() {
                 onChange={(e) => setDiscountType(e.target.value as CouponDiscountType)}
                 className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-400"
               >
-                <option value="fixed">Fixed Amount (₹)</option>
-                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Final Price (Pay exact ₹)</option>
+                <option value="percentage">Percentage Discount (%)</option>
                 <option value="per_head_cap">Cap on Per Head Fee (₹)</option>
               </select>
             </div>
@@ -544,7 +559,11 @@ export default function CouponsPage() {
             {/* Value */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                {discountType === 'per_head_cap' ? 'Per Head Cap (₹)' : 'Discount Value'}
+                {discountType === 'per_head_cap' 
+                  ? 'Per Head Cap (₹)' 
+                  : discountType === 'fixed' 
+                  ? 'Final Price to Pay (₹)' 
+                  : 'Discount Percentage (%)'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -558,12 +577,19 @@ export default function CouponsPage() {
                     const clean = e.target.value.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
                     setDiscountValue(clean);
                   }}
-                  placeholder={discountType === 'per_head_cap' ? 'e.g. 350' : discountType === 'percentage' ? 'e.g. 20' : 'e.g. 100'}
+                  placeholder={discountType === 'per_head_cap' ? 'e.g. 350' : discountType === 'percentage' ? 'e.g. 20' : 'e.g. 80 (user pays ₹80)'}
                   className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-8 pr-3.5 text-sm font-mono font-semibold text-slate-900 focus:outline-none focus:border-slate-400"
                 />
               </div>
             </div>
           </div>
+
+          {/* Contextual Helper Note for Fixed Price */}
+          {discountType === 'fixed' && (
+            <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-2.5 -mt-2">
+              <span className="font-semibold text-slate-700">Fixed Final Price:</span> The customer will pay <strong>₹{discountValue || 'X'}</strong> as their total ticket price, regardless of the original price.
+            </p>
+          )}
 
           {/* Usage Limit */}
           <div>

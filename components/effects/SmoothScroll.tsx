@@ -5,12 +5,24 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { usePathname } from "next/navigation";
+
 export default function SmoothScroll({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isManagement = Boolean(
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/scanner") ||
+    pathname === "/login"
+  );
+
   useEffect(() => {
+    // Disable Lenis on admin, scanner, and login portal pages so native desktop mousewheel scrolling works normally
+    if (isManagement) return;
+
     // Only initialize smooth momentum scrolling on fine pointers (desktop mouse / trackpad)
     const isFinePointer = window.matchMedia("(pointer: fine)").matches;
     if (!isFinePointer) return;

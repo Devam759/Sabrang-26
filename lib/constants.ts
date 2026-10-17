@@ -1,3 +1,19 @@
+// Re-export authoritative event catalog & matrix as the single source of truth
+export { 
+  OFFICIAL_EVENTS, 
+  FESTIVAL_DAYS, 
+  getEventById, 
+  EVENT_BY_ID,
+  calculateEventItemPrice,
+  calculateTotalRegistrationFee,
+  calculateVisitorPassFee,
+  getGroupTeamRequirements,
+  isFlagshipEvent,
+  type SabrangEvent,
+  type FestivalDayId,
+  type VisitorPassConfig
+} from "./eventPricing";
+
 export const SITE_CONFIG = {
   name: "Sabrang 2026",
   year: "2026",

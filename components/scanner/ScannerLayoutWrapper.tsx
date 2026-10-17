@@ -72,7 +72,10 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
   return (
     <div className="admin-portal-scope flex min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
       <Sidebar />
-      <main className="flex-1 w-full md:w-[calc(100%-16rem)] pt-16 md:pt-0 overflow-y-auto relative bg-[#f8fafc] admin-scrollbar">
+      <main 
+        data-lenis-prevent
+        className="flex-1 w-full md:w-[calc(100%-16rem)] pt-16 md:pt-0 overflow-y-auto relative bg-[#f8fafc] admin-scrollbar overscroll-contain"
+      >
         <header className="sticky top-0 z-30 bg-white px-6 md:px-8 h-16 hidden md:flex items-center justify-between border-b border-slate-200 shadow-xs">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             Sabrang 2026 Scanner

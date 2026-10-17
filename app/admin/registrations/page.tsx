@@ -1047,12 +1047,12 @@ export default function Registrations() {
                         ) : <span className="text-slate-400">-</span>}
                       </td>
                       <td className="p-5">
-                        <div className="flex flex-wrap gap-1.5 max-w-[250px]">
+                        <div className="flex flex-wrap gap-1.5 max-w-sm">
                           {getEventTitles(reg).list.length === 0 ? (
                             <span className="text-slate-400 font-mono text-[10px]">N/A</span>
                           ) : (
                             getEventTitles(reg).list.map((title, i) => (
-                              <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] whitespace-nowrap uppercase tracking-widest font-bold">
+                              <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] uppercase tracking-wider font-semibold whitespace-normal leading-tight">
                                 {title}
                               </span>
                             ))

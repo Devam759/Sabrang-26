@@ -61,7 +61,18 @@ export function isCouponApplicableToEvent(coupon: Partial<Coupon>, eventIdOrTitl
 
   return coupon.applicableEvents.some(evt => {
     const candidateKey = normalizeEventKey(evt);
-    return candidateKey === targetKey || targetKey.includes(candidateKey) || candidateKey.includes(targetKey);
+    // Direct match or substring match
+    if (candidateKey === targetKey || targetKey.includes(candidateKey) || candidateKey.includes(targetKey)) {
+      return true;
+    }
+    // Backward compatibility for legacy aliases (e.g. "gunj" was rebranded to "echoes_of_noor")
+    if (
+      (candidateKey.includes('gunj') && (targetKey.includes('echoesofnoor') || targetKey.includes('echoes'))) ||
+      (targetKey.includes('gunj') && (candidateKey.includes('echoesofnoor') || candidateKey.includes('echoes')))
+    ) {
+      return true;
+    }
+    return false;
   });
 }
 
