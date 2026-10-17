@@ -95,12 +95,7 @@ export default function SchedulePage() {
 
   return (
     <>
-      <style>{`
-        /* Hide the global navbar so our custom futuristic header takes precedence */
-        nav.fixed.top-0.left-0.right-0.z-50 {
-          display: none !important;
-        }
-      `}</style>
+
       <JsonLd data={scheduleSchema} />
       <JsonLd data={breadcrumbSchema} />
       <FuturisticSchedule schedule={schedule} />
