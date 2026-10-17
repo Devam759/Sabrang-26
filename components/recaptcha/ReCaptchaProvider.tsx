@@ -42,7 +42,7 @@ export function ReCaptchaProvider({ children }: ReCaptchaProviderProps) {
       return;
     }
 
-    if (typeof window !== "undefined" && window.grecaptcha) {
+    if (typeof window !== "undefined" && window.grecaptcha && typeof window.grecaptcha.ready === "function") {
       try {
         window.grecaptcha.ready(() => {
           setIsLoaded(true);

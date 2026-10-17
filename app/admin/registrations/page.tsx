@@ -6,7 +6,7 @@ import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp
 import { db, auth } from '../../../lib/firebase';
 import { SkeletonTable } from '../../../components/admin/SkeletonLoader';
 import { Modal } from '../../../components/admin/Modal';
-import { X, Maximize2, Loader2 } from 'lucide-react';
+import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
 import { getDisplayPaymentAmount } from '@/lib/registrationDataHelper';
@@ -179,7 +179,8 @@ export default function Registrations() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewImage]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted'>('all');
+  const [isDeleting, setIsDeleting] = useState(false);
   const [emailFilter, setEmailFilter] = useState<'all' | 'sent' | 'unsent'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -286,6 +287,112 @@ export default function Registrations() {
     }
   };
 
+  const handleDeleteRegistration = async (regToDelete: any) => {
+    if (!regToDelete || isDeleting) return;
+
+    const confirmMessage = `Are you sure you want to delete the registration for "${regToDelete.name}"?\n\nThis will mark them as a deleted user and deactivate their pass.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    setIsDeleting(true);
+    try {
+      const regRef = doc(db, 'registrations', regToDelete.id);
+      const adminIdentifier = auth?.currentUser?.email || auth?.currentUser?.uid || 'Admin';
+
+      await updateDoc(regRef, {
+        isDeleted: true,
+        status: 'deleted',
+        deletedAt: serverTimestamp(),
+        deletedBy: adminIdentifier,
+        hasEntered: false,
+      });
+
+      await logAdminAction(
+        'DELETE_REGISTRATION_SOFT',
+        `registrations/${regToDelete.id}`,
+        `Admin marked registration as deleted user: ${regToDelete.name} (${regToDelete.email || regToDelete.id})`,
+        adminIdentifier
+      );
+
+      setRegistrations(prev => prev.map(r => r.id === regToDelete.id ? {
+        ...r,
+        isDeleted: true,
+        status: 'deleted',
+        deletedAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        deletedBy: adminIdentifier,
+        hasEntered: false,
+      } : r));
+
+      if (selectedReg && selectedReg.id === regToDelete.id) {
+        setSelectedReg((prev: any) => prev ? {
+          ...prev,
+          isDeleted: true,
+          status: 'deleted',
+          deletedAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+          deletedBy: adminIdentifier,
+          hasEntered: false,
+        } : null);
+      }
+
+      alert(`Registration for "${regToDelete.name}" has been marked as a deleted user.`);
+    } catch (err: any) {
+      console.error('Delete registration error:', err);
+      alert('Failed to delete registration: ' + (err?.message || err));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleRestoreRegistration = async (regToRestore: any) => {
+    if (!regToRestore || isDeleting) return;
+
+    if (!window.confirm(`Restore registration for "${regToRestore.name}"? This will reactivate them as an active attendee.`)) return;
+
+    setIsDeleting(true);
+    try {
+      const regRef = doc(db, 'registrations', regToRestore.id);
+      const adminIdentifier = auth?.currentUser?.email || auth?.currentUser?.uid || 'Admin';
+
+      await updateDoc(regRef, {
+        isDeleted: false,
+        status: 'confirmed',
+        restoredAt: serverTimestamp(),
+        restoredBy: adminIdentifier,
+      });
+
+      await logAdminAction(
+        'RESTORE_REGISTRATION',
+        `registrations/${regToRestore.id}`,
+        `Admin restored registration for: ${regToRestore.name} (${regToRestore.email || regToRestore.id})`,
+        adminIdentifier
+      );
+
+      setRegistrations(prev => prev.map(r => r.id === regToRestore.id ? {
+        ...r,
+        isDeleted: false,
+        status: 'confirmed',
+        restoredAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        restoredBy: adminIdentifier,
+      } : r));
+
+      if (selectedReg && selectedReg.id === regToRestore.id) {
+        setSelectedReg((prev: any) => prev ? {
+          ...prev,
+          isDeleted: false,
+          status: 'confirmed',
+          restoredAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+          restoredBy: adminIdentifier,
+        } : null);
+      }
+
+      alert(`Registration for "${regToRestore.name}" has been restored.`);
+    } catch (err: any) {
+      console.error('Restore registration error:', err);
+      alert('Failed to restore registration: ' + (err?.message || err));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // 1. Fetch Registrations Data & Sorting
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState('registeredAt');
@@ -352,6 +459,15 @@ export default function Registrations() {
   // 1. Apply search and dropdown filters
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((reg) => {
+      const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
+
+      // Hide deleted users by default; only show them when statusFilter === 'deleted'
+      if (statusFilter === 'deleted') {
+        if (!isRegDeleted) return false;
+      } else {
+        if (isRegDeleted) return false;
+      }
+
       const matchesSearch = 
         (reg.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (reg.rollNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -360,6 +476,7 @@ export default function Registrations() {
 
       const matchesStatus = 
         statusFilter === 'all' ||
+        statusFilter === 'deleted' ||
         (statusFilter === 'entered' && reg.hasEntered) ||
         (statusFilter === 'pending' && !reg.hasEntered && reg.status !== 'declined') ||
         (statusFilter === 'declined' && reg.status === 'declined');
@@ -417,10 +534,19 @@ export default function Registrations() {
   const paginatedRegistrations = sortedRegistrations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(sortedRegistrations.length / itemsPerPage);
 
-  // Calculate Today's Registrations (IST standardized)
+  // Counts for active vs deleted registrations
+  const activeRegistrationsCount = useMemo(() => {
+    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted').length;
+  }, [registrations]);
+
+  const deletedRegistrationsCount = useMemo(() => {
+    return registrations.filter(r => r.isDeleted || r.status === 'deleted').length;
+  }, [registrations]);
+
+  // Calculate Today's Registrations (IST standardized, active only)
   const todaysRegistrationsCount = useMemo(() => {
     return registrations.filter(reg => {
-      return isDateInTodayIST(reg.registeredAt);
+      return !reg.isDeleted && reg.status !== 'deleted' && isDateInTodayIST(reg.registeredAt);
     }).length;
   }, [registrations]);
 
@@ -643,7 +769,7 @@ export default function Registrations() {
   };
 
   const unsentCount = useMemo(() => {
-    return registrations.filter(reg => !reg.emailSent).length;
+    return registrations.filter(reg => !reg.emailSent && !reg.isDeleted && reg.status !== 'deleted').length;
   }, [registrations]);
 
   const unsyncedCount = useMemo(() => {
@@ -706,13 +832,29 @@ export default function Registrations() {
           <h2 className="text-[10px] sm:text-xs md:text-sm font-bold sm:font-semibold text-slate-500 uppercase tracking-widest sm:tracking-normal relative z-10 mb-2 sm:mb-8 truncate">Total Registrations</h2>
           <div className="relative z-10">
             <p className="text-3xl sm:text-6xl md:text-8xl font-light tracking-tighter text-slate-900 font-space-grotesk leading-none">
-              {loading ? '-' : registrations.length.toLocaleString('en-IN')}
+              {loading ? '-' : activeRegistrationsCount.toLocaleString('en-IN')}
             </p>
-            {filteredRegistrations.length !== registrations.length && (
-              <p className="text-[10px] sm:text-xs font-semibold text-slate-600 mt-1.5 sm:mt-3 bg-white px-2.5 sm:px-3 py-1 border border-slate-200 rounded-lg inline-block">
-                Filtered: {filteredRegistrations.length}
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-2 mt-1.5 sm:mt-3">
+              {filteredRegistrations.length !== activeRegistrationsCount && (
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-600 bg-white px-2.5 sm:px-3 py-1 border border-slate-200 rounded-lg inline-block">
+                  Filtered: {filteredRegistrations.length}
+                </p>
+              )}
+              {deletedRegistrationsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter(statusFilter === 'deleted' ? 'all' : 'deleted')}
+                  className={`text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 border rounded-lg inline-block transition-colors cursor-pointer ${
+                    statusFilter === 'deleted'
+                      ? 'bg-rose-600 text-white border-rose-600'
+                      : 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200'
+                  }`}
+                  title="Click to view deleted users"
+                >
+                  {deletedRegistrationsCount} Deleted
+                </button>
+              )}
+            </div>
           </div>
         </div>
         
@@ -786,12 +928,13 @@ export default function Registrations() {
           <select
             value={statusFilter}
             onChange={(e: any) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-[160px] bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
+            className="w-full sm:w-[175px] bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
           >
-            <option value="all">Filter: All Status</option>
+            <option value="all">Status: Active (All)</option>
             <option value="entered">Checked-In</option>
             <option value="pending">Pending Check-In</option>
             <option value="declined">Declined / Blocked</option>
+            <option value="deleted">Deleted Users {deletedRegistrationsCount > 0 ? `(${deletedRegistrationsCount})` : ''}</option>
           </select>
 
           <select
@@ -859,77 +1002,118 @@ export default function Registrations() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-                {paginatedRegistrations.map((reg, idx) => (
-                  <tr key={reg.id} className="hover:bg-slate-50 transition-colors duration-500 ease-out group animate-in fade-in slide-in-from-bottom-2" style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}>
-                    <td className="p-5 text-center text-slate-400 font-mono text-[10px]">
-                      {(currentPage - 1) * itemsPerPage + idx + 1}
-                    </td>
-                    <td className="p-5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 group-hover:text-slate-900 transition-colors text-[13px]">{reg.name}</span>
-                        {reg.isTest && (
-                          <span className="inline-flex items-center px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
-                            Test
+                {paginatedRegistrations.map((reg, idx) => {
+                  const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
+                  return (
+                    <tr 
+                      key={reg.id} 
+                      className={`transition-colors duration-500 ease-out group animate-in fade-in slide-in-from-bottom-2 ${
+                        isRegDeleted ? 'bg-rose-50/20 hover:bg-rose-50/40' : 'hover:bg-slate-50'
+                      }`} 
+                      style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
+                    >
+                      <td className="p-5 text-center text-slate-400 font-mono text-[10px]">
+                        {(currentPage - 1) * itemsPerPage + idx + 1}
+                      </td>
+                      <td className="p-5">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold transition-colors text-[13px] ${
+                            isRegDeleted ? 'line-through text-slate-500' : 'text-slate-900 group-hover:text-slate-900'
+                          }`}>
+                            {reg.name}
                           </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-5">
-                      <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
-                      <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
-                    </td>
-                    <td className="p-5 whitespace-nowrap">
-                      {reg.registeredAt && reg.registeredAt.toDate ? (
-                        <div className="space-y-1">
-                          <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</div>
-                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</div>
-                        </div>
-                      ) : <span className="text-slate-400">-</span>}
-                    </td>
-                    <td className="p-5">
-                      <div className="flex flex-wrap gap-1.5 max-w-[250px]">
-                        {getEventTitles(reg).list.length === 0 ? (
-                          <span className="text-slate-400 font-mono text-[10px]">N/A</span>
-                        ) : (
-                          getEventTitles(reg).list.map((title, i) => (
-                            <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] whitespace-nowrap uppercase tracking-widest font-bold">
-                              {title}
+                          {isRegDeleted && (
+                            <span className="inline-flex items-center px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+                              Deleted
                             </span>
-                          ))
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-5">
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
-                        reg.hasEntered 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                          : (reg.status === 'declined' 
-                              ? 'bg-rose-50 text-rose-700 border border-rose-200' 
-                              : 'bg-amber-50 text-amber-700 border border-amber-200')
-                      }`}>
-                        {reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending')}
-                      </span>
-                    </td>
-                    <td className="p-5">
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
-                        reg.emailSent 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                          : 'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {reg.emailSent ? 'Sent' : 'Unsent'}
-                      </span>
-                    </td>
-                    <td className="p-5 text-right">
-                      <button 
-                        onClick={() => setSelectedReg(reg)} 
-                        className="p-2 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-500 rounded-xl transition-colors cursor-pointer"
-                        title="View Details"
-                      >
-                        <CustomEyeIcon size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                          )}
+                          {reg.isTest && (
+                            <span className="inline-flex items-center px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+                              Test
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-5">
+                        <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
+                        <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
+                      </td>
+                      <td className="p-5 whitespace-nowrap">
+                        {reg.registeredAt && reg.registeredAt.toDate ? (
+                          <div className="space-y-1">
+                            <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</div>
+                            <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</div>
+                          </div>
+                        ) : <span className="text-slate-400">-</span>}
+                      </td>
+                      <td className="p-5">
+                        <div className="flex flex-wrap gap-1.5 max-w-[250px]">
+                          {getEventTitles(reg).list.length === 0 ? (
+                            <span className="text-slate-400 font-mono text-[10px]">N/A</span>
+                          ) : (
+                            getEventTitles(reg).list.map((title, i) => (
+                              <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] whitespace-nowrap uppercase tracking-widest font-bold">
+                                {title}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-5">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
+                          isRegDeleted
+                            ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                            : reg.hasEntered 
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                              : (reg.status === 'declined' 
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200')
+                        }`}>
+                          {isRegDeleted ? 'Deleted' : (reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending'))}
+                        </span>
+                      </td>
+                      <td className="p-5">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
+                          reg.emailSent 
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {reg.emailSent ? 'Sent' : 'Unsent'}
+                        </span>
+                      </td>
+                      <td className="p-5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button 
+                            onClick={() => setSelectedReg(reg)} 
+                            className="p-2 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-500 rounded-xl transition-colors cursor-pointer"
+                            title="View Details"
+                          >
+                            <CustomEyeIcon size={16} />
+                          </button>
+                          {isRegDeleted ? (
+                            <button
+                              onClick={() => handleRestoreRegistration(reg)}
+                              disabled={isDeleting}
+                              className="p-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                              title="Restore Registration"
+                            >
+                              <RotateCcw size={16} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleDeleteRegistration(reg)}
+                              disabled={isDeleting}
+                              className="p-2 border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                              title="Delete Registration (Set as deleted user)"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {paginatedRegistrations.length === 0 && (
                   <tr>
                     <td colSpan={8} className="p-16 text-center text-slate-500 font-bold text-xs uppercase tracking-widest">
@@ -980,6 +1164,30 @@ export default function Registrations() {
       <Modal isOpen={!!selectedReg} onClose={() => setSelectedReg(null)} title="Registration Details">
         {selectedReg && (
           <div className="space-y-6 text-slate-900 text-xs">
+            {(selectedReg.isDeleted || selectedReg.status === 'deleted') && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-rose-100 rounded-xl text-rose-700 shrink-0">
+                    <AlertTriangle size={18} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs uppercase tracking-wider text-rose-900">User Marked As Deleted</p>
+                    <p className="text-[11px] text-rose-700 mt-0.5">
+                      Marked as deleted {selectedReg.deletedBy ? `by ${selectedReg.deletedBy}` : ''}. Fest entry pass is inactive.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => handleRestoreRegistration(selectedReg)}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0 flex items-center gap-1.5 shadow-sm"
+                >
+                  <RotateCcw size={12} />
+                  Restore User
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               {/* Student Details */}
               <div className="col-span-2 border-b border-slate-200 pb-2">
@@ -1285,15 +1493,36 @@ export default function Registrations() {
               
               {/* Actions */}
               <div className="col-span-2 border-t border-slate-200 pt-5 mt-4 flex flex-wrap items-center justify-end gap-3">
+                {selectedReg.isDeleted || selectedReg.status === 'deleted' ? (
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={() => handleRestoreRegistration(selectedReg)}
+                    className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-50"
+                  >
+                    <RotateCcw size={13} />
+                    Restore Registration
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={() => handleDeleteRegistration(selectedReg)}
+                    className="px-5 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Trash2 size={13} />
+                    Delete Registration
+                  </button>
+                )}
                 <button
                   type="button"
-                  disabled={isTogglingCheckIn}
+                  disabled={isTogglingCheckIn || selectedReg.isDeleted || selectedReg.status === 'deleted'}
                   onClick={handleToggleCheckIn}
                   className={`px-5 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2 ${
                     selectedReg.hasEntered
                       ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300'
                       : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                  }`}
+                  } disabled:opacity-30 disabled:cursor-not-allowed`}
                 >
                   {isTogglingCheckIn ? (
                     <Loader2 size={13} className="animate-spin" />
@@ -1305,6 +1534,7 @@ export default function Registrations() {
                 </button>
                 <button
                   type="button"
+                  disabled={selectedReg.isDeleted || selectedReg.status === 'deleted'}
                   onClick={async () => {
                     if (confirm(`Resend confirmation email to ${selectedReg.name} (${selectedReg.email})?`)) {
                       try {
@@ -1325,7 +1555,7 @@ export default function Registrations() {
                       }
                     }
                   }}
-                  className="px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
+                  className="px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Resend Confirmation Email
                 </button>

@@ -833,6 +833,19 @@ export default function AdminScannerView() {
                 );
               })()}
 
+              {/* Deleted User Detail Alert */}
+              {(scannedData.isDeleted || scannedData.status === 'deleted') && (
+                <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
+                  <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+                  <div className="text-xs leading-relaxed">
+                    <p className="font-semibold text-rose-800 text-xs">CRITICAL: REGISTRATION CANCELLED / DELETED</p>
+                    <p className="text-xs text-rose-700/90 mt-1">
+                      This registration was deleted/refunded. Pass is invalid and entry is prohibited.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Already Checked In Detail Alert */}
               {scannedData.hasEntered && (
                 <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
@@ -860,7 +873,7 @@ export default function AdminScannerView() {
                 <X size={16} /> Decline
               </button>
               <button 
-                disabled={processingAction || scannedData.hasEntered}
+                disabled={processingAction || scannedData.hasEntered || scannedData.isDeleted || scannedData.status === 'deleted'}
                 onClick={() => handleAction(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >

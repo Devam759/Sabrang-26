@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       // Filter in-memory to avoid needing a composite index
       const unsent = allRegs.docs.filter(doc => {
         const data = doc.data();
-        return data.emailSent !== true;
+        return data.emailSent !== true && !data.isDeleted && data.status !== 'deleted';
       });
       const BATCH_SIZE = 5;
       targetDocs = unsent.slice(0, BATCH_SIZE);
@@ -49,6 +49,11 @@ export async function POST(req: Request) {
     for (const doc of targetDocs) {
       const regData = doc.data();
       const regId = doc.id;
+
+      if (regData.isDeleted || regData.status === 'deleted') {
+        console.warn(`Skipping email dispatch for deleted registration ${regId} (${regData.name})`);
+        continue;
+      }
 
       try {
         console.log(`Sending email to ${regData.name} (${regData.email}) for order ${regData.orderId}...`);

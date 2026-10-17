@@ -76,7 +76,7 @@ export default function AdminDashboard() {
             const currentStart = getStartOfTodayIST();
             const currentEnd = getEndOfTodayIST();
             const allRegs = snap.docs.map(d => d.data());
-            const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true);
+            const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted');
             
             let totalRev = 0;
             let todayRev = 0;

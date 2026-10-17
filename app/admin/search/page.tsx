@@ -119,7 +119,13 @@ export default function GlobalSearch() {
                   {results.regs.map(r => (
                     <div key={r.id} className="bg-admin-bg p-3 rounded-lg flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-slate-900">{r.name} <span className="text-xs text-admin-muted bg-white px-2 py-0.5 rounded ml-2">{r.rollNumber}</span></p>
+                        <p className="font-medium text-slate-900 flex items-center gap-2">
+                          <span className={r.isDeleted || r.status === 'deleted' ? 'line-through text-slate-500' : ''}>{r.name}</span>
+                          {(r.isDeleted || r.status === 'deleted') && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded">Deleted</span>
+                          )}
+                          <span className="text-xs text-admin-muted bg-white px-2 py-0.5 rounded">{r.rollNumber}</span>
+                        </p>
                         <p className="text-xs text-admin-muted mt-1">{r.email} &middot; {r.branch} {r.year}</p>
                       </div>
                       <Link href="/admin/registrations" className="text-xs text-admin-accent hover:underline">View</Link>

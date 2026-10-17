@@ -20,7 +20,7 @@ export async function GET() {
     try {
       const regsSnap = await adminDb.collection('registrations').get();
       const allRegs = regsSnap.docs.map(doc => doc.data());
-      const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true);
+      const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted');
       totalRegistrations = validRegs.length;
 
       validRegs.forEach((reg: any) => {

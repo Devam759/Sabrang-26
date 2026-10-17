@@ -110,6 +110,16 @@ export async function POST(req: Request) {
     const attendeeRoll = regData.rollNumber || regData.registrationNumber || 'N/A';
     const regTicketId = regData.ticketId || regData.orderId || `TKT-${regId.substring(0, 8).toUpperCase()}`;
 
+    // Validate registration is not deleted/refunded
+    if (regData.isDeleted || regData.status === 'deleted') {
+      return NextResponse.json({
+        success: false,
+        code: 'REGISTRATION_DELETED',
+        error: `REGISTRATION CANCELLED: Registration for ${attendeeName} was deleted/refunded. Entry is prohibited.`,
+        attendeeName,
+      }, { status: 400 });
+    }
+
     // 2. Validate Event Specificity
     // If scanner specified an event, verify that the registration belongs to this event
     const registeredEventsList: string[] = [];
@@ -164,6 +174,10 @@ export async function POST(req: Request) {
       }
 
       const freshData = freshDoc.data() || {};
+
+      if (freshData.isDeleted || freshData.status === 'deleted') {
+        throw new Error('REGISTRATION_DELETED');
+      }
 
       if (freshData.hasEntered || freshData.attended) {
         alreadyEnteredData = {
@@ -262,6 +276,13 @@ export async function POST(req: Request) {
 
   } catch (err: any) {
     console.error('Scan verification error:', err);
+    if (err.message === 'REGISTRATION_DELETED') {
+      return NextResponse.json({
+        success: false,
+        code: 'REGISTRATION_DELETED',
+        error: 'REGISTRATION CANCELLED: This registration was marked as deleted/refunded. Entry is prohibited.'
+      }, { status: 400 });
+    }
     return NextResponse.json({
       success: false,
       code: 'SCAN_ERROR',

@@ -290,7 +290,7 @@ export default function CheckoutForm() {
 
     try {
       const activeGroups = getActiveGroups();
-      const primaryGroup = activeGroups[0] || "visitor";
+      const primaryGroup = activeGroups.find(g => g !== "visitor") || activeGroups[0] || "visitor";
 
       const name = getField(primaryGroup, "name");
       const email = getField(primaryGroup, "email");
@@ -476,7 +476,7 @@ export default function CheckoutForm() {
     setPromoError(null);
     try {
       const activeGroups = getActiveGroups();
-      const primaryGroup = activeGroups[0] || "visitor";
+      const primaryGroup = activeGroups.find(g => g !== "visitor") || activeGroups[0] || "visitor";
       const regNum = getField(primaryGroup, "registrationNumber") || getField(primaryGroup, "rollNumber") || "";
 
       const res = await fetch("/api/register", {
@@ -594,23 +594,10 @@ export default function CheckoutForm() {
   };
 
   const updateField = (group: string, field: string, value: string) => {
-    const finalValue = value;
-    setFormData((prev) => {
-      const newData = { ...prev, [`${group}_${field}`]: finalValue };
-      
-      // Auto-sync personal details across groups for better UX
-      const personalFields = ['name', 'email', 'mobileNumber', 'gender', 'age', 'institutionName', 'institutionSelect', 'address'];
-      if (personalFields.includes(field)) {
-        // Sync to all other active groups
-        const activeGroups = getActiveGroups();
-        activeGroups.forEach(g => {
-          if (g !== group) {
-            newData[`${g}_${field}`] = finalValue;
-          }
-        });
-      }
-      return newData;
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [`${group}_${field}`]: value,
+    }));
   };
 
   const getField = (group: string, field: string) => {

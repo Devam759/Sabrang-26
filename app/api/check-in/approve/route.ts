@@ -21,6 +21,13 @@ export async function POST(req: Request) {
 
     const data = regDoc.data() || {};
 
+    if (data.isDeleted || data.status === 'deleted') {
+      return NextResponse.json({ 
+        error: 'Registration has been deleted/refunded. Check-in is prohibited.',
+        isDeleted: true
+      }, { status: 400 });
+    }
+
     if (data.hasEntered) {
       return NextResponse.json({ 
         error: 'Attendee has already checked in',
