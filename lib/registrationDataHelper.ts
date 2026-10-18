@@ -256,7 +256,7 @@ export function extractRegistrationInfo(data: any, idFallback?: string): Extract
 
   const rawInstitution = leaderObj?.institutionName || leaderObj?.college || leaderObj?.institution ||
                          data?.institutionName || data?.college || data?.collegeName || data?.institution || data?.university || '';
-  const college = cleanDisplayString(rawInstitution, 'N/A');
+  const college = normalizeInstitute(rawInstitution) || cleanDisplayString(rawInstitution, 'N/A');
 
   const rawAddress = leaderObj?.address || data?.address || '';
   const address = cleanDisplayString(rawAddress, 'N/A');
@@ -368,7 +368,7 @@ export function normalizeInstitute(raw: string | null | undefined): string {
     lower.includes('institute of management') ||
     lower.includes('institute of engineering')
   ) {
-    return 'JK Lakshmipat University (JKLU)';
+    return 'JK Lakshmipat University';
   }
 
   // 2. Known external universities & colleges

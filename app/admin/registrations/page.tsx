@@ -481,8 +481,8 @@ export default function Registrations() {
     }));
 
     entries.sort((a, b) => {
-      if (a.key.includes('JKLU')) return -1;
-      if (b.key.includes('JKLU')) return 1;
+      if (a.key.includes('Lakshmipat') || a.key.includes('JKLU')) return -1;
+      if (b.key.includes('Lakshmipat') || b.key.includes('JKLU')) return 1;
       if (b.count !== a.count) return b.count - a.count;
       return a.label.localeCompare(b.label);
     });
@@ -1098,7 +1098,7 @@ export default function Registrations() {
                           const raw = getRegistrationInstituteRaw(reg);
                           const inst = normalizeInstitute(raw);
                           if (!inst) return null;
-                          const isJKLU = inst.includes('JKLU');
+                          const isJKLU = inst === 'JK Lakshmipat University' || inst.includes('JKLU');
                           return (
                             <div className="mt-1 flex items-center gap-1.5" title={raw ? `Registered as: "${raw}"` : inst}>
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide ${
