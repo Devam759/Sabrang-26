@@ -479,23 +479,6 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
       remarks: "Gifts & Hampers",
     },
   },
-  {
-    id: "clay_modelling",
-    title: "Clay Modelling",
-    subtitle: "Sculptural Creativity & Craft",
-    category: "Activities - Gifts & Hampers",
-    minTeam: 1,
-    maxTeam: 1,
-    baseIncludedMembers: 1,
-    basePrice: 111,
-    extraMemberFee: 0,
-    isTeam: false,
-    type: "generic",
-    pricingLabel: "₹111 per head",
-    prizes: {
-      remarks: "Gifts & Hampers",
-    },
-  },
 
   // --- General Entry ---
   {

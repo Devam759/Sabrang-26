@@ -390,24 +390,6 @@ export const galleryItems: GalleryItem[] = [
       { name: "Divya Malik", phone: "7017160230" },
     ],
   },
-  {
-    id: 19,
-    eventId: "clay_modelling",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791747464/Clay_Modelling.png",
-    title: "Clay Modelling",
-    category: "Activities - Gifts & Hampers",
-    venue: "Campus",
-    year: 2026,
-    alt: "Clay Modelling at Sabrang 2026",
-    description: "Sculptural Creativity & Craft | Gifts & Hampers",
-    minTeam: 1,
-    maxTeam: 1,
-    prizesRemarks: "Gifts / Hampers",
-    coordinators: [
-      { name: "Nikita Bhatia", phone: "7742314923" },
-      { name: "Divya Malik", phone: "7017160230" },
-    ],
-  },
 ];
 
 export type CoordinatorDirectoryEntry = {
@@ -464,8 +446,6 @@ export const ALL_COORDINATOR_DIRECTORY: CoordinatorDirectoryEntry[] = [
   // Activities & Open Sessions
   { category: "Activities", eventName: "Art Relay", name: "Saumya", phone: "9897110960" },
   { category: "Activities", eventName: "Art Relay", name: "Divya Malik", phone: "7017160230" },
-  { category: "Activities", eventName: "Clay Modelling", name: "Nikita Bhatia", phone: "7742314923" },
-  { category: "Activities", eventName: "Clay Modelling", name: "Divya Malik", phone: "7017160230" },
   { category: "Activities", eventName: "Chai Pe Charcha", name: "Jayash Gahlot", phone: "8306274199" },
   { category: "Activities", eventName: "Chai Pe Charcha", name: "Ankit Joshi", phone: "9354116261" },
 
