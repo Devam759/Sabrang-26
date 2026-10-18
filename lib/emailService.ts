@@ -129,6 +129,10 @@ export function setBrevoCreditsExhausted() {
   cachedBrevoCredits = { credits: 0, expiresAt: Date.now() + 15 * 60 * 1000 };
 }
 
+export function resetBrevoCreditsCache() {
+  cachedBrevoCredits = null;
+}
+
 /**
  * Dispatches an email through Brevo REST API v3.
  * Returns success only when Brevo confirms acceptance (messageId returned).
