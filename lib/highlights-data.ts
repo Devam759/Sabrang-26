@@ -355,7 +355,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: 17,
     eventId: "anime_quiz",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791747463/Anime_Quiz.png",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/v1792323670/Anime_Quiz1_compressed.webp",
     title: "Anime Quiz",
     category: "Non-Flagship - Other Events",
     venue: "Campus",
