@@ -70,6 +70,15 @@ export default function SchedulePage() {
             "The official opening ceremony of Sabrang, welcoming participants and setting the tone for the festival.",
         },
         {
+          time: "11:00 AM",
+          timing: "11:00 AM - 5:00 PM",
+          event: "E-Sports",
+          venue: "IM & IET Rooms",
+          category: "Competition",
+          description:
+            "Competitive gaming sessions held across designated IM & IET rooms.",
+        },
+        {
           time: "11:30 AM",
           timing: "11:30 AM - 1:00 PM",
           event: "Persona",
@@ -132,15 +141,6 @@ export default function SchedulePage() {
           description:
             "An evening entertainment segment featuring live music and/or DJ performances to close the day's celebrations.",
         },
-        {
-          time: "ALL DAY",
-          timing: "Simultaneously",
-          event: "E-Sports",
-          venue: "IM & IET Rooms",
-          category: "Competition",
-          description:
-            "Competitive gaming sessions held simultaneously across the designated rooms.",
-        },
       ],
     },
     {
@@ -164,6 +164,15 @@ export default function SchedulePage() {
           category: "Competition",
           description:
             "A courtroom-style event where participants present arguments, think critically and respond to challenges.",
+        },
+        {
+          time: "11:00 AM",
+          timing: "11:00 AM - 5:00 PM",
+          event: "E-Sports",
+          venue: "IM & IET Rooms",
+          category: "Competition",
+          description:
+            "Competitive gaming sessions held across designated IM & IET rooms.",
         },
         {
           time: "12:00 PM",
@@ -242,6 +251,15 @@ export default function SchedulePage() {
           category: "Competition",
           description:
             "A debate and discussion event where participants present viewpoints, build arguments and respond confidently.",
+        },
+        {
+          time: "11:00 AM",
+          timing: "11:00 AM - 5:00 PM",
+          event: "E-Sports",
+          venue: "IM & IET Rooms",
+          category: "Competition",
+          description:
+            "Competitive gaming sessions held across designated IM & IET rooms.",
         },
         {
           time: "4:00 PM",
