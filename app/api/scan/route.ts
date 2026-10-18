@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { normalizeEventKey } from '@/lib/couponHelper';
+import { extractAllTeamMembers, isTeamEventRegistration } from '@/lib/registrationDataHelper';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -53,7 +54,10 @@ export async function POST(req: Request) {
       eventId, 
       eventTitle, 
       scannerId = 'ADMIN_STAFF', 
-      volunteerName = 'Staff Member' 
+      volunteerName = 'Staff Member',
+      action = 'APPROVE', // 'APPROVE' | 'APPROVE_MEMBER' | 'UNDO_MEMBER' | 'APPROVE_ALL'
+      memberId,
+      memberName,
     } = body;
 
     const rawIdentifier = (ticketId || registrationID || qrData || '').trim();
@@ -160,12 +164,21 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Atomic Transaction & Duplicate Scan Prevention
-    // Use Firestore Transaction on registration doc to prevent simultaneous race conditions
+    // 3. Team Member Resolution & Duplicate Prevention
+    const allMembers = extractAllTeamMembers(regData);
+    const isTeam = isTeamEventRegistration(regData) || allMembers.length > 1;
+
     const regRef = adminDb.collection('registrations').doc(regId);
     const lockRef = adminDb.collection('entryLocks').doc(regId);
 
     let alreadyEnteredData: any = null;
+    let memberAlreadyEntered = false;
+    let memberAlreadyEnteredInfo: any = null;
+    let updatedEnteredMembers: Record<string, any> = {};
+    let targetMemberResult: any = null;
+    let isFullTeamApproved = false;
+    let newEnteredCount = 0;
+    let totalMembersCount = Math.max(allMembers.length, 1);
 
     await adminDb.runTransaction(async (transaction) => {
       const freshDoc = await transaction.get(regRef);
@@ -179,39 +192,167 @@ export async function POST(req: Request) {
         throw new Error('REGISTRATION_DELETED');
       }
 
-      if (freshData.hasEntered || freshData.attended) {
+      const existingEnteredMembers: Record<string, any> = freshData.enteredMembers || {};
+      const currentAllMembers = extractAllTeamMembers(freshData);
+      totalMembersCount = Math.max(currentAllMembers.length, 1);
+      
+      const currentEnteredMembersCount = Object.values(existingEnteredMembers).filter((m: any) => m && (m.entered === true || m.entered === 'true')).length;
+      
+      // Determine if the entire registration is already completely inside
+      const isCompletelyEntered = isTeam
+        ? (freshData.allEntered === true || (currentEnteredMembersCount >= totalMembersCount && totalMembersCount > 0))
+        : (freshData.hasEntered || freshData.attended);
+
+      // If action is general APPROVE or APPROVE_ALL and all are already inside:
+      if (isCompletelyEntered && (action === 'APPROVE' || action === 'APPROVE_ALL')) {
         alreadyEnteredData = {
           hasEntered: true,
+          allEntered: true,
           enteredAt: freshData.enteredAt || freshData.attendedAt || new Date().toISOString(),
           enteredBy: freshData.enteredBy || freshData.checkedInBy || 'Staff Member',
         };
         return;
       }
 
-      // Mark registration as entered
-      transaction.update(regRef, {
-        hasEntered: true,
-        attended: true,
-        enteredAt: FieldValue.serverTimestamp(),
-        attendedAt: FieldValue.serverTimestamp(),
-        enteredBy: volunteerName || scannerId || 'Staff Member',
-        checkedInBy: scannerId || 'STAFF',
-        entryEvent: eventTitle || ticketEvent,
-      });
+      const nowIso = new Date().toISOString();
+      const operatorName = volunteerName || scannerId || 'Staff Member';
 
-      // Write Entry Lock
-      transaction.set(lockRef, {
-        lockedAt: FieldValue.serverTimestamp(),
-        registrationId: regId,
-        eventId: eventId || 'general',
-      });
+      if (action === 'APPROVE_MEMBER' && memberId) {
+        // Check if THIS specific member already entered
+        if (existingEnteredMembers[memberId]?.entered) {
+          memberAlreadyEntered = true;
+          memberAlreadyEnteredInfo = existingEnteredMembers[memberId];
+          return;
+        }
+
+        const targetMem = currentAllMembers.find(m => m.id === memberId) || {
+          id: memberId,
+          name: memberName || 'Member',
+          isLeader: memberId === 'leader',
+          role: memberId === 'leader' ? 'Team Leader' : 'Teammate',
+        };
+
+        updatedEnteredMembers = {
+          ...existingEnteredMembers,
+          [memberId]: {
+            entered: true,
+            name: targetMem.name,
+            role: targetMem.role || (targetMem.isLeader ? 'Team Leader' : 'Teammate'),
+            enteredAt: nowIso,
+            enteredBy: operatorName,
+          }
+        };
+
+        newEnteredCount = Object.values(updatedEnteredMembers).filter((m: any) => m && m.entered).length;
+        isFullTeamApproved = newEnteredCount >= totalMembersCount;
+
+        targetMemberResult = {
+          id: targetMem.id,
+          name: targetMem.name,
+          role: targetMem.role,
+          entered: true,
+          enteredAt: nowIso,
+          enteredBy: operatorName,
+        };
+
+        const updatePayload: Record<string, any> = {
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          totalMembersCount,
+          hasEntered: true,
+          attended: true,
+          allEntered: isFullTeamApproved,
+          lastMemberEnteredAt: FieldValue.serverTimestamp(),
+          lastMemberEnteredBy: operatorName,
+          entryEvent: eventTitle || ticketEvent,
+        };
+
+        if (!freshData.hasEntered && !freshData.attended) {
+          updatePayload.enteredAt = FieldValue.serverTimestamp();
+          updatePayload.attendedAt = FieldValue.serverTimestamp();
+          updatePayload.enteredBy = operatorName;
+          updatePayload.checkedInBy = scannerId || 'STAFF';
+        }
+
+        transaction.update(regRef, updatePayload);
+
+        if (isFullTeamApproved) {
+          transaction.set(lockRef, {
+            lockedAt: FieldValue.serverTimestamp(),
+            registrationId: regId,
+            eventId: eventId || 'general',
+            allEntered: true,
+          });
+        }
+      } else if (action === 'UNDO_MEMBER' && memberId) {
+        updatedEnteredMembers = { ...existingEnteredMembers };
+        delete updatedEnteredMembers[memberId];
+
+        newEnteredCount = Object.values(updatedEnteredMembers).filter((m: any) => m && m.entered).length;
+        const hasAnyEntered = newEnteredCount > 0;
+
+        transaction.update(regRef, {
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          hasEntered: hasAnyEntered,
+          attended: hasAnyEntered,
+          allEntered: false,
+        });
+
+        targetMemberResult = {
+          id: memberId,
+          name: memberName || 'Member',
+          entered: false,
+        };
+      } else {
+        // APPROVE_ALL or legacy solo APPROVE
+        updatedEnteredMembers = { ...existingEnteredMembers };
+        
+        currentAllMembers.forEach(m => {
+          if (!updatedEnteredMembers[m.id]?.entered) {
+            updatedEnteredMembers[m.id] = {
+              entered: true,
+              name: m.name,
+              role: m.role || (m.isLeader ? 'Team Leader' : 'Teammate'),
+              enteredAt: nowIso,
+              enteredBy: operatorName,
+            };
+          }
+        });
+
+        newEnteredCount = Object.values(updatedEnteredMembers).filter((m: any) => m && m.entered).length;
+        isFullTeamApproved = true;
+
+        transaction.update(regRef, {
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          totalMembersCount,
+          hasEntered: true,
+          attended: true,
+          allEntered: true,
+          enteredAt: freshData.enteredAt || FieldValue.serverTimestamp(),
+          attendedAt: freshData.attendedAt || FieldValue.serverTimestamp(),
+          enteredBy: freshData.enteredBy || operatorName,
+          checkedInBy: scannerId || 'STAFF',
+          entryEvent: eventTitle || ticketEvent,
+        });
+
+        transaction.set(lockRef, {
+          lockedAt: FieldValue.serverTimestamp(),
+          registrationId: regId,
+          eventId: eventId || 'general',
+          allEntered: true,
+        });
+      }
     });
 
     if (alreadyEnteredData) {
       return NextResponse.json({
         success: false,
         code: 'ALREADY_ENTERED',
-        error: 'ALREADY ENTERED: This ticket has already been used for entry.',
+        error: isTeam 
+          ? 'ALL MEMBERS ENTERED: All team members have already checked in.' 
+          : 'ALREADY ENTERED: This ticket has already been used for entry.',
         attendeeName,
         eventTitle: ticketEvent,
         ticketId: regTicketId,
@@ -220,16 +361,53 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
+    if (memberAlreadyEntered) {
+      return NextResponse.json({
+        success: false,
+        code: 'MEMBER_ALREADY_ENTERED',
+        error: `ALREADY ENTERED: ${memberAlreadyEnteredInfo?.name || 'Member'} has already entered.`,
+        attendeeName: memberAlreadyEnteredInfo?.name || 'Member',
+        originalEntryTime: memberAlreadyEnteredInfo?.enteredAt,
+        scannedBy: memberAlreadyEnteredInfo?.enteredBy,
+      }, { status: 400 });
+    }
+
+    if (action === 'UNDO_MEMBER') {
+      await adminDb.collection('auditLogs').add({
+        timestamp: FieldValue.serverTimestamp(),
+        action: 'EVENT_ENTRY_UNDO',
+        performedBy: volunteerName || scannerId || 'Staff Member',
+        targetEntity: `registrations/${regId}`,
+        details: `Undid entry approval for team member ${memberName || memberId} of registration ${regTicketId}`
+      });
+
+      return NextResponse.json({
+        success: true,
+        code: 'MEMBER_UNDO_SUCCESS',
+        message: `Approval undone for ${memberName || 'member'}`,
+        enteredMembers: updatedEnteredMembers,
+        enteredCount: newEnteredCount,
+        totalMembersCount,
+        allEntered: false,
+      });
+    }
+
     // 4. Create Entry Log Record in entryLogs Collection
+    const loggedAttendeeName = targetMemberResult?.name || attendeeName;
     const entryLogPayload = {
       ticketId: regTicketId,
       registrationId: regId,
       eventId: eventId || regData.eventId || 'general',
       eventTitle: eventTitle || ticketEvent,
-      attendeeName,
+      attendeeName: loggedAttendeeName,
       attendeeEmail,
       attendeeRoll,
+      memberId: targetMemberResult?.id || (isTeam ? 'team' : 'solo'),
+      memberRole: targetMemberResult?.role || (isTeam ? 'Teammate' : 'Participant'),
+      isTeamMember: Boolean(targetMemberResult && !targetMemberResult.isLeader),
+      primaryAttendeeName: attendeeName,
       entryTime: FieldValue.serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
       scannedBy: volunteerName || scannerId || 'Staff Member',
       scannerId: scannerId || 'STAFF',
       status: 'ACCEPTED',
@@ -243,7 +421,7 @@ export async function POST(req: Request) {
       scannerId: scannerId || 'STAFF',
       volunteerName: volunteerName || 'Staff Member',
       registrationID: regId,
-      attendeeName,
+      attendeeName: loggedAttendeeName,
       eventTitle: eventTitle || ticketEvent,
       timestamp: FieldValue.serverTimestamp(),
       result: 'accepted'
@@ -255,19 +433,24 @@ export async function POST(req: Request) {
       action: 'EVENT_ENTRY_SCAN',
       performedBy: volunteerName || scannerId || 'Staff Member',
       targetEntity: `entryLogs/${entryLogRef.id}`,
-      details: `Verified entry for ${attendeeName} (${regTicketId}) into ${eventTitle || ticketEvent}`
+      details: `Verified entry for ${loggedAttendeeName} (${regTicketId}) into ${eventTitle || ticketEvent}`
     });
 
     return NextResponse.json({
       success: true,
-      code: 'ENTRY_SUCCESS',
-      message: 'ENTRY SUCCESSFUL',
+      code: action === 'APPROVE_MEMBER' ? 'MEMBER_ENTRY_SUCCESS' : 'ENTRY_SUCCESS',
+      message: action === 'APPROVE_MEMBER' ? `ENTRY APPROVED • ${loggedAttendeeName}` : 'ENTRY SUCCESSFUL',
       attendee: {
-        name: attendeeName,
+        name: loggedAttendeeName,
         email: attendeeEmail,
         rollNumber: attendeeRoll,
         ticketId: regTicketId,
       },
+      member: targetMemberResult || undefined,
+      enteredMembers: updatedEnteredMembers,
+      enteredCount: newEnteredCount,
+      totalMembersCount,
+      allEntered: isFullTeamApproved,
       event: eventTitle || ticketEvent,
       ticketId: regTicketId,
       entryTime: new Date().toISOString(),

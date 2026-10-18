@@ -410,3 +410,147 @@ export function normalizeInstitute(raw: string | null | undefined): string {
     .join(' ');
 }
 
+export interface TeamMemberEntry {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  isLeader: boolean;
+  role: string;
+  institutionName?: string;
+  entered?: boolean;
+  enteredAt?: string;
+  enteredBy?: string;
+}
+
+/**
+ * Extracts a complete, ordered list of all participants in a registration (Team Leader + Teammates).
+ * Ensures every individual has a unique identifiable key and clean name.
+ */
+export function extractAllTeamMembers(data: any): TeamMemberEntry[] {
+  if (!data) return [];
+  const list: TeamMemberEntry[] = [];
+
+  // 1. Primary participant / Team Leader
+  const leaderObj = (typeof data?.teamLeader === 'object' && data.teamLeader) ||
+                    (typeof data?.leader === 'object' && data.leader) ||
+                    (typeof data?.primaryParticipant === 'object' && data.primaryParticipant) ||
+                    null;
+
+  const rawLeaderName = leaderObj?.name || leaderObj?.fullName || data?.name || data?.fullName || '';
+  const leaderName = cleanDisplayString(rawLeaderName, 'Team Leader');
+  const leaderEmail = leaderObj?.email || data?.email || '';
+  const leaderPhone = leaderObj?.phone || leaderObj?.mobile || data?.phone || data?.mobile || '';
+  const leaderInst = leaderObj?.institutionName || leaderObj?.college || data?.institutionName || data?.college || '';
+
+  list.push({
+    id: 'leader',
+    name: leaderName,
+    email: leaderEmail,
+    phone: leaderPhone,
+    isLeader: true,
+    role: 'Team Leader',
+    institutionName: leaderInst,
+  });
+
+  // 2. Team members from teamMembers object (keyed by categories like 'generic', 'freefire', 'bgmi', 'valorant')
+  if (data.teamMembers) {
+    if (typeof data.teamMembers === 'object' && !Array.isArray(data.teamMembers)) {
+      for (const group of Object.keys(data.teamMembers)) {
+        const arr = data.teamMembers[group];
+        if (Array.isArray(arr)) {
+          arr.forEach((m: any, idx: number) => {
+            if (m && (m.name || m.fullName)) {
+              const mName = cleanDisplayString(m.name || m.fullName, '');
+              if (mName && mName !== 'N/A') {
+                const memberId = m.id ? String(m.id) : `${group}_${idx}`;
+                if (!list.some(existing => existing.id === memberId)) {
+                  list.push({
+                    id: memberId,
+                    name: mName,
+                    email: m.email || '',
+                    phone: m.mobileNumber || m.phone || m.mobile || '',
+                    isLeader: false,
+                    role: `Member ${list.length}`,
+                    institutionName: m.institutionName || m.college || '',
+                  });
+                }
+              }
+            }
+          });
+        }
+      }
+    } else if (Array.isArray(data.teamMembers)) {
+      data.teamMembers.forEach((m: any, idx: number) => {
+        if (m && (m.name || m.fullName)) {
+          const mName = cleanDisplayString(m.name || m.fullName, '');
+          if (mName && mName !== 'N/A' && mName !== leaderName) {
+            const memberId = m.id ? String(m.id) : `member_${idx}`;
+            if (!list.some(existing => existing.id === memberId)) {
+              list.push({
+                id: memberId,
+                name: mName,
+                email: m.email || '',
+                phone: m.mobileNumber || m.phone || m.mobile || '',
+                isLeader: false,
+                role: `Member ${list.length}`,
+                institutionName: m.institutionName || m.college || '',
+              });
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 3. Fallback: team members from members array
+  if (Array.isArray(data.members)) {
+    data.members.forEach((m: any, idx: number) => {
+      if (m && (m.name || m.fullName)) {
+        const mName = cleanDisplayString(m.name || m.fullName, '');
+        if (mName && mName !== 'N/A' && mName !== leaderName && !list.some(existing => existing.name.toLowerCase() === mName.toLowerCase())) {
+          const memberId = m.id ? String(m.id) : `mem_${idx}`;
+          list.push({
+            id: memberId,
+            name: mName,
+            email: m.email || '',
+            phone: m.mobileNumber || m.phone || m.mobile || '',
+            isLeader: false,
+            role: `Member ${list.length}`,
+            institutionName: m.institutionName || m.college || '',
+          });
+        }
+      }
+    });
+  }
+
+  // 4. Attach entry approval status if present in registration data
+  if (data.enteredMembers && typeof data.enteredMembers === 'object') {
+    list.forEach(item => {
+      const entry = data.enteredMembers[item.id];
+      if (entry && (entry.entered === true || entry.entered === 'true')) {
+        item.entered = true;
+        item.enteredAt = entry.enteredAt;
+        item.enteredBy = entry.enteredBy;
+      }
+    });
+  } else if (data.hasEntered || data.attended) {
+    if (data.allEntered || list.length <= 1) {
+      list.forEach(item => {
+        item.entered = true;
+        item.enteredAt = data.enteredAt || data.attendedAt;
+        item.enteredBy = data.enteredBy;
+      });
+    } else {
+      const leader = list.find(item => item.isLeader);
+      if (leader) {
+        leader.entered = true;
+        leader.enteredAt = data.enteredAt || data.attendedAt;
+        leader.enteredBy = data.enteredBy;
+      }
+    }
+  }
+
+  return list;
+}
+

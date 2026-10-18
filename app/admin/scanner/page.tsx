@@ -6,9 +6,25 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '../../../lib/firebase';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Check, X, User, AlertCircle, Mail, Phone, Loader2, Search } from 'lucide-react';
+import { Check, X, User, AlertCircle, Mail, Phone, Loader2, Search, Users, CheckCheck, Crown, Clock, ArrowRight } from 'lucide-react';
 import { OFFICIAL_EVENTS, getEventById } from '@/lib/eventPricing';
-import { extractRegistrationInfo } from '@/lib/registrationDataHelper';
+import { extractRegistrationInfo, extractAllTeamMembers, isTeamEventRegistration, TeamMemberEntry } from '@/lib/registrationDataHelper';
+
+function formatEntryTime(val: any): string {
+  if (!val) return '';
+  try {
+    let d: Date;
+    if (typeof val === 'object' && val !== null && typeof val.seconds === 'number') {
+      d = new Date(val.seconds * 1000);
+    } else {
+      d = new Date(val);
+    }
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+  } catch {
+    return '';
+  }
+}
 
 function playAudioTone(freq: number, type: OscillatorType, duration: number) {
   try {
@@ -125,6 +141,7 @@ export default function AdminScannerView() {
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'idle', message: string }>({ type: 'idle', message: '' });
   const [cameraError, setCameraError] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
+  const [approvingMemberId, setApprovingMemberId] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [isFrontCamera, setIsFrontCamera] = useState(false);
   const [cameras, setCameras] = useState<Array<{ id: string, label: string }>>([]);
@@ -503,9 +520,213 @@ export default function AdminScannerView() {
     }
   }
 
+  const handleApproveMember = async (member: TeamMemberEntry) => {
+    if (approvingMemberId || processingAction || !scannedData) return;
+    setApprovingMemberId(member.id);
+
+    try {
+      await auth.authStateReady();
+      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      if (!idToken) {
+        playErrorBeep();
+        setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
+        setApprovingMemberId(null);
+        return;
+      }
+
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          registrationID: scannedData.id,
+          action: 'APPROVE_MEMBER',
+          memberId: member.id,
+          memberName: member.name,
+          eventId: selectedScanEvent === 'all' ? undefined : selectedScanEvent,
+          eventTitle: selectedScanEvent === 'all' 
+            ? undefined 
+            : (OFFICIAL_EVENTS.find(e => e.id === selectedScanEvent)?.title || (selectedScanEvent === 'visitor' ? 'Visitor Pass' : selectedScanEvent)),
+          scannerId: 'ADMIN',
+          volunteerName: adminEmail
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        playSuccessChime();
+        setScannedData((prev: any) => {
+          if (!prev) return null;
+          const newEnteredMembers = result.enteredMembers || {
+            ...(prev.enteredMembers || {}),
+            [member.id]: {
+              entered: true,
+              name: member.name,
+              role: member.role,
+              enteredAt: new Date().toISOString(),
+              enteredBy: adminEmail,
+            }
+          };
+          const count = result.enteredCount ?? Object.values(newEnteredMembers).filter((m: any) => m && m.entered).length;
+          return {
+            ...prev,
+            enteredMembers: newEnteredMembers,
+            enteredCount: count,
+            hasEntered: true,
+            attended: true,
+            allEntered: result.allEntered ?? false,
+          };
+        });
+
+        setStatus({ 
+          type: 'success', 
+          message: result.message || `APPROVED • ${member.name}` 
+        });
+      } else {
+        playErrorBeep();
+        setStatus({ 
+          type: 'error', 
+          message: result.error || result.code || `FAILED TO APPROVE ${member.name}` 
+        });
+      }
+    } catch (err: any) {
+      playErrorBeep();
+      setStatus({ type: 'error', message: 'SCANNER NETWORK ERROR' });
+    } finally {
+      setApprovingMemberId(null);
+    }
+  };
+
+  const handleUndoMember = async (member: TeamMemberEntry) => {
+    if (approvingMemberId || processingAction || !scannedData) return;
+    setApprovingMemberId(member.id);
+
+    try {
+      await auth.authStateReady();
+      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      if (!idToken) {
+        setApprovingMemberId(null);
+        return;
+      }
+
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          registrationID: scannedData.id,
+          action: 'UNDO_MEMBER',
+          memberId: member.id,
+          memberName: member.name,
+          scannerId: 'ADMIN',
+          volunteerName: adminEmail
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setScannedData((prev: any) => {
+          if (!prev) return null;
+          const newEnteredMembers = result.enteredMembers || { ...(prev.enteredMembers || {}) };
+          if (!result.enteredMembers) delete newEnteredMembers[member.id];
+          const count = result.enteredCount ?? Object.values(newEnteredMembers).filter((m: any) => m && m.entered).length;
+          return {
+            ...prev,
+            enteredMembers: newEnteredMembers,
+            enteredCount: count,
+            hasEntered: count > 0,
+            attended: count > 0,
+            allEntered: false,
+          };
+        });
+
+        setStatus({ type: 'idle', message: `Entry approval undone for ${member.name}` });
+      } else {
+        playErrorBeep();
+        setStatus({ type: 'error', message: result.error || 'FAILED TO UNDO ENTRY' });
+      }
+    } catch (err) {
+      playErrorBeep();
+      setStatus({ type: 'error', message: 'FAILED TO UNDO ENTRY' });
+    } finally {
+      setApprovingMemberId(null);
+    }
+  };
+
+  const handleApproveAll = async () => {
+    if (processingAction || !scannedData) return;
+    setProcessingAction(true);
+
+    try {
+      await auth.authStateReady();
+      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      if (!idToken) {
+        playErrorBeep();
+        setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
+        setProcessingAction(false);
+        return;
+      }
+
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          registrationID: scannedData.id,
+          action: 'APPROVE_ALL',
+          eventId: selectedScanEvent === 'all' ? undefined : selectedScanEvent,
+          eventTitle: selectedScanEvent === 'all' 
+            ? undefined 
+            : (OFFICIAL_EVENTS.find(e => e.id === selectedScanEvent)?.title || (selectedScanEvent === 'visitor' ? 'Visitor Pass' : selectedScanEvent)),
+          scannerId: 'ADMIN',
+          volunteerName: adminEmail
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        playSuccessChime();
+        setScannedData((prev: any) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            enteredMembers: result.enteredMembers || prev.enteredMembers,
+            enteredCount: result.enteredCount ?? prev.enteredCount,
+            hasEntered: true,
+            attended: true,
+            allEntered: true,
+          };
+        });
+        setStatus({ 
+          type: 'success', 
+          message: 'ALL TEAM MEMBERS APPROVED FOR ENTRY' 
+        });
+      } else {
+        playErrorBeep();
+        setStatus({ 
+          type: 'error', 
+          message: result.error || result.code || 'FAILED TO APPROVE ALL' 
+        });
+      }
+    } catch (e) {
+      playErrorBeep();
+      setStatus({ type: 'error', message: 'ACTION FAILED' });
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
   const handleAction = async (approved: boolean) => {
     if (processingAction || !scannedData) return;
     setProcessingAction(true);
+
+    const isSolo = !isTeamEventRegistration(scannedData) && extractAllTeamMembers(scannedData).length <= 1;
 
     try {
       if (approved) {
@@ -525,6 +746,7 @@ export default function AdminScannerView() {
           },
           body: JSON.stringify({
             registrationID: scannedData.id,
+            action: 'APPROVE_ALL',
             eventId: selectedScanEvent === 'all' ? undefined : selectedScanEvent,
             eventTitle: selectedScanEvent === 'all' 
               ? undefined 
@@ -537,9 +759,20 @@ export default function AdminScannerView() {
         const result = await res.json();
         if (res.ok && result.success) {
           playSuccessChime();
+          setScannedData((prev: any) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              enteredMembers: result.enteredMembers || prev.enteredMembers,
+              enteredCount: result.enteredCount ?? prev.enteredCount,
+              hasEntered: true,
+              attended: true,
+              allEntered: true,
+            };
+          });
           setStatus({ 
             type: 'success', 
-            message: `ENTRY SUCCESSFUL • ${result.attendee?.name || scannedData.name}` 
+            message: result.message || `ENTRY SUCCESSFUL • ${result.attendee?.name || scannedData.name}` 
           });
         } else {
           playErrorBeep();
@@ -576,11 +809,15 @@ export default function AdminScannerView() {
       setStatus({ type: 'error', message: 'ACTION FAILED' });
     }
 
-    setTimeout(() => {
-      setScannedData(null);
-      setStatus({ type: 'idle', message: '' });
+    if (isSolo || !approved) {
+      setTimeout(() => {
+        setScannedData(null);
+        setStatus({ type: 'idle', message: '' });
+        setProcessingAction(false);
+      }, 2000);
+    } else {
       setProcessingAction(false);
-    }, 2000);
+    }
   };
 
   const toggleCamera = () => {
@@ -755,133 +992,333 @@ export default function AdminScannerView() {
         )}
 
         {/* Dossier Verification Card (Visible when ticket is scanned) */}
-        {scannedData && (
-          <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-8 flex flex-col animate-in zoom-in-95 duration-300 rounded-[32px] shadow-2xl my-2 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-            
-            {/* Header with simple title & Status badge */}
-            <div className="flex justify-between items-center mb-6 pb-5 border-b border-slate-200 relative z-10">
-              <div>
-                <h2 className="text-xl font-light text-slate-900 font-space-grotesk tracking-wide">Verify Ticket</h2>
-                <p className="text-slate-500 font-mono text-xs mt-1">
-                  ID: {scannedData.id}
-                </p>
-              </div>
+        {scannedData && (() => {
+          const regInfo = extractRegistrationInfo(scannedData);
+          const allMembers = extractAllTeamMembers(scannedData);
+          const isTeam = isTeamEventRegistration(scannedData) || allMembers.length > 1;
+          const enteredMembers = scannedData.enteredMembers || {};
+          const enteredCount = Object.values(enteredMembers).filter((m: any) => m && (m.entered === true || m.entered === 'true')).length;
+          const totalMembersCount = Math.max(allMembers.length, 1);
+          const isAllEntered = isTeam 
+            ? (scannedData.allEntered === true || (enteredCount >= totalMembersCount && totalMembersCount > 0))
+            : (scannedData.hasEntered || scannedData.attended);
+          const isPartialEntered = isTeam && enteredCount > 0 && !isAllEntered;
+          const unapprovedCount = isTeam ? Math.max(0, totalMembersCount - enteredCount) : (scannedData.hasEntered ? 0 : 1);
+
+          return (
+            <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-6 sm:p-8 flex flex-col animate-in zoom-in-95 duration-300 rounded-[32px] shadow-2xl my-2 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
               
-              <div className="flex items-center gap-3">
-                {scannedData.hasEntered && (
-                  <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
-                    Already Inside
-                  </div>
-                )}
+              {/* Header with simple title & Status badge */}
+              <div className="flex justify-between items-center mb-6 pb-5 border-b border-slate-200 relative z-10">
+                <div>
+                  <h2 className="text-xl font-light text-slate-900 font-space-grotesk tracking-wide">Verify Ticket</h2>
+                  <p className="text-slate-500 font-mono text-xs mt-1">
+                    ID: {scannedData.id}
+                  </p>
+                </div>
                 
-                {/* Dismiss Cross Button */}
-                <button
-                  onClick={dismissDossier}
-                  className="p-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl transition-all cursor-pointer flex items-center justify-center border border-slate-100"
-                  title="Close"
-                >
-                  <X size={16} />
-                </button>
+                <div className="flex items-center gap-3">
+                  {isAllEntered ? (
+                    <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
+                      {isTeam ? 'All Inside' : 'Already Inside'}
+                    </div>
+                  ) : isPartialEntered ? (
+                    <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                      Partial ({enteredCount}/{totalMembersCount} Inside)
+                    </div>
+                  ) : (
+                    <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Ready for Entry
+                    </div>
+                  )}
+                  
+                  {/* Dismiss Cross Button */}
+                  <button
+                    onClick={dismissDossier}
+                    className="p-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl transition-all cursor-pointer flex items-center justify-center border border-slate-100"
+                    title="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Main details */}
-            <div className="space-y-4 mb-8 relative z-10">
-              {(() => {
-                const regInfo = extractRegistrationInfo(scannedData);
-                return (
-                  <div className="bg-white/80 p-5 border border-slate-100 rounded-2xl flex flex-col gap-4">
+              {/* Main details */}
+              <div className="space-y-4 mb-6 relative z-10">
+                <div className="bg-white/80 p-5 border border-slate-100 rounded-2xl flex flex-col gap-4">
+                  <div>
+                    <span className="text-xs font-medium text-slate-500 block mb-1">
+                      {isTeam ? 'Team Leader / Primary Contact' : 'Attendee Name'}
+                    </span>
+                    <span className="text-2xl font-light text-slate-900 leading-tight block font-space-grotesk">{regInfo.name}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                     <div>
-                      <span className="text-xs font-medium text-slate-500 block mb-1">Attendee Name</span>
-                      <span className="text-2xl font-light text-slate-900 leading-tight block font-space-grotesk">{regInfo.name}</span>
+                      <span className="text-xs font-medium text-slate-500 block mb-1">Application Number</span>
+                      <span className="text-xs font-semibold text-slate-800 block font-mono">{regInfo.rollNumber}</span>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
-                      <div>
-                        <span className="text-xs font-medium text-slate-500 block mb-1">Application Number</span>
-                        <span className="text-xs font-semibold text-slate-800 block font-mono">{regInfo.rollNumber}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-medium text-slate-500 block mb-1">Mobile</span>
-                        <span className="text-xs font-semibold text-slate-800 block">{regInfo.phone}</span>
-                      </div>
+                    <div>
+                      <span className="text-xs font-medium text-slate-500 block mb-1">Mobile</span>
+                      <span className="text-xs font-semibold text-slate-800 block">{regInfo.phone}</span>
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
-                      <div>
-                        <span className="text-xs font-medium text-slate-500 block mb-1">Event Name</span>
-                        <span className="text-xs font-semibold text-slate-800 block">{getScannedEventName(scannedData)}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-medium text-slate-500 block mb-1">Event Type</span>
-                        <span className="text-xs font-semibold text-slate-800 block">{regInfo.eventType}</span>
-                      </div>
+                  <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
+                    <div>
+                      <span className="text-xs font-medium text-slate-500 block mb-1">Event Name</span>
+                      <span className="text-xs font-semibold text-slate-800 block">{getScannedEventName(scannedData)}</span>
                     </div>
+                    <div>
+                      <span className="text-xs font-medium text-slate-500 block mb-1">Event Type</span>
+                      <span className="text-xs font-semibold text-slate-800 block">{regInfo.eventType}</span>
+                    </div>
+                  </div>
 
+                  {isTeam && (
                     <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
                         <span className="text-xs font-medium text-slate-500 block mb-1">Team Name</span>
-                        <span className="text-xs font-semibold text-slate-800 block">{regInfo.teamName}</span>
+                        <span className="text-xs font-semibold text-slate-800 block">{regInfo.teamName || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-medium text-slate-500 block mb-1">No. of Teammates</span>
-                        <span className="text-xs font-semibold text-slate-800 block">{regInfo.noOfTeammates}</span>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Total Members</span>
+                        <span className="text-xs font-semibold text-slate-800 block">{totalMembersCount}</span>
                       </div>
                     </div>
-                  </div>
-                );
-              })()}
-
-              {/* Deleted User Detail Alert */}
-              {(scannedData.isDeleted || scannedData.status === 'deleted') && (
-                <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
-                  <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
-                  <div className="text-xs leading-relaxed">
-                    <p className="font-semibold text-rose-800 text-xs">CRITICAL: REGISTRATION CANCELLED / DELETED</p>
-                    <p className="text-xs text-rose-700/90 mt-1">
-                      This registration was deleted/refunded. Pass is invalid and entry is prohibited.
-                    </p>
-                  </div>
+                  )}
                 </div>
-              )}
 
-              {/* Already Checked In Detail Alert */}
-              {scannedData.hasEntered && (
-                <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
-                  <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
-                  <div className="text-xs leading-relaxed">
-                    <p className="font-semibold text-rose-800 text-xs">Warning: Already Entered</p>
-                    <p className="text-xs text-rose-700/90 mt-1 font-mono">
-                      Checked in at: {scannedData.enteredAt ? new Date(scannedData.enteredAt.seconds * 1000).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Unknown'}
-                    </p>
-                    {scannedData.enteredBy && (
-                      <p className="text-[11px] text-red-400/80 font-mono mt-0.5">Operator: {scannedData.enteredBy}</p>
+                {/* Deleted User Detail Alert */}
+                {(scannedData.isDeleted || scannedData.status === 'deleted') && (
+                  <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
+                    <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed">
+                      <p className="font-semibold text-rose-800 text-xs">CRITICAL: REGISTRATION CANCELLED / DELETED</p>
+                      <p className="text-xs text-rose-700/90 mt-1">
+                        This registration was deleted/refunded. Pass is invalid and entry is prohibited.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Already Checked In Detail Alert */}
+                {isAllEntered && (
+                  <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
+                    <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed">
+                      <p className="font-semibold text-rose-800 text-xs">
+                        {isTeam ? 'All Team Members Already Checked In' : 'Warning: Already Entered'}
+                      </p>
+                      <p className="text-xs text-rose-700/90 mt-1 font-mono">
+                        {isTeam 
+                          ? 'All members from this team have been approved for entry.' 
+                          : `Checked in at: ${formatEntryTime(scannedData.enteredAt || scannedData.attendedAt) || 'Earlier'}`}
+                      </p>
+                      {scannedData.enteredBy && (
+                        <p className="text-[11px] text-red-500/80 font-mono mt-0.5">Operator: {scannedData.enteredBy}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Partial Check-In Notice */}
+                {isPartialEntered && (
+                  <div className="bg-amber-50 text-amber-800 border border-amber-200 p-4 rounded-2xl flex gap-3 items-start">
+                    <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed">
+                      <p className="font-semibold text-amber-800 text-xs">
+                        Partial Team Entry ({enteredCount} of {totalMembersCount} Members Inside)
+                      </p>
+                      <p className="text-xs text-amber-700/90 mt-1">
+                        Some members have already entered. Approve the remaining members individually below.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* TEAM MEMBERS SEPARATE APPROVAL SECTION */}
+                {isTeam && allMembers.length > 0 && (
+                  <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3.5 mt-2">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                          <Users size={16} />
+                        </div>
+                        <div>
+                          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                            Team Members Entry
+                          </h3>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            Approve each team member individually as they arrive
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
+                        isAllEntered 
+                          ? 'bg-emerald-100 text-emerald-800' 
+                          : isPartialEntered 
+                            ? 'bg-amber-100 text-amber-800' 
+                            : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {enteredCount} / {totalMembersCount} Approved
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {allMembers.map((member, idx) => {
+                        const isMemberEntered = member.entered === true || enteredMembers[member.id]?.entered === true;
+                        const memberEnteredAt = member.enteredAt || enteredMembers[member.id]?.enteredAt;
+                        const isApproving = approvingMemberId === member.id;
+
+                        return (
+                          <div
+                            key={member.id || idx}
+                            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border transition-all ${
+                              isMemberEntered
+                                ? 'bg-emerald-50/70 border-emerald-200'
+                                : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                            }`}
+                          >
+                            {/* Member Details */}
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                                member.isLeader 
+                                  ? 'bg-amber-100 text-amber-800' 
+                                  : 'bg-slate-100 text-slate-700'
+                              }`}>
+                                {member.isLeader ? <Crown size={14} className="text-amber-600" /> : (idx + 1)}
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-xs font-bold text-slate-900 truncate">
+                                    {member.name}
+                                  </span>
+                                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+                                    member.isLeader
+                                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                      : 'bg-slate-100 text-slate-600 border border-slate-200'
+                                  }`}>
+                                    {member.role || (member.isLeader ? 'Leader' : `Member ${idx + 1}`)}
+                                  </span>
+                                </div>
+
+                                {(member.phone || member.email) && (
+                                  <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5 truncate">
+                                    {member.phone && <span>{member.phone}</span>}
+                                    {member.phone && member.email && <span>•</span>}
+                                    {member.email && <span className="truncate">{member.email}</span>}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* DEDICATED APPROVE BUTTON AFTER EVERY TEAM MEMBER NAME */}
+                            <div className="shrink-0 flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                              {isMemberEntered ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="px-3 py-1.5 bg-emerald-100/90 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                                    <Check size={13} className="text-emerald-700 stroke-[3]" />
+                                    <span>Entered</span>
+                                    {memberEnteredAt && (
+                                      <span className="text-[10px] text-emerald-700/80 font-mono ml-0.5">
+                                        {formatEntryTime(memberEnteredAt)}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={isApproving || processingAction}
+                                    onClick={() => handleUndoMember(member)}
+                                    title="Undo Approval"
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[10px] transition-colors cursor-pointer font-medium"
+                                  >
+                                    Undo
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={isApproving || processingAction || scannedData.isDeleted || scannedData.status === 'deleted'}
+                                  onClick={() => handleApproveMember(member)}
+                                  className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                  {isApproving ? (
+                                    <Loader2 size={13} className="animate-spin" />
+                                  ) : (
+                                    <Check size={13} strokeWidth={3} />
+                                  )}
+                                  <span>Approve</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Approve All Remaining Quick Button */}
+                    {!isAllEntered && unapprovedCount > 1 && (
+                      <button
+                        type="button"
+                        disabled={processingAction || Boolean(approvingMemberId)}
+                        onClick={handleApproveAll}
+                        className="w-full mt-2 py-2.5 px-4 bg-purple-50 hover:bg-purple-100 active:scale-98 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                      >
+                        {processingAction ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <CheckCheck size={15} />
+                        )}
+                        <span>Approve All Remaining Members ({unapprovedCount})</span>
+                      </button>
                     )}
                   </div>
+                )}
+              </div>
+
+              {/* Action buttons (Decline / Done / Approve) */}
+              {isTeam ? (
+                <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-200 shrink-0 relative z-10">
+                  <button 
+                    disabled={processingAction}
+                    onClick={() => handleAction(false)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                  >
+                    <X size={16} /> Decline Pass
+                  </button>
+                  <button 
+                    onClick={dismissDossier}
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <span>Done / Next Ticket</span>
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-200 shrink-0 relative z-10">
+                  <button 
+                    disabled={processingAction}
+                    onClick={() => handleAction(false)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                  >
+                    <X size={16} /> Decline
+                  </button>
+                  <button 
+                    disabled={processingAction || isAllEntered || scannedData.isDeleted || scannedData.status === 'deleted'}
+                    onClick={() => handleAction(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    {processingAction ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                    <span>{isAllEntered ? 'Already Entered' : 'Approve'}</span>
+                  </button>
                 </div>
               )}
             </div>
-
-            {/* Action buttons (Decline/Approve) */}
-            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-200 shrink-0 relative z-10">
-              <button 
-                disabled={processingAction}
-                onClick={() => handleAction(false)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-              >
-                <X size={16} /> Decline
-              </button>
-              <button 
-                disabled={processingAction || scannedData.hasEntered || scannedData.isDeleted || scannedData.status === 'deleted'}
-                onClick={() => handleAction(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Check size={16} /> Approve
-              </button>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <style jsx global>{`

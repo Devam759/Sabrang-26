@@ -46,6 +46,49 @@ const DEFAULT_EVENTS = [
   'VISITOR PASS'
 ];
 
+function parseLogDate(log: any): Date | null {
+  if (!log) return null;
+
+  const candidates = [
+    log.entryTime,
+    log.timestamp,
+    log.createdAt,
+    log.attendedAt,
+    log.enteredAt,
+  ];
+
+  for (const val of candidates) {
+    if (!val) continue;
+
+    // 1. If it's a Firestore Timestamp with .toDate()
+    if (typeof val === 'object' && typeof val.toDate === 'function') {
+      try {
+        const d = val.toDate();
+        if (d instanceof Date && !isNaN(d.getTime())) return d;
+      } catch {}
+    }
+
+    // 2. If it's a Firestore Timestamp-like object with seconds
+    if (typeof val === 'object' && typeof val.seconds === 'number') {
+      const d = new Date(val.seconds * 1000);
+      if (!isNaN(d.getTime())) return d;
+    }
+
+    // 3. If already Date object
+    if (val instanceof Date) {
+      if (!isNaN(val.getTime())) return val;
+    }
+
+    // 4. If string or number (ISO string or unix timestamp)
+    if (typeof val === 'string' || typeof val === 'number') {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+
+  return null;
+}
+
 export default function EventEntryLogsPage() {
   const [entryLogs, setEntryLogs] = useState<EntryLogItem[]>([]);
   const [allRegistrations, setAllRegistrations] = useState<any[]>([]);
@@ -180,9 +223,8 @@ export default function EventEntryLogsPage() {
       }
 
       // 3. Date Range Filter
-      const logMillis = log.entryTime?.toMillis 
-        ? log.entryTime.toMillis() 
-        : (log.createdAt ? new Date(log.createdAt).getTime() : 0);
+      const entryDate = parseLogDate(log);
+      const logMillis = entryDate ? entryDate.getTime() : 0;
 
       if (filterDateFrom && logMillis < new Date(filterDateFrom).getTime()) {
         return false;
@@ -213,7 +255,8 @@ export default function EventEntryLogsPage() {
     if (filteredLogs.length === 0) return alert('No entry logs to export.');
     const headers = ['S.No', 'Attendee Name', 'Roll Number', 'Email', 'Event', 'Ticket ID', 'Registration ID', 'Entry Time', 'Scanned By'];
     const rows = filteredLogs.map((l, index) => {
-      const timeStr = l.entryTime?.toDate ? l.entryTime.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : (l.createdAt || 'N/A');
+      const entryDate = parseLogDate(l);
+      const timeStr = entryDate ? entryDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
       return [
         index + 1,
         l.attendeeName || 'N/A',
@@ -406,7 +449,7 @@ export default function EventEntryLogsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {paginatedLogs.map((log, index) => {
-                  const entryDate = new Date(log.timestamp);
+                  const entryDate = parseLogDate(log);
                   const globalIdx = (currentPage - 1) * itemsPerPage + index + 1;
                   
                   return (
@@ -445,14 +488,20 @@ export default function EventEntryLogsPage() {
 
                       {/* Entry Time */}
                       <td className="p-5">
-                        <div className="space-y-1">
-                          <p className="font-bold text-slate-900 text-xs">
-                            {entryDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' })}
-                          </p>
-                          <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                            {entryDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })}
-                          </p>
-                        </div>
+                        {entryDate ? (
+                          <div className="space-y-1">
+                            <p className="font-bold text-slate-900 text-xs">
+                              {entryDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' })}
+                            </p>
+                            <p className="text-[9px] text-slate-500 uppercase tracking-widest">
+                              {entryDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <p className="text-xs text-slate-400 font-medium font-mono">N/A</p>
+                          </div>
+                        )}
                       </td>
 
                       {/* Scanned By */}
