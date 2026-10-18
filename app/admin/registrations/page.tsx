@@ -612,7 +612,6 @@ export default function Registrations() {
 
     const masterHeaders = [
       'S.No',
-      'Registration Number',
       'Participant Name',
       'Gender',
       'Phone Number',
@@ -627,15 +626,11 @@ export default function Registrations() {
       'Pincode',
       'Payment Amount',
       'Received Amount',
-      'Date Of Payment',
-      'Payment ID',
-      'Settlement ID',
-      'Order ID'
+      'Date Of Payment'
     ];
 
     const eventHeaders = [
       'S.No',
-      'Registration Number',
       'Participant Name',
       'Gender',
       'Phone Number',
@@ -649,10 +644,7 @@ export default function Registrations() {
       'Pincode',
       'Payment Amount',
       'Received Amount',
-      'Date Of Payment',
-      'Payment ID',
-      'Settlement ID',
-      'Order ID'
+      'Date Of Payment'
     ];
 
     const validRegistrations = sortedRegistrations.filter(r => !r.isTest);
@@ -669,7 +661,6 @@ export default function Registrations() {
 
       return [
         index + 1,
-        r.rollNumber || r.registrationNumber || r.id || 'N/A',
         unifiedData.name,
         r.gender || 'N/A',
         formatSinglePhone(unifiedData.phone || r.phone || ''),
@@ -684,10 +675,7 @@ export default function Registrations() {
         pin,
         payAmount,
         recAmount,
-        formattedDate,
-        r.paymentId || 'N/A',
-        r.settlementId || 'N/A',
-        r.orderId || 'N/A'
+        formattedDate
       ];
     });
 
@@ -727,7 +715,6 @@ export default function Registrations() {
 
         return [
           index + 1,
-          r.rollNumber || r.registrationNumber || r.id || 'N/A',
           unifiedData.name,
           r.gender || 'N/A',
           formatSinglePhone(unifiedData.phone || r.phone || ''),
@@ -741,10 +728,7 @@ export default function Registrations() {
           pin,
           payAmount,
           recAmount,
-          formattedDate,
-          r.paymentId || 'N/A',
-          r.settlementId || 'N/A',
-          r.orderId || 'N/A'
+          formattedDate
         ];
       });
 

@@ -434,45 +434,54 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   const lockRef = adminDb.collection('registrationLocks').doc(orderId);
   const pendingRef = adminDb.collection('pendingRegistrations').doc(orderId);
 
+  let docId = "";
+
   // Fast check: has this order already been finalized?
   const existingLockSnap = await lockRef.get();
   if (existingLockSnap.exists && existingLockSnap.data()?.registrationId) {
-    const existingDocId = existingLockSnap.data()!.registrationId;
-    console.log(`Order ${orderId} already finalized with registration ID: ${existingDocId}`);
-    return existingDocId;
+    docId = existingLockSnap.data()!.registrationId;
+    console.log(`Order ${orderId} already finalized with registration ID: ${docId}`);
   }
 
-  const existingPendingSnap = await pendingRef.get();
-  if (existingPendingSnap.exists && existingPendingSnap.data()?.status === 'completed' && existingPendingSnap.data()?.registrationId) {
-    const existingDocId = existingPendingSnap.data()!.registrationId;
-    console.log(`Order ${orderId} already completed in pendingRegistrations with ID: ${existingDocId}`);
-    // Backfill lock for consistency
-    await lockRef.set({
-      lockedAt: FieldValue.serverTimestamp(),
-      registrationId: existingDocId,
-      status: 'completed'
-    }, { merge: true });
-    return existingDocId;
-  }
-
-  // Backward compatibility: check if existing registration already exists in `registrations` with this orderId
-  const existingQuery = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
-  if (!existingQuery.empty) {
-    const existingDocId = existingQuery.docs[0].id;
-    console.log(`Order ${orderId} found in existing registrations query with ID: ${existingDocId}. Linking lock.`);
-    await lockRef.set({
-      lockedAt: FieldValue.serverTimestamp(),
-      registrationId: existingDocId,
-      status: 'completed'
-    }, { merge: true });
-    if (existingPendingSnap.exists) {
-      await pendingRef.update({
-        status: 'completed',
-        registrationId: existingDocId,
-        completedAt: FieldValue.serverTimestamp()
-      });
+  if (!docId) {
+    const existingPendingSnap = await pendingRef.get();
+    if (existingPendingSnap.exists && existingPendingSnap.data()?.status === 'completed' && existingPendingSnap.data()?.registrationId) {
+      docId = existingPendingSnap.data()!.registrationId;
+      console.log(`Order ${orderId} already completed in pendingRegistrations with ID: ${docId}`);
+      // Backfill lock for consistency
+      await lockRef.set({
+        lockedAt: FieldValue.serverTimestamp(),
+        registrationId: docId,
+        status: 'completed'
+      }, { merge: true });
     }
-    return existingDocId;
+  }
+
+  if (!docId) {
+    // Backward compatibility: check if existing registration already exists in `registrations` with this orderId
+    const existingQuery = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
+    if (!existingQuery.empty) {
+      docId = existingQuery.docs[0].id;
+      console.log(`Order ${orderId} found in existing registrations query with ID: ${docId}. Linking lock.`);
+      await lockRef.set({
+        lockedAt: FieldValue.serverTimestamp(),
+        registrationId: docId,
+        status: 'completed'
+      }, { merge: true });
+      const existingPendingSnap = await pendingRef.get();
+      if (existingPendingSnap.exists) {
+        await pendingRef.update({
+          status: 'completed',
+          registrationId: docId,
+          completedAt: FieldValue.serverTimestamp()
+        });
+      }
+    }
+  }
+
+  // If already finalized and skipBackgroundTasks is requested, return early
+  if (docId && skipBackgroundTasks) {
+    return docId;
   }
 
   // Robust resolution of primary idCard from formData top level or team members
@@ -507,96 +516,98 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
     }
   }
 
-  const newRegRef = adminDb.collection('registrations').doc();
-  const newRegId = newRegRef.id;
-  let docId = "";
+  // If document does not exist yet, atomically create it
+  if (!docId) {
+    const newRegRef = adminDb.collection('registrations').doc();
+    const newRegId = newRegRef.id;
 
-  // Perform atomic claim and document creation inside a Firestore transaction
-  await adminDb.runTransaction(async (transaction) => {
-    // 1. ALL READS FIRST (Firestore requirement: all reads must precede any writes)
-    const lockDoc = await transaction.get(lockRef);
-    if (lockDoc.exists && lockDoc.data()?.registrationId) {
-      docId = lockDoc.data()!.registrationId;
-      return;
-    }
+    // Perform atomic claim and document creation inside a Firestore transaction
+    await adminDb.runTransaction(async (transaction) => {
+      // 1. ALL READS FIRST (Firestore requirement: all reads must precede any writes)
+      const lockDoc = await transaction.get(lockRef);
+      if (lockDoc.exists && lockDoc.data()?.registrationId) {
+        docId = lockDoc.data()!.registrationId;
+        return;
+      }
 
-    const pendingDoc = await transaction.get(pendingRef);
-    if (pendingDoc.exists && pendingDoc.data()?.status === 'completed' && pendingDoc.data()?.registrationId) {
-      docId = pendingDoc.data()!.registrationId;
-      return;
-    }
+      const pendingDoc = await transaction.get(pendingRef);
+      if (pendingDoc.exists && pendingDoc.data()?.status === 'completed' && pendingDoc.data()?.registrationId) {
+        docId = pendingDoc.data()!.registrationId;
+        return;
+      }
 
-    let couponDocSnap: FirebaseFirestore.DocumentSnapshot | null = null;
-    if (couponDocRef) {
-      couponDocSnap = await transaction.get(couponDocRef as FirebaseFirestore.DocumentReference);
-    }
+      let couponDocSnap: FirebaseFirestore.DocumentSnapshot | null = null;
+      if (couponDocRef) {
+        couponDocSnap = await transaction.get(couponDocRef as FirebaseFirestore.DocumentReference);
+      }
 
-    const regData = {
-      ...formData,
-      idCard: resolvedIdCard,
-      teamMembers: cleanedTeamMembers,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.mobile,
-      rollNumber: formData.registrationNumber,
-      gender: formData.gender || 'N/A',
-      course: formData.course || 'N/A',
-      pincode: formData.pincode || (formData.address ? (formData.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A'),
-      region: formData.region || 'N/A',
-      city: formData.city || 'N/A',
-      parentName: parentName,
-      parentPhone: parentPhone,
-      parentEmail: parentEmail,
-      paymentAmount: paymentAmount,
-      receivedAmount: paymentAmount,
-      dateOfPayment: dateOfPayment,
-      dateGroup: dateGroup,
-      hasEntered: false,
-      paymentId: paymentId,
-      orderId: orderId,
-      sheetSynced: false,
-      emailSent: false,
-      emailSentAt: null,
-      emailError: null,
-      emailProvider: null,
-      emailProviderMessageId: null,
-      emailAttemptCount: 0,
-      lastEmailAttemptAt: null,
-      registeredAt: FieldValue.serverTimestamp(),
-    };
+      const regData = {
+        ...formData,
+        idCard: resolvedIdCard,
+        teamMembers: cleanedTeamMembers,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.mobile,
+        rollNumber: formData.registrationNumber,
+        gender: formData.gender || 'N/A',
+        course: formData.course || 'N/A',
+        pincode: formData.pincode || (formData.address ? (formData.address.match(/\b\d{6}\b/)?.[0] || 'N/A') : 'N/A'),
+        region: formData.region || 'N/A',
+        city: formData.city || 'N/A',
+        parentName: parentName,
+        parentPhone: parentPhone,
+        parentEmail: parentEmail,
+        paymentAmount: paymentAmount,
+        receivedAmount: paymentAmount,
+        dateOfPayment: dateOfPayment,
+        dateGroup: dateGroup,
+        hasEntered: false,
+        paymentId: paymentId,
+        orderId: orderId,
+        sheetSynced: false,
+        emailSent: false,
+        emailSentAt: null,
+        emailError: null,
+        emailProvider: null,
+        emailProviderMessageId: null,
+        emailAttemptCount: 0,
+        lastEmailAttemptAt: null,
+        registeredAt: FieldValue.serverTimestamp(),
+      };
 
-    // 2. ALL WRITES AFTER READS
-    transaction.set(newRegRef, regData);
-    transaction.set(lockRef, {
-      lockedAt: FieldValue.serverTimestamp(),
-      registrationId: newRegId,
-      status: 'completed'
+      // 2. ALL WRITES AFTER READS
+      transaction.set(newRegRef, regData);
+      transaction.set(lockRef, {
+        lockedAt: FieldValue.serverTimestamp(),
+        registrationId: newRegId,
+        status: 'completed'
+      });
+
+      if (pendingDoc.exists) {
+        transaction.update(pendingRef, {
+          status: 'completed',
+          registrationId: newRegId,
+          completedAt: FieldValue.serverTimestamp()
+        });
+      }
+
+      if (couponDocSnap && couponDocSnap.exists) {
+        transaction.update(couponDocRef as FirebaseFirestore.DocumentReference, {
+          usedCount: FieldValue.increment(1)
+        });
+      }
+
+      docId = newRegId;
     });
 
-    if (pendingDoc.exists) {
-      transaction.update(pendingRef, {
-        status: 'completed',
-        registrationId: newRegId,
-        completedAt: FieldValue.serverTimestamp()
-      });
-    }
-
-    if (couponDocSnap && couponDocSnap.exists) {
-      transaction.update(couponDocRef as FirebaseFirestore.DocumentReference, {
-        usedCount: FieldValue.increment(1)
-      });
-    }
-
-    docId = newRegId;
-  });
-
-  if (!docId) {
-    // Bounded fallback in the rare event transaction returned without setting docId
-    const finalCheck = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
-    if (!finalCheck.empty) {
-      docId = finalCheck.docs[0].id;
-    } else {
-      throw new Error(`Failed to establish or retrieve canonical registration for order ${orderId}`);
+    if (!docId) {
+      // Bounded fallback in the rare event transaction returned without setting docId
+      const finalCheck = await adminDb.collection('registrations').where('orderId', '==', orderId).limit(1).get();
+      if (!finalCheck.empty) {
+        docId = finalCheck.docs[0].id;
+      } else {
+        throw new Error(`Failed to establish or retrieve canonical registration for order ${orderId}`);
+      }
     }
   }
 
