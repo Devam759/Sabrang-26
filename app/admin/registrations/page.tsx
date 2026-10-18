@@ -9,7 +9,7 @@ import { Modal } from '../../../components/admin/Modal';
 import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
-import { getDisplayPaymentAmount } from '@/lib/registrationDataHelper';
+import { getDisplayPaymentAmount, getRegistrationInstituteRaw, normalizeInstitute } from '@/lib/registrationDataHelper';
 import { isDateInTodayIST } from '@/lib/dateUtils';
 
 // ============================================================================
@@ -180,6 +180,7 @@ export default function Registrations() {
   }, [previewImage]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted'>('all');
+  const [instituteFilter, setInstituteFilter] = useState<string>('all');
   const [isDeleting, setIsDeleting] = useState(false);
   const [emailFilter, setEmailFilter] = useState<'all' | 'sent' | 'unsent'>('all');
   const [eventFilter, setEventFilter] = useState<string>('all');
@@ -456,6 +457,39 @@ export default function Registrations() {
     }
   };
 
+  // Dynamically compute unique normalized institutes from live registrations, eliminating duplicates
+  const instituteOptions = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const reg of registrations) {
+      const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
+      if (statusFilter === 'deleted') {
+        if (!isRegDeleted) continue;
+      } else {
+        if (isRegDeleted) continue;
+      }
+
+      const raw = getRegistrationInstituteRaw(reg);
+      const normalized = normalizeInstitute(raw) || 'Other / Not Specified';
+      map.set(normalized, (map.get(normalized) || 0) + 1);
+    }
+
+    const entries = Array.from(map.entries()).map(([label, count]) => ({
+      key: label,
+      label,
+      count,
+    }));
+
+    entries.sort((a, b) => {
+      if (a.key.includes('JKLU')) return -1;
+      if (b.key.includes('JKLU')) return 1;
+      if (b.count !== a.count) return b.count - a.count;
+      return a.label.localeCompare(b.label);
+    });
+
+    return entries;
+  }, [registrations, statusFilter]);
+
   // 1. Apply search and dropdown filters
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((reg) => {
@@ -468,11 +502,16 @@ export default function Registrations() {
         if (isRegDeleted) return false;
       }
 
+      const rawInst = getRegistrationInstituteRaw(reg);
+      const normInst = normalizeInstitute(rawInst);
+
       const matchesSearch = 
         (reg.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (reg.rollNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (reg.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (reg.phone || '').toLowerCase().includes(searchQuery.toLowerCase());
+        (reg.phone || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rawInst.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        normInst.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus = 
         statusFilter === 'all' ||
@@ -496,14 +535,18 @@ export default function Registrations() {
           return false;
         })();
 
-      return matchesSearch && matchesStatus && matchesEmail && matchesEvent;
+      const matchesInstitute =
+        instituteFilter === 'all' ||
+        (normInst || 'Other / Not Specified') === instituteFilter;
+
+      return matchesSearch && matchesStatus && matchesEmail && matchesEvent && matchesInstitute;
     });
-  }, [registrations, searchQuery, statusFilter, emailFilter, eventFilter]);
+  }, [registrations, searchQuery, statusFilter, emailFilter, eventFilter, instituteFilter]);
 
   // Reset pagination on search query or filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, emailFilter, eventFilter]);
+  }, [searchQuery, statusFilter, emailFilter, eventFilter, instituteFilter]);
 
   // 2. Apply sorting
   const sortedRegistrations = useMemo(() => {
@@ -518,6 +561,9 @@ export default function Registrations() {
       if (sortField === 'registeredAt') {
         valA = valA?.toMillis() || 0;
         valB = valB?.toMillis() || 0;
+      } else if (sortField === 'college' || sortField === 'institution') {
+        valA = normalizeInstitute(getRegistrationInstituteRaw(a)).toLowerCase();
+        valB = normalizeInstitute(getRegistrationInstituteRaw(b)).toLowerCase();
       } else if (typeof valA === 'string') {
         valA = valA.toLowerCase();
         valB = (valB || '').toLowerCase();
@@ -938,6 +984,20 @@ export default function Registrations() {
           </select>
 
           <select
+            value={instituteFilter}
+            onChange={(e: any) => setInstituteFilter(e.target.value)}
+            className="w-full sm:w-[195px] bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none truncate"
+            title={instituteFilter === 'all' ? 'All Institutes' : `Institute: ${instituteFilter}`}
+          >
+            <option value="all">Institute: All ({instituteOptions.length})</option>
+            {instituteOptions.map((opt) => (
+              <option key={opt.key} value={opt.key}>
+                {opt.label} ({opt.count})
+              </option>
+            ))}
+          </select>
+
+          <select
             value={eventFilter}
             onChange={(e: any) => setEventFilter(e.target.value)}
             className="w-full sm:w-[180px] bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none"
@@ -958,13 +1018,14 @@ export default function Registrations() {
             <option value="unsent">Email: Unsent</option>
           </select>
 
-          {(searchQuery || statusFilter !== 'all' || eventFilter !== 'all' || emailFilter !== 'all') && (
+          {(searchQuery || statusFilter !== 'all' || eventFilter !== 'all' || emailFilter !== 'all' || instituteFilter !== 'all') && (
             <button
               onClick={() => {
                 setSearchQuery('');
                 setStatusFilter('all');
                 setEventFilter('all');
                 setEmailFilter('all');
+                setInstituteFilter('all');
               }}
               className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap"
             >
@@ -1033,6 +1094,23 @@ export default function Registrations() {
                             </span>
                           )}
                         </div>
+                        {(() => {
+                          const raw = getRegistrationInstituteRaw(reg);
+                          const inst = normalizeInstitute(raw);
+                          if (!inst) return null;
+                          const isJKLU = inst.includes('JKLU');
+                          return (
+                            <div className="mt-1 flex items-center gap-1.5" title={raw ? `Registered as: "${raw}"` : inst}>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide ${
+                                isJKLU 
+                                  ? 'bg-slate-100 text-slate-600 border border-slate-200' 
+                                  : 'bg-purple-50 text-purple-700 border border-purple-200 font-semibold'
+                              }`}>
+                                🏛️ {inst}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="p-5">
                         <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
@@ -1223,6 +1301,19 @@ export default function Registrations() {
                 <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
                   {selectedReg.registeredAt?.toDate ? selectedReg.registeredAt.toDate().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A'}
                 </p>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <p className="text-xs font-medium text-slate-500 mb-1">College / Institution</p>
+                <div className="bg-white/80 p-3 border border-slate-200 rounded-xl">
+                  <p className="font-semibold text-sm text-slate-900">
+                    {normalizeInstitute(getRegistrationInstituteRaw(selectedReg)) || 'N/A'}
+                  </p>
+                  {getRegistrationInstituteRaw(selectedReg) && getRegistrationInstituteRaw(selectedReg) !== normalizeInstitute(getRegistrationInstituteRaw(selectedReg)) && (
+                    <p className="text-[11px] text-slate-500 font-mono mt-0.5 truncate" title={getRegistrationInstituteRaw(selectedReg)}>
+                      Raw: &quot;{getRegistrationInstituteRaw(selectedReg)}&quot;
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <p className="text-xs font-medium text-slate-500 mb-1">Address / Locality</p>

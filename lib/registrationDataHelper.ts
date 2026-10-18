@@ -288,3 +288,125 @@ export function extractRegistrationInfo(data: any, idFallback?: string): Extract
     noOfTeammates,
   };
 }
+
+/**
+ * Safely extracts raw institute/college string from any registration document structure.
+ */
+export function getRegistrationInstituteRaw(reg: any): string {
+  if (!reg || typeof reg !== 'object') return '';
+  const direct =
+    reg.institutionName ||
+    reg.college ||
+    reg.collegeName ||
+    reg.institution ||
+    reg.university;
+  if (direct && typeof direct === 'string' && direct.trim()) {
+    return direct.trim();
+  }
+
+  // Check leader / teamLeader
+  const leader = reg.leader || reg.teamLeader || reg.primaryParticipant;
+  if (leader && typeof leader === 'object') {
+    const leaderInst = leader.institutionName || leader.college || leader.collegeName || leader.institution || leader.university;
+    if (leaderInst && typeof leaderInst === 'string' && leaderInst.trim()) {
+      return leaderInst.trim();
+    }
+  }
+
+  // Check participants array
+  if (Array.isArray(reg.participants) && reg.participants.length > 0) {
+    for (const p of reg.participants) {
+      const pInst = p?.institutionName || p?.college || p?.institution;
+      if (pInst && typeof pInst === 'string' && pInst.trim()) {
+        return pInst.trim();
+      }
+    }
+  }
+
+  // Check teamMembers record
+  if (reg.teamMembers && typeof reg.teamMembers === 'object') {
+    for (const group of Object.keys(reg.teamMembers)) {
+      const list = Array.isArray(reg.teamMembers[group]) ? reg.teamMembers[group] : [];
+      for (const m of list) {
+        if (m?.institutionName && typeof m.institutionName === 'string' && m.institutionName.trim()) {
+          return m.institutionName.trim();
+        }
+      }
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Normalizes institution / college names to eliminate duplicate entries of the same university.
+ * Resolves typos, varying case, abbreviations (e.g. JKLU, Jk lakshmipat university -> JK Lakshmipat University (JKLU)),
+ * punctuation, and city suffixes.
+ */
+export function normalizeInstitute(raw: string | null | undefined): string {
+  if (!raw || typeof raw !== 'string') return '';
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.toUpperCase() === 'N/A' || trimmed === '-') return '';
+
+  const lower = trimmed.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const compact = lower.replace(/\s+/g, '');
+
+  // 1. JKLU variations (handles all 30+ variants, typos, faculties)
+  if (
+    compact.includes('jklu') ||
+    compact.includes('lakshmipat') ||
+    compact.includes('laxmipat') ||
+    compact.includes('lakshmipath') ||
+    compact.includes('laxmipath') ||
+    compact.includes('lakshimpat') ||
+    compact.includes('laxkshmipat') ||
+    compact.includes('lakmipat') ||
+    compact.includes('lakshamipat') ||
+    compact.includes('laxmipati') ||
+    compact.includes('lakshmipati') ||
+    lower === 'im' ||
+    lower.includes('institute of management') ||
+    lower.includes('institute of engineering')
+  ) {
+    return 'JK Lakshmipat University (JKLU)';
+  }
+
+  // 2. Known external universities & colleges
+  if (compact.includes('poornima')) return 'Poornima University';
+  if (compact.includes('xavier')) return "St. Xavier's College";
+  if (compact.includes('nift')) return 'NIFT Delhi';
+  if (compact.includes('commercecollege') || lower === 'ru' || compact.includes('rajasthanuniversity')) {
+    return 'University of Rajasthan (RU)';
+  }
+  if (compact.includes('sangeetsanstha')) return 'Rajasthan Sangeet Sansthaan';
+  if (compact.includes('dav')) return 'DAV Centenary Public School';
+  if (compact.includes('ryan')) return 'Ryan International School';
+  if (compact.includes('coimbatoremarine')) return 'Coimbatore Marine College';
+  if (compact.includes('manipal')) return 'Manipal University Jaipur (MUJ)';
+  if (compact.includes('amity')) return 'Amity University';
+  if (compact.includes('bits') || compact.includes('pilani')) return 'BITS Pilani';
+  if (compact.includes('skit')) return 'SKIT Jaipur';
+  if (compact.includes('jecrc')) return 'JECRC University';
+  if (compact.includes('subodh')) return 'SS Subodh College';
+  if (compact.includes('kanoria')) return 'Kanoria PG Mahila Mahavidyalaya';
+  if (compact.includes('maharani')) return 'University Maharani College';
+  if (compact.includes('maharaja')) return 'University Maharaja College';
+
+  // 3. Dynamic cleanup for any other incoming institution:
+  // Remove redundant trailing city names (e.g. ", Jaipur" or " Jaipur")
+  const cleaned = trimmed
+    .replace(/[,\s]+jaipur\b/gi, '')
+    .replace(/[,\s]+rajasthan\b/gi, '')
+    .replace(/[()]/g, '')
+    .trim();
+
+  // Title-case capitalization while preserving short acronyms
+  return cleaned
+    .split(/\s+/)
+    .map((w) => {
+      if (w.length <= 4 && w === w.toUpperCase()) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
