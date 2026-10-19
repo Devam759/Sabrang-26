@@ -413,7 +413,11 @@ export default function CheckoutForm() {
             const leaderSelect = getField(group, 'institutionSelect') || getField("generic", "institutionSelect") || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
             const newItems = Array.from({ length: toAdd }, () => ({
               id: Math.random().toString(36).substr(2, 9),
-              name: "", email: "", mobileNumber: "", gender: "", age: "",
+              name: "",
+              email: leaderInst === "JK Lakshmipat University" ? "@jklu.edu.in" : "",
+              mobileNumber: "",
+              gender: "",
+              age: "",
               institutionName: leaderInst,
               institutionSelect: leaderSelect,
               address: getField(group, 'address') || getField("generic", "address"),
@@ -546,7 +550,7 @@ export default function CheckoutForm() {
         const newItems: TeamMember[] = Array.from({ length: toAdd }, () => ({
           id: Math.random().toString(36).substr(2, 9),
           name: "",
-          email: "",
+          email: leaderInst === "JK Lakshmipat University" ? "@jklu.edu.in" : "",
           mobileNumber: "",
           gender: "",
           age: "",
@@ -623,7 +627,7 @@ export default function CheckoutForm() {
     const newMember: TeamMember = {
       id: Math.random().toString(36).substr(2, 9),
       name: "",
-      email: "",
+      email: leaderInst === "JK Lakshmipat University" ? "@jklu.edu.in" : "",
       mobileNumber: "",
       gender: "",
       age: "",
@@ -828,20 +832,80 @@ export default function CheckoutForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/80 flex justify-between">
-              <span>{showTeamFields ? "Team Leader Email" : group === 'visitor' ? "Primary Attendee Email" : "Email"} <span className="text-violet-400">*</span></span>
-            </label>
-            <input
-              type="email"
-              value={getField(group, 'email')}
-              onBlur={() => handleBlur(`${group}_email`)}
-              onChange={(e) => updateField(group, 'email', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
-                touched[`${group}_email`] && !isValidEmail(getField(group, 'email')) ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-              }`}
-              placeholder="you@example.com"
-            />
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80 flex justify-between">
+                <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
+              </label>
+              <select
+                value={
+                  getField(group, 'institutionSelect') ||
+                  (getField(group, 'institutionName') === "JK Lakshmipat University"
+                    ? "JK Lakshmipat University"
+                    : getField(group, 'institutionName')
+                    ? "other"
+                    : "")
+                }
+                onBlur={() => handleBlur(`${group}_institutionName`)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField(group, 'institutionSelect', val);
+                  if (val === "JK Lakshmipat University") {
+                    updateField(group, 'institutionName', "JK Lakshmipat University");
+                    const currentEmail = getField(group, 'email');
+                    const pfx = currentEmail.includes('@') ? currentEmail.split('@')[0] : currentEmail;
+                    updateField(group, 'email', pfx ? `${pfx.replace(/\s+/g, '')}@jklu.edu.in` : "@jklu.edu.in");
+                  } else if (val === "other") {
+                    if (getField(group, 'institutionName') === "JK Lakshmipat University") {
+                      updateField(group, 'institutionName', "");
+                    }
+                    const currentEmail = getField(group, 'email');
+                    if (currentEmail === "@jklu.edu.in") {
+                      updateField(group, 'email', "");
+                    } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                      updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                    }
+                  } else {
+                    updateField(group, 'institutionName', "");
+                    const currentEmail = getField(group, 'email');
+                    if (currentEmail === "@jklu.edu.in") {
+                      updateField(group, 'email', "");
+                    } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                      updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                    }
+                  }
+                }}
+                className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
+                  touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                }`}
+              >
+                <option value="" className="bg-[#020202]">Select Institution</option>
+                <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
+                <option value="other" className="bg-[#020202]">Others</option>
+              </select>
+            </div>
+
+            {(getField(group, 'institutionSelect') === "other" ||
+              (!getField(group, 'institutionSelect') &&
+                getField(group, 'institutionName') &&
+                getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <label className="text-sm font-medium text-white/80 flex justify-between">
+                  <span>Enter Institution Name <span className="text-violet-400">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  value={getField(group, 'institutionName')}
+                  onBlur={() => handleBlur(`${group}_institutionName`)}
+                  onChange={(e) => updateField(group, 'institutionName', e.target.value)}
+                  className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                  }`}
+                  placeholder="Your school/college/university"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -895,66 +959,60 @@ export default function CheckoutForm() {
             />
           </div>
 
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white/80 flex justify-between">
-                <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
-              </label>
-              <select
-                value={
-                  getField(group, 'institutionSelect') ||
-                  (getField(group, 'institutionName') === "JK Lakshmipat University"
-                    ? "JK Lakshmipat University"
-                    : getField(group, 'institutionName')
-                    ? "other"
-                    : "")
-                }
-                onBlur={() => handleBlur(`${group}_institutionName`)}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  updateField(group, 'institutionSelect', val);
-                  if (val === "JK Lakshmipat University") {
-                    updateField(group, 'institutionName', "JK Lakshmipat University");
-                  } else if (val === "other") {
-                    if (getField(group, 'institutionName') === "JK Lakshmipat University") {
-                      updateField(group, 'institutionName', "");
-                    }
-                  } else {
-                    updateField(group, 'institutionName', "");
-                  }
-                }}
-                className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
-                  touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-                }`}
-              >
-                <option value="" className="bg-[#020202]">Select Institution</option>
-                <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
-                <option value="other" className="bg-[#020202]">Others</option>
-              </select>
-            </div>
+          {(() => {
+            const isJklu =
+              getField(group, 'institutionName') === "JK Lakshmipat University" ||
+              getField(group, 'institutionSelect') === "JK Lakshmipat University";
+            const emailValue = getField(group, 'email');
+            const prefix = emailValue.endsWith("@jklu.edu.in")
+              ? emailValue.slice(0, -"@jklu.edu.in".length)
+              : emailValue.includes("@")
+              ? emailValue.split("@")[0]
+              : emailValue;
 
-            {(getField(group, 'institutionSelect') === "other" ||
-              (!getField(group, 'institutionSelect') &&
-                getField(group, 'institutionName') &&
-                getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+            return (
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80 flex justify-between">
-                  <span>Enter Institution Name <span className="text-violet-400">*</span></span>
+                  <span>{showTeamFields ? "Team Leader Email" : group === 'visitor' ? "Primary Attendee Email" : "Email"} <span className="text-violet-400">*</span></span>
                 </label>
-                <input
-                  type="text"
-                  value={getField(group, 'institutionName')}
-                  onBlur={() => handleBlur(`${group}_institutionName`)}
-                  onChange={(e) => updateField(group, 'institutionName', e.target.value)}
-                  className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
-                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-                  }`}
-                  placeholder="Your school/college/university"
-                  autoFocus
-                />
+                {isJklu ? (
+                  <div
+                    className={`flex items-center w-full bg-white/5 border rounded-lg overflow-hidden transition-all focus-within:bg-white/10 ${
+                      touched[`${group}_email`] && !isValidEmail(emailValue)
+                        ? "border-red-500/50 focus-within:border-red-500"
+                        : "border-white/10 focus-within:border-violet-500"
+                    }`}
+                  >
+                    <input
+                      type="text"
+                      value={prefix}
+                      onBlur={() => handleBlur(`${group}_email`)}
+                      onChange={(e) => {
+                        const cleanPrefix = e.target.value.replace(/@.*$/, '').replace(/\s+/g, '');
+                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                      }}
+                      className="flex-1 bg-transparent px-4 py-3 text-white placeholder-white/40 focus:outline-none min-w-0"
+                      placeholder="username / roll number"
+                    />
+                    <span className="px-3.5 py-3 bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 select-none whitespace-nowrap pointer-events-none flex items-center">
+                      @jklu.edu.in
+                    </span>
+                  </div>
+                ) : (
+                  <input
+                    type="email"
+                    value={emailValue}
+                    onBlur={() => handleBlur(`${group}_email`)}
+                    onChange={(e) => updateField(group, 'email', e.target.value)}
+                    className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                      touched[`${group}_email`] && !isValidEmail(emailValue) ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                    }`}
+                    placeholder="you@example.com"
+                  />
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/80 flex justify-between">
@@ -1107,15 +1165,70 @@ export default function CheckoutForm() {
                         placeholder="Enter full name"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/80">Email <span className="text-violet-400">*</span></label>
-                      <input
-                        type="email"
-                        value={member.email}
-                        onChange={(e) => updateTeamMember(group, member.id, 'email', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
-                        placeholder="you@example.com"
-                      />
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-white/80">Institution Name <span className="text-violet-400">*</span></label>
+                        <select
+                          value={
+                            member.institutionSelect ||
+                            (member.institutionName === "JK Lakshmipat University"
+                              ? "JK Lakshmipat University"
+                              : member.institutionName
+                              ? "other"
+                              : "")
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateTeamMember(group, member.id, 'institutionSelect', val);
+                            if (val === "JK Lakshmipat University") {
+                              updateTeamMember(group, member.id, 'institutionName', "JK Lakshmipat University");
+                              const currentEmail = member.email || "";
+                              const pfx = currentEmail.includes('@') ? currentEmail.split('@')[0] : currentEmail;
+                              updateTeamMember(group, member.id, 'email', pfx ? `${pfx.replace(/\s+/g, '')}@jklu.edu.in` : "@jklu.edu.in");
+                            } else if (val === "other") {
+                              if (member.institutionName === "JK Lakshmipat University") {
+                                updateTeamMember(group, member.id, 'institutionName', "");
+                              }
+                              const currentEmail = member.email || "";
+                              if (currentEmail === "@jklu.edu.in") {
+                                updateTeamMember(group, member.id, 'email', "");
+                              } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                                updateTeamMember(group, member.id, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                              }
+                            } else {
+                              updateTeamMember(group, member.id, 'institutionName', "");
+                              const currentEmail = member.email || "";
+                              if (currentEmail === "@jklu.edu.in") {
+                                updateTeamMember(group, member.id, 'email', "");
+                              } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                                updateTeamMember(group, member.id, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                              }
+                            }
+                          }}
+                          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                        >
+                          <option value="" className="bg-[#020202]">Select Institution</option>
+                          <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
+                          <option value="other" className="bg-[#020202]">Others</option>
+                        </select>
+                      </div>
+
+                      {(member.institutionSelect === "other" ||
+                        (!member.institutionSelect &&
+                          member.institutionName &&
+                          member.institutionName !== "JK Lakshmipat University")) && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                          <label className="text-sm font-medium text-white/80">Enter Institution Name <span className="text-violet-400">*</span></label>
+                          <input
+                            type="text"
+                            value={member.institutionName}
+                            onChange={(e) => updateTeamMember(group, member.id, 'institutionName', e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 placeholder-white/40"
+                            placeholder="Your school/college"
+                            autoFocus
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-white/80">Mobile Number <span className="text-violet-400">*</span></label>
@@ -1150,56 +1263,48 @@ export default function CheckoutForm() {
                         placeholder="e.g., 20"
                       />
                     </div>
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-white/80">Institution Name <span className="text-violet-400">*</span></label>
-                        <select
-                          value={
-                            member.institutionSelect ||
-                            (member.institutionName === "JK Lakshmipat University"
-                              ? "JK Lakshmipat University"
-                              : member.institutionName
-                              ? "other"
-                              : "")
-                          }
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            updateTeamMember(group, member.id, 'institutionSelect', val);
-                            if (val === "JK Lakshmipat University") {
-                              updateTeamMember(group, member.id, 'institutionName', "JK Lakshmipat University");
-                            } else if (val === "other") {
-                              if (member.institutionName === "JK Lakshmipat University") {
-                                updateTeamMember(group, member.id, 'institutionName', "");
-                              }
-                            } else {
-                              updateTeamMember(group, member.id, 'institutionName', "");
-                            }
-                          }}
-                          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 cursor-pointer"
-                        >
-                          <option value="" className="bg-[#020202]">Select Institution</option>
-                          <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
-                          <option value="other" className="bg-[#020202]">Others</option>
-                        </select>
-                      </div>
+                    {(() => {
+                      const isMemberJklu =
+                        member.institutionName === "JK Lakshmipat University" ||
+                        member.institutionSelect === "JK Lakshmipat University";
+                      const memberEmail = member.email || "";
+                      const prefix = memberEmail.endsWith("@jklu.edu.in")
+                        ? memberEmail.slice(0, -"@jklu.edu.in".length)
+                        : memberEmail.includes("@")
+                        ? memberEmail.split("@")[0]
+                        : memberEmail;
 
-                      {(member.institutionSelect === "other" ||
-                        (!member.institutionSelect &&
-                          member.institutionName &&
-                          member.institutionName !== "JK Lakshmipat University")) && (
-                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                          <label className="text-sm font-medium text-white/80">Enter Institution Name <span className="text-violet-400">*</span></label>
-                          <input
-                            type="text"
-                            value={member.institutionName}
-                            onChange={(e) => updateTeamMember(group, member.id, 'institutionName', e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 placeholder-white/40"
-                            placeholder="Your school/college"
-                            autoFocus
-                          />
+                      return (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-white/80">Email <span className="text-violet-400">*</span></label>
+                          {isMemberJklu ? (
+                            <div className="flex items-center w-full bg-black/40 border border-white/10 rounded-lg overflow-hidden transition-all focus-within:border-violet-500">
+                              <input
+                                type="text"
+                                value={prefix}
+                                onChange={(e) => {
+                                  const cleanPrefix = e.target.value.replace(/@.*$/, '').replace(/\s+/g, '');
+                                  updateTeamMember(group, member.id, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                                }}
+                                className="flex-1 bg-transparent px-4 py-3 text-white placeholder-white/40 focus:outline-none min-w-0"
+                                placeholder="username / roll number"
+                              />
+                              <span className="px-3.5 py-3 bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 select-none whitespace-nowrap pointer-events-none flex items-center">
+                                @jklu.edu.in
+                              </span>
+                            </div>
+                          ) : (
+                            <input
+                              type="email"
+                              value={member.email}
+                              onChange={(e) => updateTeamMember(group, member.id, 'email', e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
+                              placeholder="you@example.com"
+                            />
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-white/80 flex justify-between">
                         <span>Institution Identity Card <span className="text-violet-400">*</span></span>
