@@ -418,10 +418,11 @@ export default function CouponsPage() {
                 <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-600 text-xs font-semibold">
                   <th className="p-4 w-16 text-center">#</th>
                   <th className="p-4">Coupon Code</th>
-                  <th className="p-4">Discount Type & Value</th>
+                  <th className="p-4 whitespace-nowrap">Discount Type & Value</th>
                   <th className="p-4">Applicable Events</th>
+                  <th className="p-4 whitespace-nowrap">Use Count</th>
                   <th className="p-4">Status</th>
-                  <th className="p-4 text-right">Actions</th>
+                  <th className="p-4 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -430,25 +431,25 @@ export default function CouponsPage() {
                   const isAllEvents = !coupon.applicableEvents || coupon.applicableEvents.length === 0 || coupon.applicableEvents.includes('ALL') || coupon.applicableEvents.includes('*');
 
                   return (
-                    <tr key={coupon.id} className="hover:bg-slate-50 transition-colors font-medium group">
+                    <tr key={coupon.id} className="hover:bg-slate-50/80 transition-colors font-medium group">
                       <td className="p-4 text-center text-slate-400 font-medium font-mono">
                         {idx + 1}
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <Tag size={14} className="text-slate-500" />
-                          <span className="font-semibold text-slate-900 text-sm font-mono tracking-wide">{coupon.code}</span>
+                          <Tag size={14} className="text-slate-400 group-hover:text-purple-600 transition-colors" />
+                          <span className="font-bold text-slate-900 text-sm font-mono tracking-wide">{coupon.code}</span>
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
+                      <td className="p-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono border ${
                           coupon.discountType === 'percentage' 
-                            ? 'bg-purple-50 text-purple-700 border border-purple-200' 
+                            ? 'bg-purple-50 text-purple-700 border-purple-200' 
                             : coupon.discountType === 'per_head_cap'
-                            ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         }`}>
-                          {coupon.discountType === 'percentage' && <Percent size={12} />}
+                          {coupon.discountType === 'percentage' && <Percent size={11} className="stroke-[2.5]" />}
                           {coupon.discountType === 'percentage' 
                             ? `${coupon.discountValue}% off` 
                             : coupon.discountType === 'per_head_cap'
@@ -489,48 +490,70 @@ export default function CouponsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold ${
+                      <td className="p-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold font-mono border ${
+                            coupon.maxUses && (coupon.usedCount || 0) >= Number(coupon.maxUses)
+                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              : (coupon.usedCount || 0) > 0
+                              ? 'bg-purple-50 text-purple-700 border-purple-200/80'
+                              : 'bg-slate-50 text-slate-600 border-slate-200'
+                          }`}>
+                            <span>{coupon.usedCount || 0}</span>
+                            {coupon.maxUses ? <span className="text-slate-400 font-normal">/ {coupon.maxUses}</span> : null}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {coupon.maxUses 
+                              ? ((coupon.usedCount || 0) >= Number(coupon.maxUses) ? 'maxed' : 'used')
+                              : ((coupon.usedCount || 0) === 1 ? 'time' : 'times')}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
                           coupon.active 
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            : 'bg-slate-100 text-slate-500 border border-slate-200'
                         }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${coupon.active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                           {coupon.active ? 'Active' : 'Disabled'}
                         </span>
                       </td>
-                      <td className="p-4 text-right space-x-2">
-                        <button 
-                          onClick={() => openEditModal(coupon)}
-                          title="Edit Coupon"
-                          className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
-                        >
-                          <Edit3 size={15} />
-                        </button>
-                        <button 
-                          onClick={() => handleToggleActive(coupon.id || coupon.code, coupon.active)}
-                          title={coupon.active ? 'Disable Coupon' : 'Enable Coupon'}
-                          className={`p-2 border rounded-xl transition-colors cursor-pointer ${
-                            coupon.active 
-                              ? 'border-slate-200 text-slate-500 hover:text-slate-600 hover:bg-white hover:border-slate-200' 
-                              : 'border-slate-200 text-slate-600 bg-white hover:bg-green-500/20'
-                          }`}
-                        >
-                          <Power size={15} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(coupon.id || coupon.code)}
-                          title="Delete Coupon"
-                          className="p-2 border border-slate-200 rounded-xl text-slate-500 hover:text-slate-600 hover:bg-white hover:border-slate-200 transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                      <td className="p-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button 
+                            onClick={() => openEditModal(coupon)}
+                            title="Edit Coupon"
+                            className="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleToggleActive(coupon.id || coupon.code, coupon.active)}
+                            title={coupon.active ? 'Disable Coupon' : 'Enable Coupon'}
+                            className={`w-8 h-8 rounded-xl border transition-all flex items-center justify-center cursor-pointer shadow-2xs ${
+                              coupon.active 
+                                ? 'border-emerald-200 bg-emerald-50/60 text-emerald-700 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200' 
+                                : 'border-slate-200 bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300'
+                            }`}
+                          >
+                            <Power size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(coupon.id || coupon.code)}
+                            title="Delete Coupon"
+                            className="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
                 {coupons.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center text-slate-500">
+                    <td colSpan={7} className="p-12 text-center text-slate-500">
                       <Tag className="mx-auto h-8 w-8 mb-3 opacity-50" />
                       <p className="font-semibold text-sm text-slate-700">No coupons found.</p>
                       <p className="text-xs text-slate-500 mt-1">Create one to get started.</p>
