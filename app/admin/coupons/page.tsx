@@ -463,26 +463,29 @@ export default function CouponsPage() {
                               All Events
                             </span>
                           ) : (
-                            coupon.applicableEvents?.map((evt: string) => {
-                              // Map legacy names or IDs to current canonical title
-                              const cleanEvt = evt.trim();
-                              const matched = OFFICIAL_EVENTS.find(e => 
-                                e.id.toLowerCase() === cleanEvt.toLowerCase() ||
-                                e.title.toLowerCase() === cleanEvt.toLowerCase() ||
-                                (cleanEvt.toLowerCase().includes('gunj') && e.id === 'echoes_of_noor')
-                              );
-                              const displayTitle = matched ? `${matched.title} (${matched.category})` : cleanEvt;
+                            (() => {
+                              const uniqueBadges = Array.from(new Set(
+                                (coupon.applicableEvents || []).map((evt: string) => {
+                                  const cleanEvt = evt.trim();
+                                  const matched = OFFICIAL_EVENTS.find(e => 
+                                    e.id.toLowerCase() === cleanEvt.toLowerCase() ||
+                                    e.title.toLowerCase() === cleanEvt.toLowerCase() ||
+                                    (cleanEvt.toLowerCase().includes('gunj') && e.id === 'echoes_of_noor')
+                                  );
+                                  return matched ? `${matched.title} (${matched.category})` : cleanEvt;
+                                })
+                              ));
 
-                              return (
+                              return uniqueBadges.map((displayTitle) => (
                                 <span 
-                                  key={evt} 
+                                  key={displayTitle} 
                                   title={displayTitle}
                                   className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-md text-xs font-medium whitespace-normal break-words leading-tight"
                                 >
                                   {displayTitle}
                                 </span>
-                              );
-                            })
+                              ));
+                            })()
                           )}
                         </div>
                       </td>
