@@ -220,6 +220,12 @@ export async function POST(req: Request) {
           orderAmount = couponStatus.valid ? couponStatus.finalPrice : basePrice;
         }
 
+        if (eventList.includes("pronite_jklu")) {
+          data.institutionName = "JK Lakshmipat University";
+          if (data.generic_institutionName) data.generic_institutionName = "JK Lakshmipat University";
+          if (data.generic_institutionSelect) data.generic_institutionSelect = "JK Lakshmipat University";
+        }
+
         console.log("Saving pending registration for order ID:", orderId);
         // 1. Save pending registration details under pendingRegistrations using Admin SDK
         await adminDb.collection('pendingRegistrations').doc(orderId).set({
