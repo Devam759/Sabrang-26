@@ -380,7 +380,9 @@ export async function sendSystemErrorEmail(performedBy: string, targetEntity: st
 // ============================================================================
 export async function finalizeRegistration(formData: any, paymentId: string, orderId: string, skipBackgroundTasks: boolean = false) {
   console.log("Saving registration to Firestore...");
-  const basePrice = Number(formData.amount || formData.price || formData.originalPrice || 500);
+  const basePrice = typeof formData.amount === 'number' && !isNaN(formData.amount)
+    ? formData.amount
+    : Number(formData.price ?? formData.originalPrice ?? 500);
   let paymentAmount = basePrice;
   const couponCode = (formData.coupon || '').trim().toLowerCase();
   let couponDocRef: any = null;
