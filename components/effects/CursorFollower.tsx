@@ -34,6 +34,11 @@ export default function CursorFollower() {
     setMounted(true);
     if (isManagement) return;
 
+    // Skip RAF loop on touch / coarse pointer devices where custom cursor dot is hidden
+    if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
+      return;
+    }
+
     let mouseX = -100;
     let mouseY = -100;
     let currentX = -100;

@@ -26,22 +26,31 @@ export default function HeroSection() {
         { y: 0, opacity: 1, filter: 'blur(0px)', duration: 1.2, stagger: 0.15, ease: "power3.out" }
       )
       
-      // Mouse Parallax for typography (scoped to container elements)
+      // Mouse Parallax for typography (scoped to container elements, V-Sync coalesced)
       const p1 = container.querySelector('.parallax-1')
       const p2 = container.querySelector('.parallax-2')
       const p3 = container.querySelector('.parallax-3')
 
+      let mouseRaf: number | null = null
+      let targetX = 0
+      let targetY = 0
+
       const handleMouseMove = (e: MouseEvent) => {
         if (!container.isConnected) return
-        const x = (e.clientX / window.innerWidth - 0.5) * 20
-        const y = (e.clientY / window.innerHeight - 0.5) * 20
+        targetX = (e.clientX / window.innerWidth - 0.5) * 20
+        targetY = (e.clientY / window.innerHeight - 0.5) * 20
         
-        if (p1) gsap.to(p1, { x: -x, y: -y, duration: 0, overwrite: "auto" })
-        if (p2) gsap.to(p2, { x: x * 0.8, y: y * 0.8, duration: 0, overwrite: "auto" })
-        if (p3) gsap.to(p3, { x: -x * 0.5, y: y * 1.2, duration: 0, overwrite: "auto" })
+        if (!mouseRaf) {
+          mouseRaf = requestAnimationFrame(() => {
+            mouseRaf = null
+            if (p1) gsap.to(p1, { x: -targetX, y: -targetY, duration: 0.25, ease: 'power1.out', overwrite: 'auto' })
+            if (p2) gsap.to(p2, { x: targetX * 0.8, y: targetY * 0.8, duration: 0.25, ease: 'power1.out', overwrite: 'auto' })
+            if (p3) gsap.to(p3, { x: -targetX * 0.5, y: targetY * 1.2, duration: 0.25, ease: 'power1.out', overwrite: 'auto' })
+          })
+        }
       }
       
-      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
       // MAIN HERO SCROLL TRIGGER
       const track = containerRef.current?.parentElement || document.getElementById('hero-scroll-track')
@@ -77,6 +86,7 @@ export default function HeroSection() {
       
       return () => {
         window.removeEventListener('mousemove', handleMouseMove)
+        if (mouseRaf) cancelAnimationFrame(mouseRaf)
       }
     }, containerRef)
     

@@ -24,11 +24,28 @@ export default function RadialSoundstage() {
   const [selectedPhotoIndices, setSelectedPhotoIndices] = useState<number[]>([0, 0, 0])
   const [strobeIndex, setStrobeIndex] = useState<number | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [isSectionVisible, setIsSectionVisible] = useState(false)
 
-  // Track pointer coordinates for ambient lighting dynamics
+  // Viewport Occlusion Culling: Track section visibility to pause heavy render loops when off-screen
   useEffect(() => {
     const section = sectionRef.current
-    if (!section) return
+    if (!section || typeof IntersectionObserver === 'undefined') return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSectionVisible(entry.isIntersecting)
+      },
+      { rootMargin: '150px 0px' }
+    )
+    observer.observe(section)
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Track pointer coordinates for ambient lighting dynamics (only when section is visible)
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section || !isSectionVisible) return
     let rafId: number | null = null
 
     const handlePointerMove = (e: PointerEvent) => {
@@ -47,7 +64,7 @@ export default function RadialSoundstage() {
       window.removeEventListener('pointermove', handlePointerMove)
       if (rafId) cancelAnimationFrame(rafId)
     }
-  }, [])
+  }, [isSectionVisible])
 
   // Photo selection handler per artist panel
   const handlePhotoSelect = useCallback((artistIdx: number, photoIdx: number) => {
@@ -134,10 +151,11 @@ export default function RadialSoundstage() {
     })
   }
 
-  // Mobile horizontal touch swipe support
+  // Mobile horizontal touch swipe support with RAF-coalesced momentum
   const touchStartXRef = useRef(0)
   const touchStartYRef = useRef(0)
   const isSwipingHorizontalRef = useRef(false)
+  const touchRafRef = useRef<number | null>(null)
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if ((e.target as HTMLElement).closest('button, a, .cursor-grab, .touch-none')) {
@@ -152,8 +170,10 @@ export default function RadialSoundstage() {
     if ((e.target as HTMLElement).closest('button, a, .cursor-grab, .touch-none')) {
       return
     }
-    const dx = e.touches[0].clientX - touchStartXRef.current
-    const dy = e.touches[0].clientY - touchStartYRef.current
+    const currentX = e.touches[0].clientX
+    const currentY = e.touches[0].clientY
+    const dx = currentX - touchStartXRef.current
+    const dy = currentY - touchStartYRef.current
 
     if (!isSwipingHorizontalRef.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
       isSwipingHorizontalRef.current = true
@@ -161,10 +181,13 @@ export default function RadialSoundstage() {
 
     if (isSwipingHorizontalRef.current) {
       const section = sectionRef.current
-      if (section) {
-        const scrollRatio = (section.offsetHeight - window.innerHeight) / (window.innerWidth * 2)
-        window.scrollBy({ top: -dx * scrollRatio * 0.45, behavior: 'auto' })
-        touchStartXRef.current = e.touches[0].clientX
+      if (section && !touchRafRef.current) {
+        touchRafRef.current = requestAnimationFrame(() => {
+          touchRafRef.current = null
+          const scrollRatio = (section.offsetHeight - window.innerHeight) / (window.innerWidth * 2)
+          window.scrollBy({ top: -dx * scrollRatio * 0.45, behavior: 'auto' })
+        })
+        touchStartXRef.current = currentX
       }
     }
   }
@@ -431,6 +454,7 @@ export default function RadialSoundstage() {
                       soundEnabled={soundEnabled}
                       onToggleSound={() => setSoundEnabled((p) => !p)}
                       hideDock={true}
+                      isActive={isSectionVisible && activeIndex === aIdx}
                     />
                   </div>
                 </div>
@@ -499,6 +523,7 @@ export default function RadialSoundstage() {
             waveSpeed={currentArtist.sonicWaveSpeed}
             waveTurbulence={currentArtist.sonicTurbulence}
             accentColor={currentArtist.atmosphericAccent}
+            isActive={isSectionVisible}
           />
         </footer>
       </div>

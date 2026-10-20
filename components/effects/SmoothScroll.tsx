@@ -48,7 +48,8 @@ export default function SmoothScroll({
     };
 
     gsap.ticker.add(updateTicker);
-    gsap.ticker.lagSmoothing(0);
+    // Smooth over micro GC delays without jarring positional jumps on 120Hz displays
+    gsap.ticker.lagSmoothing(500, 33);
 
     return () => {
       gsap.ticker.remove(updateTicker);
