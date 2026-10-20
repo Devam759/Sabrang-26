@@ -110,26 +110,45 @@ export default function CouponsPage() {
     return () => unsub();
   }, []);
 
-  // 2. Fetch live events list from Firestore
+  // 2. Fetch live events list, deduplicating against the official catalog
   useEffect(() => {
     const unsubEvents = onSnapshot(collection(db, 'events'), (snap) => {
+      // Start with official catalog as the primary, clean list
+      const list = [...DEFAULT_SABRANG_EVENTS];
+
       if (!snap.empty) {
-        const dbEvents = snap.docs.map(d => ({
-          id: d.id,
-          title: d.data().title || d.id,
-        }));
-        
-        // Merge with defaults to ensure all flagship events are selectable
-        const merged = [...dbEvents];
-        DEFAULT_SABRANG_EVENTS.forEach(defEvt => {
-          if (!merged.some(e => e.title.toLowerCase() === defEvt.title.toLowerCase())) {
-            merged.push(defEvt);
+        snap.docs.forEach(d => {
+          const rawTitle = (d.data().title || d.id).trim();
+          const cleanKey = rawTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+          // Check if this db event already corresponds to an official catalog event
+          const isDuplicate = list.some(def => {
+            const defKey = def.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const defId = def.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return (
+              defKey === cleanKey ||
+              cleanKey === defId ||
+              defKey.includes(cleanKey) ||
+              cleanKey.includes(defId) ||
+              (cleanKey.includes('panache') && defKey.includes('panache')) ||
+              (cleanKey.includes('bandjam') && defKey.includes('bandjam')) ||
+              (cleanKey.includes('stepup') && defKey.includes('stepup')) ||
+              (cleanKey.includes('valorant') && defKey.includes('valorant')) ||
+              (cleanKey.includes('gunj') && defKey.includes('echoes'))
+            );
+          });
+
+          // Only append if it's truly a new non-catalog event
+          if (!isDuplicate) {
+            list.push({ id: d.id, title: rawTitle });
           }
         });
-        setAvailableEvents(merged);
       }
+
+      setAvailableEvents(list);
     }, (err) => {
       console.warn("Coupons events listener notice:", err?.message);
+      setAvailableEvents(DEFAULT_SABRANG_EVENTS);
     });
 
     return () => unsubEvents();
@@ -649,7 +668,13 @@ export default function CouponsPage() {
                 /* Event Checkboxes */
                 <div className="max-h-48 overflow-y-auto space-y-1 pr-1 divide-y divide-slate-100 custom-scrollbar">
                   {filteredEventOptions.map((evt) => {
-                    const isChecked = selectedEvents.includes(evt.title) || selectedEvents.includes(evt.id);
+                    const isChecked = selectedEvents.includes(evt.title) || selectedEvents.includes(evt.id) ||
+                      selectedEvents.some(s => {
+                        const sKey = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const eKey = evt.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const eId = evt.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return sKey && (sKey === eKey || sKey === eId || (sKey.includes('gunj') && eKey.includes('echoes')));
+                      });
 
                     return (
                       <label
