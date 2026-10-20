@@ -396,7 +396,11 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   if (authoritativePrice <= 0 && typeof formData.amount === 'number' && formData.amount > 0) {
     authoritativePrice = formData.amount;
   }
-  const basePrice = authoritativePrice > 0 ? authoritativePrice : Number(formData.price || formData.originalPrice || 500);
+  const basePrice = (eventList.length > 0 && authoritativePrice >= 0)
+    ? authoritativePrice
+    : (typeof formData.amount === 'number' && !isNaN(formData.amount)
+        ? formData.amount
+        : Number(formData.price ?? formData.originalPrice ?? 500));
   let paymentAmount = basePrice;
   const couponCode = (formData.coupon || '').trim().toLowerCase();
   let couponDocRef: any = null;

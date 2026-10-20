@@ -2576,11 +2576,11 @@ export default function CheckoutForm() {
                     {isProcessingPayment ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Connecting to Cashfree Gateway...</span>
+                        <span>{calculateTotal() === 0 ? "Confirming Free Registration..." : "Connecting to Cashfree Gateway..."}</span>
                       </>
                     ) : (
                       <>
-                        <span>Proceed to Pay ₹{calculateTotal()}</span>
+                        <span>{calculateTotal() === 0 ? "Complete Free Registration" : `Proceed to Pay ₹${calculateTotal()}`}</span>
                       </>
                     )}
                   </button>
@@ -2631,7 +2631,7 @@ export default function CheckoutForm() {
                 ) : currentStep === "review" ? (
                   <>
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Pay ₹{calculateTotal()}</span>
+                    <span>{calculateTotal() === 0 ? "Complete Registration" : `Pay ₹${calculateTotal()}`}</span>
                   </>
                 ) : (
                   <>
@@ -2687,7 +2687,7 @@ export default function CheckoutForm() {
                         </div>
                       </div>
                       <span className="font-sans text-cyan-400 font-bold text-xs shrink-0">
-                        {ev.isTeam ? `Team ₹${price}` : `₹${price}`}
+                        {price === 0 ? "Free" : ev.isTeam ? `Team ₹${price}` : `₹${price}`}
                       </span>
                     </div>
 
