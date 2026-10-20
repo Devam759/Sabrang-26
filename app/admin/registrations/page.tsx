@@ -6,7 +6,7 @@ import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp
 import { db, auth } from '../../../lib/firebase';
 import { SkeletonTable } from '../../../components/admin/SkeletonLoader';
 import { Modal } from '../../../components/admin/Modal';
-import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle, RefreshCw } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
 import { getDisplayPaymentAmount, getRegistrationInstituteRaw, normalizeInstitute } from '@/lib/registrationDataHelper';
@@ -188,6 +188,38 @@ export default function Registrations() {
   const [emailSendingState, setEmailSendingState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [emailSendingMessage, setEmailSendingMessage] = useState('');
   const [serviceEnabled, setServiceEnabled] = useState(true);
+
+  const [sheetSyncState, setSheetSyncState] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle');
+  const [sheetSyncMessage, setSheetSyncMessage] = useState('');
+
+  const handleResyncSheet = async () => {
+    if (!confirm('Are you sure you want to resync all registrations to Google Sheets? This will update all existing rows to match the latest database state.')) return;
+    setSheetSyncState('syncing');
+    setSheetSyncMessage('Resyncing registrations to Google Sheets...');
+    try {
+      const res = await fetch('/api/admin/sync-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resyncAll: true })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSheetSyncState('done');
+        setSheetSyncMessage(`Sheet resync complete: ${data.synced || 0} updated, ${data.failed || 0} failed.`);
+      } else {
+        setSheetSyncState('error');
+        setSheetSyncMessage(data.error || 'Failed to resync Google Sheets.');
+      }
+    } catch (err: any) {
+      setSheetSyncState('error');
+      setSheetSyncMessage(err.message || 'An error occurred during sheet resync.');
+    } finally {
+      setTimeout(() => {
+        setSheetSyncState('idle');
+        setSheetSyncMessage('');
+      }, 7000);
+    }
+  };
 
   const [reconciling, setReconciling] = useState(false);
   const [reconMessage, setReconMessage] = useState('');
@@ -927,6 +959,15 @@ export default function Registrations() {
           >
             <CustomDownloadIcon size={14} className="text-slate-700 group-hover:text-slate-900 transition-colors" /> <span>Export Excel</span>
           </button>
+          <button 
+            onClick={handleResyncSheet}
+            disabled={loading || sheetSyncState === 'syncing'}
+            title="Resync all registrations from database to Google Sheets"
+            className="group inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-xs disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <RefreshCw size={14} className={`text-slate-700 group-hover:text-purple-600 transition-colors ${sheetSyncState === 'syncing' ? 'animate-spin text-purple-600' : ''}`} />
+            <span>{sheetSyncState === 'syncing' ? 'Syncing Sheet...' : 'Sync Sheet'}</span>
+          </button>
         </div>
       </div>
 
@@ -938,6 +979,18 @@ export default function Registrations() {
           'bg-white text-slate-600 border-slate-200'
         }`}>
           {emailSendingMessage}
+        </div>
+      )}
+
+      {/* Google Sheet Sync status feedback banner */}
+      {sheetSyncState !== 'idle' && (
+        <div className={`border rounded-2xl px-5 py-4 text-xs font-bold tracking-wider uppercase shadow-xs flex items-center justify-between ${
+          sheetSyncState === 'syncing' ? 'bg-purple-50 text-purple-900 border-purple-200' :
+          sheetSyncState === 'done' ? 'bg-emerald-50 text-emerald-900 border-emerald-200' :
+          'bg-rose-50 text-rose-900 border-rose-200'
+        }`}>
+          <span>{sheetSyncMessage}</span>
+          {sheetSyncState === 'syncing' && <RefreshCw size={14} className="animate-spin text-purple-600" />}
         </div>
       )}
 
