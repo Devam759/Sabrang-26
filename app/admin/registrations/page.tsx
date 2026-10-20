@@ -561,6 +561,14 @@ export default function Registrations() {
       if (sortField === 'registeredAt') {
         valA = valA?.toMillis() || 0;
         valB = valB?.toMillis() || 0;
+      } else if (sortField === 'amount') {
+        const getAmt = (r: any) => {
+          const raw = r.paymentAmount ?? r.receivedAmount ?? r.amount ?? r.finalPrice ?? r.price ?? 0;
+          const num = Number(raw);
+          return isNaN(num) ? 0 : num;
+        };
+        valA = getAmt(a);
+        valB = getAmt(b);
       } else if (sortField === 'college' || sortField === 'institution') {
         valA = normalizeInstitute(getRegistrationInstituteRaw(a)).toLowerCase();
         valB = normalizeInstitute(getRegistrationInstituteRaw(b)).toLowerCase();
@@ -621,7 +629,7 @@ export default function Registrations() {
       'Event(s)',
       'Event Type',
       'Team Name',
-      'No. of Teammates',
+      'Total Team Members (incl. Leader)',
       'State',
       'Pincode',
       'Payment Amount',
@@ -639,7 +647,7 @@ export default function Registrations() {
       'Course',
       'Event Type',
       'Team Name',
-      'No. of Teammates',
+      'Total Team Members (incl. Leader)',
       'State',
       'Pincode',
       'Payment Amount',
@@ -670,7 +678,7 @@ export default function Registrations() {
         evTitles.full,
         unifiedData.eventType,
         unifiedData.teamName,
-        unifiedData.noOfTeammates,
+        unifiedData.totalMembers,
         state,
         pin,
         payAmount,
@@ -723,7 +731,7 @@ export default function Registrations() {
           r.course || 'N/A',
           unifiedData.eventType,
           unifiedData.teamName,
-          unifiedData.noOfTeammates,
+          unifiedData.totalMembers,
           state,
           pin,
           payAmount,
@@ -1034,8 +1042,9 @@ export default function Registrations() {
                   </th>
                   <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('email')}>
                     Contact {sortField === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
-
-
+                  </th>
+                  <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors whitespace-nowrap" onClick={() => handleSort('amount')}>
+                    Amount Paid {sortField === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
                   <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('registeredAt')}>
                     Registered {sortField === 'registeredAt' && (sortOrder === 'asc' ? '↑' : '↓')}
@@ -1099,6 +1108,16 @@ export default function Registrations() {
                       <td className="p-5">
                         <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
                         <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
+                      </td>
+                      <td className="p-5 whitespace-nowrap">
+                        <div className="font-bold text-slate-900 text-xs font-mono">
+                          {getDisplayPaymentAmount(reg)}
+                        </div>
+                        {reg.coupon && (
+                          <span className="inline-block text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded font-mono mt-0.5 uppercase tracking-wide">
+                            {reg.coupon}
+                          </span>
+                        )}
                       </td>
                       <td className="p-5 whitespace-nowrap">
                         {reg.registeredAt && reg.registeredAt.toDate ? (
@@ -1441,28 +1460,35 @@ export default function Registrations() {
               {/* Team Members */}
               {selectedReg.teamMembers && (
                 <div className="col-span-2 border-t border-slate-200 pt-5 mt-2">
-                  <p className="text-xs font-semibold text-slate-700 mb-4">Team Members</p>
-                  <div className="space-y-4">
-                    {(() => {
-                      let membersToRender = [];
-                      if (Array.isArray(selectedReg.teamMembers)) {
-                        membersToRender = selectedReg.teamMembers;
-                      } else if (typeof selectedReg.teamMembers === 'object') {
-                        Object.entries(selectedReg.teamMembers).forEach(([group, members]) => {
-                          if (Array.isArray(members)) {
-                            membersToRender.push(...members.map((m) => ({ ...m, _group: group })));
-                          }
-                        });
-                      }
+                  {(() => {
+                    let membersToRender: any[] = [];
+                    if (Array.isArray(selectedReg.teamMembers)) {
+                      membersToRender = selectedReg.teamMembers;
+                    } else if (typeof selectedReg.teamMembers === 'object') {
+                      Object.entries(selectedReg.teamMembers).forEach(([group, members]) => {
+                        if (Array.isArray(members)) {
+                          membersToRender.push(...members.map((m) => ({ ...m, _group: group })));
+                        }
+                      });
+                    }
+                    const totalMembersCount = membersToRender.length + 1; // Leader + Teammates
 
-                      if (membersToRender.length === 0) {
-                        return <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">No team members registered.</p>;
-                      }
-
-                      return membersToRender.map((m: any, idx: number) => (
-                        <div key={m.id || idx} className="bg-white/80 border border-slate-100 rounded-xl p-4">
-                          <p className="font-bold text-slate-900 mb-3 text-sm">{idx + 1}. {m.name || 'Unknown Name'}</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-xs font-semibold text-slate-700">Team Members</p>
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                            Total {totalMembersCount} Members (Leader + {membersToRender.length} Teammate{membersToRender.length === 1 ? '' : 's'})
+                          </span>
+                        </div>
+                        <div className="space-y-4">
+                          {membersToRender.length === 0 ? (
+                            <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">No team members registered.</p>
+                          ) : (
+                            membersToRender.map((m: any, idx: number) => (
+                              <div key={m.id || idx} className="bg-white/80 border border-slate-100 rounded-xl p-4">
+                                <p className="font-bold text-slate-900 mb-3 text-sm">{idx + 1}. {m.name || 'Unknown Name'}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
                             {m.email && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Email</span> <span className="font-medium text-slate-800 lowercase">{m.email}</span></p>}
                             {(m.mobileNumber || m.phone) && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Phone</span> <span className="font-mono text-slate-800">{m.mobileNumber || m.phone}</span></p>}
                             {m.gender && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Gender</span> <span className="font-medium text-slate-800">{m.gender}</span></p>}
@@ -1524,9 +1550,12 @@ export default function Registrations() {
                             {m._group && <p className="col-span-1 sm:col-span-2"><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Event Group</span> <span className="uppercase text-slate-600 font-bold">{m._group}</span></p>}
                           </div>
                         </div>
-                      ));
-                    })()}
-                  </div>
+                      ))
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
 

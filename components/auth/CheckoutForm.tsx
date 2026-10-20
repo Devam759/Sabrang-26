@@ -10,6 +10,8 @@ import {
   getEventById,
   calculateEventItemPrice,
   calculateTotalRegistrationFee,
+  calculateTotalBandFee,
+  getEventBandFee,
   getGroupTeamRequirements,
   isFlagshipEvent,
   calculateFlagshipBankFee,
@@ -204,6 +206,7 @@ export default function CheckoutForm() {
   // Cashfree Payment states
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
   const [verifiedOrder, setVerifiedOrder] = useState<{ orderId: string; registrationId: string; email?: string; token?: string } | null>(null);
 
@@ -271,6 +274,48 @@ export default function CheckoutForm() {
     }
   }, [verifyOrderPayment]);
 
+  // Preload Cashfree SDK so checkout launches instantaneously
+  useEffect(() => {
+    if (typeof window !== "undefined" && !(window as any).Cashfree) {
+      const existing = document.getElementById("cashfree-sdk-script");
+      if (!existing) {
+        const script = document.createElement("script");
+        script.id = "cashfree-sdk-script";
+        script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+        script.async = true;
+        document.head.appendChild(script);
+      }
+    }
+  }, []);
+
+  // Irreplaceable prefilled institution for PRO-NITE JKLU Pass
+  useEffect(() => {
+    if (selectedEvents.includes("pronite_jklu")) {
+      setFormData((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        if (next["generic_institutionSelect"] !== "JK Lakshmipat University") {
+          next["generic_institutionSelect"] = "JK Lakshmipat University";
+          changed = true;
+        }
+        if (next["generic_institutionName"] !== "JK Lakshmipat University") {
+          next["generic_institutionName"] = "JK Lakshmipat University";
+          changed = true;
+        }
+        const currentEmail = next["generic_email"] || "";
+        if (!currentEmail) {
+          next["generic_email"] = "@jklu.edu.in";
+          changed = true;
+        } else if (!currentEmail.endsWith("@jklu.edu.in")) {
+          const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
+          next["generic_email"] = pfx ? `${pfx.replace(/\s+/g, "")}@jklu.edu.in` : "@jklu.edu.in";
+          changed = true;
+        }
+        return changed ? next : prev;
+      });
+    }
+  }, [selectedEvents]);
+
   const handleCashfreePayment = async () => {
     if (isProcessingPayment) return;
     setPaymentError(null);
@@ -292,16 +337,29 @@ export default function CheckoutForm() {
       const activeGroups = getActiveGroups();
       const primaryGroup = activeGroups.find(g => g !== "visitor") || activeGroups[0] || "visitor";
 
-      const name = getField(primaryGroup, "name");
-      const email = getField(primaryGroup, "email");
-      const mobile = getField(primaryGroup, "mobileNumber");
+      const name = getField(primaryGroup, "name").trim();
+      const email = getField(primaryGroup, "email").trim();
+      const mobile = sanitizePhone(getField(primaryGroup, "mobileNumber"));
       const gender = getField(primaryGroup, "gender");
-      const institutionName = getField(primaryGroup, "institutionName");
-      const address = getField(primaryGroup, "address");
+      const institutionName = getField(primaryGroup, "institutionName").trim();
+      const address = getField(primaryGroup, "address").trim();
 
       const regNum = getField(primaryGroup, "registrationNumber") || getField(primaryGroup, "rollNumber") || `REG_${Date.now()}`;
 
       const primaryIdCard = idCards[primaryGroup]?.url || Object.values(idCards).find(v => v !== null)?.url || null;
+
+      const cleanedTeamMembers: Record<string, TeamMember[]> = {};
+      Object.entries(teamMembers).forEach(([grp, mList]) => {
+        cleanedTeamMembers[grp] = (mList || []).map((m) => ({
+          ...m,
+          name: m.name.trim(),
+          email: m.email.trim(),
+          mobileNumber: sanitizePhone(m.mobileNumber),
+          age: m.age.trim(),
+          institutionName: m.institutionName.trim(),
+          address: m.address.trim(),
+        }));
+      });
 
       const payload = {
         action: "CREATE_ORDER",
@@ -318,7 +376,7 @@ export default function CheckoutForm() {
         rollNumber: regNum,
         coupon: promoApplied ? promoCode.trim().toUpperCase() : "",
         selectedEvents,
-        teamMembers,
+        teamMembers: cleanedTeamMembers,
         amount: calculateTotal(),
         visitorConfig: selectedEvents.includes("visitor")
           ? { count: visitorCount, days: visitorDays }
@@ -328,11 +386,20 @@ export default function CheckoutForm() {
           : undefined,
       };
 
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+      let res: Response;
+      try {
+        res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       let data: any = null;
       try {
@@ -356,19 +423,43 @@ export default function CheckoutForm() {
         throw new Error("Cashfree session ID missing from order creation response.");
       }
 
-      // Load Cashfree JS SDK v3 dynamically
+      // Load Cashfree JS SDK v3 dynamically with timeout
       const loadCashfreeSdk = (): Promise<any> => {
         return new Promise((resolve, reject) => {
-          if ((window as any).Cashfree) {
+          if (typeof window !== "undefined" && (window as any).Cashfree) {
             resolve((window as any).Cashfree);
             return;
           }
-          const script = document.createElement("script");
+          const timeout = setTimeout(() => {
+            reject(new Error("Cashfree SDK loading timed out. Please check your network or ad-blocker."));
+          }, 12000);
+
+          let script = document.getElementById("cashfree-sdk-script") as HTMLScriptElement | null;
+          if (script) {
+            script.addEventListener("load", () => {
+              clearTimeout(timeout);
+              resolve((window as any).Cashfree);
+            });
+            script.addEventListener("error", () => {
+              clearTimeout(timeout);
+              reject(new Error("Failed to load Cashfree Payment SDK."));
+            });
+            return;
+          }
+
+          script = document.createElement("script");
+          script.id = "cashfree-sdk-script";
           script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
           script.async = true;
-          script.onload = () => resolve((window as any).Cashfree);
-          script.onerror = () => reject(new Error("Unable to load Cashfree Payment SDK. Please check your network connection."));
-          document.body.appendChild(script);
+          script.onload = () => {
+            clearTimeout(timeout);
+            resolve((window as any).Cashfree);
+          };
+          script.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error("Unable to load Cashfree Payment SDK. Please check your network connection."));
+          };
+          document.head.appendChild(script);
         });
       };
 
@@ -378,13 +469,28 @@ export default function CheckoutForm() {
         mode: isProduction ? "production" : "sandbox",
       });
 
-      cashfree.checkout({
+      const checkoutResult = await cashfree.checkout({
         paymentSessionId: data.payment_session_id,
-        redirectTarget: "_blank",
+        redirectTarget: "_self",
       });
+
+      if (checkoutResult?.error) {
+        setPaymentError(checkoutResult.error.message || "Failed to initialize payment gateway.");
+        setIsProcessingPayment(false);
+      } else {
+        // Redirection should take over window.location to Cashfree.
+        // Fallback safety timeout in case the user remains on screen:
+        setTimeout(() => {
+          setIsProcessingPayment(false);
+        }, 8000);
+      }
     } catch (err: any) {
       console.error("Payment error:", err);
-      setPaymentError(err.message || "An unexpected error occurred while initiating payment.");
+      if (err.name === "AbortError") {
+        setPaymentError("Payment initiation timed out. Please check your internet connection and try again.");
+      } else {
+        setPaymentError(err.message || "An unexpected error occurred while initiating payment.");
+      }
       setIsProcessingPayment(false);
     }
   };
@@ -399,6 +505,11 @@ export default function CheckoutForm() {
     }
     if (stepIndex < STEPS.length - 1) {
       if (currentStep === "select") {
+        if (selectedEvents.length === 0) {
+          setFormErrorMessage("Please select at least one event or pass to continue.");
+          return;
+        }
+        setFormErrorMessage(null);
         const activeGroups = getActiveGroups();
         const nextTeam = { ...teamMembers };
         let modified = false;
@@ -409,14 +520,16 @@ export default function CheckoutForm() {
           const neededExtra = req.min - 1;
           if (currentMembers.length < neededExtra) {
             const toAdd = neededExtra - currentMembers.length;
-            const leaderInst = getField(group, 'institutionName') || getField("generic", "institutionName");
-            const leaderSelect = getField(group, 'institutionSelect') || getField("generic", "institutionSelect") || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
-            const newItems = Array.from({ length: toAdd }, () => ({
+            const newItems: TeamMember[] = Array.from({ length: toAdd }, () => ({
               id: Math.random().toString(36).substr(2, 9),
-              name: "", email: "", mobileNumber: "", gender: "", age: "",
-              institutionName: leaderInst,
-              institutionSelect: leaderSelect,
-              address: getField(group, 'address') || getField("generic", "address"),
+              name: "",
+              email: "",
+              mobileNumber: "",
+              gender: "",
+              age: "",
+              institutionName: "",
+              institutionSelect: "",
+              address: "",
               idCard: null,
             }));
             nextTeam[group] = [...currentMembers, ...newItems];
@@ -425,6 +538,33 @@ export default function CheckoutForm() {
         });
         if (modified) setTeamMembers(nextTeam);
       }
+
+      if (currentStep === "forms") {
+        const issues = getFormValidationIssues();
+        if (issues.length > 0) {
+          const newTouched: Record<string, boolean> = { ...touched };
+          issues.forEach((iss) => {
+            if (iss.fieldKey) {
+              newTouched[iss.fieldKey] = true;
+            }
+          });
+          setTouched(newTouched);
+          setFormErrorMessage(issues[0].message);
+
+          if (issues[0].elementId) {
+            const el = document.getElementById(issues[0].elementId);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              if ("focus" in el && typeof (el as any).focus === "function") {
+                (el as any).focus();
+              }
+            }
+          }
+          return;
+        }
+        setFormErrorMessage(null);
+      }
+
       setCurrentStep(STEPS[stepIndex + 1].id);
       if (formContainerRef.current) {
         formContainerRef.current.scrollIntoView({ behavior: "smooth" });
@@ -435,6 +575,7 @@ export default function CheckoutForm() {
   const handleBack = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     if (stepIndex > 0) {
+      setFormErrorMessage(null);
       setCurrentStep(STEPS[stepIndex - 1].id);
       if (formContainerRef.current) {
         formContainerRef.current.scrollIntoView({ behavior: "smooth" });
@@ -443,9 +584,28 @@ export default function CheckoutForm() {
   };
 
   const toggleEvent = (id: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
-    );
+    setSelectedEvents((prev) => {
+      let next = prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id];
+      if (id === "pronite_jklu" && next.includes("pronite_jklu")) {
+        next = next.filter((e) => e !== "pronite_outsider");
+      } else if (id === "pronite_outsider" && next.includes("pronite_outsider")) {
+        next = next.filter((e) => e !== "pronite_jklu");
+      }
+      return next;
+    });
+
+    if (id === "pronite_jklu") {
+      setFormData((prev) => {
+        const currentEmail = prev["generic_email"] || "";
+        const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
+        return {
+          ...prev,
+          generic_institutionSelect: "JK Lakshmipat University",
+          generic_institutionName: "JK Lakshmipat University",
+          generic_email: pfx ? `${pfx.replace(/\s+/g, "")}@jklu.edu.in` : "@jklu.edu.in",
+        };
+      });
+    }
   };
 
   const calculateTotal = () => {
@@ -461,7 +621,16 @@ export default function CheckoutForm() {
     );
     
     if (promoApplied && couponData?.valid) {
-      return Math.max(0, couponData.finalPrice);
+      const totalBandFee = calculateTotalBandFee(
+        selectedEvents,
+        isStep1 ? undefined : teamMembers,
+        {
+          count: visitorCount,
+          days: visitorDays,
+        }
+      );
+      const discount = Math.max(0, Number(couponData.discountAmount) || 0);
+      return Math.max(totalBandFee, rawTotal - discount);
     }
     return rawTotal;
   };
@@ -526,6 +695,55 @@ export default function CheckoutForm() {
     setPromoError(null);
   };
 
+  // Re-verify applied coupon whenever event selection or team composition changes
+  useEffect(() => {
+    if (!promoApplied || !promoCode.trim()) return;
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      try {
+        const activeGroups = getActiveGroups();
+        const primaryGroup = activeGroups.find(g => g !== "visitor") || activeGroups[0] || "visitor";
+        const regNum = getField(primaryGroup, "registrationNumber") || getField(primaryGroup, "rollNumber") || "";
+
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "VERIFY_COUPON",
+            coupon: promoCode.trim().toUpperCase(),
+            selectedEvents,
+            teamMembers,
+            visitorConfig: selectedEvents.includes("visitor")
+              ? { count: visitorCount, days: visitorDays }
+              : undefined,
+            registrationNumber: regNum,
+          }),
+        });
+
+        if (!isMounted) return;
+        const data = await res.json();
+        if (res.ok && data?.valid) {
+          setCouponData(data);
+          setPromoError(null);
+        } else {
+          setPromoApplied(false);
+          setCouponData(null);
+          setPromoError(data?.error || "Coupon removed: no longer valid for updated event selection.");
+        }
+      } catch {
+        if (!isMounted) return;
+        setPromoApplied(false);
+        setCouponData(null);
+      }
+    }, 300);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedEvents, teamMembers, visitorCount, visitorDays, promoApplied, promoCode]);
+
   const handleVisitorCountChange = (newCount: number) => {
     const count = Math.max(1, Math.min(10, newCount));
     setVisitorCount(count);
@@ -541,8 +759,6 @@ export default function CheckoutForm() {
 
       if (currentList.length < neededExtra) {
         const toAdd = neededExtra - currentList.length;
-        const leaderInst = getField("visitor", "institutionName") || getField("generic", "institutionName");
-        const leaderSelect = getField("visitor", "institutionSelect") || getField("generic", "institutionSelect") || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
         const newItems: TeamMember[] = Array.from({ length: toAdd }, () => ({
           id: Math.random().toString(36).substr(2, 9),
           name: "",
@@ -550,9 +766,9 @@ export default function CheckoutForm() {
           mobileNumber: "",
           gender: "",
           age: "",
-          institutionName: leaderInst,
-          institutionSelect: leaderSelect,
-          address: getField("visitor", "address") || getField("generic", "address"),
+          institutionName: "",
+          institutionSelect: "",
+          address: "",
           idCard: null,
         }));
         return {
@@ -586,14 +802,42 @@ export default function CheckoutForm() {
     }
   };
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isValidPhone = (phone: string) => /^\d{10}$/.test(phone);
+  const sanitizePhone = (phone: string) => {
+    if (!phone) return "";
+    let digits = phone.replace(/\D/g, "");
+    if (digits.length === 12 && digits.startsWith("91")) {
+      digits = digits.slice(2);
+    } else if (digits.length === 11 && digits.startsWith("0")) {
+      digits = digits.slice(1);
+    }
+    return digits;
+  };
+
+  const isValidEmail = (email: string) => {
+    if (!email) return false;
+    const trimmed = email.trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  };
+
+  const isValidPhone = (phone: string) => {
+    const clean = sanitizePhone(phone);
+    return clean.length === 10;
+  };
 
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
   const updateField = (group: string, field: string, value: string) => {
+    if (formErrorMessage) setFormErrorMessage(null);
+    if (
+      group === "generic" &&
+      selectedEvents.includes("pronite_jklu") &&
+      (field === "institutionName" || field === "institutionSelect") &&
+      value !== "JK Lakshmipat University"
+    ) {
+      return; // Locked and irreplaceable
+    }
     setFormData((prev) => ({
       ...prev,
       [`${group}_${field}`]: value,
@@ -601,6 +845,13 @@ export default function CheckoutForm() {
   };
 
   const getField = (group: string, field: string) => {
+    if (
+      group === "generic" &&
+      selectedEvents.includes("pronite_jklu") &&
+      (field === "institutionName" || field === "institutionSelect")
+    ) {
+      return "JK Lakshmipat University";
+    }
     return formData[`${group}_${field}`] || "";
   };
 
@@ -617,9 +868,7 @@ export default function CheckoutForm() {
 
   // Team Member Management
   const addTeamMember = (group: string) => {
-    const leaderInst = getField(group, 'institutionName');
-    const leaderSelect = getField(group, 'institutionSelect') || (leaderInst === "JK Lakshmipat University" ? "JK Lakshmipat University" : leaderInst ? "other" : "");
-
+    if (formErrorMessage) setFormErrorMessage(null);
     const newMember: TeamMember = {
       id: Math.random().toString(36).substr(2, 9),
       name: "",
@@ -627,9 +876,9 @@ export default function CheckoutForm() {
       mobileNumber: "",
       gender: "",
       age: "",
-      institutionName: leaderInst, // copy from leader by default
-      institutionSelect: leaderSelect,
-      address: getField(group, 'address'),
+      institutionName: "",
+      institutionSelect: "",
+      address: "",
       idCard: null,
     };
     
@@ -640,6 +889,7 @@ export default function CheckoutForm() {
   };
 
   const removeTeamMember = (group: string, memberId: string) => {
+    if (formErrorMessage) setFormErrorMessage(null);
     setTeamMembers(prev => ({
       ...prev,
       [group]: (prev[group] || []).filter(m => m.id !== memberId)
@@ -647,6 +897,7 @@ export default function CheckoutForm() {
   };
 
   const updateTeamMember = (group: string, memberId: string, field: keyof TeamMember, value: any) => {
+    if (formErrorMessage) setFormErrorMessage(null);
     setTeamMembers(prev => ({
       ...prev,
       [group]: (prev[group] || []).map(m => m.id === memberId ? { ...m, [field]: value } : m)
@@ -657,47 +908,101 @@ export default function CheckoutForm() {
     return getGroupTeamRequirements(group, selectedEvents, { count: visitorCount, days: visitorDays });
   };
 
-  // Ensure all required fields are filled for active groups
-  const isNextDisabled = () => {
-    if (currentStep === "select") {
-      return selectedEvents.length === 0;
-    }
-    if (currentStep === "forms") {
-      const activeGroups = getActiveGroups();
-      
-      for (const group of activeGroups) {
-        // Basic personal details
-        const name = getField(group, 'name').trim();
-        const email = getField(group, 'email').trim();
-        const mobile = getField(group, 'mobileNumber').trim();
-        const gender = getField(group, 'gender');
-        const age = getField(group, 'age').trim();
-        const inst = getField(group, 'institutionName').trim();
-        const address = getField(group, 'address').trim();
-        const idCard = idCards[group];
-        
-        // ALL groups (including visitor) now require all these details
-        if (!name || !isValidEmail(email) || !isValidPhone(mobile) || !gender || !age || !inst || !idCard || !address) return true;
+  type ValidationIssue = {
+    elementId?: string;
+    fieldKey?: string;
+    message: string;
+  };
 
+  const getFormValidationIssues = (): ValidationIssue[] => {
+    if (currentStep === "select") {
+      if (selectedEvents.length === 0) {
+        return [{ message: "Please select at least one event or pass to continue." }];
+      }
+      return [];
+    }
+
+    if (currentStep === "forms") {
+      const issues: ValidationIssue[] = [];
+      const activeGroups = getActiveGroups();
+
+      for (const group of activeGroups) {
         // Specific fields
         if (group === 'bgmi') {
-          if (!getField(group, 'teamName').trim() || !getField(group, 'leaderIgn').trim() || !getField(group, 'leaderUid').trim()) return true;
+          if (!getField(group, 'teamName').trim()) {
+            issues.push({ elementId: 'bgmi_teamName', fieldKey: 'bgmi_teamName', message: 'BGMI Squad Name is required.' });
+          }
+          if (!getField(group, 'leaderIgn').trim()) {
+            issues.push({ elementId: 'bgmi_leaderIgn', fieldKey: 'bgmi_leaderIgn', message: 'BGMI Leader In-Game Name (IGN) is required.' });
+          }
+          if (!getField(group, 'leaderUid').trim()) {
+            issues.push({ elementId: 'bgmi_leaderUid', fieldKey: 'bgmi_leaderUid', message: 'BGMI Leader Character UID is required.' });
+          }
         }
         if (group === 'valorant') {
-          if (!getField(group, 'teamName').trim() || !getField(group, 'leaderRiotId').trim()) return true;
+          if (!getField(group, 'teamName').trim()) {
+            issues.push({ elementId: 'valorant_teamName', fieldKey: 'valorant_teamName', message: 'VALORANT Team Name is required.' });
+          }
+          if (!getField(group, 'leaderRiotId').trim()) {
+            issues.push({ elementId: 'valorant_leaderRiotId', fieldKey: 'valorant_leaderRiotId', message: 'VALORANT Leader Riot ID (Name#TAG) is required.' });
+          }
         }
         if (group === 'freefire') {
-          if (!getField(group, 'teamName').trim() || !getField(group, 'leaderUid').trim()) return true;
+          if (!getField(group, 'teamName').trim()) {
+            issues.push({ elementId: 'freefire_teamName', fieldKey: 'freefire_teamName', message: 'Free Fire Team Name is required.' });
+          }
+          if (!getField(group, 'leaderUid').trim()) {
+            issues.push({ elementId: 'freefire_leaderUid', fieldKey: 'freefire_leaderUid', message: 'Free Fire Leader UID is required.' });
+          }
         }
+
         // Generic team fields
         if (group === 'generic') {
           const hasTeamEvents = selectedEvents.map(id => EVENTS.find(e => e.id === id)).some(e => e?.type === 'generic' && e?.isTeam);
-          if (hasTeamEvents && !getField(group, 'teamName').trim()) return true;
-
-          // Vaad Vivaad representative is mandatory if Vaad Vivaad is selected
-          if (selectedEvents.includes('vaad_vivaad') && !getField('generic', 'vaadVivaadRepresentative').trim()) {
-            return true;
+          if (hasTeamEvents && !getField(group, 'teamName').trim()) {
+            issues.push({ elementId: `input_${group}_teamName`, fieldKey: `${group}_teamName`, message: 'Team / Squad Name is required.' });
           }
+
+          if (selectedEvents.includes('vaad_vivaad') && !getField('generic', 'vaadVivaadRepresentative').trim()) {
+            issues.push({ elementId: 'generic_vaadVivaadRepresentative', fieldKey: 'generic_vaadVivaadRepresentative', message: 'Please select an MP or Journalist for Vaad Vivaad.' });
+          }
+        }
+
+        // Leader details
+        const name = getField(group, 'name').trim();
+        const inst = getField(group, 'institutionName').trim();
+        const mobile = getField(group, 'mobileNumber').trim();
+        const gender = getField(group, 'gender');
+        const age = getField(group, 'age').trim();
+        const email = getField(group, 'email').trim();
+        const idCard = idCards[group];
+        const address = getField(group, 'address').trim();
+
+        const rolePrefix = group === 'visitor' ? 'Primary Attendee' : 'Team Leader';
+
+        if (!name) {
+          issues.push({ elementId: `input_${group}_name`, fieldKey: `${group}_name`, message: `${rolePrefix} Name is required.` });
+        }
+        if (!inst) {
+          issues.push({ elementId: `select_${group}_institutionName`, fieldKey: `${group}_institutionName`, message: `${rolePrefix} Institution Name is required.` });
+        }
+        if (!isValidPhone(mobile)) {
+          issues.push({ elementId: `input_${group}_mobileNumber`, fieldKey: `${group}_mobileNumber`, message: `Please enter a valid 10-digit mobile number for ${rolePrefix}.` });
+        }
+        if (!gender) {
+          issues.push({ elementId: `select_${group}_gender`, fieldKey: `${group}_gender`, message: `Please select Gender for ${rolePrefix}.` });
+        }
+        if (!age) {
+          issues.push({ elementId: `input_${group}_age`, fieldKey: `${group}_age`, message: `Please enter Age for ${rolePrefix}.` });
+        }
+        if (!isValidEmail(email)) {
+          issues.push({ elementId: `input_${group}_email`, fieldKey: `${group}_email`, message: `Please enter a valid Email address for ${rolePrefix}.` });
+        }
+        if (!idCard) {
+          issues.push({ elementId: `file_${group}_label`, fieldKey: `${group}_idCard`, message: `Please upload an Institution Identity Card image for ${rolePrefix}.` });
+        }
+        if (!address) {
+          issues.push({ elementId: `textarea_${group}_address`, fieldKey: `${group}_address`, message: `Please enter Address for ${rolePrefix}.` });
         }
 
         // Team members / Additional attendees validation
@@ -709,26 +1014,56 @@ export default function CheckoutForm() {
           const members = teamMembers[group] || [];
           const req = getTeamRequirements(group);
           const totalMembers = 1 + members.length; // leader + members
-          
-          if (totalMembers < req.min) return true;
-          
-          for (const m of members) {
-            if (group === 'visitor') {
-              if (!m.name.trim() || !isValidPhone(m.mobileNumber) || !m.gender || !m.age.trim() || !m.institutionName.trim() || !m.idCard || !m.address.trim()) {
-                return true;
-              }
-            } else {
-              if (!m.name.trim() || !isValidEmail(m.email) || !isValidPhone(m.mobileNumber) || !m.gender || !m.age.trim() || !m.institutionName.trim() || !m.idCard || !m.address.trim()) {
-                return true;
-              }
-            }
+
+          if (totalMembers < req.min) {
+            issues.push({
+              elementId: `section_members_${group}`,
+              fieldKey: `team_count_${group}`,
+              message: `Minimum team size is ${req.min}. Please add at least ${req.min - totalMembers} more member(s).`,
+            });
           }
+
+          members.forEach((m, idx) => {
+            const memberNum = idx + 2;
+            const label = group === 'visitor' ? `Visitor #${memberNum}` : `Team Member #${memberNum}`;
+
+            if (!m.name.trim()) {
+              issues.push({ elementId: `input_member_${m.id}_name`, fieldKey: `member_${m.id}_name`, message: `Name is required for ${label}.` });
+            }
+            if (!m.institutionName.trim()) {
+              issues.push({ elementId: `select_member_${m.id}_institutionName`, fieldKey: `member_${m.id}_institutionName`, message: `Institution is required for ${label}.` });
+            }
+            if (!isValidPhone(m.mobileNumber)) {
+              issues.push({ elementId: `input_member_${m.id}_mobileNumber`, fieldKey: `member_${m.id}_mobileNumber`, message: `Please enter a valid 10-digit mobile number for ${label}.` });
+            }
+            if (!m.gender) {
+              issues.push({ elementId: `select_member_${m.id}_gender`, fieldKey: `member_${m.id}_gender`, message: `Please select Gender for ${label}.` });
+            }
+            if (!m.age.trim()) {
+              issues.push({ elementId: `input_member_${m.id}_age`, fieldKey: `member_${m.id}_age`, message: `Age is required for ${label}.` });
+            }
+            if (group !== 'visitor' && !isValidEmail(m.email)) {
+              issues.push({ elementId: `input_member_${m.id}_email`, fieldKey: `member_${m.id}_email`, message: `Please enter a valid Email address for ${label}.` });
+            }
+            if (!m.idCard) {
+              issues.push({ elementId: `file_${group}_${m.id}_label`, fieldKey: `member_${m.id}_idCard`, message: `Identity Card image is required for ${label}.` });
+            }
+            if (!m.address.trim()) {
+              issues.push({ elementId: `textarea_member_${m.id}_address`, fieldKey: `member_${m.id}_address`, message: `Address is required for ${label}.` });
+            }
+          });
         }
       }
-      
-      return false; // All active groups are valid
+
+      return issues;
     }
-    return false;
+
+    return [];
+  };
+
+  // Ensure all required fields are filled for active groups
+  const isNextDisabled = () => {
+    return getFormValidationIssues().length > 0;
   };
 
   const renderPersonalFields = (group: string, title: string, showTeamFields: boolean, specificFields?: React.ReactNode) => {
@@ -762,15 +1097,19 @@ export default function CheckoutForm() {
                 <span>Team / Squad Name <span className="text-violet-400">*</span></span>
               </label>
               <input
+                id={`input_${group}_teamName`}
                 type="text"
                 value={getField(group, 'teamName')}
                 onBlur={() => handleBlur(`${group}_teamName`)}
                 onChange={(e) => updateField(group, 'teamName', e.target.value)}
-                className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
                   touched[`${group}_teamName`] && !getField(group, 'teamName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
                 }`}
                 placeholder="Enter Team Name"
               />
+              {touched[`${group}_teamName`] && !getField(group, 'teamName').trim() && (
+                <p className="text-xs text-red-400 font-sans">Team name is required.</p>
+              )}
             </div>
           </div>
         )}
@@ -787,6 +1126,7 @@ export default function CheckoutForm() {
               Select the Member of Parliament/Journalist of your choice whom you will be representing/referencing during the competition.
             </p>
             <select
+              id="generic_vaadVivaadRepresentative"
               value={getField('generic', 'vaadVivaadRepresentative')}
               onBlur={() => handleBlur('generic_vaadVivaadRepresentative')}
               onChange={(e) => updateField('generic', 'vaadVivaadRepresentative', e.target.value)}
@@ -817,31 +1157,113 @@ export default function CheckoutForm() {
               <span>{showTeamFields ? "Team Leader Name" : group === 'visitor' ? "Primary Attendee Name" : "Name"} <span className="text-violet-400">*</span></span>
             </label>
             <input
+              id={`input_${group}_name`}
               type="text"
               value={getField(group, 'name')}
               onBlur={() => handleBlur(`${group}_name`)}
               onChange={(e) => updateField(group, 'name', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+              className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
                 touched[`${group}_name`] && !getField(group, 'name').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
               }`}
               placeholder="Enter your full name"
             />
+            {touched[`${group}_name`] && !getField(group, 'name').trim() && (
+              <p className="text-xs text-red-400 font-sans">Name is required.</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/80 flex justify-between">
-              <span>{showTeamFields ? "Team Leader Email" : group === 'visitor' ? "Primary Attendee Email" : "Email"} <span className="text-violet-400">*</span></span>
-            </label>
-            <input
-              type="email"
-              value={getField(group, 'email')}
-              onBlur={() => handleBlur(`${group}_email`)}
-              onChange={(e) => updateField(group, 'email', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
-                touched[`${group}_email`] && !isValidEmail(getField(group, 'email')) ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-              }`}
-              placeholder="you@example.com"
-            />
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80 flex justify-between">
+                <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
+              </label>
+
+              {group === "generic" && selectedEvents.includes("pronite_jklu") ? (
+                <input
+                  id={`select_${group}_institutionName`}
+                  type="text"
+                  value="JK Lakshmipat University"
+                  readOnly
+                  disabled
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/90 cursor-not-allowed select-none focus:outline-none"
+                />
+              ) : (
+                <select
+                  id={`select_${group}_institutionName`}
+                  value={
+                    getField(group, 'institutionSelect') ||
+                    (getField(group, 'institutionName') === "JK Lakshmipat University"
+                      ? "JK Lakshmipat University"
+                      : getField(group, 'institutionName')
+                      ? "other"
+                      : "")
+                  }
+                  onBlur={() => handleBlur(`${group}_institutionName`)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateField(group, 'institutionSelect', val);
+                    if (val === "JK Lakshmipat University") {
+                      updateField(group, 'institutionName', "JK Lakshmipat University");
+                      const currentEmail = getField(group, 'email');
+                      const pfx = currentEmail.includes('@') ? currentEmail.split('@')[0] : currentEmail;
+                      updateField(group, 'email', pfx ? `${pfx.replace(/\s+/g, '')}@jklu.edu.in` : "@jklu.edu.in");
+                    } else if (val === "other") {
+                      if (getField(group, 'institutionName') === "JK Lakshmipat University") {
+                        updateField(group, 'institutionName', "");
+                      }
+                      const currentEmail = getField(group, 'email');
+                      if (currentEmail === "@jklu.edu.in") {
+                        updateField(group, 'email', "");
+                      } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                        updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                      }
+                    } else {
+                      updateField(group, 'institutionName', "");
+                      const currentEmail = getField(group, 'email');
+                      if (currentEmail === "@jklu.edu.in") {
+                        updateField(group, 'email', "");
+                      } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                        updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                      }
+                    }
+                  }}
+                  className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
+                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                  }`}
+                >
+                  <option value="" className="bg-[#020202]">Select Institution</option>
+                  <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
+                  <option value="other" className="bg-[#020202]">Others</option>
+                </select>
+              )}
+            </div>
+
+            {!(group === "generic" && selectedEvents.includes("pronite_jklu")) &&
+              (getField(group, 'institutionSelect') === "other" ||
+                (!getField(group, 'institutionSelect') &&
+                  getField(group, 'institutionName') &&
+                  getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <label className="text-sm font-medium text-white/80 flex justify-between">
+                  <span>Enter Institution Name <span className="text-violet-400">*</span></span>
+                </label>
+                <input
+                  id={`input_${group}_institutionName`}
+                  type="text"
+                  value={getField(group, 'institutionName')}
+                  onBlur={() => handleBlur(`${group}_institutionName`)}
+                  onChange={(e) => updateField(group, 'institutionName', e.target.value)}
+                  className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                  }`}
+                  placeholder="Your school/college/university"
+                  autoFocus
+                />
+              </div>
+            )}
+            {!(group === "generic" && selectedEvents.includes("pronite_jklu")) && touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() && (
+              <p className="text-xs text-red-400 font-sans">Institution name is required.</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -849,15 +1271,27 @@ export default function CheckoutForm() {
               <span>{showTeamFields ? "Team Leader Mobile Number" : group === 'visitor' ? "Primary Attendee Mobile" : "Mobile Number"} <span className="text-violet-400">*</span></span>
             </label>
             <input
+              id={`input_${group}_mobileNumber`}
               type="tel"
               value={getField(group, 'mobileNumber')}
-              onBlur={() => handleBlur(`${group}_mobileNumber`)}
-              onChange={(e) => updateField(group, 'mobileNumber', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+              onBlur={() => {
+                handleBlur(`${group}_mobileNumber`);
+                const cl = sanitizePhone(getField(group, 'mobileNumber'));
+                if (cl.length === 10) updateField(group, 'mobileNumber', cl);
+              }}
+              onChange={(e) => {
+                const val = e.target.value;
+                const cl = sanitizePhone(val);
+                updateField(group, 'mobileNumber', cl.length === 10 ? cl : val.replace(/[^\d\s+\-]/g, ''));
+              }}
+              className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
                 touched[`${group}_mobileNumber`] && !isValidPhone(getField(group, 'mobileNumber')) ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
               }`}
               placeholder="10-digit number"
             />
+            {touched[`${group}_mobileNumber`] && !isValidPhone(getField(group, 'mobileNumber')) && (
+              <p className="text-xs text-red-400 font-sans">Please enter a valid 10-digit mobile number.</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -865,10 +1299,11 @@ export default function CheckoutForm() {
               <span>{showTeamFields ? "Team Leader Gender" : group === 'visitor' ? "Primary Attendee Gender" : "Gender"} <span className="text-violet-400">*</span></span>
             </label>
             <select
+              id={`select_${group}_gender`}
               value={getField(group, 'gender')}
               onBlur={() => handleBlur(`${group}_gender`)}
               onChange={(e) => updateField(group, 'gender', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all appearance-none ${
+              className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all appearance-none ${
                 touched[`${group}_gender`] && !getField(group, 'gender') ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
               }`}
             >
@@ -877,6 +1312,9 @@ export default function CheckoutForm() {
               <option value="female" className="bg-[#020202]">Female</option>
               <option value="other" className="bg-[#020202]">Other</option>
             </select>
+            {touched[`${group}_gender`] && !getField(group, 'gender') && (
+              <p className="text-xs text-red-400 font-sans">Gender is required.</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -884,77 +1322,88 @@ export default function CheckoutForm() {
               <span>{showTeamFields ? "Team Leader Age" : group === 'visitor' ? "Primary Attendee Age" : "Age"} <span className="text-violet-400">*</span></span>
             </label>
             <input
+              id={`input_${group}_age`}
               type="number"
               value={getField(group, 'age')}
               onBlur={() => handleBlur(`${group}_age`)}
               onChange={(e) => updateField(group, 'age', e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
-                touched[`${group}_age`] && !getField(group, 'age') ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+              className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                touched[`${group}_age`] && !getField(group, 'age').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
               }`}
               placeholder="e.g., 20"
             />
-          </div>
-
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white/80 flex justify-between">
-                <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
-              </label>
-              <select
-                value={
-                  getField(group, 'institutionSelect') ||
-                  (getField(group, 'institutionName') === "JK Lakshmipat University"
-                    ? "JK Lakshmipat University"
-                    : getField(group, 'institutionName')
-                    ? "other"
-                    : "")
-                }
-                onBlur={() => handleBlur(`${group}_institutionName`)}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  updateField(group, 'institutionSelect', val);
-                  if (val === "JK Lakshmipat University") {
-                    updateField(group, 'institutionName', "JK Lakshmipat University");
-                  } else if (val === "other") {
-                    if (getField(group, 'institutionName') === "JK Lakshmipat University") {
-                      updateField(group, 'institutionName', "");
-                    }
-                  } else {
-                    updateField(group, 'institutionName', "");
-                  }
-                }}
-                className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
-                  touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-                }`}
-              >
-                <option value="" className="bg-[#020202]">Select Institution</option>
-                <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
-                <option value="other" className="bg-[#020202]">Others</option>
-              </select>
-            </div>
-
-            {(getField(group, 'institutionSelect') === "other" ||
-              (!getField(group, 'institutionSelect') &&
-                getField(group, 'institutionName') &&
-                getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
-              <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                <label className="text-sm font-medium text-white/80 flex justify-between">
-                  <span>Enter Institution Name <span className="text-violet-400">*</span></span>
-                </label>
-                <input
-                  type="text"
-                  value={getField(group, 'institutionName')}
-                  onBlur={() => handleBlur(`${group}_institutionName`)}
-                  onChange={(e) => updateField(group, 'institutionName', e.target.value)}
-                  className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
-                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-                  }`}
-                  placeholder="Your school/college/university"
-                  autoFocus
-                />
-              </div>
+            {touched[`${group}_age`] && !getField(group, 'age').trim() && (
+              <p className="text-xs text-red-400 font-sans">Age is required.</p>
             )}
           </div>
+
+          {(() => {
+            const isJklu =
+              getField(group, 'institutionName') === "JK Lakshmipat University" ||
+              getField(group, 'institutionSelect') === "JK Lakshmipat University";
+            const emailValue = getField(group, 'email');
+            const prefix = emailValue.endsWith("@jklu.edu.in")
+              ? emailValue.slice(0, -"@jklu.edu.in".length)
+              : emailValue.includes("@")
+              ? emailValue.split("@")[0]
+              : emailValue;
+
+            return (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/80 flex justify-between">
+                  <span>{showTeamFields ? "Team Leader Email" : group === 'visitor' ? "Primary Attendee Email" : "Email"} <span className="text-violet-400">*</span></span>
+                </label>
+                {isJklu ? (
+                  <div
+                    className={`flex items-center w-full bg-white/5 border rounded-lg overflow-hidden transition-all focus-within:bg-white/10 ${
+                      touched[`${group}_email`] && !isValidEmail(emailValue)
+                        ? "border-red-500/50 focus-within:border-red-500"
+                        : "border-white/10 focus-within:border-violet-500"
+                    }`}
+                  >
+                    <input
+                      id={`input_${group}_email`}
+                      type="text"
+                      value={prefix}
+                      onBlur={() => {
+                        handleBlur(`${group}_email`);
+                        const cleanPrefix = prefix.replace(/@.*$/, '').replace(/\s+/g, '');
+                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                      }}
+                      onChange={(e) => {
+                        const cleanPrefix = e.target.value.replace(/@.*$/, '').replace(/\s+/g, '');
+                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                      }}
+                      className="flex-1 bg-transparent px-4 py-3 text-white placeholder-white/40 focus:outline-none min-w-0"
+                      placeholder="username / roll number"
+                    />
+                    <span className="px-3.5 py-3 bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 select-none whitespace-nowrap pointer-events-none flex items-center">
+                      @jklu.edu.in
+                    </span>
+                  </div>
+                ) : (
+                  <input
+                    id={`input_${group}_email`}
+                    type="email"
+                    value={emailValue}
+                    onBlur={() => {
+                      handleBlur(`${group}_email`);
+                      const cur = getField(group, 'email');
+                      if (cur) updateField(group, 'email', cur.trim());
+                    }}
+                    onChange={(e) => updateField(group, 'email', e.target.value)}
+                    className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all ${
+                      touched[`${group}_email`] && !isValidEmail(emailValue) ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                    }`}
+                    placeholder="you@example.com"
+                  />
+                )}
+                {touched[`${group}_email`] && !isValidEmail(emailValue) && (
+                  <p className="text-xs text-red-400 font-sans">Please enter a valid email address.</p>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/80 flex justify-between">
@@ -970,18 +1419,27 @@ export default function CheckoutForm() {
                   handleIdCardUpload(
                     group,
                     file,
-                    (url, name) => setIdCards((prev) => ({ ...prev, [group]: { url, name } })),
+                    (url, name) => {
+                      setIdCards((prev) => ({ ...prev, [group]: { url, name } }));
+                      setTouched((prev) => ({ ...prev, [`${group}_idCard`]: true }));
+                    },
                     () => {
                       e.target.value = "";
                       setIdCards((prev) => ({ ...prev, [group]: null }));
+                      setTouched((prev) => ({ ...prev, [`${group}_idCard`]: true }));
                     }
                   );
                 }}
                 className="hidden"
               />
               <label
+                id={`file_${group}_label`}
                 htmlFor={`file_${group}`}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 cursor-pointer relative overflow-hidden"
+                className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 cursor-pointer relative overflow-hidden ${
+                  touched[`${group}_idCard`] && !idCards[group]
+                    ? "border-red-500/50"
+                    : "border-white/10"
+                }`}
               >
                 {typeof uploadProgress[group] === "number" && uploadProgress[group] < 100 ? (
                   <>
@@ -1015,6 +1473,9 @@ export default function CheckoutForm() {
                 )}
               </label>
             </div>
+            {touched[`${group}_idCard`] && !idCards[group] && (
+              <p className="text-xs text-red-400 font-sans">Identity card image is required.</p>
+            )}
             <p className="text-[10px] text-white/40 font-sans">Max size: 5MB (Images only: PNG, JPG, JPEG, WEBP)</p>
           </div>
         </div>
@@ -1024,15 +1485,19 @@ export default function CheckoutForm() {
             <span>Address <span className="text-violet-400">*</span></span>
           </label>
           <textarea
+            id={`textarea_${group}_address`}
             value={getField(group, 'address')}
             onBlur={() => handleBlur(`${group}_address`)}
             onChange={(e) => updateField(group, 'address', e.target.value)}
             rows={2}
-            className={`w-full bg-white/5 border border-white/10 rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all resize-none ${
+            className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none transition-all resize-none ${
               touched[`${group}_address`] && !getField(group, 'address').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
             }`}
             placeholder="Enter your full address"
           />
+          {touched[`${group}_address`] && !getField(group, 'address').trim() && (
+            <p className="text-xs text-red-400 font-sans">Address is required.</p>
+          )}
         </div>
 
         {/* Dynamic Team Members / Additional Visitors Section */}
@@ -1040,7 +1505,7 @@ export default function CheckoutForm() {
           <div className="pt-8 mt-8 border-t border-white/10">
             <div className="flex justify-between items-center mb-4">
               <h4 className="text-lg font-bold text-[#22d3ee]">
-                {group === 'visitor' ? 'Additional Visitors' : 'Team Members'}
+                {group === 'visitor' ? 'Additional Visitors' : `Team Members (${totalMembers} Total • Leader + ${members.length} Teammates)`}
               </h4>
               {group !== 'visitor' && totalMembers < req.max && (
                 <button
@@ -1053,7 +1518,10 @@ export default function CheckoutForm() {
               )}
             </div>
             
-            <div className={`p-4 rounded-lg mb-6 border ${needsMore ? 'bg-red-500/10 border-red-500/30' : 'bg-green-500/10 border-green-500/30'}`}>
+            <div
+              id={`section_members_${group}`}
+              className={`p-4 rounded-lg mb-6 border ${needsMore ? 'bg-red-500/10 border-red-500/30' : 'bg-green-500/10 border-green-500/30'}`}
+            >
               <p className="text-sm text-white/90">
                 {group === 'visitor' ? (
                   <>
@@ -1089,7 +1557,7 @@ export default function CheckoutForm() {
                             removeTeamMember(group, member.id);
                           }
                         }}
-                        className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                        className="text-red-400 hover:text-red-300 text-sm transition-colors cursor-pointer"
                       >
                         Remove
                       </button>
@@ -1100,60 +1568,28 @@ export default function CheckoutForm() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-white/80">Name <span className="text-violet-400">*</span></label>
                       <input
+                        id={`input_member_${member.id}_name`}
                         type="text"
                         value={member.name}
+                        onBlur={() => handleBlur(`member_${member.id}_name`)}
                         onChange={(e) => updateTeamMember(group, member.id, 'name', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
+                        className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none transition-all ${
+                          touched[`member_${member.id}_name`] && !member.name.trim()
+                            ? "border-red-500/50 focus:border-red-500"
+                            : "border-white/10 focus:border-violet-500"
+                        }`}
                         placeholder="Enter full name"
                       />
+                      {touched[`member_${member.id}_name`] && !member.name.trim() && (
+                        <p className="text-xs text-red-400 font-sans">Name is required.</p>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/80">Email <span className="text-violet-400">*</span></label>
-                      <input
-                        type="email"
-                        value={member.email}
-                        onChange={(e) => updateTeamMember(group, member.id, 'email', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
-                        placeholder="you@example.com"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/80">Mobile Number <span className="text-violet-400">*</span></label>
-                      <input
-                        type="tel"
-                        value={member.mobileNumber}
-                        onChange={(e) => updateTeamMember(group, member.id, 'mobileNumber', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
-                        placeholder="10-digit number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/80">Gender <span className="text-violet-400">*</span></label>
-                      <select
-                        value={member.gender}
-                        onChange={(e) => updateTeamMember(group, member.id, 'gender', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 appearance-none"
-                      >
-                        <option value="" className="bg-[#020202]">Select Gender</option>
-                        <option value="male" className="bg-[#020202]">Male</option>
-                        <option value="female" className="bg-[#020202]">Female</option>
-                        <option value="other" className="bg-[#020202]">Other</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-white/80">Age <span className="text-violet-400">*</span></label>
-                      <input
-                        type="number"
-                        value={member.age}
-                        onChange={(e) => updateTeamMember(group, member.id, 'age', e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500"
-                        placeholder="e.g., 20"
-                      />
-                    </div>
+
                     <div className="space-y-3">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-white/80">Institution Name <span className="text-violet-400">*</span></label>
                         <select
+                          id={`select_member_${member.id}_institutionName`}
                           value={
                             member.institutionSelect ||
                             (member.institutionName === "JK Lakshmipat University"
@@ -1162,20 +1598,40 @@ export default function CheckoutForm() {
                               ? "other"
                               : "")
                           }
+                          onBlur={() => handleBlur(`member_${member.id}_institutionName`)}
                           onChange={(e) => {
                             const val = e.target.value;
                             updateTeamMember(group, member.id, 'institutionSelect', val);
                             if (val === "JK Lakshmipat University") {
                               updateTeamMember(group, member.id, 'institutionName', "JK Lakshmipat University");
+                              const currentEmail = member.email || "";
+                              const pfx = currentEmail.includes('@') ? currentEmail.split('@')[0] : currentEmail;
+                              updateTeamMember(group, member.id, 'email', pfx ? `${pfx.replace(/\s+/g, '')}@jklu.edu.in` : "@jklu.edu.in");
                             } else if (val === "other") {
                               if (member.institutionName === "JK Lakshmipat University") {
                                 updateTeamMember(group, member.id, 'institutionName', "");
                               }
+                              const currentEmail = member.email || "";
+                              if (currentEmail === "@jklu.edu.in") {
+                                updateTeamMember(group, member.id, 'email', "");
+                              } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                                updateTeamMember(group, member.id, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                              }
                             } else {
                               updateTeamMember(group, member.id, 'institutionName', "");
+                              const currentEmail = member.email || "";
+                              if (currentEmail === "@jklu.edu.in") {
+                                updateTeamMember(group, member.id, 'email', "");
+                              } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                                updateTeamMember(group, member.id, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                              }
                             }
                           }}
-                          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                          className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none cursor-pointer transition-all ${
+                            touched[`member_${member.id}_institutionName`] && !member.institutionName.trim()
+                              ? "border-red-500/50 focus:border-red-500"
+                              : "border-white/10 focus:border-violet-500"
+                          }`}
                         >
                           <option value="" className="bg-[#020202]">Select Institution</option>
                           <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
@@ -1190,16 +1646,159 @@ export default function CheckoutForm() {
                         <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
                           <label className="text-sm font-medium text-white/80">Enter Institution Name <span className="text-violet-400">*</span></label>
                           <input
+                            id={`input_member_${member.id}_institutionName`}
                             type="text"
                             value={member.institutionName}
+                            onBlur={() => handleBlur(`member_${member.id}_institutionName`)}
                             onChange={(e) => updateTeamMember(group, member.id, 'institutionName', e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 placeholder-white/40"
+                            className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none placeholder-white/40 transition-all ${
+                              touched[`member_${member.id}_institutionName`] && !member.institutionName.trim()
+                                ? "border-red-500/50 focus:border-red-500"
+                                : "border-white/10 focus:border-violet-500"
+                            }`}
                             placeholder="Your school/college"
                             autoFocus
                           />
                         </div>
                       )}
+                      {touched[`member_${member.id}_institutionName`] && !member.institutionName.trim() && (
+                        <p className="text-xs text-red-400 font-sans">Institution name is required.</p>
+                      )}
                     </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white/80">Mobile Number <span className="text-violet-400">*</span></label>
+                      <input
+                        id={`input_member_${member.id}_mobileNumber`}
+                        type="tel"
+                        value={member.mobileNumber}
+                        onBlur={() => {
+                          handleBlur(`member_${member.id}_mobileNumber`);
+                          const cleaned = sanitizePhone(member.mobileNumber);
+                          if (cleaned !== member.mobileNumber) {
+                            updateTeamMember(group, member.id, 'mobileNumber', cleaned);
+                          }
+                        }}
+                        onChange={(e) => updateTeamMember(group, member.id, 'mobileNumber', e.target.value)}
+                        className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none transition-all ${
+                          touched[`member_${member.id}_mobileNumber`] && !isValidPhone(member.mobileNumber)
+                            ? "border-red-500/50 focus:border-red-500"
+                            : "border-white/10 focus:border-violet-500"
+                        }`}
+                        placeholder="10-digit number"
+                      />
+                      {touched[`member_${member.id}_mobileNumber`] && !isValidPhone(member.mobileNumber) && (
+                        <p className="text-xs text-red-400 font-sans">
+                          {!member.mobileNumber.trim() ? "Mobile number is required." : "Please enter a valid 10-digit mobile number."}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white/80">Gender <span className="text-violet-400">*</span></label>
+                      <select
+                        id={`select_member_${member.id}_gender`}
+                        value={member.gender}
+                        onBlur={() => handleBlur(`member_${member.id}_gender`)}
+                        onChange={(e) => updateTeamMember(group, member.id, 'gender', e.target.value)}
+                        className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none appearance-none transition-all cursor-pointer ${
+                          touched[`member_${member.id}_gender`] && !member.gender
+                            ? "border-red-500/50 focus:border-red-500"
+                            : "border-white/10 focus:border-violet-500"
+                        }`}
+                      >
+                        <option value="" className="bg-[#020202]">Select Gender</option>
+                        <option value="male" className="bg-[#020202]">Male</option>
+                        <option value="female" className="bg-[#020202]">Female</option>
+                        <option value="other" className="bg-[#020202]">Other</option>
+                      </select>
+                      {touched[`member_${member.id}_gender`] && !member.gender && (
+                        <p className="text-xs text-red-400 font-sans">Gender is required.</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white/80">Age <span className="text-violet-400">*</span></label>
+                      <input
+                        id={`input_member_${member.id}_age`}
+                        type="number"
+                        value={member.age}
+                        onBlur={() => handleBlur(`member_${member.id}_age`)}
+                        onChange={(e) => updateTeamMember(group, member.id, 'age', e.target.value)}
+                        className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none transition-all ${
+                          touched[`member_${member.id}_age`] && !member.age.trim()
+                            ? "border-red-500/50 focus:border-red-500"
+                            : "border-white/10 focus:border-violet-500"
+                        }`}
+                        placeholder="e.g., 20"
+                      />
+                      {touched[`member_${member.id}_age`] && !member.age.trim() && (
+                        <p className="text-xs text-red-400 font-sans">Age is required.</p>
+                      )}
+                    </div>
+
+                    {(() => {
+                      const isMemberJklu =
+                        member.institutionName === "JK Lakshmipat University" ||
+                        member.institutionSelect === "JK Lakshmipat University";
+                      const memberEmail = member.email || "";
+                      const prefix = memberEmail.endsWith("@jklu.edu.in")
+                        ? memberEmail.slice(0, -"@jklu.edu.in".length)
+                        : memberEmail.includes("@")
+                        ? memberEmail.split("@")[0]
+                        : memberEmail;
+
+                      return (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-white/80">
+                            Email {group !== 'visitor' && <span className="text-violet-400">*</span>}
+                          </label>
+                          {isMemberJklu ? (
+                            <div className={`flex items-center w-full bg-black/40 border rounded-lg overflow-hidden transition-all ${
+                              touched[`member_${member.id}_email`] && group !== 'visitor' && !isValidEmail(member.email)
+                                ? "border-red-500/50 focus-within:border-red-500"
+                                : "border-white/10 focus-within:border-violet-500"
+                            }`}>
+                              <input
+                                id={`input_member_${member.id}_email`}
+                                type="text"
+                                value={prefix}
+                                onBlur={() => handleBlur(`member_${member.id}_email`)}
+                                onChange={(e) => {
+                                  const cleanPrefix = e.target.value.replace(/@.*$/, '').replace(/\s+/g, '');
+                                  updateTeamMember(group, member.id, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                                }}
+                                className="flex-1 bg-transparent px-4 py-3 text-white placeholder-white/40 focus:outline-none min-w-0"
+                                placeholder="username / roll number"
+                              />
+                              <span className="px-3.5 py-3 bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 select-none whitespace-nowrap pointer-events-none flex items-center">
+                                @jklu.edu.in
+                              </span>
+                            </div>
+                          ) : (
+                            <input
+                              id={`input_member_${member.id}_email`}
+                              type="email"
+                              value={member.email}
+                              onBlur={() => handleBlur(`member_${member.id}_email`)}
+                              onChange={(e) => updateTeamMember(group, member.id, 'email', e.target.value.trim())}
+                              className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none transition-all ${
+                                touched[`member_${member.id}_email`] && group !== 'visitor' && !isValidEmail(member.email)
+                                  ? "border-red-500/50 focus:border-red-500"
+                                  : "border-white/10 focus:border-violet-500"
+                              }`}
+                              placeholder="you@example.com"
+                            />
+                          )}
+                          {touched[`member_${member.id}_email`] && group !== 'visitor' && !isValidEmail(member.email) && (
+                            <p className="text-xs text-red-400 font-sans">
+                              {!member.email.trim() ? "Email is required." : "Please enter a valid email address."}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-white/80 flex justify-between">
                         <span>Institution Identity Card <span className="text-violet-400">*</span></span>
@@ -1212,10 +1811,14 @@ export default function CheckoutForm() {
                           onChange={(e) => {
                             const file = e.target.files?.[0] || null;
                             const memberKey = `${group}_${member.id}`;
+                            handleBlur(`member_${member.id}_idCard`);
                             handleIdCardUpload(
                               memberKey,
                               file,
-                              (url, name) => { updateTeamMember(group, member.id, 'idCard', url); updateTeamMember(group, member.id, 'idCardName', name); },
+                              (url, name) => {
+                                updateTeamMember(group, member.id, 'idCard', url);
+                                updateTeamMember(group, member.id, 'idCardName', name);
+                              },
                               () => {
                                 e.target.value = "";
                                 updateTeamMember(group, member.id, 'idCard', null);
@@ -1225,8 +1828,13 @@ export default function CheckoutForm() {
                           className="hidden"
                         />
                         <label
+                          id={`file_${group}_${member.id}_label`}
                           htmlFor={`file_${group}_${member.id}`}
-                          className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 cursor-pointer relative overflow-hidden"
+                          className={`w-full bg-black/40 border rounded-lg px-4 py-3 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 cursor-pointer relative overflow-hidden ${
+                            touched[`member_${member.id}_idCard`] && !member.idCard
+                              ? "border-red-500/50 text-red-300"
+                              : "border-white/10 text-white/60"
+                          }`}
                         >
                           {typeof uploadProgress[`${group}_${member.id}`] === "number" && uploadProgress[`${group}_${member.id}`] < 100 ? (
                             <>
@@ -1260,18 +1868,31 @@ export default function CheckoutForm() {
                           )}
                         </label>
                       </div>
+                      {touched[`member_${member.id}_idCard`] && !member.idCard && (
+                        <p className="text-xs text-red-400 font-sans">Identity card image is required.</p>
+                      )}
                       <p className="text-[10px] text-white/40 font-sans">Max size: 5MB (Images only: PNG, JPG, JPEG, WEBP)</p>
                     </div>
                   </div>
+
                   <div className="space-y-2 mt-6">
                     <label className="text-sm font-medium text-white/80">Address <span className="text-violet-400">*</span></label>
                     <textarea
+                      id={`textarea_member_${member.id}_address`}
                       value={member.address}
+                      onBlur={() => handleBlur(`member_${member.id}_address`)}
                       onChange={(e) => updateTeamMember(group, member.id, 'address', e.target.value)}
                       rows={2}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-violet-500 resize-none"
+                      className={`w-full bg-black/40 border rounded-lg px-4 py-3 text-white focus:outline-none resize-none transition-all ${
+                        touched[`member_${member.id}_address`] && !member.address.trim()
+                          ? "border-red-500/50 focus:border-red-500"
+                          : "border-white/10 focus:border-violet-500"
+                      }`}
                       placeholder="Enter full address"
                     />
+                    {touched[`member_${member.id}_address`] && !member.address.trim() && (
+                      <p className="text-xs text-red-400 font-sans">Address is required.</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1804,10 +2425,12 @@ export default function CheckoutForm() {
                     days: visitorDays,
                   }, isEarlyBirdActive);
 
-                  const isFlagship = isFlagshipEvent(ev);
                   const membersCount = ev.isTeam ? totalMembers : 1;
-                  const showBankFee = isFlagship && (!ev.isTeam || totalMembers > 1);
-                  const bankFee = showBankFee ? calculateFlagshipBankFee(ev, membersCount) : 0;
+                  const bankFee = getEventBandFee(ev, totalMembers, {
+                    count: visitorCount,
+                    days: visitorDays,
+                  }, true);
+                  const showBankFee = bankFee > 0;
 
                   return (
                     <div key={eventId} className="py-2 border-b border-white/5 last:border-0 space-y-2">
@@ -1827,12 +2450,12 @@ export default function CheckoutForm() {
                           )}
                           {ev.isTeam && ev.extraMemberFee > 0 && totalMembers > ev.baseIncludedMembers && (
                             <div className="text-[11px] text-violet-400 font-sans mt-0.5">
-                              {totalMembers} members ({ev.baseIncludedMembers} base + {totalMembers - ev.baseIncludedMembers} extra @ ₹{isEarlyBirdActive && ev.earlyBirdExtraMemberFee !== undefined ? ev.earlyBirdExtraMemberFee : ev.extraMemberFee})
+                              Total Team: {totalMembers} members (incl. leader) • ({ev.baseIncludedMembers} base + {totalMembers - ev.baseIncludedMembers} extra @ ₹{isEarlyBirdActive && ev.earlyBirdExtraMemberFee !== undefined ? ev.earlyBirdExtraMemberFee : ev.extraMemberFee})
                             </div>
                           )}
-                          {ev.isTeam && ev.extraMemberFee === 0 && (
+                          {ev.isTeam && (ev.extraMemberFee === 0 || totalMembers <= ev.baseIncludedMembers) && (
                             <div className="text-[11px] text-white/50 font-sans mt-0.5">
-                              Team of {totalMembers} members (flat team fee)
+                              Total Team: {totalMembers} members (incl. leader)
                             </div>
                           )}
                         </div>
@@ -1842,7 +2465,7 @@ export default function CheckoutForm() {
                       {showBankFee && (
                         <div className="flex justify-between items-center text-xs font-sans pl-2.5 py-1.5 border-l-2 border-amber-400/50 bg-amber-400/10 rounded-r">
                           <span className="text-amber-300 font-medium">
-                            Band Fee: 7 * {membersCount} (no of person) =
+                            Band Fee (Mandatory): 7 * {ev.id === "visitor" ? `${visitorCount} (person) * ${visitorDays.length} (day)` : `${membersCount} (no of person)`} =
                           </span>
                           <span className="font-bold font-sans text-amber-300">₹ {bankFee}</span>
                         </div>
@@ -1920,7 +2543,7 @@ export default function CheckoutForm() {
                       <span>
                         Coupon {promoCode} applied ({
                           couponData.discountType === 'fixed' 
-                            ? `Special Price ₹${couponData.finalPrice}` 
+                            ? `Special Price ₹${couponData.discountValue}` 
                             : couponData.discountType === 'per_head_cap'
                             ? `Cap ₹${couponData.discountValue}/head`
                             : `${couponData.discountValue}% Off`
@@ -1972,44 +2595,52 @@ export default function CheckoutForm() {
 
         {/* Mobile Navigation Buttons */}
         {verificationStatus === "idle" && (
-          <div className="flex lg:hidden justify-between items-center mt-6 border-t border-white/10 pt-4">
-            <button
-              type="button"
-              onClick={handleBack}
-              disabled={stepIndex === 0 || isProcessingPayment}
-              className={`px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 text-xs font-bold ${
-                stepIndex === 0
-                  ? "opacity-0 pointer-events-none" 
-                  : "bg-white/5 border border-white/10 hover:border-cyan-400/50 hover:bg-white/10 text-white cursor-pointer"
-              }`}
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back
-            </button>
+          <div className="flex flex-col gap-3 lg:hidden mt-6 border-t border-white/10 pt-4">
+            {formErrorMessage && currentStep === "forms" && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5 text-left animate-in fade-in duration-200">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>{formErrorMessage}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={stepIndex === 0 || isProcessingPayment}
+                className={`px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 text-xs font-bold ${
+                  stepIndex === 0
+                    ? "opacity-0 pointer-events-none" 
+                    : "bg-white/5 border border-white/10 hover:border-cyan-400/50 hover:bg-white/10 text-white cursor-pointer"
+                }`}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Back
+              </button>
 
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={isNextDisabled() || isProcessingPayment}
-              className="px-8 py-2.5 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl transition-all flex items-center gap-2 font-bold text-black text-xs shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
-            >
-              {isProcessingPayment ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Connecting...</span>
-                </>
-              ) : currentStep === "review" ? (
-                <>
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{calculateTotal() === 0 ? "Complete Registration" : `Pay ₹${calculateTotal()}`}</span>
-                </>
-              ) : (
-                <>
-                  <span>Continue</span>
-                  <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={currentStep === "select" ? selectedEvents.length === 0 : isProcessingPayment}
+                className="px-8 py-2.5 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl transition-all flex items-center gap-2 font-bold text-black text-xs shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Connecting...</span>
+                  </>
+                ) : currentStep === "review" ? (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>{calculateTotal() === 0 ? "Complete Registration" : `Pay ₹${calculateTotal()}`}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Continue</span>
+                    <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -2038,10 +2669,11 @@ export default function CheckoutForm() {
                   days: visitorDays,
                 }, isEarlyBirdActive);
 
-                const isFlagship = isFlagshipEvent(ev);
                 const membersCount = ev.isTeam ? totalMembers : 1;
-                const showBankFee = isFlagship && currentStep !== "select" && (!ev.isTeam || totalMembers > 1);
-                const bankFee = showBankFee ? calculateFlagshipBankFee(ev, membersCount) : 0;
+                const bankFee = currentStep !== "select"
+                  ? getEventBandFee(ev, totalMembers, { count: visitorCount, days: visitorDays }, true)
+                  : 0;
+                const showBankFee = bankFee > 0;
 
                 return (
                   <div key={id} className="py-2 border-b border-white/5 last:border-0 space-y-1.5">
@@ -2062,7 +2694,7 @@ export default function CheckoutForm() {
                     {showBankFee && (
                       <div className="flex justify-between items-center text-[11px] font-sans pl-2 border-l-2 border-amber-400/50 py-0.5 bg-amber-400/10 rounded-r">
                         <span className="text-amber-300 font-medium">
-                          Band Fee: 7 * {membersCount} (no of person) =
+                          Band Fee (Mandatory): 7 * {ev.id === "visitor" ? `${visitorCount} (person) * ${visitorDays.length} (day)` : `${membersCount} (no of person)`} =
                         </span>
                         <span className="font-bold font-sans text-amber-300 shrink-0">
                           ₹{bankFee}
@@ -2104,11 +2736,16 @@ export default function CheckoutForm() {
 
           {currentStep === "forms" && (
             <div className="space-y-2">
+              {formErrorMessage && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5 text-left animate-in fade-in duration-200">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>{formErrorMessage}</span>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={isNextDisabled()}
-                className="w-full py-3.5 px-6 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed text-black font-extrabold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-all cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-all cursor-pointer"
               >
                 <span>Proceed to Review</span>
                 <ChevronRight className="w-4 h-4 stroke-[2.5]" />

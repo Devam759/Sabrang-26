@@ -44,9 +44,50 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Keep navbar always visible so Menu bar is never lost during scrolling
-    setIsVisible(true);
-  }, []);
+    // Only apply hide-on-scroll-down on mobile for the /register page
+    if (pathname !== "/register") {
+      setIsVisible(true);
+      return;
+    }
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const isMobile = window.innerWidth < 768;
+
+          if (!isMobile) {
+            setIsVisible(true);
+          } else {
+            if (currentScrollY < 40) {
+              setIsVisible(true);
+            } else if (currentScrollY > lastScrollY + 5) {
+              // Scrolling down: hide
+              setIsVisible(false);
+            } else if (currentScrollY < lastScrollY - 5) {
+              // Scrolling up: reveal
+              setIsVisible(true);
+            }
+          }
+
+          lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     const handlePageReady = () => {

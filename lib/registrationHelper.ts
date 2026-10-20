@@ -200,7 +200,7 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
   drawField('Mobile Number', regInfo.phone, 300, 436);
 
   drawField('Team Name', regInfo.teamName, 40, 403);
-  drawField('No. of Teammates', regInfo.noOfTeammates, 300, 403);
+  drawField('Total Members (incl. Leader)', regInfo.isTeam ? regInfo.totalMembers : '1', 300, 403);
 
   // 2. ADDRESS Section
   drawSectionHeader('ADDRESS', 360);
@@ -380,9 +380,27 @@ export async function sendSystemErrorEmail(performedBy: string, targetEntity: st
 // ============================================================================
 export async function finalizeRegistration(formData: any, paymentId: string, orderId: string, skipBackgroundTasks: boolean = false) {
   console.log("Saving registration to Firestore...");
-  const basePrice = typeof formData.amount === 'number' && !isNaN(formData.amount)
-    ? formData.amount
-    : Number(formData.price ?? formData.originalPrice ?? 500);
+  const eventTarget = formData.eventId || formData.event || formData.eventName || formData.eventTitle || '';
+  const eventList = Array.isArray(formData.selectedEvents) && formData.selectedEvents.length > 0
+    ? formData.selectedEvents
+    : (formData.eventId ? [formData.eventId] : []);
+
+  const { calculateTotalRegistrationFee } = await import('@/lib/eventPricing');
+  let isEarlyBird = formData.isEarlyBird;
+  if (isEarlyBird === undefined) {
+    const settingsSnap = await adminDb.collection('settings').doc('earlyBird').get();
+    isEarlyBird = settingsSnap.exists ? settingsSnap.data()?.active === true : false;
+  }
+
+  let authoritativePrice = calculateTotalRegistrationFee(eventList, formData.teamMembers, formData.visitorConfig, isEarlyBird);
+  if (authoritativePrice <= 0 && typeof formData.amount === 'number' && formData.amount > 0) {
+    authoritativePrice = formData.amount;
+  }
+  const basePrice = (eventList.length > 0 && authoritativePrice >= 0)
+    ? authoritativePrice
+    : (typeof formData.amount === 'number' && !isNaN(formData.amount)
+        ? formData.amount
+        : Number(formData.price ?? formData.originalPrice ?? 500));
   let paymentAmount = basePrice;
   const couponCode = (formData.coupon || '').trim().toLowerCase();
   let couponDocRef: any = null;
@@ -395,15 +413,11 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       }
       if (docSnap.exists) {
         const { calculateCouponDiscount } = await import('@/lib/couponHelper');
-        const eventTarget = formData.eventId || formData.event || formData.eventName || formData.eventTitle || '';
-        const eventList = Array.isArray(formData.selectedEvents) && formData.selectedEvents.length > 0
-          ? formData.selectedEvents
-          : (formData.eventId ? [formData.eventId] : []);
         const res = calculateCouponDiscount(docSnap.data(), basePrice, eventTarget, {
           selectedEvents: eventList,
           teamMembers: formData.teamMembers,
           visitorConfig: formData.visitorConfig,
-          isEarlyBird: formData.isEarlyBird,
+          isEarlyBird,
         });
         if (res.valid) {
           paymentAmount = res.finalPrice;
@@ -765,9 +779,7 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
         events: eventTitlesList,
         eventType: unifiedData.eventType,
         teamName: unifiedData.teamName,
-        members: unifiedData.eventType === 'Team' && unifiedData.noOfTeammates !== 'N/A' 
-          ? (Number(unifiedData.noOfTeammates) + 1) 
-          : 1,
+        members: unifiedData.eventType === 'Team' ? Number(unifiedData.totalMembers || 1) : 1,
         amtPaid: String(extractAmount(formData)),
         paymentId: paymentId || 'N/A',
         orderId: orderId || 'N/A',

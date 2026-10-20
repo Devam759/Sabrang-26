@@ -215,6 +215,7 @@ export interface ExtractedRegistrationInfo {
   address: string;
   teamName: string;
   noOfTeammates: string;
+  totalMembers: string; // Total count including team leader
 }
 
 /**
@@ -226,9 +227,9 @@ export interface ExtractedRegistrationInfo {
  * 2. TEAM NAME:
  *    - SOLO: "N/A"
  *    - TEAM: [Actual Team Name] (dynamic)
- * 3. NO. OF TEAMMATES:
- *    - SOLO: "N/A" (never 0)
- *    - TEAM: [Actual Number] (other members count)
+ * 3. TOTAL MEMBERS (incl. Leader):
+ *    - SOLO: "1" (or "N/A")
+ *    - TEAM: [Actual Number] (total members count including leader)
  * 4. EVENT TYPE:
  *    - "Solo" or "Team"
  */
@@ -263,16 +264,20 @@ export function extractRegistrationInfo(data: any, idFallback?: string): Extract
 
   let teamName = 'N/A';
   let noOfTeammates = 'N/A';
+  let totalMembers = '1';
 
   if (isTeam) {
     const extractedName = extractRegistrationTeamName(data);
     teamName = extractedName || 'N/A';
 
     const count = extractOtherTeammatesCount(data);
-    noOfTeammates = (count !== null && count >= 0) ? String(count) : 'N/A';
+    const totalCount = (count !== null && count >= 0) ? (count + 1) : 1;
+    totalMembers = String(totalCount);
+    noOfTeammates = String(totalCount); // Always show total count including team leader
   } else {
     teamName = 'N/A';
     noOfTeammates = 'N/A'; // Never show 0 for solo!
+    totalMembers = '1';
   }
 
   return {
@@ -286,6 +291,7 @@ export function extractRegistrationInfo(data: any, idFallback?: string): Extract
     address,
     teamName,
     noOfTeammates,
+    totalMembers,
   };
 }
 
