@@ -144,6 +144,7 @@ function CameraController() {
 export default function HeroScene() {
   const [mobile, setMobile] = useState<boolean | null>(null)
   const [q, setQ] = useState<HeroQuality | null>(null)
+  const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
     setMobile(window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches)
@@ -151,9 +152,23 @@ export default function HeroScene() {
     const stopInput = startHeroInput()
     const stopPanel = heroDebugEnabled() ? mountHeroDebugPanel() : undefined
 
+    // Occlusion culling: pause WebGL render loop when user scrolls past hero track
+    let observer: IntersectionObserver | null = null
+    const track = document.getElementById('hero-scroll-track')
+    if (track && typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsVisible(entry.isIntersecting)
+        },
+        { rootMargin: '120px 0px' }
+      )
+      observer.observe(track)
+    }
+
     return () => {
       stopInput()
       stopPanel?.()
+      observer?.disconnect()
     }
   }, [])
 
@@ -161,11 +176,16 @@ export default function HeroScene() {
 
   return (
     <div
-      className="hero-scene-wrapper fixed inset-0 z-0 pointer-events-none"
-      style={{ touchAction: 'none', background: '#000' }}
+      className="hero-scene-wrapper fixed inset-0 z-0 pointer-events-none transition-opacity duration-300"
+      style={{
+        touchAction: 'none',
+        background: '#000',
+        visibility: isVisible ? 'visible' : 'hidden',
+        opacity: isVisible ? 1 : 0,
+      }}
     >
       <Canvas
-        frameloop="always"
+        frameloop={isVisible ? 'always' : 'demand'}
         camera={{ position: [0, 0, heroConfig.cameraDistance], fov: heroConfig.cameraFOV, near: 0.1, far: 200 }}
         dpr={1}
         gl={{ antialias: false, alpha: false, stencil: false }}

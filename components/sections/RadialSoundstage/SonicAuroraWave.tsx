@@ -7,6 +7,7 @@ interface SonicAuroraWaveProps {
   waveSpeed: number
   waveTurbulence: number
   accentColor: string
+  isActive?: boolean
 }
 
 function withAlpha(color: string, alpha: number): string {
@@ -33,6 +34,7 @@ export default function SonicAuroraWave({
   waveSpeed,
   waveTurbulence,
   accentColor,
+  isActive = true,
 }: SonicAuroraWaveProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pointerRef = useRef({ x: 0.5, y: 0.5, speed: 0 })
@@ -41,6 +43,8 @@ export default function SonicAuroraWave({
 
   // Track pointer for fluid wave ripple excitation and spark burst
   useEffect(() => {
+    if (!isActive) return
+
     const handlePointerMove = (e: PointerEvent) => {
       const now = Date.now()
       const dt = Math.max(16, now - lastPointerRef.current.time)
@@ -55,9 +59,11 @@ export default function SonicAuroraWave({
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     return () => window.removeEventListener('pointermove', handlePointerMove)
-  }, [])
+  }, [isActive])
 
   useEffect(() => {
+    if (!isActive) return
+
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -248,7 +254,7 @@ export default function SonicAuroraWave({
       window.removeEventListener('resize', resize)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [bpm, waveSpeed, waveTurbulence, accentColor])
+  }, [bpm, waveSpeed, waveTurbulence, accentColor, isActive])
 
   return (
     <div className="relative w-full h-10 sm:h-16 md:h-24 lg:h-32 flex items-center justify-center pointer-events-none select-none overflow-hidden">

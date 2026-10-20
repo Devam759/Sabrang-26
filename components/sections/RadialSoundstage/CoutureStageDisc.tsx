@@ -16,6 +16,7 @@ interface CoutureStageDiscProps {
   hideDock?: boolean
   soundEnabled?: boolean
   onToggleSound?: () => void
+  isActive?: boolean
 }
 
 export default function CoutureStageDisc({
@@ -27,6 +28,7 @@ export default function CoutureStageDisc({
   hideDock = false,
   soundEnabled: externalSoundEnabled,
   onToggleSound,
+  isActive = true,
 }: CoutureStageDiscProps) {
   const discRef = useRef<HTMLDivElement>(null)
   const turntablePlatterRef = useRef<HTMLDivElement>(null)
@@ -364,6 +366,8 @@ export default function CoutureStageDisc({
 
   // Continuous Ambient Vinyl Turntable Motor Spin (Subtle, luxurious 33⅓ RPM feel)
   useEffect(() => {
+    if (!isActive) return
+
     let lastMotorTime = performance.now()
     let motorRaf: number
 
@@ -383,7 +387,7 @@ export default function CoutureStageDisc({
 
     motorRaf = requestAnimationFrame(motorTick)
     return () => cancelAnimationFrame(motorRaf)
-  }, [applyTurntableRotation])
+  }, [applyTurntableRotation, isActive])
 
   // Initial mount positioning
   const isMountedRef = useRef(false)
