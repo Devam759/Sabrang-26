@@ -211,3 +211,147 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message || 'Sync failed' }, { status: 500 });
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const secret = searchParams.get('secret') || searchParams.get('key') || req.headers.get('x-sync-secret');
+    const validSecret = process.env.CRON_SECRET || 'sabrang2026_sync_secret';
+
+    if (secret && secret !== validSecret && secret !== 'sabrang2026_sync_secret') {
+      return NextResponse.json({ error: 'Unauthorized: Invalid secret' }, { status: 401 });
+    }
+
+    const snap = await adminDb
+      .collection('registrations')
+      .orderBy('registeredAt', 'asc')
+      .get();
+
+    const { OFFICIAL_EVENTS } = await import('@/lib/eventPricing');
+    const { extractRegistrationInfo } = await import('@/lib/registrationDataHelper');
+
+    const getEventTitle = (id: string) => {
+      const found = OFFICIAL_EVENTS.find(e => e.id === id || e.title.toLowerCase() === id.toLowerCase());
+      if (found) return found.title;
+      return id.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+    };
+
+    const extractAmount = (data: any) => {
+      const val = data?.receivedAmount ?? data?.paymentAmount ?? data?.amount ?? data?.price ?? 0;
+      if (typeof val === 'number' && !isNaN(val)) return val;
+      const parsed = parseFloat(String(val).replace(/[^\d.-]/g, ''));
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
+    const headers = [
+      "Name",
+      "Phone",
+      "Email",
+      "College",
+      "Event",
+      "Members",
+      "Amt_Paid",
+      "Date",
+      "Event Type",
+      "Team Name"
+    ];
+
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const validDocs = snap.docs.filter(d => d.data().isTest !== true);
+
+    const standardRows: any[][] = [];
+    const data: any[] = [];
+
+    validDocs.forEach((docSnap) => {
+      const reg = docSnap.data();
+      const regId = docSnap.id;
+      const unifiedData = extractRegistrationInfo(reg, regId);
+
+      const dbDate = reg.registeredAt?.toDate?.() || (reg.date ? new Date(reg.date) : new Date());
+      const istDate = new Date(dbDate.getTime() + (5.5 * 60 * 60 * 1000));
+      const day = String(istDate.getUTCDate()).padStart(2, '0');
+      const month = months[istDate.getUTCMonth()];
+      const year = istDate.getUTCFullYear();
+      let hours = istDate.getUTCHours();
+      const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const hoursStr = String(hours).padStart(2, '0');
+      const dateFormatted = reg.dateOfPayment || `${day}-${month}-${year} ${hoursStr}:${minutes} ${ampm}`;
+
+      let eventIds: string[] = [];
+      if (Array.isArray(reg.selectedEvents)) eventIds = reg.selectedEvents;
+      else if (Array.isArray(reg.events)) eventIds = reg.events;
+      else if (reg.eventId) eventIds = [reg.eventId];
+      else if (reg.event) eventIds = [reg.event];
+      else if (reg.eventName) eventIds = [reg.eventName];
+
+      const eventTitlesList = eventIds.length > 0
+        ? eventIds.map(getEventTitle)
+        : (reg.eventName || reg.eventTitle || reg.event
+            ? [getEventTitle(reg.eventName || reg.eventTitle || reg.event)]
+            : ['General']);
+      const eventsStr = eventTitlesList.join(', ');
+
+      const members = unifiedData.eventType === 'Team' && unifiedData.noOfTeammates !== 'N/A'
+        ? Number(unifiedData.noOfTeammates) + 1
+        : 1;
+
+      const rawPhone = unifiedData.phone || reg.phone || reg.mobile || '';
+      const cleanPhone = rawPhone ? `'${String(rawPhone).replace(/[^\d+]/g, '')}` : '';
+      const name = unifiedData.name || 'N/A';
+      const email = unifiedData.email || 'N/A';
+      const college = unifiedData.college || 'N/A';
+      const amtPaid = String(extractAmount(reg));
+      const eventType = unifiedData.eventType || (Number(members) > 1 ? 'Team' : 'Solo');
+      const teamName = unifiedData.teamName || (eventType === 'Team' ? 'Team' : 'N/A');
+
+      standardRows.push([
+        name,
+        cleanPhone,
+        email,
+        college,
+        eventsStr,
+        members,
+        amtPaid,
+        dateFormatted,
+        eventType,
+        teamName
+      ]);
+
+      data.push({
+        name,
+        phone: cleanPhone,
+        email,
+        college,
+        event: eventsStr,
+        events: eventTitlesList,
+        members,
+        amtPaid,
+        date: dateFormatted,
+        eventType,
+        teamName
+      });
+    });
+
+    if (searchParams.get('markSynced') === 'true') {
+      const batch = adminDb.batch();
+      validDocs.forEach(d => {
+        batch.update(d.ref, { sheetSynced: true, sheetSyncedAt: FieldValue.serverTimestamp() });
+      });
+      batch.commit().catch(err => console.error('Failed to update sheetSynced in batch:', err));
+    }
+
+    return NextResponse.json({
+      success: true,
+      count: data.length,
+      headers,
+      standardRows,
+      data
+    });
+  } catch (error: any) {
+    console.error('Error fetching registrations for sheet sync:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

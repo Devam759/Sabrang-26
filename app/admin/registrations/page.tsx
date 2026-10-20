@@ -561,6 +561,14 @@ export default function Registrations() {
       if (sortField === 'registeredAt') {
         valA = valA?.toMillis() || 0;
         valB = valB?.toMillis() || 0;
+      } else if (sortField === 'amount') {
+        const getAmt = (r: any) => {
+          const raw = r.paymentAmount ?? r.receivedAmount ?? r.amount ?? r.finalPrice ?? r.price ?? 0;
+          const num = Number(raw);
+          return isNaN(num) ? 0 : num;
+        };
+        valA = getAmt(a);
+        valB = getAmt(b);
       } else if (sortField === 'college' || sortField === 'institution') {
         valA = normalizeInstitute(getRegistrationInstituteRaw(a)).toLowerCase();
         valB = normalizeInstitute(getRegistrationInstituteRaw(b)).toLowerCase();
@@ -1034,8 +1042,9 @@ export default function Registrations() {
                   </th>
                   <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('email')}>
                     Contact {sortField === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
-
-
+                  </th>
+                  <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors whitespace-nowrap" onClick={() => handleSort('amount')}>
+                    Amount Paid {sortField === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
                   <th className="p-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleSort('registeredAt')}>
                     Registered {sortField === 'registeredAt' && (sortOrder === 'asc' ? '↑' : '↓')}
@@ -1099,6 +1108,16 @@ export default function Registrations() {
                       <td className="p-5">
                         <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
                         <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
+                      </td>
+                      <td className="p-5 whitespace-nowrap">
+                        <div className="font-bold text-slate-900 text-xs font-mono">
+                          {getDisplayPaymentAmount(reg)}
+                        </div>
+                        {reg.coupon && (
+                          <span className="inline-block text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded font-mono mt-0.5 uppercase tracking-wide">
+                            {reg.coupon}
+                          </span>
+                        )}
                       </td>
                       <td className="p-5 whitespace-nowrap">
                         {reg.registeredAt && reg.registeredAt.toDate ? (
