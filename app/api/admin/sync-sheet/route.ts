@@ -164,8 +164,8 @@ export async function POST(req: Request) {
         events: eventTitlesList,
         eventType: unifiedData.eventType,
         teamName: unifiedData.teamName,
-        members: unifiedData.eventType === 'Team' && unifiedData.noOfTeammates !== 'N/A' 
-          ? (Number(unifiedData.noOfTeammates) + 1) 
+        members: unifiedData.eventType === 'Team' && unifiedData.totalMembers !== 'N/A' 
+          ? Number(unifiedData.totalMembers) 
           : 1,
         amtPaid: String(extractAmount(reg)),
         paymentId: reg.paymentId || 'N/A',

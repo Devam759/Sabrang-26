@@ -648,6 +648,55 @@ export default function CheckoutForm() {
     setPromoError(null);
   };
 
+  // Re-verify applied coupon whenever event selection or team composition changes
+  useEffect(() => {
+    if (!promoApplied || !promoCode.trim()) return;
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      try {
+        const activeGroups = getActiveGroups();
+        const primaryGroup = activeGroups.find(g => g !== "visitor") || activeGroups[0] || "visitor";
+        const regNum = getField(primaryGroup, "registrationNumber") || getField(primaryGroup, "rollNumber") || "";
+
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "VERIFY_COUPON",
+            coupon: promoCode.trim().toUpperCase(),
+            selectedEvents,
+            teamMembers,
+            visitorConfig: selectedEvents.includes("visitor")
+              ? { count: visitorCount, days: visitorDays }
+              : undefined,
+            registrationNumber: regNum,
+          }),
+        });
+
+        if (!isMounted) return;
+        const data = await res.json();
+        if (res.ok && data?.valid) {
+          setCouponData(data);
+          setPromoError(null);
+        } else {
+          setPromoApplied(false);
+          setCouponData(null);
+          setPromoError(data?.error || "Coupon removed: no longer valid for updated event selection.");
+        }
+      } catch {
+        if (!isMounted) return;
+        setPromoApplied(false);
+        setCouponData(null);
+      }
+    }, 300);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [selectedEvents, teamMembers, visitorCount, visitorDays, promoApplied, promoCode]);
+
   const handleVisitorCountChange = (newCount: number) => {
     const count = Math.max(1, Math.min(10, newCount));
     setVisitorCount(count);
@@ -1381,7 +1430,7 @@ export default function CheckoutForm() {
           <div className="pt-8 mt-8 border-t border-white/10">
             <div className="flex justify-between items-center mb-4">
               <h4 className="text-lg font-bold text-[#22d3ee]">
-                {group === 'visitor' ? 'Additional Visitors' : 'Team Members'}
+                {group === 'visitor' ? 'Additional Visitors' : `Team Members (${totalMembers} Total • Leader + ${members.length} Teammates)`}
               </h4>
               {group !== 'visitor' && totalMembers < req.max && (
                 <button
@@ -2326,12 +2375,12 @@ export default function CheckoutForm() {
                           )}
                           {ev.isTeam && ev.extraMemberFee > 0 && totalMembers > ev.baseIncludedMembers && (
                             <div className="text-[11px] text-violet-400 font-sans mt-0.5">
-                              {totalMembers} members ({ev.baseIncludedMembers} base + {totalMembers - ev.baseIncludedMembers} extra @ ₹{isEarlyBirdActive && ev.earlyBirdExtraMemberFee !== undefined ? ev.earlyBirdExtraMemberFee : ev.extraMemberFee})
+                              Total Team: {totalMembers} members (incl. leader) • ({ev.baseIncludedMembers} base + {totalMembers - ev.baseIncludedMembers} extra @ ₹{isEarlyBirdActive && ev.earlyBirdExtraMemberFee !== undefined ? ev.earlyBirdExtraMemberFee : ev.extraMemberFee})
                             </div>
                           )}
-                          {ev.isTeam && ev.extraMemberFee === 0 && (
+                          {ev.isTeam && (ev.extraMemberFee === 0 || totalMembers <= ev.baseIncludedMembers) && (
                             <div className="text-[11px] text-white/50 font-sans mt-0.5">
-                              Team of {totalMembers} members (flat team fee)
+                              Total Team: {totalMembers} members (incl. leader)
                             </div>
                           )}
                         </div>

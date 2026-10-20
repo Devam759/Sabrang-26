@@ -237,18 +237,38 @@ export function calculateCouponDiscount(
         applicableEvents: coupon.applicableEvents,
       };
     }
-  } else if (eventIdOrTitle && !isCouponApplicableToEvent(coupon, eventIdOrTitle)) {
-    return {
-      valid: false,
-      error: 'Coupon is not valid for this event.',
-      code,
-      discountType: 'percentage',
-      discountValue: 0,
-      originalPrice: safeOriginalPrice,
-      finalPrice: safeOriginalPrice,
-      discountAmount: 0,
-      applicableEvents: coupon.applicableEvents,
-    };
+  } else if (eventIdOrTitle) {
+    if (!isCouponApplicableToEvent(coupon, eventIdOrTitle)) {
+      return {
+        valid: false,
+        error: 'Coupon is not valid for this event.',
+        code,
+        discountType: 'percentage',
+        discountValue: 0,
+        originalPrice: safeOriginalPrice,
+        finalPrice: safeOriginalPrice,
+        discountAmount: 0,
+        applicableEvents: coupon.applicableEvents,
+      };
+    }
+  } else {
+    // If coupon is event-specific but neither context.selectedEvents nor eventIdOrTitle is provided
+    const isGlobal = !coupon.applicableEvents || 
+      coupon.applicableEvents.length === 0 || 
+      coupon.applicableEvents.some(e => e.toUpperCase() === 'ALL' || e.toUpperCase() === '*');
+    if (!isGlobal) {
+      return {
+        valid: false,
+        error: 'Please select an event for which this coupon is valid.',
+        code,
+        discountType: 'percentage',
+        discountValue: 0,
+        originalPrice: safeOriginalPrice,
+        finalPrice: safeOriginalPrice,
+        discountAmount: 0,
+        applicableEvents: coupon.applicableEvents,
+      };
+    }
   }
 
   // 5. Determine Discount Type and Value (with legacy backward compatibility)
@@ -308,32 +328,51 @@ export function calculateCouponDiscount(
 
     if (discountType === 'percentage') {
       const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
+      let pctDiscountSum = 0;
       for (const item of eventBreakdowns) {
         if (item.isApplicable) {
           const itemDiscount = Math.round(((item.baseFee * pct) / 100) * 100) / 100;
           totalDiscountedBaseFee += Math.max(0, item.baseFee - itemDiscount);
+          pctDiscountSum += itemDiscount;
         } else {
           totalDiscountedBaseFee += item.baseFee;
         }
       }
       // Compulsory Band Fee is added directly, entirely unaffected by coupon discounts
       finalPrice = totalDiscountedBaseFee + totalBandFee;
-      discountAmount = Math.max(0, totalBaseFee - totalDiscountedBaseFee);
+      discountAmount = Math.max(0, pctDiscountSum);
     } else if (discountType === 'fixed') {
       const fixedPrice = Math.max(0, Number(discountValue) || 0);
+      const isGlobalCoupon = !coupon.applicableEvents || 
+        coupon.applicableEvents.length === 0 || 
+        coupon.applicableEvents.some(e => e.toUpperCase() === 'ALL' || e.toUpperCase() === '*');
+
       const applicableItems = eventBreakdowns.filter(i => i.isApplicable);
       const nonApplicableItems = eventBreakdowns.filter(i => !i.isApplicable);
 
       const nonApplicableBaseFee = nonApplicableItems.reduce((acc, curr) => acc + curr.baseFee, 0);
-      const applicableBaseFee = applicableItems.reduce((acc, curr) => acc + curr.baseFee, 0);
 
-      // The fixed price caps/replaces the base registration fee of applicable events
-      const discountedApplicableBase = Math.min(applicableBaseFee, fixedPrice);
-      totalDiscountedBaseFee = discountedApplicableBase + nonApplicableBaseFee;
+      if (isGlobalCoupon) {
+        // Global coupon: fixed price replaces the whole cart base fee
+        const applicableBaseFee = applicableItems.reduce((acc, curr) => acc + curr.baseFee, 0);
+        const discountedApplicableBase = Math.min(applicableBaseFee, fixedPrice);
+        totalDiscountedBaseFee = discountedApplicableBase + nonApplicableBaseFee;
+        discountAmount = Math.max(0, applicableBaseFee - discountedApplicableBase);
+      } else {
+        // Event-specific coupon: each applicable event gets its base fee replaced with fixedPrice
+        let discountedApplicableBase = 0;
+        let eventDiscountSum = 0;
+        for (const item of applicableItems) {
+          const itemDiscounted = Math.min(item.baseFee, fixedPrice);
+          discountedApplicableBase += itemDiscounted;
+          eventDiscountSum += Math.max(0, item.baseFee - itemDiscounted);
+        }
+        totalDiscountedBaseFee = discountedApplicableBase + nonApplicableBaseFee;
+        discountAmount = eventDiscountSum;
+      }
 
       // Compulsory Band Fee is added directly, entirely unaffected by coupon discounts
       finalPrice = totalDiscountedBaseFee + totalBandFee;
-      discountAmount = Math.max(0, applicableBaseFee - discountedApplicableBase);
     } else if (discountType === 'per_head_cap') {
       const perHeadCap = Math.max(0, Number(discountValue) || 0);
       let hasPerHeadEvent = false;
