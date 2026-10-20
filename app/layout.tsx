@@ -114,8 +114,6 @@ const organizationSchema = {
   },
 };
 
-import { ReCaptchaProvider } from "@/components/recaptcha/ReCaptchaProvider";
-
 export default function RootLayout({
   children,
 }: {
@@ -145,21 +143,19 @@ export default function RootLayout({
         <JsonLd data={organizationSchema} />
         <PreloaderGate>
           {/* <AudioPlayerProvider> */}
-            <ReCaptchaProvider>
-              <InteractionProvider>
-                <AuthProvider>
-                  <SmoothScroll>
-                    <TubesCursor />
-                    <CursorFollower />
-                    <div className="min-h-screen flex flex-col text-white overflow-x-clip">
-                      <Navbar />
-                      <main className="flex-grow w-full">{children}</main>
-                      <Footer />
-                    </div>
-                  </SmoothScroll>
-                </AuthProvider>
-              </InteractionProvider>
-            </ReCaptchaProvider>
+            <InteractionProvider>
+              <AuthProvider>
+                <SmoothScroll>
+                  <TubesCursor />
+                  <CursorFollower />
+                  <div className="min-h-screen flex flex-col text-white overflow-x-clip">
+                    <Navbar />
+                    <main className="flex-grow w-full">{children}</main>
+                    <Footer />
+                  </div>
+                </SmoothScroll>
+              </AuthProvider>
+            </InteractionProvider>
           {/* </AudioPlayerProvider> */}
         </PreloaderGate>
         <Suspense fallback={null}>
