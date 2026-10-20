@@ -188,8 +188,8 @@ export const galleryItems: GalleryItem[] = [
     runnerUpCash: "As per Krafton",
     totalCash: 20000,
     coordinators: [
-      { name: "Chirayu", phone: "9831438763" },
       { name: "Lakshit", phone: "9216333707" },
+      { name: "Chirayu", phone: "9831438763" },
     ],
   },
   {
@@ -250,6 +250,26 @@ export const galleryItems: GalleryItem[] = [
     coordinators: [
       { name: "Chelsy Tanwar", phone: "9119289533" },
       { name: "Dishika Pancholi", phone: "9588934442" },
+    ],
+  },
+  {
+    id: 16,
+    eventId: "face_off",
+    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791747465/Face_Off.png",
+    title: "Dance Battle (Face-Off)",
+    category: "Non-Flagship - Other Events",
+    venue: "Campus",
+    year: 2026,
+    alt: "Dance Battle (Face-Off) at Sabrang 2026",
+    description: "Street Dance Face Off (Solo) | Prize Pool: ₹12,000",
+    minTeam: 1,
+    maxTeam: 1,
+    winnerCash: "6,000 + 6,000*",
+    totalCash: 12000,
+    prizesRemarks: "2 styles, no runner-up; ₹6,000 per category",
+    coordinators: [
+      { name: "Akshat Bisht", phone: "9509693736" },
+      { name: "Anubha Sharma", phone: "9829820425" },
     ],
   },
   {
@@ -333,26 +353,6 @@ export const galleryItems: GalleryItem[] = [
     ],
   },
   {
-    id: 16,
-    eventId: "face_off",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791747465/Face_Off.png",
-    title: "Dance Battle (Face-Off)",
-    category: "Non-Flagship - Other Events",
-    venue: "Campus",
-    year: 2026,
-    alt: "Dance Battle (Face-Off) at Sabrang 2026",
-    description: "Street Dance Face Off (Solo) | Prize Pool: ₹12,000",
-    minTeam: 1,
-    maxTeam: 1,
-    winnerCash: "6,000 + 6,000*",
-    totalCash: 12000,
-    prizesRemarks: "2 styles, no runner-up; ₹6,000 per category",
-    coordinators: [
-      { name: "Akshat Bisht", phone: "9509693736" },
-      { name: "Anubha Sharma", phone: "9829820425" },
-    ],
-  },
-  {
     id: 17,
     eventId: "anime_quiz",
     image: "https://res.cloudinary.com/eprhemvt/image/upload/v1792323670/Anime_Quiz1_compressed.webp",
@@ -428,10 +428,10 @@ export const ALL_COORDINATOR_DIRECTORY: CoordinatorDirectoryEntry[] = [
   { category: "Non-Flagship Events", eventName: "Bidding Before Wicket", name: "Co-Coordinator (TBA)", phone: "To be announced" },
   { category: "Non-Flagship Events", eventName: "Anime Quiz", name: "Purvi Jain", phone: "7877082586" },
   { category: "Non-Flagship Events", eventName: "Anime Quiz", name: "Devyan", phone: "9636738859" },
-  { category: "Non-Flagship Events", eventName: "Dance Battle (Face-Off)", name: "Akshat Bisht", phone: "9509693736" },
-  { category: "Non-Flagship Events", eventName: "Dance Battle (Face-Off)", name: "Anubha Sharma", phone: "9829820425" },
   { category: "Non-Flagship Events", eventName: "Rangmanch", name: "Chelsy Tanwar", phone: "9119289533" },
   { category: "Non-Flagship Events", eventName: "Rangmanch", name: "Dishika Pancholi", phone: "9588934442" },
+  { category: "Non-Flagship Events", eventName: "Dance Battle (Face-Off)", name: "Akshat Bisht", phone: "9509693736" },
+  { category: "Non-Flagship Events", eventName: "Dance Battle (Face-Off)", name: "Anubha Sharma", phone: "9829820425" },
   { category: "Non-Flagship Events", eventName: "Vaad Vivad", name: "Vansh Bhatia", phone: "9413833334" },
   { category: "Non-Flagship Events", eventName: "Vaad Vivad", name: "Purvee Dudheria", phone: "9352221827" },
 
@@ -440,8 +440,8 @@ export const ALL_COORDINATOR_DIRECTORY: CoordinatorDirectoryEntry[] = [
   { category: "Esports", eventName: "Valorant", name: "Shivam", phone: "7460932017" },
   { category: "Esports", eventName: "Free Fire", name: "Anuj Soni", phone: "7568776359" },
   { category: "Esports", eventName: "Free Fire", name: "Devyan", phone: "9636738859" },
-  { category: "Esports", eventName: "BGMI", name: "Chirayu", phone: "9831438763" },
   { category: "Esports", eventName: "BGMI", name: "Lakshit", phone: "9216333707" },
+  { category: "Esports", eventName: "BGMI", name: "Chirayu", phone: "9831438763" },
 
   // Activities & Open Sessions
   { category: "Activities", eventName: "Art Relay", name: "Saumya", phone: "9897110960" },

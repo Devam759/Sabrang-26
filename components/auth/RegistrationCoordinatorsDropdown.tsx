@@ -122,7 +122,11 @@ export default function RegistrationCoordinatorsDropdown() {
               </div>
 
               {/* Coordinators List */}
-              <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/25">
+              <div 
+                data-lenis-prevent
+                className="max-h-[380px] overflow-y-auto overscroll-contain space-y-2.5 pr-1 touch-pan-y [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/25"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {filteredEvents.length === 0 ? (
                   <div className="text-white/40 text-xs italic py-8 text-center bg-white/[0.02] rounded-xl border border-white/5">
                     No coordinators found matching &ldquo;{searchQuery}&rdquo;

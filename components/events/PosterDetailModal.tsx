@@ -47,9 +47,11 @@ export default function PosterDetailModal({
       aria-label={`${item.title} event details`}
     >
       <div
-        className={`relative my-auto flex max-h-[92vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-400 overflow-y-auto p-5 sm:p-7 md:p-8 bg-[#0a0b12] border border-white/10 rounded-2xl shadow-2xl ${
+        data-lenis-prevent
+        className={`relative my-auto flex max-h-[92vh] max-w-5xl flex-col md:flex-row gap-6 md:gap-8 transition-all duration-400 overflow-y-auto overscroll-contain touch-pan-y p-5 sm:p-7 md:p-8 bg-[#0a0b12] border border-white/10 rounded-2xl shadow-2xl ${
           visible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
         }`}
+        style={{ WebkitOverflowScrolling: "touch" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}

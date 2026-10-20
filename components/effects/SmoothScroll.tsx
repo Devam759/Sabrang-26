@@ -54,7 +54,7 @@ export default function SmoothScroll({
       gsap.ticker.remove(updateTicker);
       lenis.destroy();
     };
-  }, []);
+  }, [isManagement]);
 
   return <>{children}</>;
 }
