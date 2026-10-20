@@ -288,6 +288,34 @@ export default function CheckoutForm() {
     }
   }, []);
 
+  // Irreplaceable prefilled institution for PRO-NITE JKLU Pass
+  useEffect(() => {
+    if (selectedEvents.includes("pronite_jklu")) {
+      setFormData((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        if (next["generic_institutionSelect"] !== "JK Lakshmipat University") {
+          next["generic_institutionSelect"] = "JK Lakshmipat University";
+          changed = true;
+        }
+        if (next["generic_institutionName"] !== "JK Lakshmipat University") {
+          next["generic_institutionName"] = "JK Lakshmipat University";
+          changed = true;
+        }
+        const currentEmail = next["generic_email"] || "";
+        if (!currentEmail) {
+          next["generic_email"] = "@jklu.edu.in";
+          changed = true;
+        } else if (!currentEmail.endsWith("@jklu.edu.in")) {
+          const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
+          next["generic_email"] = pfx ? `${pfx.replace(/\s+/g, "")}@jklu.edu.in` : "@jklu.edu.in";
+          changed = true;
+        }
+        return changed ? next : prev;
+      });
+    }
+  }, [selectedEvents]);
+
   const handleCashfreePayment = async () => {
     if (isProcessingPayment) return;
     setPaymentError(null);
@@ -556,9 +584,28 @@ export default function CheckoutForm() {
   };
 
   const toggleEvent = (id: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
-    );
+    setSelectedEvents((prev) => {
+      let next = prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id];
+      if (id === "pronite_jklu" && next.includes("pronite_jklu")) {
+        next = next.filter((e) => e !== "pronite_outsider");
+      } else if (id === "pronite_outsider" && next.includes("pronite_outsider")) {
+        next = next.filter((e) => e !== "pronite_jklu");
+      }
+      return next;
+    });
+
+    if (id === "pronite_jklu") {
+      setFormData((prev) => {
+        const currentEmail = prev["generic_email"] || "";
+        const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
+        return {
+          ...prev,
+          generic_institutionSelect: "JK Lakshmipat University",
+          generic_institutionName: "JK Lakshmipat University",
+          generic_email: pfx ? `${pfx.replace(/\s+/g, "")}@jklu.edu.in` : "@jklu.edu.in",
+        };
+      });
+    }
   };
 
   const calculateTotal = () => {
@@ -783,6 +830,14 @@ export default function CheckoutForm() {
 
   const updateField = (group: string, field: string, value: string) => {
     if (formErrorMessage) setFormErrorMessage(null);
+    if (
+      group === "generic" &&
+      selectedEvents.includes("pronite_jklu") &&
+      (field === "institutionName" || field === "institutionSelect") &&
+      value !== "JK Lakshmipat University"
+    ) {
+      return; // Locked and irreplaceable
+    }
     setFormData((prev) => ({
       ...prev,
       [`${group}_${field}`]: value,
@@ -790,6 +845,13 @@ export default function CheckoutForm() {
   };
 
   const getField = (group: string, field: string) => {
+    if (
+      group === "generic" &&
+      selectedEvents.includes("pronite_jklu") &&
+      (field === "institutionName" || field === "institutionSelect")
+    ) {
+      return "JK Lakshmipat University";
+    }
     return formData[`${group}_${field}`] || "";
   };
 
@@ -1115,59 +1177,72 @@ export default function CheckoutForm() {
               <label className="text-sm font-medium text-white/80 flex justify-between">
                 <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
               </label>
-              <select
-                id={`select_${group}_institutionName`}
-                value={
-                  getField(group, 'institutionSelect') ||
-                  (getField(group, 'institutionName') === "JK Lakshmipat University"
-                    ? "JK Lakshmipat University"
-                    : getField(group, 'institutionName')
-                    ? "other"
-                    : "")
-                }
-                onBlur={() => handleBlur(`${group}_institutionName`)}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  updateField(group, 'institutionSelect', val);
-                  if (val === "JK Lakshmipat University") {
-                    updateField(group, 'institutionName', "JK Lakshmipat University");
-                    const currentEmail = getField(group, 'email');
-                    const pfx = currentEmail.includes('@') ? currentEmail.split('@')[0] : currentEmail;
-                    updateField(group, 'email', pfx ? `${pfx.replace(/\s+/g, '')}@jklu.edu.in` : "@jklu.edu.in");
-                  } else if (val === "other") {
-                    if (getField(group, 'institutionName') === "JK Lakshmipat University") {
-                      updateField(group, 'institutionName', "");
-                    }
-                    const currentEmail = getField(group, 'email');
-                    if (currentEmail === "@jklu.edu.in") {
-                      updateField(group, 'email', "");
-                    } else if (currentEmail.endsWith("@jklu.edu.in")) {
-                      updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
-                    }
-                  } else {
-                    updateField(group, 'institutionName', "");
-                    const currentEmail = getField(group, 'email');
-                    if (currentEmail === "@jklu.edu.in") {
-                      updateField(group, 'email', "");
-                    } else if (currentEmail.endsWith("@jklu.edu.in")) {
-                      updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
-                    }
+
+              {group === "generic" && selectedEvents.includes("pronite_jklu") ? (
+                <input
+                  id={`select_${group}_institutionName`}
+                  type="text"
+                  value="JK Lakshmipat University"
+                  readOnly
+                  disabled
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/90 cursor-not-allowed select-none focus:outline-none"
+                />
+              ) : (
+                <select
+                  id={`select_${group}_institutionName`}
+                  value={
+                    getField(group, 'institutionSelect') ||
+                    (getField(group, 'institutionName') === "JK Lakshmipat University"
+                      ? "JK Lakshmipat University"
+                      : getField(group, 'institutionName')
+                      ? "other"
+                      : "")
                   }
-                }}
-                className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
-                  touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
-                }`}
-              >
-                <option value="" className="bg-[#020202]">Select Institution</option>
-                <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
-                <option value="other" className="bg-[#020202]">Others</option>
-              </select>
+                  onBlur={() => handleBlur(`${group}_institutionName`)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateField(group, 'institutionSelect', val);
+                    if (val === "JK Lakshmipat University") {
+                      updateField(group, 'institutionName', "JK Lakshmipat University");
+                      const currentEmail = getField(group, 'email');
+                      const pfx = currentEmail.includes('@') ? currentEmail.split('@')[0] : currentEmail;
+                      updateField(group, 'email', pfx ? `${pfx.replace(/\s+/g, '')}@jklu.edu.in` : "@jklu.edu.in");
+                    } else if (val === "other") {
+                      if (getField(group, 'institutionName') === "JK Lakshmipat University") {
+                        updateField(group, 'institutionName', "");
+                      }
+                      const currentEmail = getField(group, 'email');
+                      if (currentEmail === "@jklu.edu.in") {
+                        updateField(group, 'email', "");
+                      } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                        updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                      }
+                    } else {
+                      updateField(group, 'institutionName', "");
+                      const currentEmail = getField(group, 'email');
+                      if (currentEmail === "@jklu.edu.in") {
+                        updateField(group, 'email', "");
+                      } else if (currentEmail.endsWith("@jklu.edu.in")) {
+                        updateField(group, 'email', currentEmail.replace("@jklu.edu.in", ""));
+                      }
+                    }
+                  }}
+                  className={`w-full bg-white/5 border rounded-lg focus:bg-white/10 px-4 py-3 text-white focus:outline-none transition-all cursor-pointer ${
+                    touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-violet-500"
+                  }`}
+                >
+                  <option value="" className="bg-[#020202]">Select Institution</option>
+                  <option value="JK Lakshmipat University" className="bg-[#020202]">JK Lakshmipat University</option>
+                  <option value="other" className="bg-[#020202]">Others</option>
+                </select>
+              )}
             </div>
 
-            {(getField(group, 'institutionSelect') === "other" ||
-              (!getField(group, 'institutionSelect') &&
-                getField(group, 'institutionName') &&
-                getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
+            {!(group === "generic" && selectedEvents.includes("pronite_jklu")) &&
+              (getField(group, 'institutionSelect') === "other" ||
+                (!getField(group, 'institutionSelect') &&
+                  getField(group, 'institutionName') &&
+                  getField(group, 'institutionName') !== "JK Lakshmipat University")) && (
               <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
                 <label className="text-sm font-medium text-white/80 flex justify-between">
                   <span>Enter Institution Name <span className="text-violet-400">*</span></span>
@@ -1186,7 +1261,7 @@ export default function CheckoutForm() {
                 />
               </div>
             )}
-            {touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() && (
+            {!(group === "generic" && selectedEvents.includes("pronite_jklu")) && touched[`${group}_institutionName`] && !getField(group, 'institutionName').trim() && (
               <p className="text-xs text-red-400 font-sans">Institution name is required.</p>
             )}
           </div>
