@@ -10,6 +10,8 @@ import {
   getEventById,
   calculateEventItemPrice,
   calculateTotalRegistrationFee,
+  calculateTotalBandFee,
+  getEventBandFee,
   getGroupTeamRequirements,
   isFlagshipEvent,
   calculateFlagshipBankFee,
@@ -572,7 +574,16 @@ export default function CheckoutForm() {
     );
     
     if (promoApplied && couponData?.valid) {
-      return Math.max(0, couponData.finalPrice);
+      const totalBandFee = calculateTotalBandFee(
+        selectedEvents,
+        isStep1 ? undefined : teamMembers,
+        {
+          count: visitorCount,
+          days: visitorDays,
+        }
+      );
+      const discount = Math.max(0, Number(couponData.discountAmount) || 0);
+      return Math.max(totalBandFee, rawTotal - discount);
     }
     return rawTotal;
   };
@@ -2290,10 +2301,12 @@ export default function CheckoutForm() {
                     days: visitorDays,
                   }, isEarlyBirdActive);
 
-                  const isFlagship = isFlagshipEvent(ev);
                   const membersCount = ev.isTeam ? totalMembers : 1;
-                  const showBankFee = isFlagship && (!ev.isTeam || totalMembers > 1);
-                  const bankFee = showBankFee ? calculateFlagshipBankFee(ev, membersCount) : 0;
+                  const bankFee = getEventBandFee(ev, totalMembers, {
+                    count: visitorCount,
+                    days: visitorDays,
+                  }, true);
+                  const showBankFee = bankFee > 0;
 
                   return (
                     <div key={eventId} className="py-2 border-b border-white/5 last:border-0 space-y-2">
@@ -2328,7 +2341,7 @@ export default function CheckoutForm() {
                       {showBankFee && (
                         <div className="flex justify-between items-center text-xs font-sans pl-2.5 py-1.5 border-l-2 border-amber-400/50 bg-amber-400/10 rounded-r">
                           <span className="text-amber-300 font-medium">
-                            Band Fee: 7 * {membersCount} (no of person) =
+                            Band Fee (Mandatory): 7 * {ev.id === "visitor" ? `${visitorCount} (person) * ${visitorDays.length} (day)` : `${membersCount} (no of person)`} =
                           </span>
                           <span className="font-bold font-sans text-amber-300">₹ {bankFee}</span>
                         </div>
@@ -2406,7 +2419,7 @@ export default function CheckoutForm() {
                       <span>
                         Coupon {promoCode} applied ({
                           couponData.discountType === 'fixed' 
-                            ? `Special Price ₹${couponData.finalPrice}` 
+                            ? `Special Price ₹${couponData.discountValue}` 
                             : couponData.discountType === 'per_head_cap'
                             ? `Cap ₹${couponData.discountValue}/head`
                             : `${couponData.discountValue}% Off`
@@ -2532,10 +2545,11 @@ export default function CheckoutForm() {
                   days: visitorDays,
                 }, isEarlyBirdActive);
 
-                const isFlagship = isFlagshipEvent(ev);
                 const membersCount = ev.isTeam ? totalMembers : 1;
-                const showBankFee = isFlagship && currentStep !== "select" && (!ev.isTeam || totalMembers > 1);
-                const bankFee = showBankFee ? calculateFlagshipBankFee(ev, membersCount) : 0;
+                const bankFee = currentStep !== "select"
+                  ? getEventBandFee(ev, totalMembers, { count: visitorCount, days: visitorDays }, true)
+                  : 0;
+                const showBankFee = bankFee > 0;
 
                 return (
                   <div key={id} className="py-2 border-b border-white/5 last:border-0 space-y-1.5">
@@ -2556,7 +2570,7 @@ export default function CheckoutForm() {
                     {showBankFee && (
                       <div className="flex justify-between items-center text-[11px] font-sans pl-2 border-l-2 border-amber-400/50 py-0.5 bg-amber-400/10 rounded-r">
                         <span className="text-amber-300 font-medium">
-                          Band Fee: 7 * {membersCount} (no of person) =
+                          Band Fee (Mandatory): 7 * {ev.id === "visitor" ? `${visitorCount} (person) * ${visitorDays.length} (day)` : `${membersCount} (no of person)`} =
                         </span>
                         <span className="font-bold font-sans text-amber-300 shrink-0">
                           ₹{bankFee}

@@ -705,10 +705,67 @@ export const calculateFlagshipBankCharge = calculateFlagshipBandFee;
 export const calculateFlagshipBandCharge = calculateFlagshipBandFee;
 
 /**
- * Calculates the total registration fee across all selected events taking into account
- * team member additions per group, visitor pass configuration, and Band fees.
+ * Calculates the Band Fee for a single event in the current context.
+ * The Band Fee is compulsory and cannot be waived or discounted by promotional coupons.
  */
-export function calculateTotalRegistrationFee(
+export function getEventBandFee(
+  event: SabrangEvent,
+  totalMembers: number = 1,
+  visitorConfig?: VisitorPassConfig,
+  hasTeamMembersEntered?: boolean
+): number {
+  if (!event) return 0;
+  if (event.id === "visitor") {
+    const daysCount = visitorConfig?.days?.length ?? 1;
+    const count = visitorConfig?.count ?? totalMembers ?? 1;
+    return calculateVisitorBandFee(daysCount, count);
+  }
+  if (isFlagshipTeamEvent(event)) {
+    // Applied when team members are specified (totalMembers > 1 or explicitly provided)
+    if (totalMembers > 1 || hasTeamMembersEntered) {
+      return calculateFlagshipBandFee(event, totalMembers);
+    }
+    return 0;
+  }
+  if (isFlagshipSoloEvent(event) || event.id === "pronite_outsider" || event.id === "pronite_jklu") {
+    return calculateFlagshipBandFee(event, 1);
+  }
+  return 0;
+}
+
+/**
+ * Calculates the total Band Fee across all selected events.
+ * This fee is compulsory and cannot be discounted by any coupon.
+ */
+export function calculateTotalBandFee(
+  selectedEventIds: string[],
+  teamMembersMap?: Record<string, any[] | undefined>,
+  visitorConfig?: VisitorPassConfig
+): number {
+  if (!Array.isArray(selectedEventIds) || selectedEventIds.length === 0) {
+    return 0;
+  }
+
+  let totalBandFee = 0;
+
+  for (const eventId of selectedEventIds) {
+    const event = getEventById(eventId);
+    if (!event) continue;
+
+    const groupMembers = teamMembersMap?.[event.type];
+    const totalMembers = 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
+    const hasTeamMembersEntered = teamMembersMap !== undefined && groupMembers !== undefined;
+
+    totalBandFee += getEventBandFee(event, totalMembers, visitorConfig, hasTeamMembersEntered);
+  }
+
+  return totalBandFee;
+}
+
+/**
+ * Calculates the total event items base price (strictly excluding compulsory Band Fees).
+ */
+export function calculateTotalEventBaseFee(
   selectedEventIds: string[],
   teamMembersMap?: Record<string, any[] | undefined>,
   visitorConfig?: VisitorPassConfig,
@@ -724,32 +781,29 @@ export function calculateTotalRegistrationFee(
     const event = getEventById(eventId);
     if (!event) continue;
 
-    if (eventId === "visitor") {
-      total += calculateEventItemPrice(event, 1, visitorConfig, isEarlyBird);
-      const daysCount = visitorConfig?.days?.length ?? 1;
-      const count = visitorConfig?.count ?? 1;
-      total += calculateVisitorBandFee(daysCount, count);
-      continue;
-    }
-
     const groupMembers = teamMembersMap?.[event.type];
     const totalMembers = 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
 
     total += calculateEventItemPrice(event, totalMembers, visitorConfig, isEarlyBird);
-
-    // Apply Band Fee (₹7 * no. of persons):
-    // For Flagship Team: when team members are entered (totalMembers > 1)
-    // For Flagship Solo & Pro-Nite passes: 1 person (₹7)
-    if (isFlagshipTeamEvent(event)) {
-      if (totalMembers > 1) {
-        total += calculateFlagshipBandFee(event, totalMembers);
-      }
-    } else if (isFlagshipSoloEvent(event) || event.id === "pronite_outsider" || event.id === "pronite_jklu") {
-      total += calculateFlagshipBandFee(event, 1);
-    }
   }
 
   return total;
+}
+
+/**
+ * Calculates the total registration fee across all selected events taking into account
+ * team member additions per group, visitor pass configuration, and Band fees.
+ */
+export function calculateTotalRegistrationFee(
+  selectedEventIds: string[],
+  teamMembersMap?: Record<string, any[] | undefined>,
+  visitorConfig?: VisitorPassConfig,
+  isEarlyBird?: boolean
+): number {
+  return (
+    calculateTotalEventBaseFee(selectedEventIds, teamMembersMap, visitorConfig, isEarlyBird) +
+    calculateTotalBandFee(selectedEventIds, teamMembersMap, visitorConfig)
+  );
 }
 
 /**

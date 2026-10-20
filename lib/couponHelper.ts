@@ -7,9 +7,14 @@ import {
   calculateEventItemPrice, 
   calculateEventItemPriceWithCap, 
   isFlagshipEvent,
+  getEventBandFee,
+  calculateTotalBandFee,
+  calculateTotalEventBaseFee,
+  calculateFlagshipBandFee,
   calculateFlagshipBankFee,
   calculateVisitorBandFee,
-  VisitorPassConfig 
+  VisitorPassConfig,
+  SabrangEvent
 } from './eventPricing';
 
 export interface CouponValidationResult {
@@ -22,6 +27,7 @@ export interface CouponValidationResult {
   finalPrice: number;
   discountAmount: number;
   applicableEvents?: string[];
+  totalBandFee?: number;
 }
 
 export interface CouponCalculationContext {
@@ -59,19 +65,61 @@ export function isCouponApplicableToEvent(coupon: Partial<Coupon>, eventIdOrTitl
 
   const targetKey = normalizeEventKey(eventIdOrTitle);
 
+  // Find underlying event object if available
+  const event = getEventById(eventIdOrTitle) || OFFICIAL_EVENTS.find(e => 
+    normalizeEventKey(e.id) === targetKey || 
+    normalizeEventKey(e.title) === targetKey ||
+    normalizeEventKey(e.title.replace(/\([^)]*\)/g, '')) === targetKey
+  );
+
+  const targetKeys: string[] = [targetKey];
+  if (event) {
+    targetKeys.push(normalizeEventKey(event.id));
+    targetKeys.push(normalizeEventKey(event.title));
+    targetKeys.push(normalizeEventKey(event.title.replace(/\([^)]*\)/g, '')));
+    targetKeys.push(normalizeEventKey(`${event.title.replace(/\([^)]*\)/g, '')} ${event.category}`));
+    targetKeys.push(normalizeEventKey(`${event.title} ${event.category}`));
+  }
+
   return coupon.applicableEvents.some(evt => {
     const candidateKey = normalizeEventKey(evt);
-    // Direct match or substring match
-    if (candidateKey === targetKey || targetKey.includes(candidateKey) || candidateKey.includes(targetKey)) {
+    const candidateKeyNoParens = normalizeEventKey(evt.replace(/\([^)]*\)/g, ''));
+
+    // Check all target variations against candidate variations
+    for (const tKey of targetKeys) {
+      if (!tKey) continue;
+      if (
+        candidateKey === tKey ||
+        candidateKeyNoParens === tKey ||
+        candidateKey.includes(tKey) ||
+        tKey.includes(candidateKey) ||
+        (candidateKeyNoParens && (candidateKeyNoParens.includes(tKey) || tKey.includes(candidateKeyNoParens)))
+      ) {
+        return true;
+      }
+    }
+
+    // Pro-Nite specific robust matching
+    const isTargetProNiteJKLU = targetKeys.some(k => k.includes('pronite') && k.includes('jklu'));
+    if (isTargetProNiteJKLU && candidateKey.includes('pronite') && candidateKey.includes('jklu')) {
       return true;
     }
+
+    const isTargetProNiteOutsider = targetKeys.some(k => k.includes('pronite') && (k.includes('outsider') || k.includes('outsiders')));
+    if (isTargetProNiteOutsider && candidateKey.includes('pronite') && (candidateKey.includes('outsider') || candidateKey.includes('outsiders'))) {
+      return true;
+    }
+
     // Backward compatibility for legacy aliases (e.g. "gunj" was rebranded to "echoes_of_noor")
-    if (
-      (candidateKey.includes('gunj') && (targetKey.includes('echoesofnoor') || targetKey.includes('echoes'))) ||
-      (targetKey.includes('gunj') && (candidateKey.includes('echoesofnoor') || candidateKey.includes('echoes')))
-    ) {
-      return true;
+    for (const tKey of targetKeys) {
+      if (
+        (candidateKey.includes('gunj') && (tKey.includes('echoesofnoor') || tKey.includes('echoes'))) ||
+        (tKey.includes('gunj') && (candidateKey.includes('echoesofnoor') || candidateKey.includes('echoes')))
+      ) {
+        return true;
+      }
     }
+
     return false;
   });
 }
@@ -215,57 +263,94 @@ export function calculateCouponDiscount(
 
   let finalPrice = safeOriginalPrice;
   let discountAmount = 0;
+  let calculatedBandFee = 0;
+  let calculatedOriginalPrice = safeOriginalPrice;
 
-  if (discountType === 'percentage') {
-    // Percentage mode:
-    // Clamp percentage between 0 and 100
-    const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
-    discountAmount = Math.round(((safeOriginalPrice * pct) / 100) * 100) / 100;
-    finalPrice = Math.max(0, safeOriginalPrice - discountAmount);
-  } else if (discountType === 'fixed') {
-    // Fixed price mode:
-    // Final price IS the configured fixed value (never negative)
-    const fixedPrice = Math.max(0, Number(discountValue) || 0);
-    finalPrice = fixedPrice;
-    discountAmount = Math.max(0, safeOriginalPrice - fixedPrice);
-  } else if (discountType === 'per_head_cap') {
-    // Per head cap mode:
-    // Imposes a ceiling/cap on the per-head fee for events with a per-head fee collection system
-    const perHeadCap = Math.max(0, Number(discountValue) || 0);
+  if (context?.selectedEvents && context.selectedEvents.length > 0) {
+    let totalBaseFee = 0;
+    let totalBandFee = 0;
+    let totalDiscountedBaseFee = 0;
 
-    if (context?.selectedEvents && context.selectedEvents.length > 0) {
-      let totalOriginal = 0;
-      let totalCapped = 0;
+    const eventBreakdowns: Array<{
+      event: SabrangEvent;
+      totalMembers: number;
+      baseFee: number;
+      bandFee: number;
+      isApplicable: boolean;
+    }> = [];
+
+    for (const evId of context.selectedEvents) {
+      const event = getEventById(evId);
+      if (!event) continue;
+
+      const groupMembers = context.teamMembers?.[event.type];
+      const hasTeamMembersEntered = context.teamMembers !== undefined && groupMembers !== undefined;
+      const totalMembers = !event.isTeam ? 1 : 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
+
+      const baseFee = calculateEventItemPrice(event, totalMembers, context.visitorConfig, context.isEarlyBird);
+      const bandFee = getEventBandFee(event, totalMembers, context.visitorConfig, hasTeamMembersEntered);
+      const isApplicable = isCouponApplicableToEvent(coupon, event.id) || isCouponApplicableToEvent(coupon, event.title);
+
+      totalBaseFee += baseFee;
+      totalBandFee += bandFee;
+
+      eventBreakdowns.push({
+        event,
+        totalMembers,
+        baseFee,
+        bandFee,
+        isApplicable,
+      });
+    }
+
+    calculatedBandFee = totalBandFee;
+    calculatedOriginalPrice = (totalBaseFee + totalBandFee) > 0 ? (totalBaseFee + totalBandFee) : safeOriginalPrice;
+
+    if (discountType === 'percentage') {
+      const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
+      for (const item of eventBreakdowns) {
+        if (item.isApplicable) {
+          const itemDiscount = Math.round(((item.baseFee * pct) / 100) * 100) / 100;
+          totalDiscountedBaseFee += Math.max(0, item.baseFee - itemDiscount);
+        } else {
+          totalDiscountedBaseFee += item.baseFee;
+        }
+      }
+      // Compulsory Band Fee is added directly, entirely unaffected by coupon discounts
+      finalPrice = totalDiscountedBaseFee + totalBandFee;
+      discountAmount = Math.max(0, totalBaseFee - totalDiscountedBaseFee);
+    } else if (discountType === 'fixed') {
+      const fixedPrice = Math.max(0, Number(discountValue) || 0);
+      const applicableItems = eventBreakdowns.filter(i => i.isApplicable);
+      const nonApplicableItems = eventBreakdowns.filter(i => !i.isApplicable);
+
+      const nonApplicableBaseFee = nonApplicableItems.reduce((acc, curr) => acc + curr.baseFee, 0);
+      const applicableBaseFee = applicableItems.reduce((acc, curr) => acc + curr.baseFee, 0);
+
+      // The fixed price caps/replaces the base registration fee of applicable events
+      const discountedApplicableBase = Math.min(applicableBaseFee, fixedPrice);
+      totalDiscountedBaseFee = discountedApplicableBase + nonApplicableBaseFee;
+
+      // Compulsory Band Fee is added directly, entirely unaffected by coupon discounts
+      finalPrice = totalDiscountedBaseFee + totalBandFee;
+      discountAmount = Math.max(0, applicableBaseFee - discountedApplicableBase);
+    } else if (discountType === 'per_head_cap') {
+      const perHeadCap = Math.max(0, Number(discountValue) || 0);
       let hasPerHeadEvent = false;
 
-      for (const evId of context.selectedEvents) {
-        const event = getEventById(evId);
-        if (!event) continue;
-
-        const groupMembers = context.teamMembers?.[event.type];
-        const totalMembers = !event.isTeam ? 1 : 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
-
-        const itemOriginal = calculateEventItemPrice(event, totalMembers, context.visitorConfig, context.isEarlyBird);
-        const membersCount = event.isTeam ? totalMembers : 1;
-        const isVisitor = event.id === "visitor";
-        const visitorDaysCount = context.visitorConfig?.days?.length ?? 1;
-        const visitorCount = context.visitorConfig?.count ?? 1;
-        const bankFee = (isFlagshipEvent(event) && context.teamMembers !== undefined && (!event.isTeam || totalMembers > 1))
-          ? calculateFlagshipBankFee(event, membersCount)
-          : isVisitor
-          ? calculateVisitorBandFee(visitorDaysCount, visitorCount)
-          : 0;
-
-        totalOriginal += (itemOriginal + bankFee);
-
-        const isApplicable = isCouponApplicableToEvent(coupon, event.id) || isCouponApplicableToEvent(coupon, event.title);
-
-        if (isApplicable && isPerHeadFeeEvent(event)) {
+      for (const item of eventBreakdowns) {
+        if (item.isApplicable && isPerHeadFeeEvent(item.event)) {
           hasPerHeadEvent = true;
-          const itemCapped = calculateEventItemPriceWithCap(event, totalMembers, context.visitorConfig, context.isEarlyBird, perHeadCap);
-          totalCapped += (itemCapped + bankFee);
+          const cappedBase = calculateEventItemPriceWithCap(
+            item.event,
+            item.totalMembers,
+            context.visitorConfig,
+            context.isEarlyBird,
+            perHeadCap
+          );
+          totalDiscountedBaseFee += cappedBase;
         } else {
-          totalCapped += (itemOriginal + bankFee);
+          totalDiscountedBaseFee += item.baseFee;
         }
       }
 
@@ -283,8 +368,8 @@ export function calculateCouponDiscount(
         };
       }
 
-      finalPrice = Math.max(0, totalCapped);
-      discountAmount = Math.max(0, (totalOriginal > 0 ? totalOriginal : safeOriginalPrice) - totalCapped);
+      finalPrice = totalDiscountedBaseFee + totalBandFee;
+      discountAmount = Math.max(0, totalBaseFee - totalDiscountedBaseFee);
 
       if (discountAmount <= 0) {
         return {
@@ -299,14 +384,32 @@ export function calculateCouponDiscount(
           applicableEvents: coupon.applicableEvents,
         };
       }
-    } else if (eventIdOrTitle) {
-      const event = getEventById(eventIdOrTitle) || OFFICIAL_EVENTS.find(e => normalizeEventKey(e.title) === normalizeEventKey(eventIdOrTitle));
+    }
+  } else if (eventIdOrTitle) {
+    const event = getEventById(eventIdOrTitle) || OFFICIAL_EVENTS.find(e => normalizeEventKey(e.title) === normalizeEventKey(eventIdOrTitle));
+    const evBandFee = event ? getEventBandFee(event, 1, undefined, false) : 0;
+    const evBaseFee = Math.max(0, safeOriginalPrice - evBandFee);
+    calculatedBandFee = evBandFee;
+    calculatedOriginalPrice = safeOriginalPrice;
+
+    if (discountType === 'percentage') {
+      const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
+      discountAmount = Math.round(((evBaseFee * pct) / 100) * 100) / 100;
+      finalPrice = Math.max(0, evBaseFee - discountAmount) + evBandFee;
+    } else if (discountType === 'fixed') {
+      const fixedPrice = Math.max(0, Number(discountValue) || 0);
+      const discountedBase = Math.min(evBaseFee, fixedPrice);
+      discountAmount = Math.max(0, evBaseFee - discountedBase);
+      finalPrice = discountedBase + evBandFee;
+    } else if (discountType === 'per_head_cap') {
+      const perHeadCap = Math.max(0, Number(discountValue) || 0);
       if (event && isPerHeadFeeEvent(event)) {
         const regularPerHead = getEventPerHeadFee(event, context?.isEarlyBird);
         const effectivePerHead = Math.min(regularPerHead, perHeadCap);
-        const estimatedMembers = Math.max(1, Math.round(safeOriginalPrice / (regularPerHead || 1)));
-        finalPrice = estimatedMembers * effectivePerHead;
-        discountAmount = Math.max(0, safeOriginalPrice - finalPrice);
+        const estimatedMembers = Math.max(1, Math.round(evBaseFee / (regularPerHead || 1)));
+        const discountedBase = estimatedMembers * effectivePerHead;
+        discountAmount = Math.max(0, evBaseFee - discountedBase);
+        finalPrice = discountedBase + evBandFee;
 
         if (discountAmount <= 0) {
           return {
@@ -334,6 +437,17 @@ export function calculateCouponDiscount(
           applicableEvents: coupon.applicableEvents,
         };
       }
+    }
+  } else {
+    // Pure fallback if neither context.selectedEvents nor eventIdOrTitle are provided
+    if (discountType === 'percentage') {
+      const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
+      discountAmount = Math.round(((safeOriginalPrice * pct) / 100) * 100) / 100;
+      finalPrice = Math.max(0, safeOriginalPrice - discountAmount);
+    } else if (discountType === 'fixed') {
+      const fixedPrice = Math.max(0, Number(discountValue) || 0);
+      finalPrice = fixedPrice;
+      discountAmount = Math.max(0, safeOriginalPrice - fixedPrice);
     } else {
       return {
         valid: false,
@@ -358,9 +472,10 @@ export function calculateCouponDiscount(
     code,
     discountType,
     discountValue,
-    originalPrice: safeOriginalPrice,
+    originalPrice: calculatedOriginalPrice,
     finalPrice,
     discountAmount,
     applicableEvents: coupon.applicableEvents || ['ALL'],
+    totalBandFee: calculatedBandFee,
   };
 }
