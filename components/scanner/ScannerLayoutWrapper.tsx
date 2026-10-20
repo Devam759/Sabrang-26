@@ -70,19 +70,27 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
   }
 
   return (
-    <div className="admin-portal-scope flex min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-      <Sidebar />
+    <div className="admin-portal-scope flex min-h-screen h-[100dvh] bg-[#f8fafc] text-slate-900 font-sans relative overflow-hidden">
+      {/* Floating Sidebar Container */}
+      <div className="relative z-50 flex-shrink-0">
+        <Sidebar />
+      </div>
+
+      {/* Main Content Area with bounded viewport height for native scrolling */}
       <main 
         data-lenis-prevent
-        className="flex-1 w-full md:w-[calc(100%-16rem)] pt-16 md:pt-0 overflow-y-auto relative bg-[#f8fafc] admin-scrollbar overscroll-contain"
+        className="flex-1 w-full overflow-y-auto relative z-10 bg-[#f8fafc] flex flex-col h-[100dvh] admin-scrollbar overscroll-contain"
       >
-        <header className="sticky top-0 z-30 bg-white px-6 md:px-8 h-16 hidden md:flex items-center justify-between border-b border-slate-200 shadow-xs">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 md:px-8 h-16 hidden md:flex items-center justify-between border-b border-slate-200 shadow-xs shrink-0">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             Sabrang 2026 Scanner
           </span>
         </header>
 
-        <div className="p-6 md:p-10 max-w-7xl mx-auto">{children}</div>
+        {/* pt-20 provides clean clearance for 64px mobile navbar, md:pt-8 for desktop */}
+        <div className="pt-20 md:pt-8 p-4 sm:p-6 md:p-10 max-w-7xl w-full mx-auto animate-in fade-in duration-300">
+          {children}
+        </div>
       </main>
     </div>
   );

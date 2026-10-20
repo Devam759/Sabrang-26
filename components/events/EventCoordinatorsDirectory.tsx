@@ -207,7 +207,9 @@ export default function EventCoordinatorsDirectory({
         aria-label="Event Coordinators Directory"
       >
         <div
-          className="relative my-auto w-full max-w-5xl max-h-[90vh] overflow-y-auto p-5 sm:p-7 md:p-8 bg-[#0a0b12] border border-white/10 rounded-2xl shadow-2xl"
+          data-lenis-prevent
+          className="relative my-auto w-full max-w-5xl max-h-[90vh] overflow-y-auto overscroll-contain p-5 sm:p-7 md:p-8 bg-[#0a0b12] border border-white/10 rounded-2xl shadow-2xl touch-pan-y"
+          style={{ WebkitOverflowScrolling: "touch" }}
           onClick={(e) => e.stopPropagation()}
         >
           {onClose && (
