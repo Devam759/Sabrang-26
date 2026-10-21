@@ -692,8 +692,6 @@ export const TEAM_IMAGES: Record<string, string> = {
     "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787331503/sabrang-2026/team/kartik-singh.png",
   "Kartik Sharma":
     "https://res.cloudinary.com/eprhemvt/image/upload/v1787651025/66917207478_1.png",
-  "Khushi Soni":
-    "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787084251/sabrang-2026/team/khushi-soni.png",
   "Kunal Kasliwal":
     "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787591802/sabrang-2026/team/hqqsacmq9lwi2mnn8ftt.png",
   "Laksh Sharma":
@@ -846,14 +844,6 @@ export const TEAM_MEMBERS: TeamMember[] = [
       email: "mailto:ambikadalmia@jklu.edu.in",
       linkedin:
         "https://www.linkedin.com/in/ambika-dalmia-310762247?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
-    },
-  },
-  {
-    name: "Khushi Soni",
-    role: "Hospitality Core",
-    links: {
-      email: "mailto:khushisoni@jklu.edu.in",
-      linkedin: "https://www.linkedin.com/in/khushi-soni--ks0906",
     },
   },
   {
