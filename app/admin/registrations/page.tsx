@@ -140,7 +140,13 @@ const getEventTitles = (reg: any): { full: string; short: string; list: string[]
 
   if (eventIds.length === 0) return { full: 'N/A', short: 'N/A', list: [] };
 
-  const titles = eventIds.map(id => OFFICIAL_EVENTS.find(e => e.id === id)?.title || id);
+  const titles = eventIds.map(id => {
+    const base = OFFICIAL_EVENTS.find(e => e.id === id)?.title || id;
+    if (id === 'face_off' && (reg.generic_faceOffStyle || reg.faceOffStyle)) {
+      return `${base} (${reg.generic_faceOffStyle || reg.faceOffStyle})`;
+    }
+    return base;
+  });
   const full = titles.join(', ');
   
   return { full, short: full, list: titles };
@@ -381,6 +387,8 @@ function buildRegistrationSearchText(reg: any): string {
   if (reg.valorant_leaderRiotId) pool.push(String(reg.valorant_leaderRiotId));
   if (reg.freefire_leaderUid) pool.push(String(reg.freefire_leaderUid));
   if (reg.generic_vaadVivaadRepresentative) pool.push(String(reg.generic_vaadVivaadRepresentative));
+  if (reg.generic_faceOffStyle) pool.push(String(reg.generic_faceOffStyle));
+  if (reg.faceOffStyle) pool.push(String(reg.faceOffStyle));
 
   // 10. Status, Check-In, Email, and Test info
   if (reg.hasEntered) {
@@ -1772,6 +1780,14 @@ export default function Registrations() {
                   <p className="text-xs font-medium text-slate-500 mb-1">Vaad Vivaad Representative</p>
                   <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
                     {selectedReg.generic_vaadVivaadRepresentative}
+                  </p>
+                </div>
+              )}
+              {(selectedReg.generic_faceOffStyle || selectedReg.faceOffStyle) && (
+                <div className="col-span-2 sm:col-span-1">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Face Off Style</p>
+                  <p className="font-semibold text-sm text-slate-900 bg-white/80 p-3 border border-slate-200 rounded-xl">
+                    {selectedReg.generic_faceOffStyle || selectedReg.faceOffStyle}
                   </p>
                 </div>
               )}

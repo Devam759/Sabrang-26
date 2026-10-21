@@ -740,8 +740,11 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       const { OFFICIAL_EVENTS } = await import('@/lib/eventPricing');
       const getEventTitle = (id: string) => {
         const found = OFFICIAL_EVENTS.find(e => e.id === id || e.title.toLowerCase() === id.toLowerCase());
-        if (found) return found.title;
-        return id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const base = found ? found.title : id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        if (id === 'face_off' && (formData.faceOffStyle || formData.generic_faceOffStyle)) {
+          return `${base} (${formData.faceOffStyle || formData.generic_faceOffStyle})`;
+        }
+        return base;
       };
 
       let eventIds: string[] = [];

@@ -125,8 +125,11 @@ export async function POST(req: Request) {
       const { OFFICIAL_EVENTS } = await import('@/lib/eventPricing');
       const getEventTitle = (id: string) => {
         const found = OFFICIAL_EVENTS.find(e => e.id === id || e.title.toLowerCase() === id.toLowerCase());
-        if (found) return found.title;
-        return id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const base = found ? found.title : id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        if (id === 'face_off' && (reg.faceOffStyle || reg.generic_faceOffStyle)) {
+          return `${base} (${reg.faceOffStyle || reg.generic_faceOffStyle})`;
+        }
+        return base;
       };
 
       let eventIds: string[] = [];
@@ -230,10 +233,13 @@ export async function GET(req: Request) {
     const { OFFICIAL_EVENTS } = await import('@/lib/eventPricing');
     const { extractRegistrationInfo } = await import('@/lib/registrationDataHelper');
 
-    const getEventTitle = (id: string) => {
+    const getEventTitle = (id: string, r?: any) => {
       const found = OFFICIAL_EVENTS.find(e => e.id === id || e.title.toLowerCase() === id.toLowerCase());
-      if (found) return found.title;
-      return id.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+      const base = found ? found.title : id.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+      if (id === 'face_off' && r && (r.faceOffStyle || r.generic_faceOffStyle)) {
+        return `${base} (${r.faceOffStyle || r.generic_faceOffStyle})`;
+      }
+      return base;
     };
 
     const extractAmount = (data: any) => {
@@ -288,9 +294,9 @@ export async function GET(req: Request) {
       else if (reg.eventName) eventIds = [reg.eventName];
 
       const eventTitlesList = eventIds.length > 0
-        ? eventIds.map(getEventTitle)
+        ? eventIds.map(id => getEventTitle(id, reg))
         : (reg.eventName || reg.eventTitle || reg.event
-            ? [getEventTitle(reg.eventName || reg.eventTitle || reg.event)]
+            ? [getEventTitle(reg.eventName || reg.eventTitle || reg.event, reg)]
             : ['General']);
       const eventsStr = eventTitlesList.join(', ');
 

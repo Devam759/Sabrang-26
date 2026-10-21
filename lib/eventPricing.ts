@@ -77,6 +77,13 @@ export const VAAD_VIVAAD_REPRESENTATIVES = [
   "Anubha Bhonsle",
 ] as const;
 
+export const FACE_OFF_STYLES = [
+  "Rep your Style",
+  "Hip Hop",
+] as const;
+
+export type FaceOffStyle = (typeof FACE_OFF_STYLES)[number];
+
 const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   // --- Flagship Events - Team ---
   {

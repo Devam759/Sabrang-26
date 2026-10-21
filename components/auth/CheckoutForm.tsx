@@ -17,6 +17,7 @@ import {
   calculateFlagshipBankFee,
   SabrangEvent,
   VAAD_VIVAAD_REPRESENTATIVES,
+  FACE_OFF_STYLES,
   FESTIVAL_DAYS,
   VisitorPassConfig,
   calculateVisitorPassFee,
@@ -383,6 +384,9 @@ export default function CheckoutForm() {
           : undefined,
         vaadVivaadRepresentative: selectedEvents.includes("vaad_vivaad")
           ? getField("generic", "vaadVivaadRepresentative").trim()
+          : undefined,
+        faceOffStyle: selectedEvents.includes("face_off")
+          ? getField("generic", "faceOffStyle").trim()
           : undefined,
       };
 
@@ -966,6 +970,10 @@ export default function CheckoutForm() {
           if (selectedEvents.includes('vaad_vivaad') && !getField('generic', 'vaadVivaadRepresentative').trim()) {
             issues.push({ elementId: 'generic_vaadVivaadRepresentative', fieldKey: 'generic_vaadVivaadRepresentative', message: 'Please select an MP or Journalist for Vaad Vivaad.' });
           }
+
+          if (selectedEvents.includes('face_off') && !getField('generic', 'faceOffStyle').trim()) {
+            issues.push({ elementId: 'generic_faceOffStyle', fieldKey: 'generic_faceOffStyle', message: 'Please choose your style for Face Off (Rep your Style or Hip Hop).' });
+          }
         }
 
         // Leader details
@@ -1146,6 +1154,66 @@ export default function CheckoutForm() {
             {touched['generic_vaadVivaadRepresentative'] && !getField('generic', 'vaadVivaadRepresentative').trim() && (
               <p className="text-xs text-red-400 font-sans">
                 Please select an MP or Journalist from the list to continue.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Face Off Chosen Style */}
+        {group === 'generic' && selectedEvents.includes('face_off') && (
+          <div id="generic_faceOffStyle" className="space-y-3 mb-8 p-5 rounded-xl bg-violet-950/20 border border-violet-500/30">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-white flex justify-between items-center">
+                <span className="text-violet-200">
+                  Choose your style <span className="text-violet-400">*</span>
+                </span>
+                <span className="text-xs text-white/50">Face Off Solo Dance</span>
+              </label>
+              <p className="text-xs text-white/70 leading-relaxed">
+                Select one of the dance styles to compete in Face Off:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Choose your style for Face Off">
+              {FACE_OFF_STYLES.map((style) => {
+                const isSelected = getField('generic', 'faceOffStyle') === style;
+                return (
+                  <button
+                    key={style}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => {
+                      updateField('generic', 'faceOffStyle', style);
+                      handleBlur('generic_faceOffStyle');
+                    }}
+                    className={`flex items-center justify-between p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-violet-600/20 border-violet-500 text-white shadow-[0_0_15px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/50"
+                        : "bg-white/5 border-white/10 text-white/80 hover:bg-white/[0.08] hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                        isSelected ? "border-violet-400 bg-violet-500" : "border-white/30 bg-transparent"
+                      }`}>
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                      <span className="text-sm font-medium">{style}</span>
+                    </div>
+                    {isSelected && (
+                      <span className="text-xs text-violet-300 font-semibold uppercase tracking-wider">
+                        Selected
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {touched['generic_faceOffStyle'] && !getField('generic', 'faceOffStyle').trim() && (
+              <p className="text-xs text-red-400 font-sans">
+                Please choose one of the styles to continue.
               </p>
             )}
           </div>
@@ -2489,6 +2557,13 @@ export default function CheckoutForm() {
                   <div className="p-3 rounded-lg bg-violet-950/30 border border-violet-500/20 text-xs text-white/80 flex flex-wrap justify-between items-center gap-1">
                     <span className="font-sans text-white/50">Vaad Vivaad Representation:</span>
                     <span className="font-semibold text-violet-300">{getField('generic', 'vaadVivaadRepresentative')}</span>
+                  </div>
+                )}
+
+                {selectedEvents.includes('face_off') && getField('generic', 'faceOffStyle') && (
+                  <div className="p-3 rounded-lg bg-violet-950/30 border border-violet-500/20 text-xs text-white/80 flex flex-wrap justify-between items-center gap-1">
+                    <span className="font-sans text-white/50">Face Off Style:</span>
+                    <span className="font-semibold text-violet-300">{getField('generic', 'faceOffStyle')}</span>
                   </div>
                 )}
 

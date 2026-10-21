@@ -125,6 +125,13 @@ function initFirebaseAdmin(): App | null {
 const app = initFirebaseAdmin();
 export const adminApp = app as App;
 export const adminDb = app ? getFirestore(app) : (null as unknown as Firestore);
+if (adminDb && typeof adminDb.settings === 'function') {
+  try {
+    adminDb.settings({ ignoreUndefinedProperties: true });
+  } catch {
+    // Settings already applied
+  }
+}
 export const adminAuth = app ? getAuth(app) : (null as unknown as Auth);
 
 
