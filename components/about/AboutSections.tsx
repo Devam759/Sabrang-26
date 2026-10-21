@@ -34,7 +34,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#22d3ee",
     defaultRatioX: 0.15,
     keyword: "CREATIVE EXPRESSION",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
   },
   {
     id: "cultural",
@@ -45,7 +45,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#a855f7",
     defaultRatioX: 0.38,
     keyword: "ARTISTIC REBELLION",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
   },
   {
     id: "management",
@@ -56,7 +56,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#f59e0b",
     defaultRatioX: 0.62,
     keyword: "STRATEGIC VISION",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
   },
   {
     id: "design",
@@ -67,7 +67,7 @@ export const SABRANG_PILLARS: PillarData[] = [
     color: "#ec4899",
     defaultRatioX: 0.85,
     keyword: "CREATIVE AESTHETICS",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060183/sabrang-2026/about/panache-runway.png",
   },
 ];
 
@@ -291,7 +291,7 @@ export function AboutContentSections() {
                 description:
                   "High-octane EDM basslines, laser visual installations, and open-floor dancing till midnight every single day.",
                 color: "#a855f7",
-                image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png",
+                image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060359/sabrang-2026/menu-scroll-covers/sabrang-live.png",
               },
               {
                 category: "Interactive Zone",
@@ -299,7 +299,7 @@ export function AboutContentSections() {
                 description:
                   "Casual arcade corners, console gaming duels, VR setups, and pop-up challenge booths scattered across campus.",
                 color: "#22d3ee",
-                image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
+                image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060186/sabrang-2026/about/versevaad.jpg",
               },
               {
                 category: "Spontaneous Culture",
@@ -307,7 +307,7 @@ export function AboutContentSections() {
                 description:
                   "Acoustic jam circles, spontaneous street dance pop-ups, food carnivals, and neon photo installations.",
                 color: "#ec4899",
-                image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
+                image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060179/sabrang-2026/about/dance-battle.png",
               },
             ].map((item, idx) => {
               const isExpActive = activeExpIdx === idx;

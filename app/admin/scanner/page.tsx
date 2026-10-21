@@ -856,10 +856,10 @@ export default function AdminScannerView() {
 
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-14rem)] font-adminBody animate-in fade-in duration-200 text-slate-900">
+    <div className="flex flex-col items-center justify-start min-h-0 w-full font-adminBody animate-in fade-in duration-200 text-slate-900 pb-16">
       
       {/* Centered Work Container */}
-      <div className="w-full max-w-lg">
+      <div className={`w-full ${scannedData ? 'max-w-2xl' : 'max-w-lg lg:max-w-4xl'} mx-auto`}>
         
         {/* Status Banners */}
         {status.message && (
@@ -872,122 +872,132 @@ export default function AdminScannerView() {
           </div>
         )}
 
-        {/* Event Selector for Event-Specific Entry Scanning */}
-        <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs mb-4">
-          <label className="block text-xs font-semibold text-slate-700 mb-2">
-            Scanning for Event
-          </label>
-          <select
-            value={selectedScanEvent}
-            onChange={(e) => setSelectedScanEvent(e.target.value)}
-            className="w-full bg-white border border-slate-200 text-slate-900 font-semibold text-xs rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500/50 cursor-pointer appearance-none"
-          >
-            <option value="all">All Events (Global Fest Entry)</option>
-            {OFFICIAL_EVENTS.map((evt) => (
-              <option key={evt.id} value={evt.id}>
-                {evt.title} ({evt.subtitle})
-              </option>
-            ))}
-            <option value="visitor">Visitor Pass (General Fest Entry)</option>
-          </select>
-          <p className="text-xs text-slate-500 mt-2 font-medium">
-            Tickets for other events will be rejected with "Wrong Event" when a specific event is selected.
-          </p>
-        </div>
-
-        {/* Viewfinder Card */}
-        <div className={`bg-white backdrop-blur-[40px] border border-slate-200 p-6 rounded-[32px] shadow-xs flex-col items-center gap-6 justify-center w-full ${scannedData ? 'hidden' : 'flex'}`}>
-          {/* QR Scanner view box wrapper */}
-          <div className="w-full max-w-sm aspect-square bg-white/90 border border-slate-200 overflow-hidden relative rounded-2xl shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
+        {/* Normal Scanning View (Camera + Event Filter + Manual Lookup) */}
+        {!scannedData && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             
-            {/* Camera Viewfinder DOM element */}
-            <div 
-              id="qr-reader" 
-              className={`w-full h-full bg-transparent relative z-10 ${isFrontCamera ? 'mirrored' : ''}`}
-            ></div>
+            {/* Viewfinder Card */}
+            <div className="lg:col-span-7 w-full order-1 lg:order-1">
+              <div className="bg-white backdrop-blur-[40px] border border-slate-200 p-6 rounded-[32px] shadow-xs flex flex-col items-center gap-5 justify-center w-full">
+                {/* QR Scanner view box wrapper */}
+                <div className="w-full max-w-sm aspect-square bg-white/90 border border-slate-200 overflow-hidden relative rounded-2xl shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]">
+                  
+                  {/* Camera Viewfinder DOM element */}
+                  <div 
+                    id="qr-reader" 
+                    className={`w-full h-full bg-transparent relative z-10 ${isFrontCamera ? 'mirrored' : ''}`}
+                  ></div>
 
-            {/* Stopped Camera Placeholder overlay */}
-            {!cameraActive && (
-              <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-6 text-center bg-slate-900/40 backdrop-blur-md z-20">
-                <div className="p-4 bg-white text-slate-500 rounded-2xl border border-slate-200 shadow-xs mb-4">
-                  <AlertCircle className="text-slate-600" size={28} />
+                  {/* Stopped Camera Placeholder overlay */}
+                  {!cameraActive && (
+                    <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-6 text-center bg-slate-900/40 backdrop-blur-md z-20">
+                      <div className="p-4 bg-white text-slate-500 rounded-2xl border border-slate-200 shadow-xs mb-4">
+                        <AlertCircle className="text-slate-600" size={28} />
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-900 font-space-grotesk tracking-wide">Camera Inactive</h3>
+                      <p className="text-xs text-slate-500 mt-1">Tap start to begin scanning tickets.</p>
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 font-space-grotesk tracking-wide">Camera Inactive</h3>
-                <p className="text-xs text-slate-500 mt-1">Tap start to begin scanning tickets.</p>
-              </div>
-            )}
-          </div>
 
-          {/* Toggle Camera Button */}
-          <button 
-            onClick={toggleCamera}
-            className={`w-full max-w-sm font-semibold text-xs rounded-xl py-3.5 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
-              cameraActive 
-                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' 
-                : 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm'
-            }`}
-          >
-            {cameraActive ? 'Stop Camera' : 'Start Camera'}
-          </button>
-
-          {/* Camera Selection Dropdown */}
-          {cameraActive && cameras.length > 1 && (
-            <div className="w-full max-w-sm flex flex-col gap-2 mt-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                Select Video Camera
-              </label>
-              <div className="relative w-full">
-                <select
-                  value={selectedCameraId}
-                  onChange={handleCameraChange}
-                  className="w-full bg-white text-slate-900 border border-slate-200 text-xs rounded-xl py-3 px-4 focus:outline-none cursor-pointer appearance-none"
+                {/* Toggle Camera Button */}
+                <button 
+                  onClick={toggleCamera}
+                  className={`w-full max-w-sm font-semibold text-xs rounded-xl py-3.5 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-xs ${
+                    cameraActive 
+                      ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' 
+                      : 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm'
+                  }`}
                 >
-                  {cameras.map((camera) => (
-                    <option key={camera.id} value={camera.id}>
-                      {camera.label || `Camera ${camera.id.slice(0, 8)}`}
-                    </option>
-                  ))}
-                </select>
+                  {cameraActive ? 'Stop Camera' : 'Start Camera'}
+                </button>
+
+                {/* Camera Selection Dropdown */}
+                {cameraActive && cameras.length > 1 && (
+                  <div className="w-full max-w-sm flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      Select Video Camera
+                    </label>
+                    <div className="relative w-full">
+                      <select
+                        value={selectedCameraId}
+                        onChange={handleCameraChange}
+                        className="w-full bg-white text-slate-900 border border-slate-200 text-xs rounded-xl py-3 px-4 focus:outline-none cursor-pointer appearance-none"
+                      >
+                        {cameras.map((camera) => (
+                          <option key={camera.id} value={camera.id}>
+                            {camera.label || `Camera ${camera.id.slice(0, 8)}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Manual Lookup Card (When camera is unavailable or QR is unscannable) */}
-        {!scannedData && (
-          <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs mt-4">
-            <label className="block text-xs font-semibold text-slate-700 mb-2">
-              Manual Ticket Lookup
-            </label>
-            <form onSubmit={handleManualSearch} className="flex flex-col sm:flex-row gap-2.5">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-                <input
-                  type="text"
-                  value={manualQuery}
-                  onChange={(e) => {
-                    setManualQuery(e.target.value);
-                    if (manualError) setManualError('');
-                  }}
-                  placeholder="Ticket ID, Application No, Phone, or Email..."
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl py-3 pl-10 pr-3 focus:outline-none focus:border-purple-500/50 font-mono"
-                />
+            {/* Right Column: Event Selector & Manual Ticket Lookup */}
+            <div className="lg:col-span-5 w-full order-2 lg:order-2 space-y-4">
+              {/* Event Selector for Event-Specific Entry Scanning */}
+              <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs">
+                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                  Scanning for Event
+                </label>
+                <select
+                  value={selectedScanEvent}
+                  onChange={(e) => setSelectedScanEvent(e.target.value)}
+                  className="w-full bg-white border border-slate-200 text-slate-900 font-semibold text-xs rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500/50 cursor-pointer appearance-none"
+                >
+                  <option value="all">All Events (Global Fest Entry)</option>
+                  {OFFICIAL_EVENTS.map((evt) => (
+                    <option key={evt.id} value={evt.id}>
+                      {evt.title} ({evt.subtitle})
+                    </option>
+                  ))}
+                  <option value="visitor">Visitor Pass (General Fest Entry)</option>
+                </select>
+                <p className="text-xs text-slate-500 mt-2 font-medium">
+                  Tickets for other events will be rejected with "Wrong Event" when a specific event is selected.
+                </p>
               </div>
-              <button
-                type="submit"
-                disabled={searchingManual || !manualQuery.trim()}
-                className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shrink-0 shadow-sm"
-              >
-                {searchingManual ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-                <span>Find Ticket</span>
-              </button>
-            </form>
-            {manualError && (
-              <p className="text-[11px] text-rose-600 font-medium mt-2.5 flex items-center gap-1.5">
-                <AlertCircle size={13} className="shrink-0" />
-                <span>{manualError}</span>
-              </p>
-            )}
+
+              {/* Manual Lookup Card (When camera is unavailable or QR is unscannable) */}
+              <div className="w-full bg-white backdrop-blur-[40px] border border-slate-200 p-5 rounded-[24px] shadow-xs">
+                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                  Manual Ticket Lookup
+                </label>
+                <form onSubmit={handleManualSearch} className="flex flex-col sm:flex-row gap-2.5">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                    <input
+                      type="text"
+                      value={manualQuery}
+                      onChange={(e) => {
+                        setManualQuery(e.target.value);
+                        if (manualError) setManualError('');
+                      }}
+                      placeholder="Ticket ID, App No, Phone..."
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-xl py-3 pl-10 pr-3 focus:outline-none focus:border-purple-500/50 font-mono"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={searchingManual || !manualQuery.trim()}
+                    className="px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shrink-0 shadow-sm"
+                  >
+                    {searchingManual ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                    <span>Find Ticket</span>
+                  </button>
+                </form>
+                {manualError && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-2.5 flex items-center gap-1.5">
+                    <AlertCircle size={13} className="shrink-0" />
+                    <span>{manualError}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
           </div>
         )}
 

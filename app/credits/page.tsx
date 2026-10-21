@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
+        url: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
         width: 800,
         height: 800,
         alt: "Sabrang 2026 Tech Team Developers",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     description:
       "Meet the developers, web architects, and UI/UX designers behind the Sabrang 2026 platform.",
     images: [
-      "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
+      "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060383/sabrang-2026/tech-team-credit/Devam-gupta.png",
     ],
   },
 };

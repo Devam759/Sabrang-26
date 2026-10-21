@@ -37,6 +37,10 @@ const SUPPRESSED_STRINGS = [
   "Detected an update time that is in the future",
   "Failed to obtain exclusive access to the persistence layer",
   "multi-tab synchronization",
+  "Error creating WebGL context",
+  "Web page caused context loss",
+  "WebGL context could not be created",
+  "getSupportedExtensions",
 ];
 
 const filterLog = (origFn: (...args: unknown[]) => void) => {
@@ -78,20 +82,26 @@ if (typeof window !== "undefined") {
     // Ignore in non-browser environments
   }
   
-  // Suppress uncaught scanner abort errors that bypass console.error
+  // Suppress uncaught scanner abort errors & WebGL context loss that bypass console.error
   window.addEventListener("error", (event) => {
+    const msg = event.message || event.error?.message || "";
     if (
-      event.message?.includes("RenderedCameraImpl video surface onabort") ||
-      event.error?.message?.includes("RenderedCameraImpl video surface onabort")
+      msg.includes("RenderedCameraImpl video surface onabort") ||
+      msg.includes("Error creating WebGL context") ||
+      msg.includes("getSupportedExtensions") ||
+      msg.includes("Web page caused context loss")
     ) {
       event.preventDefault();
     }
   });
 
   window.addEventListener("unhandledrejection", (event) => {
+    const msg = event.reason?.message || (typeof event.reason === "string" ? event.reason : "");
     if (
-      event.reason?.message?.includes("RenderedCameraImpl video surface onabort") ||
-      (typeof event.reason === "string" && event.reason.includes("RenderedCameraImpl video surface onabort"))
+      msg.includes("RenderedCameraImpl video surface onabort") ||
+      msg.includes("Error creating WebGL context") ||
+      msg.includes("getSupportedExtensions") ||
+      msg.includes("Web page caused context loss")
     ) {
       event.preventDefault();
     }

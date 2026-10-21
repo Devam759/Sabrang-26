@@ -317,10 +317,12 @@ html.management-page body::-webkit-scrollbar,
 .admin-portal-scope::-webkit-scrollbar,
 .admin-portal-scope *::-webkit-scrollbar,
 .admin-scrollbar::-webkit-scrollbar,
-.admin-scrollbar *::-webkit-scrollbar {
+.admin-scrollbar *::-webkit-scrollbar,
+#scanner-main-scroll::-webkit-scrollbar,
+#admin-main-scroll::-webkit-scrollbar {
   display: block !important;
-  width: 7px !important;
-  height: 7px !important;
+  width: 8px !important;
+  height: 8px !important;
 }
 
 html.management-page::-webkit-scrollbar-track,

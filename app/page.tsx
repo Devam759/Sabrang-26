@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png",
+        url: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 JK Lakshmipat University Annual Fest",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual fest.",
-    images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
+    images: ["https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
 
@@ -85,7 +85,7 @@ const festivalEventSchema = {
     "@type": "Audience",
     audienceType: "College Students",
   },
-  image: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
+  image: ["https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   offers: {
     "@type": "Offer",
     url: "https://sabrang.jklu.edu.in/register",

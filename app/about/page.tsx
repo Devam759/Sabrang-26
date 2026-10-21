@@ -77,7 +77,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Panache",
     category: "Fashion · Ultraviolet Haute Couture",
     desc: "The signature haute couture runway where fashion design meets theatrical choreography and fierce personal expression on a grand national stage.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082812/sabrang-2026/about-flagship-events-pics/PANACHE.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787082812/sabrang-2026/about-flagship-events-pics/PANACHE.jpg",
     link: "/events",
   },
   {
@@ -85,7 +85,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Versevaad",
     category: "Literary · Laser Verbal Slam",
     desc: "An intense arena of spoken word, poetic rap battles, fierce literary debates, and high-impact verbal expression.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082933/sabrang-2026/about-flagship-events-pics/VERSEVAAD.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787082933/sabrang-2026/about-flagship-events-pics/VERSEVAAD.jpg",
     link: "/events",
   },
   {
@@ -93,7 +93,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Echoes of Noor",
     category: "Music · Prismatic Sufi Harmonies",
     desc: "Mesmerizing Sufi melodies, divine unplugged acoustics, and soul-stirring live musical performances illuminated under the stars.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082810/sabrang-2026/about-flagship-events-pics/ECHOES-OF-NOOR.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787082810/sabrang-2026/about-flagship-events-pics/ECHOES-OF-NOOR.jpg",
     link: "/events",
   },
   {
@@ -101,7 +101,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Band Jam",
     category: "Music · Infrared Sonic Blast",
     desc: "Pure sonic warfare under the open sky: head-to-head rock battles, roaring drum solos, electric guitar riffs, and explosive band performances.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082808/sabrang-2026/about-flagship-events-pics/BANDJAM.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787082808/sabrang-2026/about-flagship-events-pics/BANDJAM.jpg",
     link: "/events",
   },
   {
@@ -109,7 +109,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Sync",
     category: "Dance · Chromatic Group Resonance",
     desc: "High-energy synchronized group dance showdowns featuring sharp formations, thematic choreography, and electric crew dynamics.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082815/sabrang-2026/about-flagship-events-pics/SYNC.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787082815/sabrang-2026/about-flagship-events-pics/SYNC.jpg",
     link: "/events",
   },
   {
@@ -117,7 +117,7 @@ const PILLARS_ITEMS: AccordionGalleryItem[] = [
     label: "Step Up",
     category: "Choreography · Solo & Duo Street Battles",
     desc: "Fierce solo and duo street dance battles featuring popping, locking, hip-hop, and freestyle footwork on the arena floor.",
-    image: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787082813/sabrang-2026/about-flagship-events-pics/STEPUP.jpg",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787082813/sabrang-2026/about-flagship-events-pics/STEPUP.jpg",
     link: "/events",
   },
 ];

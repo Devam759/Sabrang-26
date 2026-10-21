@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronDown, Phone, Search, Copy, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { galleryItems } from "@/lib/highlights-data";
@@ -9,6 +9,19 @@ export default function RegistrationCoordinatorsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const timer = setTimeout(() => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect && rect.bottom > window.innerHeight) {
+          containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const copyPhone = (phone: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -35,6 +48,8 @@ export default function RegistrationCoordinatorsDropdown() {
 
   return (
     <div
+      ref={containerRef}
+      data-lenis-prevent
       className={`rounded-2xl p-4 sm:p-5 transition-all duration-300 backdrop-blur-xl ${
         isOpen
           ? "bg-[#0b0b0e]/95 border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)]"
@@ -124,7 +139,8 @@ export default function RegistrationCoordinatorsDropdown() {
               {/* Coordinators List */}
               <div 
                 data-lenis-prevent
-                className="max-h-[380px] overflow-y-auto overscroll-contain space-y-2.5 pr-1 touch-pan-y [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/25"
+                onWheel={(e) => e.stopPropagation()}
+                className="max-h-[250px] sm:max-h-[280px] overflow-y-auto overscroll-contain space-y-2.5 pr-1.5 touch-pan-y [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-white/[0.04] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-400/40 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/70 [&::-webkit-scrollbar-thumb]:rounded-full"
                 style={{ WebkitOverflowScrolling: "touch" }}
               >
                 {filteredEvents.length === 0 ? (

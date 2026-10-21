@@ -1176,6 +1176,11 @@ export default function CheckoutForm() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-white/80 flex justify-between">
                 <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
+                {group === "generic" && selectedEvents.includes("pronite_jklu") && (
+                  <span className="text-[10px] text-violet-300 font-mono font-semibold uppercase tracking-wider bg-violet-500/15 px-2 py-0.5 rounded border border-violet-500/30">
+                    JKLU Exclusive
+                  </span>
+                )}
               </label>
 
               {group === "generic" && selectedEvents.includes("pronite_jklu") ? (
@@ -1185,7 +1190,7 @@ export default function CheckoutForm() {
                   value="JK Lakshmipat University"
                   readOnly
                   disabled
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/90 cursor-not-allowed select-none focus:outline-none"
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 cursor-not-allowed select-none focus:outline-none"
                 />
               ) : (
                 <select
@@ -2648,7 +2653,7 @@ export default function CheckoutForm() {
       </div>
 
       {/* Right Column: Sticky Selected Items Sidebar */}
-      <div className="lg:col-span-4 lg:sticky lg:top-8 space-y-4">
+      <div className="lg:col-span-4 lg:sticky lg:top-8 space-y-4 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:overscroll-contain pr-0.5 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
         <div className="bg-[#0c0c0e] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-5">
           <h3 className="text-base font-bold text-white uppercase tracking-wider">
             Selected Items

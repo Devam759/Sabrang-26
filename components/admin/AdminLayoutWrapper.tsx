@@ -105,11 +105,14 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
       
       {/* Main Content Area with fluid padding to match floating sidebar */}
       <main 
+        id="admin-main-scroll"
         data-lenis-prevent
-        className="flex-1 w-full overflow-y-auto relative z-10 bg-transparent flex flex-col h-[100dvh] admin-scrollbar overscroll-contain"
+        onWheel={(e) => e.stopPropagation()}
+        className="flex-1 w-full overflow-y-auto relative z-10 bg-transparent flex flex-col h-full min-h-0 admin-scrollbar"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {/* Page content with fluid fade-in animation container - pt-20 provides clean clearance for 64px mobile navbar, md:pt-8 for desktop */}
-        <div className="pt-20 md:pt-8 px-4 pb-6 md:p-6 lg:p-8 max-w-[1600px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both">
+        <div className="pt-20 md:pt-6 px-4 pb-28 md:p-6 lg:p-8 md:pb-20 max-w-[1600px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both">
           {children}
         </div>
       </main>

@@ -19,7 +19,7 @@ export const galleryPlaneData: GalleryPlaneConfig[] = [
   {
     fallbackColor: '#feca4f',
     accentColor: '#feca4f',
-    textureSrc: 'https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791315055/sabrang-2026/images/IMG_20261007_001834.jpg.jpg',
+    textureSrc: 'https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791315055/sabrang-2026/images/IMG_20261007_001834.jpg.jpg',
     position: { x: -0.9, y: 0 },
     backgroundColor: 'transparent',
     blob1Color: '#ffdf94',
@@ -33,7 +33,7 @@ export const galleryPlaneData: GalleryPlaneConfig[] = [
   {
     fallbackColor: '#80455a',
     accentColor: '#80455a',
-    textureSrc: 'https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791315056/sabrang-2026/images/varun-jain.jpg',
+    textureSrc: 'https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791315056/sabrang-2026/images/varun-jain.jpg',
     position: { x: 0.8, y: 0 },
     backgroundColor: 'transparent',
     blob1Color: '#d29a41',
@@ -47,7 +47,7 @@ export const galleryPlaneData: GalleryPlaneConfig[] = [
   {
     fallbackColor: '#fa7b71',
     accentColor: '#fa7b71',
-    textureSrc: 'https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791315057/sabrang-2026/images/varun1.jpg',
+    textureSrc: 'https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791315057/sabrang-2026/images/varun1.jpg',
     position: { x: -0.7, y: 0 },
     backgroundColor: 'transparent',
     blob1Color: '#f88b8d',
@@ -61,7 +61,7 @@ export const galleryPlaneData: GalleryPlaneConfig[] = [
   {
     fallbackColor: '#3c72c6',
     accentColor: '#3c72c6',
-    textureSrc: 'https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791315058/sabrang-2026/images/IMG_20261007_003518.jpg.jpg',
+    textureSrc: 'https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791315058/sabrang-2026/images/IMG_20261007_003518.jpg.jpg',
     position: { x: 1, y: 0 },
     backgroundColor: 'transparent',
     blob1Color: '#ffaa00',
@@ -75,7 +75,7 @@ export const galleryPlaneData: GalleryPlaneConfig[] = [
   {
     fallbackColor: '#fdd895',
     accentColor: '#fdd895',
-    textureSrc: 'https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1791315053/sabrang-2026/images/footer_art.jpg',
+    textureSrc: 'https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791315053/sabrang-2026/images/footer_art.jpg',
     position: { x: -0.7, y: 0 },
     backgroundColor: 'transparent',
     blob1Color: '#fdd895',

@@ -431,7 +431,7 @@ export default function Sidebar() {
       {/* Mobile Hamburger Header */}
       <div className={`md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-50 transition-transform duration-200 ${isVisible ? 'translate-y-0' : '-translate-y-full'} shadow-xs`}>
         <Link href="/admin" className="flex items-center p-1 active:scale-95 transition-transform">
-          <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-10 w-auto object-contain" />
+          <img src="https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-10 w-auto object-contain" />
         </Link>
         <button 
           onClick={() => setIsOpen(!isOpen)} 
@@ -459,7 +459,7 @@ export default function Sidebar() {
         {/* Sidebar Logo */}
         <div className="h-20 flex items-center px-6 border-b border-slate-200 shrink-0">
           <Link href="/admin" className="flex items-center p-1 group">
-            <img src="https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-105 group-hover:drop-shadow-md" />
+            <img src="https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png" alt="Sabrang Logo" className="h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-105 group-hover:drop-shadow-md" />
           </Link>
         </div>
 

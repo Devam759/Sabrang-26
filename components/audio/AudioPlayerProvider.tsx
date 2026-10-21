@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import { usePathname } from "next/navigation";
 
 const ANTHEM_URL =
-  "https://res.cloudinary.com/eprhemvt/video/upload/q_auto/v1787514086/sabrang-2026/audio/Sabrang_Anthem___ElevenLabs_Music_3.mp4";
+  "https://res.cloudinary.com/eftrvjpx/video/upload/q_auto/v1787514086/sabrang-2026/audio/Sabrang_Anthem___ElevenLabs_Music_3.mp4";
 
 interface AudioPlayerContextType {
   isPlaying: boolean;

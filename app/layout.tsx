@@ -76,7 +76,7 @@ export const metadata: Metadata = {
       "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest. Experience Sabrang JKLU with star-studded nights and thrilling competitions.",
     images: [
       {
-        url: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png",
+        url: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png",
         width: 1200,
         height: 630,
         alt: "Sabrang 2026 - JK Lakshmipat University Annual Cultural Fest",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     title: "SABRANG 2026 | Sabrang JKLU | JK Lakshmipat University Fest",
     description:
       "SABRANG 2026 - JK Lakshmipat University's premier annual cultural fest.",
-    images: ["https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
+    images: ["https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1788091530/sabrang-2026/sabrang-logo/sabrang-logo.png"],
   },
 };
 
@@ -98,7 +98,7 @@ const organizationSchema = {
   name: "JK Lakshmipat University",
   alternateName: "JKLU",
   url: "https://jklu.edu.in",
-  logo: "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
+  logo: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto,w_200/v1787060374/sabrang-2026/sabrang-logo/white_jklu_logo.png",
   sameAs: [
     "https://www.facebook.com/jklakshmipatuniversity",
     "https://www.instagram.com/jklakshmipatuniversity",

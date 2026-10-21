@@ -70,7 +70,7 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
   }
 
   return (
-    <div className="admin-portal-scope flex min-h-screen h-[100dvh] bg-[#f8fafc] text-slate-900 font-sans relative overflow-hidden">
+    <div className="admin-portal-scope flex min-h-screen h-[100dvh] max-h-[100dvh] bg-[#f8fafc] text-slate-900 font-sans relative overflow-hidden">
       {/* Floating Sidebar Container */}
       <div className="relative z-50 flex-shrink-0">
         <Sidebar />
@@ -78,8 +78,11 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
 
       {/* Main Content Area with bounded viewport height for native scrolling */}
       <main 
+        id="scanner-main-scroll"
         data-lenis-prevent
-        className="flex-1 w-full overflow-y-auto relative z-10 bg-[#f8fafc] flex flex-col h-[100dvh] admin-scrollbar overscroll-contain"
+        onWheel={(e) => e.stopPropagation()}
+        className="flex-1 w-full overflow-y-auto relative z-10 bg-[#f8fafc] flex flex-col h-full min-h-0 admin-scrollbar"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 md:px-8 h-16 hidden md:flex items-center justify-between border-b border-slate-200 shadow-xs shrink-0">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
@@ -87,8 +90,8 @@ export default function ScannerLayoutWrapper({ children }: { children: React.Rea
           </span>
         </header>
 
-        {/* pt-20 provides clean clearance for 64px mobile navbar, md:pt-8 for desktop */}
-        <div className="pt-20 md:pt-8 p-4 sm:p-6 md:p-10 max-w-7xl w-full mx-auto animate-in fade-in duration-300">
+        {/* pt-20 provides clean clearance for 64px mobile navbar, md:pt-6 for desktop, with generous bottom padding */}
+        <div className="pt-20 md:pt-6 p-4 sm:p-6 md:p-8 pb-28 md:pb-20 max-w-7xl w-full mx-auto animate-in fade-in duration-300">
           {children}
         </div>
       </main>

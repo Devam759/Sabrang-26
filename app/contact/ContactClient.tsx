@@ -172,7 +172,7 @@ const StaticOrganizingHeads = () => {
         <div key={index} className="gsap-stagger-card group bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-indigo-500/30 rounded-3xl overflow-hidden shadow-xl transition-all hover:shadow-indigo-500/10">
           <div className="relative w-full aspect-[4/5] overflow-hidden">
             <Image
-              src={head.image || "https://res.cloudinary.com/eprhemvt/image/upload/f_auto,q_auto/v1787060269/sabrang-2026/gallery/43.webp"}
+              src={head.image || "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060269/sabrang-2026/gallery/43.webp"}
               alt={head.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

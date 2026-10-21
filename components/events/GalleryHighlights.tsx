@@ -284,9 +284,21 @@ export default function GalleryHighlights({
   const [ready, setReady] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [expandedItem, setExpandedItem] = useState<GalleryItem | null>(null);
+  const [isMobileOrLowData, setIsMobileOrLowData] = useState(true);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const focusRequestRef = useRef<((itemIndex: number) => void) | null>(null);
+
+  useEffect(() => {
+    const checkViewport = () => {
+      const isMobile = window.innerWidth < 768;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setIsMobileOrLowData(isMobile || reducedMotion);
+    };
+    checkViewport();
+    window.addEventListener("resize", checkViewport);
+    return () => window.removeEventListener("resize", checkViewport);
+  }, []);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -374,20 +386,30 @@ export default function GalleryHighlights({
         className="fixed inset-0 z-0 overflow-y-auto bg-[#07080f] text-white"
       >
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden flex items-center justify-center mix-blend-screen">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            disablePictureInPicture
-            disableRemotePlayback
-            controlsList="nodownload noplaybackrate nofullscreen"
-            onContextMenu={(e) => e.preventDefault()}
-            tabIndex={-1}
-            className="absolute inset-0 h-full w-full object-contain scale-[0.85] sm:scale-[0.8] md:scale-[0.78] opacity-75 transition-transform duration-700 pointer-events-none select-none"
-            poster="https://res.cloudinary.com/eprhemvt/video/upload/v1787082832/sabrang-2026/root/cube.jpg"
-            src="https://res.cloudinary.com/eprhemvt/video/upload/v1787082832/sabrang-2026/root/cube.mp4"
-          />
+          {isMobileOrLowData ? (
+            <img
+              src="/videos/cube.jpg"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-contain scale-[0.85] sm:scale-[0.8] opacity-60 pointer-events-none select-none"
+            />
+          ) : (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload noplaybackrate nofullscreen"
+              onContextMenu={(e) => e.preventDefault()}
+              tabIndex={-1}
+              className="absolute inset-0 h-full w-full object-contain scale-[0.85] sm:scale-[0.8] md:scale-[0.78] opacity-75 transition-transform duration-700 pointer-events-none select-none"
+              poster="/videos/cube.jpg"
+              src="/videos/cube.mp4"
+            />
+          )}
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 

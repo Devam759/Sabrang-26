@@ -582,14 +582,8 @@ export function ShaderBackground({ className }: { className?: string }) {
       }
       gl.deleteBuffer(buf)
       gl.deleteProgram(program)
-      const releaseTimer = window.setTimeout(() => {
-        if (pendingContextReleases.get(canvas) !== releaseTimer) return
-        pendingContextReleases.delete(canvas)
-        gl.getExtension("WEBGL_lose_context")?.loseContext()
-        canvas.width = 1
-        canvas.height = 1
-      }, 0)
-      pendingContextReleases.set(canvas, releaseTimer)
+      canvas.width = 1
+      canvas.height = 1
     }
   }, [])
 
