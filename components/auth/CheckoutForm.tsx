@@ -2459,7 +2459,9 @@ export default function CheckoutForm() {
                             </div>
                           )}
                         </div>
-                        <span className="font-sans text-sm font-bold text-violet-300">₹ {itemPrice}</span>
+                        <span className="font-sans text-sm font-bold text-violet-300">
+                          {itemPrice === 0 ? "Free" : `₹ ${itemPrice}`}
+                        </span>
                       </div>
 
                       {showBankFee && (
