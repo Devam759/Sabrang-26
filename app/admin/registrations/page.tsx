@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp, getDoc, setDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../../../lib/firebase';
@@ -9,7 +10,13 @@ import { Modal } from '../../../components/admin/Modal';
 import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
-import { getDisplayPaymentAmount, getRegistrationInstituteRaw, normalizeInstitute } from '@/lib/registrationDataHelper';
+import { 
+  getDisplayPaymentAmount, 
+  getRegistrationInstituteRaw, 
+  normalizeInstitute,
+  extractRegistrationTeamName,
+  isTeamEventRegistration
+} from '@/lib/registrationDataHelper';
 import { isDateInTodayIST } from '@/lib/dateUtils';
 
 // ============================================================================
@@ -162,6 +169,463 @@ const extractIdCardUrl = (val: any): string | null => {
   return null;
 };
 
+/**
+ * Recursively extracts primitive strings and numbers from any object or array.
+ * Safeguards against circular refs, functions, long binary/base64 strings, and massive objects.
+ */
+function extractPrimitiveValues(val: any, depth = 0, collected: string[] = []): string[] {
+  if (val === null || val === undefined || depth > 4) return collected;
+
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    // Ignore base64 / data URIs or excessively long text blobs
+    if (trimmed && !trimmed.startsWith('data:image/') && trimmed.length < 300) {
+      collected.push(trimmed);
+    }
+  } else if (typeof val === 'number') {
+    if (!isNaN(val)) collected.push(String(val));
+  } else if (Array.isArray(val)) {
+    for (const item of val) {
+      extractPrimitiveValues(item, depth + 1, collected);
+    }
+  } else if (typeof val === 'object') {
+    for (const key of Object.keys(val)) {
+      if (key === 'toMillis' || key === 'toDate' || key === 'firestore' || key.toLowerCase().includes('card')) continue;
+      extractPrimitiveValues(val[key], depth + 1, collected);
+    }
+  }
+  return collected;
+}
+
+/**
+ * Builds a comprehensive lowercase searchable text pool for a registration.
+ * Explicitly indexes coupons, amounts, application IDs, order IDs, teammate details,
+ * events, gaming handles, status, and any arbitrary custom fields.
+ */
+function buildRegistrationSearchText(reg: any): string {
+  if (!reg) return '';
+
+  const pool: string[] = [];
+
+  // 1. Identifiers & Application IDs
+  if (reg.id) pool.push(String(reg.id));
+  if (reg.applicationNumber) pool.push(String(reg.applicationNumber));
+  if (reg.ticketId) pool.push(String(reg.ticketId));
+  if (reg.rollNumber) pool.push(String(reg.rollNumber));
+  if (reg.registrationNumber) pool.push(String(reg.registrationNumber));
+  if (reg.uid) pool.push(String(reg.uid));
+
+  // 2. Personal & Contact Info
+  if (reg.name) pool.push(String(reg.name));
+  if (reg.fullName) pool.push(String(reg.fullName));
+  if (reg.email) pool.push(String(reg.email));
+  if (reg.phone) {
+    const p = String(reg.phone);
+    pool.push(p);
+    const digits = p.replace(/\D/g, '');
+    if (digits) {
+      pool.push(digits);
+      if (digits.length >= 10) {
+        pool.push(digits.slice(-10));
+        pool.push(`+91 ${digits.slice(-10)}`);
+      }
+    }
+  }
+  if (reg.mobileNumber && reg.mobileNumber !== reg.phone) {
+    const m = String(reg.mobileNumber);
+    pool.push(m);
+    const digits = m.replace(/\D/g, '');
+    if (digits) {
+      pool.push(digits);
+      if (digits.length >= 10) pool.push(digits.slice(-10));
+    }
+  }
+  if (reg.gender) pool.push(String(reg.gender));
+  if (reg.course) pool.push(String(reg.course));
+  if (reg.branch) pool.push(String(reg.branch));
+  if (reg.year) pool.push(String(reg.year));
+  if (reg.city) pool.push(String(reg.city));
+  if (reg.state) pool.push(String(reg.state));
+  if (reg.region) pool.push(String(reg.region));
+  if (reg.pincode) pool.push(String(reg.pincode));
+  if (reg.address) pool.push(String(reg.address));
+
+  // 3. Institution / College
+  const rawInst = getRegistrationInstituteRaw(reg);
+  const normInst = normalizeInstitute(rawInst);
+  if (rawInst) pool.push(rawInst);
+  if (normInst) pool.push(normInst);
+  if (reg.college && reg.college !== rawInst) pool.push(String(reg.college));
+  if (reg.institutionName && reg.institutionName !== rawInst) pool.push(String(reg.institutionName));
+  if (reg.university && reg.university !== rawInst) pool.push(String(reg.university));
+
+  // 4. Coupons & Discounts (ALL variations)
+  const couponCandidates = [
+    reg.coupon,
+    reg.couponCode,
+    reg.appliedCoupon,
+    reg.discountCode,
+    reg.couponDetails?.code,
+    typeof reg.coupon === 'object' ? reg.coupon?.code : null,
+  ].filter(Boolean);
+
+  if (couponCandidates.length > 0) {
+    pool.push('coupon');
+    pool.push('coupon applied');
+    for (const c of couponCandidates) {
+      pool.push(String(c));
+    }
+  }
+  if (reg.discountAmount) pool.push(String(reg.discountAmount));
+  if (reg.discountPercentage) pool.push(String(reg.discountPercentage));
+
+  // 5. Amount & Financials (Raw, Displayed, Symbol-less, Currency-prefixed, Free)
+  const displayAmount = getDisplayPaymentAmount(reg);
+  pool.push(displayAmount);
+
+  const rawAmt = reg.paymentAmount ?? reg.receivedAmount ?? reg.amount ?? reg.finalPrice ?? reg.price;
+  if (rawAmt !== undefined && rawAmt !== null && rawAmt !== '') {
+    const numAmt = Number(rawAmt);
+    const amtStr = String(rawAmt);
+    pool.push(amtStr);
+    pool.push(`₹ ${amtStr}`);
+    pool.push(`₹${amtStr}`);
+    pool.push(`rs ${amtStr}`);
+    pool.push(`rs. ${amtStr}`);
+    pool.push(`inr ${amtStr}`);
+    if (!isNaN(numAmt)) {
+      if (numAmt === 0) {
+        pool.push('free');
+        pool.push('free pass');
+        pool.push('0');
+      } else {
+        const localized = numAmt.toLocaleString('en-IN');
+        pool.push(localized);
+        pool.push(`₹ ${localized}`);
+        pool.push(`₹${localized}`);
+      }
+    }
+  }
+
+  // 6. Payment, Razorpay & Gateway Identifiers
+  if (reg.orderId) pool.push(String(reg.orderId));
+  if (reg.paymentId) pool.push(String(reg.paymentId));
+  if (reg.razorpay_order_id) pool.push(String(reg.razorpay_order_id));
+  if (reg.razorpay_payment_id) pool.push(String(reg.razorpay_payment_id));
+  if (reg.razorpayOrderId) pool.push(String(reg.razorpayOrderId));
+  if (reg.razorpayPaymentId) pool.push(String(reg.razorpayPaymentId));
+  if (reg.transactionId) pool.push(String(reg.transactionId));
+  if (reg.paymentStatus) pool.push(String(reg.paymentStatus));
+
+  // 7. Events (Titles, IDs, Solo/Team)
+  const evTitles = getEventTitles(reg);
+  if (evTitles.full && evTitles.full !== 'N/A') pool.push(evTitles.full);
+  if (Array.isArray(evTitles.list)) {
+    for (const title of evTitles.list) pool.push(title);
+  }
+  if (Array.isArray(reg.selectedEvents)) {
+    for (const id of reg.selectedEvents) pool.push(String(id));
+  }
+  if (Array.isArray(reg.events)) {
+    for (const id of reg.events) pool.push(String(id));
+  }
+  if (reg.eventId) pool.push(String(reg.eventId));
+  if (reg.event) pool.push(String(reg.event));
+  pool.push(isTeamEventRegistration(reg) ? 'team' : 'solo');
+
+  // 8. Team Name & Team Members
+  const teamName = extractRegistrationTeamName(reg);
+  if (teamName) {
+    pool.push(teamName);
+    pool.push('team');
+  }
+  if (reg.teamMembers) {
+    let membersList: any[] = [];
+    if (Array.isArray(reg.teamMembers)) {
+      membersList = reg.teamMembers;
+    } else if (typeof reg.teamMembers === 'object') {
+      Object.entries(reg.teamMembers).forEach(([group, members]) => {
+        pool.push(group);
+        if (Array.isArray(members)) membersList.push(...members);
+      });
+    }
+    for (const m of membersList) {
+      if (m && typeof m === 'object') {
+        if (m.name) pool.push(String(m.name));
+        if (m.email) pool.push(String(m.email));
+        if (m.phone || m.mobileNumber) {
+          const mp = String(m.phone || m.mobileNumber);
+          pool.push(mp);
+          const digits = mp.replace(/\D/g, '');
+          if (digits) pool.push(digits);
+        }
+        if (m.institutionName) pool.push(String(m.institutionName));
+        if (m.college) pool.push(String(m.college));
+        if (m.rollNumber) pool.push(String(m.rollNumber));
+      }
+    }
+  }
+  if (Array.isArray(reg.members)) {
+    for (const m of reg.members) {
+      if (m && typeof m === 'object') {
+        if (m.name) pool.push(String(m.name));
+        if (m.email) pool.push(String(m.email));
+        if (m.phone) pool.push(String(m.phone));
+      }
+    }
+  }
+
+  // 9. Gaming & Special Event fields
+  if (reg.bgmi_leaderIgn) pool.push(String(reg.bgmi_leaderIgn));
+  if (reg.bgmi_leaderUid) pool.push(String(reg.bgmi_leaderUid));
+  if (reg.valorant_leaderRiotId) pool.push(String(reg.valorant_leaderRiotId));
+  if (reg.freefire_leaderUid) pool.push(String(reg.freefire_leaderUid));
+  if (reg.generic_vaadVivaadRepresentative) pool.push(String(reg.generic_vaadVivaadRepresentative));
+
+  // 10. Status, Check-In, Email, and Test info
+  if (reg.hasEntered) {
+    pool.push('entered');
+    pool.push('checked-in');
+    pool.push('checked in');
+  } else {
+    pool.push('pending');
+    pool.push('not checked in');
+  }
+  if (reg.emailSent) {
+    pool.push('email sent');
+    pool.push('sent');
+  } else {
+    pool.push('email unsent');
+    pool.push('unsent');
+  }
+  if (reg.status) pool.push(String(reg.status));
+  if (reg.isTest) {
+    pool.push('test');
+    pool.push('test registration');
+  }
+  if (reg.isDeleted || reg.status === 'deleted') {
+    pool.push('deleted');
+  }
+
+  // 11. Date strings (e.g. "21 Oct", "October", "2026")
+  if (reg.registeredAt && typeof reg.registeredAt.toDate === 'function') {
+    try {
+      const d = reg.registeredAt.toDate();
+      pool.push(d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }));
+      pool.push(d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }));
+      pool.push(String(d.getFullYear()));
+    } catch {
+      // Ignore date formatting errors
+    }
+  }
+
+  // 12. Catch-all: recursive primitive values for any unanticipated fields
+  const primitiveValues = extractPrimitiveValues(reg);
+  for (const pv of primitiveValues) {
+    pool.push(pv);
+  }
+
+  return pool.join(' ').toLowerCase();
+}
+
+/**
+ * All-rounder registration search evaluator.
+ * Seamlessly matches names, emails, phone numbers, coupon codes, amounts (with or without currency symbol),
+ * application/ticket IDs, team info, events, order IDs, status, and any custom fields.
+ */
+function matchesRegistrationSearch(reg: any, query: string, precomputedSearchText?: string): boolean {
+  if (!query) return true;
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+
+  const searchText = precomputedSearchText || buildRegistrationSearchText(reg);
+
+  // 1. Direct contiguous match
+  if (searchText.includes(q)) return true;
+
+  // 2. Amount / Currency matching: strip currency symbols ('₹', 'rs', 'rs.', 'inr')
+  const cleanQ = q.replace(/^(₹|rs\.?|inr)\s*/i, '').replace(/[₹,]/g, '').trim();
+  if (cleanQ && searchText.includes(cleanQ)) return true;
+
+  // 3. Multi-token search: if user typed multiple words ("gaurav 456" or "verse vaad pending")
+  const tokens = q.split(/\s+/).filter(Boolean);
+  if (tokens.length > 1) {
+    const allTokensMatch = tokens.every(token => {
+      if (searchText.includes(token)) return true;
+      const stripped = token.replace(/^(₹|rs\.?|inr)/i, '').replace(/[₹,]/g, '').trim();
+      if (stripped && searchText.includes(stripped)) return true;
+      const tokenDigits = token.replace(/\D/g, '');
+      if (tokenDigits.length >= 4 && searchText.includes(tokenDigits)) return true;
+      return false;
+    });
+    if (allTokensMatch) return true;
+  }
+
+  // 4. Phone number digit search (e.g., if query contains phone digits)
+  const qDigits = q.replace(/\D/g, '');
+  if (qDigits.length >= 4 && searchText.includes(qDigits)) {
+    return true;
+  }
+
+  return false;
+}
+
+interface RegistrationTableRowProps {
+  reg: any;
+  index: number;
+  onViewDetails: (reg: any) => void;
+  onRestore: (reg: any) => void;
+  onDelete: (reg: any) => void;
+  isDeleting: boolean;
+}
+
+const RegistrationTableRow = React.memo(function RegistrationTableRow({
+  reg,
+  index,
+  onViewDetails,
+  onRestore,
+  onDelete,
+  isDeleting,
+}: RegistrationTableRowProps) {
+  const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
+  const rawInst = getRegistrationInstituteRaw(reg);
+  const inst = normalizeInstitute(rawInst);
+  const isJKLU = inst === 'JK Lakshmipat University' || (inst && inst.includes('JKLU'));
+  const eventTitles = getEventTitles(reg);
+
+  return (
+    <tr 
+      className={`transition-colors duration-150 ease-out group ${
+        isRegDeleted ? 'bg-rose-50/20 hover:bg-rose-50/40' : 'hover:bg-slate-50'
+      }`}
+    >
+      <td className="p-5 text-center text-slate-400 font-mono text-[10px]">
+        {index}
+      </td>
+      <td className="p-5">
+        <div className="flex items-center gap-2">
+          <span className={`font-bold transition-colors text-[13px] ${
+            isRegDeleted ? 'line-through text-slate-500' : 'text-slate-900 group-hover:text-slate-900'
+          }`}>
+            {reg.name}
+          </span>
+          {isRegDeleted && (
+            <span className="inline-flex items-center px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+              Deleted
+            </span>
+          )}
+          {reg.isTest && (
+            <span className="inline-flex items-center px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+              Test
+            </span>
+          )}
+        </div>
+        {inst && (
+          <div className="mt-1 flex items-center gap-1.5" title={rawInst ? `Registered as: "${rawInst}"` : inst}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide ${
+              isJKLU 
+                ? 'bg-slate-100 text-slate-600 border border-slate-200' 
+                : 'bg-purple-50 text-purple-700 border border-purple-200 font-semibold'
+            }`}>
+              🏛️ {inst}
+            </span>
+          </div>
+        )}
+      </td>
+      <td className="p-5">
+        <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
+        <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
+      </td>
+      <td className="p-5 whitespace-nowrap">
+        <div className="font-bold text-slate-900 text-xs font-mono">
+          {getDisplayPaymentAmount(reg)}
+        </div>
+        {reg.coupon && (
+          <span className="inline-block text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded font-mono mt-0.5 uppercase tracking-wide">
+            {reg.coupon}
+          </span>
+        )}
+      </td>
+      <td className="p-5 whitespace-nowrap">
+        {reg.registeredAt && reg.registeredAt.toDate ? (
+          <div className="space-y-1">
+            <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</div>
+            <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</div>
+          </div>
+        ) : <span className="text-slate-400">-</span>}
+      </td>
+      <td className="p-5">
+        <div className="flex flex-wrap gap-1.5 max-w-sm">
+          {eventTitles.list.length === 0 ? (
+            <span className="text-slate-400 font-mono text-[10px]">N/A</span>
+          ) : (
+            eventTitles.list.map((title, i) => (
+              <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] uppercase tracking-wider font-semibold whitespace-normal leading-tight">
+                {title}
+              </span>
+            ))
+          )}
+        </div>
+      </td>
+      <td className="p-5">
+        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
+          isRegDeleted
+            ? 'bg-rose-100 text-rose-800 border border-rose-300'
+            : reg.hasEntered 
+              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+              : (reg.status === 'declined' 
+                  ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                  : 'bg-amber-50 text-amber-700 border border-amber-200')
+        }`}>
+          {isRegDeleted ? 'Deleted' : (reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending'))}
+        </span>
+      </td>
+      <td className="p-5">
+        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
+          reg.emailSent 
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+            : 'bg-rose-50 text-rose-700 border border-rose-200'
+        }`}>
+          {reg.emailSent ? 'Sent' : 'Unsent'}
+        </span>
+      </td>
+      <td className="p-5 text-right">
+        <div className="flex items-center justify-end gap-1.5">
+          <button 
+            type="button"
+            onClick={() => onViewDetails(reg)} 
+            className="p-2 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95 text-slate-500 rounded-xl transition-all cursor-pointer touch-manipulation"
+            title="View Details"
+          >
+            <CustomEyeIcon size={16} />
+          </button>
+          {isRegDeleted ? (
+            <button
+              type="button"
+              onClick={() => onRestore(reg)}
+              disabled={isDeleting}
+              className="p-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 rounded-xl transition-all cursor-pointer disabled:opacity-50 touch-manipulation"
+              title="Restore Registration"
+            >
+              <RotateCcw size={16} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onDelete(reg)}
+              disabled={isDeleting}
+              className="p-2 border border-rose-200 hover:bg-rose-50 active:scale-95 text-rose-600 rounded-xl transition-all cursor-pointer disabled:opacity-50 touch-manipulation"
+              title="Delete Registration (Set as deleted user)"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+});
+
 export default function Registrations() {
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -288,7 +752,15 @@ export default function Registrations() {
     }
   };
 
-  const handleDeleteRegistration = async (regToDelete: any) => {
+  const handleViewDetails = useCallback((reg: any) => {
+    setSelectedReg(reg);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedReg(null);
+  }, []);
+
+  const handleDeleteRegistration = useCallback(async (regToDelete: any) => {
     if (!regToDelete || isDeleting) return;
 
     const confirmMessage = `Are you sure you want to delete the registration for "${regToDelete.name}"?\n\nThis will mark them as a deleted user and deactivate their pass.`;
@@ -323,16 +795,14 @@ export default function Registrations() {
         hasEntered: false,
       } : r));
 
-      if (selectedReg && selectedReg.id === regToDelete.id) {
-        setSelectedReg((prev: any) => prev ? {
-          ...prev,
-          isDeleted: true,
-          status: 'deleted',
-          deletedAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
-          deletedBy: adminIdentifier,
-          hasEntered: false,
-        } : null);
-      }
+      setSelectedReg((prev: any) => (prev && prev.id === regToDelete.id) ? {
+        ...prev,
+        isDeleted: true,
+        status: 'deleted',
+        deletedAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        deletedBy: adminIdentifier,
+        hasEntered: false,
+      } : prev);
 
       alert(`Registration for "${regToDelete.name}" has been marked as a deleted user.`);
     } catch (err: any) {
@@ -341,9 +811,9 @@ export default function Registrations() {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [isDeleting]);
 
-  const handleRestoreRegistration = async (regToRestore: any) => {
+  const handleRestoreRegistration = useCallback(async (regToRestore: any) => {
     if (!regToRestore || isDeleting) return;
 
     if (!window.confirm(`Restore registration for "${regToRestore.name}"? This will reactivate them as an active attendee.`)) return;
@@ -375,15 +845,13 @@ export default function Registrations() {
         restoredBy: adminIdentifier,
       } : r));
 
-      if (selectedReg && selectedReg.id === regToRestore.id) {
-        setSelectedReg((prev: any) => prev ? {
-          ...prev,
-          isDeleted: false,
-          status: 'confirmed',
-          restoredAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
-          restoredBy: adminIdentifier,
-        } : null);
-      }
+      setSelectedReg((prev: any) => (prev && prev.id === regToRestore.id) ? {
+        ...prev,
+        isDeleted: false,
+        status: 'confirmed',
+        restoredAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        restoredBy: adminIdentifier,
+      } : prev);
 
       alert(`Registration for "${regToRestore.name}" has been restored.`);
     } catch (err: any) {
@@ -392,7 +860,7 @@ export default function Registrations() {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [isDeleting]);
 
   // 1. Fetch Registrations Data & Sorting
   const [currentPage, setCurrentPage] = useState(1);
@@ -490,9 +958,17 @@ export default function Registrations() {
     return entries;
   }, [registrations, statusFilter]);
 
+  // Memoize all-rounder searchable text for all registrations to guarantee high-performance, lag-free filtering
+  const registrationsWithSearch = useMemo(() => {
+    return registrations.map((reg) => ({
+      ...reg,
+      _searchText: buildRegistrationSearchText(reg),
+    }));
+  }, [registrations]);
+
   // 1. Apply search and dropdown filters
   const filteredRegistrations = useMemo(() => {
-    return registrations.filter((reg) => {
+    return registrationsWithSearch.filter((reg) => {
       const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
 
       // Hide deleted users by default; only show them when statusFilter === 'deleted'
@@ -505,13 +981,8 @@ export default function Registrations() {
       const rawInst = getRegistrationInstituteRaw(reg);
       const normInst = normalizeInstitute(rawInst);
 
-      const matchesSearch = 
-        (reg.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (reg.rollNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (reg.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (reg.phone || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rawInst.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        normInst.toLowerCase().includes(searchQuery.toLowerCase());
+      // All-rounder search across name, email, roll, phone, coupon, amount, order ID, events, teams, etc.
+      const matchesSearch = matchesRegistrationSearch(reg, searchQuery, reg._searchText);
 
       const matchesStatus = 
         statusFilter === 'all' ||
@@ -541,7 +1012,7 @@ export default function Registrations() {
 
       return matchesSearch && matchesStatus && matchesEmail && matchesEvent && matchesInstitute;
     });
-  }, [registrations, searchQuery, statusFilter, emailFilter, eventFilter, instituteFilter]);
+  }, [registrationsWithSearch, searchQuery, statusFilter, emailFilter, eventFilter, instituteFilter]);
 
   // Reset pagination on search query or filter change
   useEffect(() => {
@@ -957,9 +1428,19 @@ export default function Registrations() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/80 border border-slate-100 rounded-xl py-3 pl-11 pr-4 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-500/50 transition-all font-mono"
-            placeholder="Search Name, Application Number, or Email..."
+            className="w-full bg-white/80 border border-slate-100 rounded-xl py-3 pl-11 pr-10 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-500/50 transition-all font-mono"
+            placeholder="Search anything: Name, Email, Phone, App ID, Coupon, Amount, Event, Team..."
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
@@ -1056,145 +1537,17 @@ export default function Registrations() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-                {paginatedRegistrations.map((reg, idx) => {
-                  const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
-                  return (
-                    <tr 
-                      key={reg.id} 
-                      className={`transition-colors duration-500 ease-out group animate-in fade-in slide-in-from-bottom-2 ${
-                        isRegDeleted ? 'bg-rose-50/20 hover:bg-rose-50/40' : 'hover:bg-slate-50'
-                      }`} 
-                      style={{ animationFillMode: "both", animationDelay: `${idx * 50}ms` }}
-                    >
-                      <td className="p-5 text-center text-slate-400 font-mono text-[10px]">
-                        {(currentPage - 1) * itemsPerPage + idx + 1}
-                      </td>
-                      <td className="p-5">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-bold transition-colors text-[13px] ${
-                            isRegDeleted ? 'line-through text-slate-500' : 'text-slate-900 group-hover:text-slate-900'
-                          }`}>
-                            {reg.name}
-                          </span>
-                          {isRegDeleted && (
-                            <span className="inline-flex items-center px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
-                              Deleted
-                            </span>
-                          )}
-                          {reg.isTest && (
-                            <span className="inline-flex items-center px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
-                              Test
-                            </span>
-                          )}
-                        </div>
-                        {(() => {
-                          const raw = getRegistrationInstituteRaw(reg);
-                          const inst = normalizeInstitute(raw);
-                          if (!inst) return null;
-                          const isJKLU = inst === 'JK Lakshmipat University' || inst.includes('JKLU');
-                          return (
-                            <div className="mt-1 flex items-center gap-1.5" title={raw ? `Registered as: "${raw}"` : inst}>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide ${
-                                isJKLU 
-                                  ? 'bg-slate-100 text-slate-600 border border-slate-200' 
-                                  : 'bg-purple-50 text-purple-700 border border-purple-200 font-semibold'
-                              }`}>
-                                🏛️ {inst}
-                              </span>
-                            </div>
-                          );
-                        })()}
-                      </td>
-                      <td className="p-5">
-                        <div className="font-medium text-slate-800 lowercase">{reg.email}</div>
-                        <div className="text-[10px] text-slate-500 mt-1 font-mono tracking-widest">{reg.phone}</div>
-                      </td>
-                      <td className="p-5 whitespace-nowrap">
-                        <div className="font-bold text-slate-900 text-xs font-mono">
-                          {getDisplayPaymentAmount(reg)}
-                        </div>
-                        {reg.coupon && (
-                          <span className="inline-block text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded font-mono mt-0.5 uppercase tracking-wide">
-                            {reg.coupon}
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-5 whitespace-nowrap">
-                        {reg.registeredAt && reg.registeredAt.toDate ? (
-                          <div className="space-y-1">
-                            <div className="font-bold text-slate-900 text-xs">{reg.registeredAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</div>
-                            <div className="text-[9px] text-slate-500 uppercase tracking-widest">{reg.registeredAt.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</div>
-                          </div>
-                        ) : <span className="text-slate-400">-</span>}
-                      </td>
-                      <td className="p-5">
-                        <div className="flex flex-wrap gap-1.5 max-w-sm">
-                          {getEventTitles(reg).list.length === 0 ? (
-                            <span className="text-slate-400 font-mono text-[10px]">N/A</span>
-                          ) : (
-                            getEventTitles(reg).list.map((title, i) => (
-                              <span key={i} className="inline-flex items-center px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] uppercase tracking-wider font-semibold whitespace-normal leading-tight">
-                                {title}
-                              </span>
-                            ))
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-5">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
-                          isRegDeleted
-                            ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                            : reg.hasEntered 
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                              : (reg.status === 'declined' 
-                                  ? 'bg-rose-50 text-rose-700 border border-rose-200' 
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200')
-                        }`}>
-                          {isRegDeleted ? 'Deleted' : (reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending'))}
-                        </span>
-                      </td>
-                      <td className="p-5">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
-                          reg.emailSent 
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                            : 'bg-rose-50 text-rose-700 border border-rose-200'
-                        }`}>
-                          {reg.emailSent ? 'Sent' : 'Unsent'}
-                        </span>
-                      </td>
-                      <td className="p-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button 
-                            onClick={() => setSelectedReg(reg)} 
-                            className="p-2 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 text-slate-500 rounded-xl transition-colors cursor-pointer"
-                            title="View Details"
-                          >
-                            <CustomEyeIcon size={16} />
-                          </button>
-                          {isRegDeleted ? (
-                            <button
-                              onClick={() => handleRestoreRegistration(reg)}
-                              disabled={isDeleting}
-                              className="p-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-                              title="Restore Registration"
-                            >
-                              <RotateCcw size={16} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleDeleteRegistration(reg)}
-                              disabled={isDeleting}
-                              className="p-2 border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-                              title="Delete Registration (Set as deleted user)"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {paginatedRegistrations.map((reg, idx) => (
+                  <RegistrationTableRow
+                    key={reg.id}
+                    reg={reg}
+                    index={(currentPage - 1) * itemsPerPage + idx + 1}
+                    onViewDetails={handleViewDetails}
+                    onRestore={handleRestoreRegistration}
+                    onDelete={handleDeleteRegistration}
+                    isDeleting={isDeleting}
+                  />
+                ))}
                 {paginatedRegistrations.length === 0 && (
                   <tr>
                     <td colSpan={8} className="p-16 text-center text-slate-500 font-bold text-xs uppercase tracking-widest">
@@ -1242,7 +1595,7 @@ export default function Registrations() {
       )}
 
       {/* Modal Details */}
-      <Modal isOpen={!!selectedReg} onClose={() => setSelectedReg(null)} title="Registration Details">
+      <Modal isOpen={!!selectedReg} onClose={handleCloseModal} title="Registration Details">
         {selectedReg && (
           <div className="space-y-6 text-slate-900 text-xs">
             {(selectedReg.isDeleted || selectedReg.status === 'deleted') && (
@@ -1590,6 +1943,8 @@ export default function Registrations() {
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(selectedReg.id)}&color=0f172a&bgcolor=ffffff`} 
                     alt="Registration QR Code" 
                     className="w-36 h-36 rounded-lg object-contain"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <p className="text-xs text-slate-500 font-mono mt-2.5 select-all">{selectedReg.id}</p>
@@ -1684,9 +2039,9 @@ export default function Registrations() {
       </Modal>
 
       {/* In-Tab Image Preview Lightbox */}
-      {previewImage && (
+      {previewImage && typeof document !== 'undefined' && createPortal(
         <div 
-          className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 font-sans"
           onClick={() => setPreviewImage(null)}
           role="dialog"
           aria-modal="true"
@@ -1698,7 +2053,7 @@ export default function Registrations() {
               e.stopPropagation();
               setPreviewImage(null);
             }}
-            className="fixed top-3 right-3 sm:top-6 sm:right-6 z-[220] h-11 w-11 sm:h-12 sm:w-12 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 active:scale-90 border border-white/20 shadow-2xl transition-all cursor-pointer focus:outline-none"
+            className="fixed top-3 right-3 sm:top-6 sm:right-6 z-[10005] h-11 w-11 sm:h-12 sm:w-12 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 active:scale-90 border border-white/20 shadow-2xl transition-all cursor-pointer focus:outline-none"
             aria-label="Close image preview"
           >
             <X size={22} strokeWidth={2.5} />
@@ -1706,7 +2061,7 @@ export default function Registrations() {
 
           {/* Modal Box */}
           <div 
-            className="relative max-w-4xl w-full max-h-[92vh] flex flex-col bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden z-[210] animate-in zoom-in-95 duration-200"
+            className="relative max-w-4xl w-full max-h-[92vh] flex flex-col bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-[0_20px_60px_rgba(0,0,0,0.35)] overflow-hidden z-[10002] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1768,7 +2123,8 @@ export default function Registrations() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
