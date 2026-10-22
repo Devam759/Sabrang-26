@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp, getDoc, setDoc, addDoc } from 'firebase/firestore';
@@ -485,6 +486,7 @@ interface RegistrationTableRowProps {
   onRestore: (reg: any) => void;
   onDelete: (reg: any) => void;
   isDeleting: boolean;
+  canDelete?: boolean;
 }
 
 const RegistrationTableRow = React.memo(function RegistrationTableRow({
@@ -494,6 +496,7 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
   onRestore,
   onDelete,
   isDeleting,
+  canDelete = true,
 }: RegistrationTableRowProps) {
   const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
   const rawInst = getRegistrationInstituteRaw(reg);
@@ -618,25 +621,47 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
             <CustomEyeIcon size={16} />
           </button>
           {isRegDeleted ? (
-            <button
-              type="button"
-              onClick={() => onRestore(reg)}
-              disabled={isDeleting}
-              className="p-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 rounded-xl transition-all cursor-pointer disabled:opacity-50 touch-manipulation"
-              title="Restore Registration"
-            >
-              <RotateCcw size={16} />
-            </button>
+            canDelete ? (
+              <button
+                type="button"
+                onClick={() => onRestore(reg)}
+                disabled={isDeleting}
+                className="p-2 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 rounded-xl transition-all cursor-pointer disabled:opacity-50 touch-manipulation"
+                title="Restore Registration"
+              >
+                <RotateCcw size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="p-2 border border-slate-200 bg-slate-50 text-slate-300 rounded-xl cursor-not-allowed touch-manipulation opacity-40"
+                title="Restoring registrations is disabled for scanner accounts"
+              >
+                <RotateCcw size={16} />
+              </button>
+            )
           ) : (
-            <button
-              type="button"
-              onClick={() => onDelete(reg)}
-              disabled={isDeleting}
-              className="p-2 border border-rose-200 hover:bg-rose-50 active:scale-95 text-rose-600 rounded-xl transition-all cursor-pointer disabled:opacity-50 touch-manipulation"
-              title="Delete Registration (Set as deleted user)"
-            >
-              <Trash2 size={16} />
-            </button>
+            canDelete ? (
+              <button
+                type="button"
+                onClick={() => onDelete(reg)}
+                disabled={isDeleting}
+                className="p-2 border border-rose-200 hover:bg-rose-50 active:scale-95 text-rose-600 rounded-xl transition-all cursor-pointer disabled:opacity-50 touch-manipulation"
+                title="Delete Registration (Set as deleted user)"
+              >
+                <Trash2 size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="p-2 border border-slate-200 bg-slate-50 text-slate-300 rounded-xl cursor-not-allowed touch-manipulation opacity-40"
+                title="Deleting registrations is disabled for scanner accounts"
+              >
+                <Trash2 size={16} />
+              </button>
+            )
           )}
         </div>
       </td>
@@ -645,6 +670,21 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
 });
 
 export default function Registrations() {
+  const pathname = usePathname();
+  const [isScanner, setIsScanner] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname?.startsWith('/scanner')) return true;
+      try {
+        const stored = sessionStorage.getItem('sabrang_auth');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.role === 'scanner') return true;
+        }
+      } catch {}
+    }
+    return false;
+  });
+
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReg, setSelectedReg] = useState<any>(null);
@@ -781,6 +821,11 @@ export default function Registrations() {
   const handleDeleteRegistration = useCallback(async (regToDelete: any) => {
     if (!regToDelete || isDeleting) return;
 
+    if (isScanner) {
+      alert('Permission denied: Scanner accounts do not have permission to delete registrations.');
+      return;
+    }
+
     const confirmMessage = `Are you sure you want to delete the registration for "${regToDelete.name}"?\n\nThis will mark them as a deleted user and deactivate their pass.`;
     if (!window.confirm(confirmMessage)) return;
 
@@ -833,6 +878,11 @@ export default function Registrations() {
 
   const handleRestoreRegistration = useCallback(async (regToRestore: any) => {
     if (!regToRestore || isDeleting) return;
+
+    if (isScanner) {
+      alert('Permission denied: Scanner accounts do not have permission to restore registrations.');
+      return;
+    }
 
     if (!window.confirm(`Restore registration for "${regToRestore.name}"? This will reactivate them as an active attendee.`)) return;
 
@@ -894,8 +944,20 @@ export default function Registrations() {
       if (active) setLoading(false);
     }, 2500);
 
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (!user || !active) return;
+
+      // Sync user role for scanner permission gating
+      try {
+        const [roleDoc, userDoc] = await Promise.all([
+          getDoc(doc(db, 'roles', user.uid)).catch(() => null),
+          getDoc(doc(db, 'users', user.uid)).catch(() => null),
+        ]);
+        const role = roleDoc?.exists() ? roleDoc.data()?.role : (userDoc?.exists() ? userDoc.data()?.role : null);
+        if (role === 'scanner') {
+          setIsScanner(true);
+        }
+      } catch {}
 
       unsubSnapshot = onSnapshot(
         query(collection(db, 'registrations'), orderBy('registeredAt', 'desc')),
@@ -1619,6 +1681,7 @@ export default function Registrations() {
                     onRestore={handleRestoreRegistration}
                     onDelete={handleDeleteRegistration}
                     isDeleting={isDeleting}
+                    canDelete={!isScanner}
                   />
                 ))}
                 {paginatedRegistrations.length === 0 && (
@@ -2038,25 +2101,39 @@ export default function Registrations() {
               {/* Actions */}
               <div className="col-span-2 border-t border-slate-200 pt-5 mt-4 flex flex-wrap items-center justify-end gap-3">
                 {selectedReg.isDeleted || selectedReg.status === 'deleted' ? (
-                  <button
-                    type="button"
-                    disabled={isDeleting}
-                    onClick={() => handleRestoreRegistration(selectedReg)}
-                    className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-50"
-                  >
-                    <RotateCcw size={13} />
-                    Restore Registration
-                  </button>
+                  !isScanner ? (
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={() => handleRestoreRegistration(selectedReg)}
+                      className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-50"
+                    >
+                      <RotateCcw size={13} />
+                      Restore Registration
+                    </button>
+                  ) : null
                 ) : (
-                  <button
-                    type="button"
-                    disabled={isDeleting}
-                    onClick={() => handleDeleteRegistration(selectedReg)}
-                    className="px-5 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <Trash2 size={13} />
-                    Delete Registration
-                  </button>
+                  !isScanner ? (
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={() => handleDeleteRegistration(selectedReg)}
+                      className="px-5 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <Trash2 size={13} />
+                      Delete Registration
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="px-5 py-3.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-not-allowed flex items-center gap-2 opacity-50"
+                      title="Deleting registrations is disabled for scanner accounts"
+                    >
+                      <Trash2 size={13} />
+                      Delete Disabled (Scanner)
+                    </button>
+                  )
                 )}
                 <button
                   type="button"
