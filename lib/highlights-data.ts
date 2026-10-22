@@ -409,7 +409,101 @@ export const galleryItems: GalleryItem[] = [
       { name: "Divya Malik", phone: "7017160230" },
     ],
   },
+  {
+    id: 20,
+    eventId: "real_cricket",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060215/sabrang-2026/events_posters/wicket.webp",
+    title: "Real Cricket",
+    category: "Non-Flagship - Esports",
+    venue: "Campus",
+    year: 2026,
+    alt: "Real Cricket at Sabrang 2026",
+    description: "Mobile Cricket Esports Tournament | Prize Pool: ₹5,000",
+    minTeam: 1,
+    maxTeam: 1,
+    winnerCash: "As per Krafton",
+    runnerUpCash: "As per Krafton",
+    totalCash: 5000,
+    prizesRemarks: "Mobile Cricket Esports; ₹5,000 prize pool",
+    coordinators: [
+      { name: "Lakshit", phone: "9216333707" },
+    ],
+  },
+  {
+    id: 21,
+    eventId: "visitor",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060182/sabrang-2026/about/fest-crowd-lights.jpg",
+    title: "Visitor Experience Pass",
+    category: "General Entry",
+    venue: "Campus",
+    year: 2026,
+    alt: "Visitor Experience Pass at Sabrang 2026",
+    description: "Full daytime campus access to cultural exhibitions, daytime competitions, interactive zones, and festival food stalls (Does not include access to Pro-Nite Concert).",
+    minTeam: 1,
+    maxTeam: 1,
+    totalCash: "₹69 / day",
+    prizesRemarks: "Standard Visitor Pass (Valid for selected dates)",
+    coordinators: [
+      { name: "Jayash Gahlot", phone: "8306274199" },
+      { name: "Ankit Joshi", phone: "9354116261" },
+    ],
+  },
+  {
+    id: 22,
+    eventId: "pronite_outsider",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
+    title: "PRO-NITE & Concert - Outsiders",
+    category: "General Entry",
+    venue: "Main Concert Arena",
+    year: 2026,
+    alt: "PRO-NITE & Concert Outsider Pass at Sabrang 2026",
+    description: "All-access 3-day festival pass for non-JKLU guests, including daytime fest access, celebrity pro-nights, and the grand Day 3 live concert.",
+    minTeam: 1,
+    maxTeam: 1,
+    totalCash: "All 3 Days Included",
+    prizesRemarks: "Valid for all 3 days including celebrity pro-nites & live concert",
+    coordinators: [
+      { name: "Jayash Gahlot", phone: "8306274199" },
+      { name: "Ankit Joshi", phone: "9354116261" },
+    ],
+  },
+  {
+    id: 23,
+    eventId: "pronite_jklu",
+    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1787060184/sabrang-2026/about/sabrang-live.png",
+    title: "PRO-NITE & Concert - JKLU",
+    category: "General Entry",
+    venue: "Main Concert Arena",
+    year: 2026,
+    alt: "PRO-NITE & Concert JKLU Pass at Sabrang 2026",
+    description: "Exclusive subsidized pass for JKLU students: Full-day access for all 3 days, including celebrity pro-nites and the grand concert.",
+    minTeam: 1,
+    maxTeam: 1,
+    totalCash: "All 3 Days Included",
+    prizesRemarks: "Valid JKLU student ID verification required upon entry",
+    coordinators: [
+      { name: "Jayash Gahlot", phone: "8306274199" },
+      { name: "Ankit Joshi", phone: "9354116261" },
+    ],
+  },
 ];
+
+export function findGalleryItem(idOrSlug: string, itemsList: GalleryItem[] = galleryItems): GalleryItem | undefined {
+  if (!idOrSlug) return undefined;
+  const clean = idOrSlug.trim().toLowerCase();
+  const cleanAlpha = clean.replace(/[^a-z0-9]/g, "");
+
+  return itemsList.find((item) => {
+    if (item.eventId && item.eventId.toLowerCase() === clean) return true;
+    if (item.id.toString() === clean) return true;
+    if (item.eventId && item.eventId.toLowerCase().replace(/[^a-z0-9]/g, "") === cleanAlpha) return true;
+    if (item.title.toLowerCase() === clean) return true;
+    if (item.title.toLowerCase().replace(/[^a-z0-9]/g, "") === cleanAlpha) return true;
+    if (clean === "pronite" && (item.eventId === "pronite_outsider" || item.eventId === "pronite_jklu")) return true;
+    return false;
+  });
+}
+
 
 export type CoordinatorDirectoryEntry = {
   category: "Flagship Events" | "Non-Flagship Events" | "Esports" | "Activities" | "Registration Core" | "Pro-Shows & Showcases";

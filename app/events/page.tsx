@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import GalleryHighlights from "@/components/events/GalleryHighlights";
 import JsonLd from "@/components/seo/JsonLd";
 
@@ -103,7 +104,9 @@ export default function EventsPage() {
     <>
       <JsonLd data={eventsSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <GalleryHighlights />
+      <Suspense fallback={null}>
+        <GalleryHighlights />
+      </Suspense>
     </>
   );
 }

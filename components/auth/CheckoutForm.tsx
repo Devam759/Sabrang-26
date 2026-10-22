@@ -2134,6 +2134,17 @@ export default function CheckoutForm() {
                                         Solo
                                       </span>
                                     )}
+
+                                    {/* View Details Button */}
+                                    <Link
+                                      href={`/events?event=${event.id}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/30 hover:border-cyan-400 transition-all active:scale-95 group shadow-sm"
+                                      title={`View ${event.title} details and rulebook`}
+                                    >
+                                      <span>View Details</span>
+                                      <ExternalLink className="w-3 h-3 text-cyan-400 group-hover:text-cyan-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                    </Link>
                                   </div>
                                 </div>
 
@@ -2436,7 +2447,19 @@ export default function CheckoutForm() {
                     <div key={eventId} className="py-2 border-b border-white/5 last:border-0 space-y-2">
                       <div className="flex justify-between items-start text-white/90">
                         <div>
-                          <div className="font-semibold text-sm">{ev.title}</div>
+                          <div className="font-semibold text-sm flex items-center gap-2">
+                            <span>{ev.title}</span>
+                            <Link
+                              href={`/events?event=${ev.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-sans group"
+                              title={`View ${ev.title} details`}
+                            >
+                              <span>details</span>
+                              <ExternalLink className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                          </div>
                           <div className="text-[11px] text-white/40 font-sans">{ev.category}</div>
                           {eventId === "visitor" && (
                             <>

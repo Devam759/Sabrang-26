@@ -9,9 +9,9 @@ export default function RegisterClient() {
   const [showForm, setShowForm] = useState(false);
   
   useEffect(() => {
-    // If redirected back from Cashfree with order_id, show form immediately
+    // If redirected back from Cashfree with order_id, or coming with pre-selected events, show form immediately
     const params = new URLSearchParams(window.location.search);
-    if (params.get('order_id')) {
+    if (params.get('order_id') || params.get('event') || params.get('events') || params.get('cart')) {
       setShowForm(true);
     }
   }, []);

@@ -14,9 +14,10 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, FileText, Users, ArrowRight, Gamepad2 } from "lucide-react";
-import { galleryItems, type GalleryItem } from "@/lib/highlights-data";
+import { galleryItems, findGalleryItem, type GalleryItem } from "@/lib/highlights-data";
 import { createWheelGesture } from "@/lib/gestureStepper";
 import PosterDetailModal from "./PosterDetailModal";
 import EventsFilterDropdown from "./EventsFilterDropdown";
@@ -262,7 +263,9 @@ function StaticArchive({
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {items.map((item, index) => (
-          <ArchivePlate key={item.id} item={item} index={index} onSelect={() => onSelect(item)} />
+          <div key={item.id} id={`event-card-${item.eventId || item.id}`}>
+            <ArchivePlate item={item} index={index} onSelect={() => onSelect(item)} />
+          </div>
         ))}
       </div>
 
@@ -279,6 +282,7 @@ export default function GalleryHighlights({
 }: {
   items?: GalleryItem[];
 }) {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<StageMode>("pending");
   const [active, setActive] = useState(false);
   const [ready, setReady] = useState(false);
@@ -288,6 +292,37 @@ export default function GalleryHighlights({
 
   const stageRef = useRef<HTMLDivElement>(null);
   const focusRequestRef = useRef<((itemIndex: number) => void) | null>(null);
+
+  // Deep-link integration: automatically open event poster detail if navigated with ?event=... or ?id=...
+  useEffect(() => {
+    const eventParam = searchParams?.get("event") || searchParams?.get("id");
+    let target = eventParam;
+    if (!target && typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      target =
+        urlParams.get("event") ||
+        urlParams.get("id") ||
+        (window.location.hash ? window.location.hash.replace("#", "") : null);
+    }
+
+    if (target) {
+      const matched = findGalleryItem(target, items);
+      if (matched) {
+        setExpandedItem(matched);
+        const index = items.findIndex((it) => it.id === matched.id);
+        if (index !== -1) {
+          setFocusedIndex(index);
+          focusRequestRef.current?.(index);
+          if (mode === "static" && typeof document !== "undefined") {
+            setTimeout(() => {
+              const el = document.getElementById(`event-card-${matched.eventId || matched.id}`);
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 200);
+          }
+        }
+      }
+    }
+  }, [searchParams, items, mode]);
 
   useEffect(() => {
     const checkViewport = () => {
@@ -377,7 +412,12 @@ export default function GalleryHighlights({
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  const onReady = useCallback(() => setReady(true), []);
+  const onReady = useCallback(() => {
+    setReady(true);
+    if (focusedIndex !== 0) {
+      focusRequestRef.current?.(focusedIndex);
+    }
+  }, [focusedIndex]);
 
   return (
     <>
@@ -541,7 +581,13 @@ export default function GalleryHighlights({
       {expandedItem && (
         <PosterDetailModal
           item={expandedItem}
-          onClose={() => setExpandedItem(null)}
+          onClose={() => {
+            setExpandedItem(null);
+            if (typeof window !== "undefined" && window.history?.replaceState) {
+              const cleanUrl = window.location.pathname;
+              window.history.replaceState({}, document.title, cleanUrl);
+            }
+          }}
         />
       )}
     </>
