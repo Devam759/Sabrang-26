@@ -87,15 +87,7 @@ export default function SchedulePage() {
           description:
             "A solo ramp walk event where participants showcase their style, confidence, personality, and stage presence.",
         },
-        {
-          time: "1:00 PM",
-          timing: "1:00 PM - 4:00 PM",
-          event: "Rangmanch",
-          venue: "LRC Stairs",
-          category: "Competition",
-          description:
-            "A theatrical event giving participants a platform to showcase acting, storytelling and dramatic expression.",
-        },
+
         {
           time: "2:00 PM",
           timing: "2:00 PM - 4:00 PM",
@@ -105,15 +97,7 @@ export default function SchedulePage() {
           description:
             "A cultural performance event celebrating music, expression and creativity through engaging performances.",
         },
-        {
-          time: "2:00 PM",
-          timing: "2:00 PM - 4:00 PM",
-          event: "Art Relay",
-          venue: "IM Amphitheatre",
-          category: "Fun",
-          description:
-            "A collaborative art event where participants create and build artwork as a relay, combining creativity and teamwork.",
-        },
+
         {
           time: "2:00 PM",
           timing: "2:00 PM - 4:00 PM",

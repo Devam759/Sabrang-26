@@ -305,25 +305,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   },
 
   // --- Non-Flagship - Other Events ---
-  {
-    id: "rang_manch",
-    title: "Rang Manch",
-    subtitle: "Stage Play & Theatrical Drama",
-    category: "Non-Flagship - Other Events",
-    minTeam: 8,
-    maxTeam: 15,
-    baseIncludedMembers: 1,
-    basePrice: 199,
-    extraMemberFee: 199,
-    isTeam: true,
-    type: "generic",
-    pricingLabel: "₹199 per head",
-    prizes: {
-      winnerCash: 9000,
-      runnerUpCash: 6000,
-      totalCash: 15000,
-    },
-  },
+
   {
     id: "faceoff_hiphop",
     title: "Faceoff (Hip Hop)",
@@ -461,24 +443,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     },
   },
 
-  // --- Activities - Gifts & Hampers ---
-  {
-    id: "art_relay",
-    title: "Art Relay",
-    subtitle: "Collaborative Fine Arts Challenge",
-    category: "Activities - Gifts & Hampers",
-    minTeam: 1,
-    maxTeam: 1,
-    baseIncludedMembers: 1,
-    basePrice: 111,
-    extraMemberFee: 0,
-    isTeam: false,
-    type: "generic",
-    pricingLabel: "₹111 per head",
-    prizes: {
-      remarks: "Gifts & Hampers",
-    },
-  },
+
 
   // --- General Entry ---
   {
