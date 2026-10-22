@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { heroScrollState, HERO_PIN_END, HERO_SCRUB } from '@/components/3d/hero/heroScrollState'
@@ -81,6 +82,13 @@ export default function HeroSection() {
             duration: 25,
             ease: 'power2.inOut',
           }, 0)
+          .to('.hero-sponsor', {
+            y: () => -window.innerHeight * 0.12,
+            scale: 0.75,
+            opacity: 0,
+            duration: 25,
+            ease: 'power2.inOut',
+          }, 0)
           .set({}, {}, 100) // force total duration to 100 == progress 1
       }
       
@@ -97,6 +105,33 @@ export default function HeroSection() {
     <div ref={containerRef} className="hero-section-container relative pointer-events-none">
       
       {/* HTML OVERLAYS */}
+
+      {/* SPONSORED BY OVERLAY - shown above the central SABRANG title */}
+      <div className="hero-sponsor absolute inset-0 flex flex-col items-center justify-center -mt-[25vh] md:-mt-[29vh] pointer-events-none z-10">
+        <div className="hero-anim pointer-events-auto flex flex-col items-center gap-2 md:gap-2.5">
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-white/50" />
+            <span
+              className="text-[10px] md:text-xs font-semibold tracking-[0.35em] uppercase text-white/80"
+              style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif' }}
+            >
+              Sponsored By
+            </span>
+            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-white/50" />
+          </div>
+          <div className="relative group">
+            <div className="absolute -inset-1 rounded-lg bg-blue-500/20 blur-md opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
+            <Image
+              src="/images/jk-paper-blue.png"
+              alt="JK Paper - Title Sponsor"
+              width={260}
+              height={110}
+              className="relative h-10 md:h-14 lg:h-16 w-auto object-contain rounded-md shadow-2xl drop-shadow-[0_0_25px_rgba(0,100,220,0.4)] transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
+          </div>
+        </div>
+      </div>
       
       {/* .hero-countdown carries the scroll transform, .hero-anim the entrance
           one -- separate elements so the two timelines don't fight over `y`. */}
