@@ -50,7 +50,8 @@
     "@grpc/grpc-js": "^1.13.6",
     "braces": "^3.0.3",
     "jose": "4.15.5",
-    "jwks-rsa": "3.1.0"
+    "jwks-rsa": "3.1.0",
+    "follow-redirects": "^1.16.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
