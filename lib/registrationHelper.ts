@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import fs from 'fs/promises';
 import path from 'path';
 import { formatPhoneNumber, maskEmail } from './security';
-import { extractRegistrationInfo } from './registrationDataHelper';
+import { extractRegistrationInfo, isStaffRegistration, isTeamSabrangRegistration } from './registrationDataHelper';
 
 
 
@@ -188,20 +188,40 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
   // Extract unified registration attributes according to Team vs Solo specifications
   const regInfo = extractRegistrationInfo(data, id);
 
+  const isStaff = isStaffRegistration(data);
+
   // 1. PARTICIPANT INFORMATION Section
   drawSectionHeader('PARTICIPANT INFORMATION', 525);
   drawField('Full Name', regInfo.name, 40, 502);
   drawField('Registration ID', regInfo.rollNumber, 300, 502);
   
   drawField('College / Institution', regInfo.college, 40, 469);
-  drawField('Event Type', regInfo.eventType, 300, 469);
+  drawField('Event Type', isStaff ? 'Faculty / Staff Pass (Admit 4)' : regInfo.eventType, 300, 469);
   
   drawField('Email Address', regInfo.email, 40, 436);
   drawField('Mobile Number', regInfo.phone, 300, 436);
 
-  if (regInfo.isTeam) {
+  const isVisitor = Boolean(
+    data.visitorConfig ||
+    data.eventId === 'visitor' ||
+    (Array.isArray(data.selectedEvents) && data.selectedEvents.includes('visitor')) ||
+    String(data.eventName || '').toLowerCase().includes('visitor')
+  );
+
+  const isTeamSabrang = isTeamSabrangRegistration(data);
+
+  if (isStaff) {
+    drawField('Pass / Event', data.eventName || data.eventTitle || 'PRO-NITE & Concert (All 3 Days) - JKLU', 40, 403);
+    drawField('Admitted Persons', '4 Persons (Pass Holder + 3 Family/Guests)', 300, 403);
+  } else if (isTeamSabrang) {
+    drawField('Pass / Event', data.eventName || data.eventTitle || 'PRO-NITE & Concert (All 3 Days) - JKLU', 40, 403);
+    drawField('Pass Category', 'Team Sabrang Pass (Admit 1)', 300, 403);
+  } else if (regInfo.isTeam) {
     drawField('Team Name', regInfo.teamName, 40, 403);
     drawField('Total Members (incl. Leader)', regInfo.totalMembers, 300, 403);
+  } else if (isVisitor) {
+    drawField('Pass / Event', data.eventName || data.eventTitle || 'Visitor Pass', 40, 403);
+    drawField('Pass Category', 'Visitor Pass (No Pro-Nite/Concert)', 300, 403);
   } else {
     drawField('Pass / Event', data.eventName || data.eventTitle || 'PRO-NITE & Concert (All 3 Days) - JKLU', 40, 403);
     drawField('Pass Category', data.category || 'General Entry (All 3 Days)', 300, 403);
@@ -229,18 +249,77 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
   page.drawText('Confirmed', { x: 410, y: 242, size: 10.5, color: rgb(0.1, 0.5, 0.2) });
 
   // Disclaimer Notes
-  page.drawText('This receipt confirms successful registration and payment for Sabrang 2026. Please retain this document for your records.', {
-    x: 40,
-    y: 155,
-    size: 7,
-    color: greyColor
-  });
-  page.drawText('For queries, contact the Sabrang organizing committee.', {
-    x: 40,
-    y: 143,
-    size: 7,
-    color: greyColor
-  });
+  if (isStaff) {
+    page.drawText('ADMIT 4 PERSONS: This official pass grants Pro-Nite access to 4 persons (Pass holder + 3 accompanying family/guests).', {
+      x: 40,
+      y: 175,
+      size: 7.5,
+      color: darkColor
+    });
+    page.drawText('All 4 persons can enter together or separately by presenting this pass QR code at the entrance gates.', {
+      x: 40,
+      y: 162,
+      size: 7,
+      color: greyColor
+    });
+    page.drawText('This receipt confirms official complimentary pass issuance for Sabrang 2026. Please retain for campus access.', {
+      x: 40,
+      y: 149,
+      size: 7,
+      color: greyColor
+    });
+  } else if (isTeamSabrang) {
+    page.drawText('TEAM SABRANG PASS (ADMIT 1): Complimentary All-Access Pro-Nite pass for Sabrang 2026 Core & Overall Heads.', {
+      x: 40,
+      y: 175,
+      size: 7.5,
+      color: darkColor
+    });
+    page.drawText('Admits 1 Person (Pass holder only). Please present this QR code at the entrance gates.', {
+      x: 40,
+      y: 162,
+      size: 7,
+      color: greyColor
+    });
+    page.drawText('Issued with compliments by the Organizing Committee · JK Lakshmipat University.', {
+      x: 40,
+      y: 149,
+      size: 7,
+      color: greyColor
+    });
+  } else if (isVisitor) {
+    page.drawText('VISITOR PASS NOTICE: This pass grants daytime festival entry only. It DOES NOT include access to Pro-Nite and Concert.', {
+      x: 40,
+      y: 175,
+      size: 7.5,
+      color: darkColor
+    });
+    page.drawText('This receipt confirms successful visitor pass registration. Please retain this document for campus entry verification.', {
+      x: 40,
+      y: 162,
+      size: 7,
+      color: greyColor
+    });
+    page.drawText('For queries, contact the Sabrang organizing committee.', {
+      x: 40,
+      y: 149,
+      size: 7,
+      color: greyColor
+    });
+  } else {
+    page.drawText('This receipt confirms successful registration and payment for Sabrang 2026. Please retain this document for your records.', {
+      x: 40,
+      y: 155,
+      size: 7,
+      color: greyColor
+    });
+    page.drawText('For queries, contact the Sabrang organizing committee.', {
+      x: 40,
+      y: 143,
+      size: 7,
+      color: greyColor
+    });
+  }
 
   // Bottom Footer Line
   page.drawLine({
@@ -269,7 +348,7 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
 
 
 // ============================================================================
-// TRANSACTIONAL EMAIL NOTIFICATION helper (Primary Brevo + Fallback Mailjet)
+// TRANSACTIONAL EMAIL NOTIFICATION helper (Brevo REST API)
 // ============================================================================
 
 export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) {

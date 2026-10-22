@@ -1031,7 +1031,7 @@ export const FAQS: FAQItem[] = [
   {
     question: "Is there an entry fee for Sabrang?",
     answer:
-      "Participants: Event-wise fee varies depending on the competition and is shown during online registration.\nVisitors: A Visitor Pass of ₹69 per day is required.",
+      "Participants: Event-wise fee varies depending on the competition and is shown during online registration.\nVisitors: A Visitor Pass of ₹69 per day is required (Note: Visitor Pass does not include access to Pro-Nite and Concert).",
   },
   {
     question: "How do I register for Sabrang Events?",
@@ -1061,7 +1061,7 @@ export const FAQS: FAQItem[] = [
   {
     question: "Do visitors also need to register or only participants?",
     answer:
-      "Visitors must also register and purchase a Visitor Pass (₹69 per day).",
+      "Visitors must also register and purchase a Visitor Pass (₹69 per day). Please note that Visitor Passes grant daytime festival entry only and do not include access to Pro-Nite and Concert.",
   },
   {
     question: "Who do I contact for event-related queries after registration?",

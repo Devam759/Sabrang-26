@@ -484,7 +484,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   {
     id: "visitor",
     title: "Visitor Pass",
-    subtitle: "Festival Entry",
+    subtitle: "Festival Entry (Does not include access to Pro-Nite and Concert)",
     category: "General Entry",
     minTeam: 1,
     maxTeam: 1,
@@ -494,7 +494,7 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     isTeam: false,
     type: "visitor",
     pricingLabel: "₹69 per pass",
-    prizes: { remarks: "Standard Visitor Pass (Pro-Nite not included)" },
+    prizes: { remarks: "Standard Visitor Pass (Does not include access to Pro-Nite and Concert)" },
   },
   {
     id: "pronite_outsider",

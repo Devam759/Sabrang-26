@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { collection, query, where, getDocs, limit, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Check, ChevronRight, ArrowLeft, Upload, AlertTriangle, Loader2, CheckCircle2, XCircle, ShieldCheck, Download, ExternalLink, RefreshCw, Users, Sparkles, Plus, Minus, Calendar } from "lucide-react";
+import { Check, ChevronRight, ArrowLeft, Upload, AlertTriangle, Info, Loader2, CheckCircle2, XCircle, ShieldCheck, Download, ExternalLink, RefreshCw, Users, Sparkles, Plus, Minus, Calendar } from "lucide-react";
 import {
   OFFICIAL_EVENTS,
   getEventById,
@@ -2085,6 +2085,14 @@ export default function CheckoutForm() {
                                       {event.subtitle}
                                     </p>
                                   )}
+                                  {event.id === "visitor" && (
+                                    <div className="mb-2.5">
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                                        <Info className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                        Does not include access to Pro-Nite and Concert
+                                      </span>
+                                    </div>
+                                  )}
                                   <div className="flex flex-wrap items-center gap-3">
                                     {event.id === "visitor" ? (
                                       <span className="font-sans text-sm font-bold text-cyan-400">
@@ -2146,6 +2154,13 @@ export default function CheckoutForm() {
                                   onClick={(e) => e.stopPropagation()}
                                   className="mt-4 pt-4 border-t border-white/10 space-y-4"
                                 >
+                                  {/* Important Notice */}
+                                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs text-rose-200 flex items-start gap-2">
+                                    <Info className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                                    <div className="leading-relaxed">
+                                      <span className="font-bold text-rose-300">Important Access Notice:</span> Visitor Pass grants daytime festival &amp; campus access only. It <strong className="text-rose-200 underline">does not include access to Pro-Nite and Concert</strong>.
+                                    </div>
+                                  </div>
                                   {/* Select Festival Days */}
                                   <div className="space-y-2">
                                     <div className="flex justify-between items-center text-xs">
@@ -2375,6 +2390,10 @@ export default function CheckoutForm() {
                     <span className="text-white/50 font-sans">
                       {visitorCount} Attendee{visitorCount > 1 ? "s" : ""}
                     </span>
+                    <div className="w-full text-[11px] text-rose-300/90 pt-1.5 border-t border-white/5 flex items-center gap-1.5 font-medium">
+                      <Info className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                      Does not include access to Pro-Nite and Concert.
+                    </div>
                   </div>
                 )
               )}
@@ -2420,9 +2439,14 @@ export default function CheckoutForm() {
                           <div className="font-semibold text-sm">{ev.title}</div>
                           <div className="text-[11px] text-white/40 font-sans">{ev.category}</div>
                           {eventId === "visitor" && (
-                            <div className="text-[11px] text-cyan-400 font-sans mt-0.5">
-                              {visitorCount} attendee{visitorCount > 1 ? "s" : ""} • {visitorDays.length} day{visitorDays.length > 1 ? "s" : ""} ({visitorDays.map(d => FESTIVAL_DAYS.find(f => f.id === d)?.label).join(", ")})
-                            </div>
+                            <>
+                              <div className="text-[11px] text-cyan-400 font-sans mt-0.5">
+                                {visitorCount} attendee{visitorCount > 1 ? "s" : ""} • {visitorDays.length} day{visitorDays.length > 1 ? "s" : ""} ({visitorDays.map(d => FESTIVAL_DAYS.find(f => f.id === d)?.label).join(", ")})
+                              </div>
+                              <div className="text-[11px] text-rose-300 font-sans mt-0.5 font-medium">
+                                Does not include access to Pro-Nite and Concert
+                              </div>
+                            </>
                           )}
                           {(eventId === "pronite_jklu" || eventId === "pronite_outsider") && (
                             <div className="text-[11px] text-amber-400 font-sans mt-0.5 font-medium">

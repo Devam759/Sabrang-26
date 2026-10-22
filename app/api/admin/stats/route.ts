@@ -17,11 +17,13 @@ export async function GET() {
     let totalRevenue = 0;
     let todayRevenue = 0;
     let staffPassesCount = 0;
+    let teamSabrangPassesCount = 0;
 
     try {
       const regsSnap = await adminDb.collection('registrations').get();
       const allRegs = regsSnap.docs.map(doc => doc.data());
       const staffPasses = allRegs.filter((reg: any) => reg.isStaff === true || reg.category === 'Faculty / Staff Pass');
+      const teamSabrangPasses = allRegs.filter((reg: any) => reg.isTeamSabrang === true || reg.isCoreOH === true || reg.category === 'Team Sabrang Pass');
       const validRegs = allRegs.filter((reg: any) => 
         reg.name && 
         reg.name.trim() !== '' && 
@@ -29,10 +31,14 @@ export async function GET() {
         !reg.isDeleted && 
         reg.status !== 'deleted' &&
         reg.isStaff !== true &&
-        reg.category !== 'Faculty / Staff Pass'
+        reg.category !== 'Faculty / Staff Pass' &&
+        reg.isTeamSabrang !== true &&
+        reg.isCoreOH !== true &&
+        reg.category !== 'Team Sabrang Pass'
       );
       totalRegistrations = validRegs.length;
       staffPassesCount = staffPasses.length;
+      teamSabrangPassesCount = teamSabrangPasses.length;
 
       validRegs.forEach((reg: any) => {
         const amountNum = parseFloat(reg.receivedAmount || reg.paymentAmount || reg.amount || reg.price || '0') || 0;
@@ -69,6 +75,7 @@ export async function GET() {
       totalRevenue,
       todayRevenue,
       staffPassesCount,
+      teamSabrangPassesCount,
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -87,6 +94,7 @@ export async function GET() {
       totalRevenue: 0,
       todayRevenue: 0,
       staffPassesCount: 0,
+      teamSabrangPassesCount: 0,
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',

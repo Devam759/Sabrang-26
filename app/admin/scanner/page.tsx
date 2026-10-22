@@ -8,7 +8,7 @@ import { auth, db } from '../../../lib/firebase';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Check, X, User, AlertCircle, Mail, Phone, Loader2, Search, Users, CheckCheck, Crown, Clock, ArrowRight } from 'lucide-react';
 import { OFFICIAL_EVENTS, getEventById } from '@/lib/eventPricing';
-import { extractRegistrationInfo, extractAllTeamMembers, isTeamEventRegistration, TeamMemberEntry } from '@/lib/registrationDataHelper';
+import { extractRegistrationInfo, extractAllTeamMembers, isTeamEventRegistration, isStaffRegistration, TeamMemberEntry } from '@/lib/registrationDataHelper';
 
 function formatEntryTime(val: any): string {
   if (!val) return '';
@@ -1005,10 +1005,11 @@ export default function AdminScannerView() {
         {scannedData && (() => {
           const regInfo = extractRegistrationInfo(scannedData);
           const allMembers = extractAllTeamMembers(scannedData);
+          const isStaff = isStaffRegistration(scannedData);
           const isTeam = isTeamEventRegistration(scannedData) || allMembers.length > 1;
           const enteredMembers = scannedData.enteredMembers || {};
           const enteredCount = Object.values(enteredMembers).filter((m: any) => m && (m.entered === true || m.entered === 'true')).length;
-          const totalMembersCount = Math.max(allMembers.length, 1);
+          const totalMembersCount = Math.max(allMembers.length, isStaff ? 4 : 1);
           const isAllEntered = isTeam 
             ? (scannedData.allEntered === true || (enteredCount >= totalMembersCount && totalMembersCount > 0))
             : (scannedData.hasEntered || scannedData.attended);
@@ -1031,7 +1032,7 @@ export default function AdminScannerView() {
                 <div className="flex items-center gap-3">
                   {isAllEntered ? (
                     <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
-                      {isTeam ? 'All Inside' : 'Already Inside'}
+                      {isStaff ? 'All 4 Inside' : (isTeam ? 'All Inside' : 'Already Inside')}
                     </div>
                   ) : isPartialEntered ? (
                     <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
@@ -1039,7 +1040,7 @@ export default function AdminScannerView() {
                     </div>
                   ) : (
                     <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Ready for Entry
+                      {isStaff ? 'Ready for Entry (Admit 4)' : 'Ready for Entry'}
                     </div>
                   )}
                   
@@ -1059,7 +1060,7 @@ export default function AdminScannerView() {
                 <div className="bg-white/80 p-5 border border-slate-100 rounded-2xl flex flex-col gap-4">
                   <div>
                     <span className="text-xs font-medium text-slate-500 block mb-1">
-                      {isTeam ? 'Team Leader / Primary Contact' : 'Attendee Name'}
+                      {isStaff ? 'Faculty / Staff Pass Holder' : (isTeam ? 'Team Leader / Primary Contact' : 'Attendee Name')}
                     </span>
                     <span className="text-2xl font-light text-slate-900 leading-tight block font-space-grotesk">{regInfo.name}</span>
                   </div>
@@ -1082,11 +1083,22 @@ export default function AdminScannerView() {
                     </div>
                     <div>
                       <span className="text-xs font-medium text-slate-500 block mb-1">Event Type</span>
-                      <span className="text-xs font-semibold text-slate-800 block">{regInfo.eventType}</span>
+                      <span className="text-xs font-semibold text-slate-800 block">{isStaff ? 'Faculty / Staff Pass (Admit 4)' : regInfo.eventType}</span>
                     </div>
                   </div>
 
-                  {isTeam && (
+                  {isStaff ? (
+                    <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
+                      <div>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Pass Category</span>
+                        <span className="text-xs font-semibold text-indigo-700 block">Faculty / Staff Pass (Admit 4)</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-slate-500 block mb-1">Persons Admitted</span>
+                        <span className="text-xs font-semibold text-emerald-700 block">4 Persons (Pass Holder + 3 Guests)</span>
+                      </div>
+                    </div>
+                  ) : isTeam ? (
                     <div className="grid grid-cols-2 gap-5 border-t border-slate-100 pt-4">
                       <div>
                         <span className="text-xs font-medium text-slate-500 block mb-1">Team Name</span>
@@ -1097,7 +1109,7 @@ export default function AdminScannerView() {
                         <span className="text-xs font-semibold text-slate-800 block">{totalMembersCount}</span>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Deleted User Detail Alert */}
@@ -1148,33 +1160,35 @@ export default function AdminScannerView() {
                   </div>
                 )}
 
-                {/* TEAM MEMBERS SEPARATE APPROVAL SECTION */}
-                {isTeam && allMembers.length > 0 && (
-                  <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3.5 mt-2">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                          <Users size={16} />
+                  {/* TEAM MEMBERS / PASS ENTRIES SEPARATE APPROVAL SECTION */}
+                  {isTeam && allMembers.length > 0 && (
+                    <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3.5 mt-2">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                            <Users size={16} />
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                              {isStaff ? 'Pass Entries (Admit 4 Persons)' : 'Team Members Entry'}
+                            </h3>
+                            <p className="text-[11px] text-slate-500 font-medium">
+                              {isStaff 
+                                ? 'Approve entry for faculty/staff member and up to 3 accompanying guests/family' 
+                                : 'Approve each team member individually as they arrive'}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                            Team Members Entry
-                          </h3>
-                          <p className="text-[11px] text-slate-500 font-medium">
-                            Approve each team member individually as they arrive
-                          </p>
-                        </div>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
+                          isAllEntered 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : isPartialEntered 
+                              ? 'bg-amber-100 text-amber-800' 
+                              : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {enteredCount} / {totalMembersCount} Approved
+                        </span>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
-                        isAllEntered 
-                          ? 'bg-emerald-100 text-emerald-800' 
-                          : isPartialEntered 
-                            ? 'bg-amber-100 text-amber-800' 
-                            : 'bg-slate-200 text-slate-700'
-                      }`}>
-                        {enteredCount} / {totalMembersCount} Approved
-                      </span>
-                    </div>
 
                     <div className="space-y-2.5">
                       {allMembers.map((member, idx) => {

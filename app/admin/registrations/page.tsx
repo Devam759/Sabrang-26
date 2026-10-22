@@ -524,7 +524,12 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
           )}
           {reg.isStaff && (
             <span className="inline-flex items-center px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
-              Faculty / Staff
+              Faculty / Staff (Admit 4)
+            </span>
+          )}
+          {(reg.isTeamSabrang || reg.isCoreOH) && (
+            <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+              Team Sabrang (Core / OH)
             </span>
           )}
           {reg.isTest && (
@@ -656,7 +661,7 @@ export default function Registrations() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewImage]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted' | 'staff'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted' | 'staff' | 'team_sabrang'>('all');
   const [instituteFilter, setInstituteFilter] = useState<string>('all');
   const [isDeleting, setIsDeleting] = useState(false);
   const [emailFilter, setEmailFilter] = useState<'all' | 'sent' | 'unsent'>('all');
@@ -945,13 +950,16 @@ export default function Registrations() {
     for (const reg of registrations) {
       const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
       const isStaffPass = reg.isStaff === true || reg.category === 'Faculty / Staff Pass';
+      const isTeamSabrangPass = reg.isTeamSabrang === true || reg.isCoreOH === true || reg.category === 'Team Sabrang Pass';
 
       if (statusFilter === 'deleted') {
         if (!isRegDeleted) continue;
       } else if (statusFilter === 'staff') {
         if (isRegDeleted || !isStaffPass) continue;
+      } else if (statusFilter === 'team_sabrang') {
+        if (isRegDeleted || !isTeamSabrangPass) continue;
       } else {
-        if (isRegDeleted || isStaffPass) continue;
+        if (isRegDeleted || isStaffPass || isTeamSabrangPass) continue;
       }
 
       const raw = getRegistrationInstituteRaw(reg);
@@ -988,15 +996,19 @@ export default function Registrations() {
     return registrationsWithSearch.filter((reg) => {
       const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
       const isStaffPass = reg.isStaff === true || reg.category === 'Faculty / Staff Pass';
+      const isTeamSabrangPass = reg.isTeamSabrang === true || reg.isCoreOH === true || reg.category === 'Team Sabrang Pass';
 
       // Hide deleted users by default; only show them when statusFilter === 'deleted'
       // Hide faculty & staff passes by default; only show them when statusFilter === 'staff'
+      // Hide team sabrang passes by default; only show them when statusFilter === 'team_sabrang'
       if (statusFilter === 'deleted') {
         if (!isRegDeleted) return false;
       } else if (statusFilter === 'staff') {
         if (isRegDeleted || !isStaffPass) return false;
+      } else if (statusFilter === 'team_sabrang') {
+        if (isRegDeleted || !isTeamSabrangPass) return false;
       } else {
-        if (isRegDeleted || isStaffPass) return false;
+        if (isRegDeleted || isStaffPass || isTeamSabrangPass) return false;
       }
 
       const rawInst = getRegistrationInstituteRaw(reg);
@@ -1009,6 +1021,7 @@ export default function Registrations() {
         statusFilter === 'all' ||
         statusFilter === 'deleted' ||
         statusFilter === 'staff' ||
+        statusFilter === 'team_sabrang' ||
         (statusFilter === 'entered' && reg.hasEntered) ||
         (statusFilter === 'pending' && !reg.hasEntered && reg.status !== 'declined') ||
         (statusFilter === 'declined' && reg.status === 'declined');
@@ -1081,9 +1094,9 @@ export default function Registrations() {
   const paginatedRegistrations = sortedRegistrations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(sortedRegistrations.length / itemsPerPage);
 
-  // Counts for active vs deleted vs staff registrations
+  // Counts for active vs deleted vs staff vs team sabrang registrations
   const activeRegistrationsCount = useMemo(() => {
-    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted' && !r.isStaff && r.category !== 'Faculty / Staff Pass').length;
+    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted' && !r.isStaff && r.category !== 'Faculty / Staff Pass' && !r.isTeamSabrang && !r.isCoreOH && r.category !== 'Team Sabrang Pass').length;
   }, [registrations]);
 
   const deletedRegistrationsCount = useMemo(() => {
@@ -1094,10 +1107,14 @@ export default function Registrations() {
     return registrations.filter(r => !r.isDeleted && r.status !== 'deleted' && (r.isStaff || r.category === 'Faculty / Staff Pass')).length;
   }, [registrations]);
 
-  // Calculate Today's Registrations (IST standardized, active non-staff only)
+  const teamSabrangRegistrationsCount = useMemo(() => {
+    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted' && (r.isTeamSabrang || r.isCoreOH || r.category === 'Team Sabrang Pass')).length;
+  }, [registrations]);
+
+  // Calculate Today's Registrations (IST standardized, active non-staff, non-team-sabrang only)
   const todaysRegistrationsCount = useMemo(() => {
     return registrations.filter(reg => {
-      return !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass' && isDateInTodayIST(reg.registeredAt);
+      return !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass' && !reg.isTeamSabrang && !reg.isCoreOH && reg.category !== 'Team Sabrang Pass' && isDateInTodayIST(reg.registeredAt);
     }).length;
   }, [registrations]);
 
@@ -1304,11 +1321,11 @@ export default function Registrations() {
   };
 
   const unsentCount = useMemo(() => {
-    return registrations.filter(reg => !reg.emailSent && !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass').length;
+    return registrations.filter(reg => !reg.emailSent && !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass' && !reg.isTeamSabrang && !reg.isCoreOH && reg.category !== 'Team Sabrang Pass').length;
   }, [registrations]);
 
   const unsyncedCount = useMemo(() => {
-    return registrations.filter(reg => !reg.sheetSynced && !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass').length;
+    return registrations.filter(reg => !reg.sheetSynced && !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass' && !reg.isTeamSabrang && !reg.isCoreOH && reg.category !== 'Team Sabrang Pass').length;
   }, [registrations]);
 
   const handleSendUnsentEmails = async () => {
@@ -1387,6 +1404,20 @@ export default function Registrations() {
                   title="Click to view faculty and staff complimentary passes"
                 >
                   {staffRegistrationsCount} Faculty &amp; Staff Passes
+                </button>
+              )}
+              {teamSabrangRegistrationsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter(statusFilter === 'team_sabrang' ? 'all' : 'team_sabrang')}
+                  className={`text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 border rounded-lg inline-block transition-colors cursor-pointer ${
+                    statusFilter === 'team_sabrang'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200'
+                  }`}
+                  title="Click to view Team Sabrang (Core & Overall Heads) passes"
+                >
+                  {teamSabrangRegistrationsCount} Team Sabrang Passes
                 </button>
               )}
               {deletedRegistrationsCount > 0 && (
@@ -1494,6 +1525,7 @@ export default function Registrations() {
             <option value="pending">Pending Check-In</option>
             <option value="declined">Declined / Blocked</option>
             <option value="staff">Faculty &amp; Staff Passes {staffRegistrationsCount > 0 ? `(${staffRegistrationsCount})` : ''}</option>
+            <option value="team_sabrang">Team Sabrang Passes {teamSabrangRegistrationsCount > 0 ? `(${teamSabrangRegistrationsCount})` : ''}</option>
             <option value="deleted">Deleted Users {deletedRegistrationsCount > 0 ? `(${deletedRegistrationsCount})` : ''}</option>
           </select>
 
@@ -1878,9 +1910,13 @@ export default function Registrations() {
                     return (
                       <>
                         <div className="flex items-center justify-between mb-4">
-                          <p className="text-xs font-semibold text-slate-700">Team Members</p>
+                          <p className="text-xs font-semibold text-slate-700">
+                            {selectedReg.isStaff ? 'Pass Entries (Admit 4 Persons)' : 'Team Members'}
+                          </p>
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                            Total {totalMembersCount} Members (Leader + {membersToRender.length} Teammate{membersToRender.length === 1 ? '' : 's'})
+                            {selectedReg.isStaff 
+                              ? 'Total 4 Persons (Faculty/Staff + Up to 3 Family/Guests)' 
+                              : `Total ${totalMembersCount} Members (Leader + ${membersToRender.length} Teammate${membersToRender.length === 1 ? '' : 's'})`}
                           </span>
                         </div>
                         <div className="space-y-4">

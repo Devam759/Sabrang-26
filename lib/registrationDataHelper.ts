@@ -152,10 +152,43 @@ export function extractOtherTeammatesCount(data: any): number | null {
 }
 
 /**
+ * Helper to identify Faculty & Staff passes across all data representations.
+ */
+export function isStaffRegistration(data: any): boolean {
+  if (!data) return false;
+  return Boolean(
+    data.isStaff === true ||
+    data.category === 'Faculty / Staff Pass' ||
+    String(data.orderId || '').startsWith('STAFF_') ||
+    String(data.ticketId || '').startsWith('STAFF_')
+  );
+}
+
+/**
+ * Helper to identify Team Sabrang (Core & Overall Heads) passes across all data representations.
+ */
+export function isTeamSabrangRegistration(data: any): boolean {
+  if (!data) return false;
+  return Boolean(
+    data.isTeamSabrang === true ||
+    data.isCoreOH === true ||
+    data.category === 'Team Sabrang Pass' ||
+    String(data.orderId || '').startsWith('TEAMSABRANG_') ||
+    String(data.orderId || '').startsWith('CORE_SAMPLE_') ||
+    String(data.ticketId || '').startsWith('TEAMSABRANG_')
+  );
+}
+
+/**
  * Determine if a registration is a TEAM event or a SOLO event.
  */
 export function isTeamEventRegistration(data: any): boolean {
   if (!data) return false;
+
+  // Faculty and Staff passes include entry for 4 persons (handled like multi-admit team pass)
+  if (isStaffRegistration(data)) {
+    return true;
+  }
 
   // Direct boolean/string flags
   if (data.isTeam === true || data.eventType === 'Team' || data.eventType === 'team' || data.type === 'team') {
@@ -266,7 +299,13 @@ export function extractRegistrationInfo(data: any, idFallback?: string): Extract
   let noOfTeammates = 'N/A';
   let totalMembers = '1';
 
-  if (isTeam) {
+  const isStaff = isStaffRegistration(data);
+
+  if (isStaff) {
+    teamName = 'Faculty / Staff Pass (Admit 4 Persons)';
+    noOfTeammates = '3';
+    totalMembers = '4';
+  } else if (isTeam) {
     const extractedName = extractRegistrationTeamName(data);
     teamName = extractedName || 'N/A';
 
@@ -449,14 +488,16 @@ export function extractAllTeamMembers(data: any): TeamMemberEntry[] {
   const leaderPhone = leaderObj?.phone || leaderObj?.mobile || data?.phone || data?.mobile || '';
   const leaderInst = leaderObj?.institutionName || leaderObj?.college || data?.institutionName || data?.college || '';
 
+  const isStaff = isStaffRegistration(data);
+
   list.push({
     id: 'leader',
     name: leaderName,
     email: leaderEmail,
     phone: leaderPhone,
     isLeader: true,
-    role: 'Team Leader',
-    institutionName: leaderInst,
+    role: isStaff ? 'Faculty / Staff (Primary)' : 'Team Leader',
+    institutionName: leaderInst || (isStaff ? 'JK Lakshmipat University' : ''),
   });
 
   // 2. Team members from teamMembers object (keyed by categories like 'generic', 'freefire', 'bgmi', 'valorant')
@@ -477,7 +518,7 @@ export function extractAllTeamMembers(data: any): TeamMemberEntry[] {
                     email: m.email || '',
                     phone: m.mobileNumber || m.phone || m.mobile || '',
                     isLeader: false,
-                    role: `Member ${list.length}`,
+                    role: m.role || (isStaff ? `Guest / Family ${list.length}` : `Member ${list.length}`),
                     institutionName: m.institutionName || m.college || '',
                   });
                 }
@@ -499,7 +540,7 @@ export function extractAllTeamMembers(data: any): TeamMemberEntry[] {
                 email: m.email || '',
                 phone: m.mobileNumber || m.phone || m.mobile || '',
                 isLeader: false,
-                role: `Member ${list.length}`,
+                role: m.role || (isStaff ? `Guest / Family ${list.length}` : `Member ${list.length}`),
                 institutionName: m.institutionName || m.college || '',
               });
             }
@@ -528,6 +569,30 @@ export function extractAllTeamMembers(data: any): TeamMemberEntry[] {
         }
       }
     });
+  }
+
+  // 3b. For Faculty & Staff Passes, guarantee exactly 4 total allowed entry slots (Pass Holder + 3 Guests/Family)
+  if (isStaff) {
+    const staffGuestSlots = [
+      { id: 'guest_1', name: 'Person 2 (Guest / Family)', role: 'Guest / Family 1' },
+      { id: 'guest_2', name: 'Person 3 (Guest / Family)', role: 'Guest / Family 2' },
+      { id: 'guest_3', name: 'Person 4 (Guest / Family)', role: 'Guest / Family 3' },
+    ];
+
+    for (let i = 0; list.length < 4 && i < staffGuestSlots.length; i++) {
+      const slot = staffGuestSlots[i];
+      if (!list.some(existing => existing.id === slot.id)) {
+        list.push({
+          id: slot.id,
+          name: slot.name,
+          email: '',
+          phone: '',
+          isLeader: false,
+          role: slot.role,
+          institutionName: leaderInst || 'JK Lakshmipat University',
+        });
+      }
+    }
   }
 
   // 4. Attach entry approval status if present in registration data

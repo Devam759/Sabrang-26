@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { normalizeEventKey } from '@/lib/couponHelper';
-import { extractAllTeamMembers, isTeamEventRegistration } from '@/lib/registrationDataHelper';
+import { extractAllTeamMembers, isTeamEventRegistration, isStaffRegistration } from '@/lib/registrationDataHelper';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -165,8 +165,9 @@ export async function POST(req: Request) {
     }
 
     // 3. Team Member Resolution & Duplicate Prevention
+    const isStaff = isStaffRegistration(regData);
     const allMembers = extractAllTeamMembers(regData);
-    const isTeam = isTeamEventRegistration(regData) || allMembers.length > 1;
+    const isTeam = isTeamEventRegistration(regData) || allMembers.length > 1 || isStaff;
 
     const regRef = adminDb.collection('registrations').doc(regId);
     const lockRef = adminDb.collection('entryLocks').doc(regId);
@@ -192,9 +193,10 @@ export async function POST(req: Request) {
         throw new Error('REGISTRATION_DELETED');
       }
 
+      const isFreshStaff = isStaffRegistration(freshData);
       const existingEnteredMembers: Record<string, any> = freshData.enteredMembers || {};
       const currentAllMembers = extractAllTeamMembers(freshData);
-      totalMembersCount = Math.max(currentAllMembers.length, 1);
+      totalMembersCount = Math.max(currentAllMembers.length, isFreshStaff ? 4 : 1);
       
       const currentEnteredMembersCount = Object.values(existingEnteredMembers).filter((m: any) => m && (m.entered === true || m.entered === 'true')).length;
       
@@ -227,9 +229,9 @@ export async function POST(req: Request) {
 
         const targetMem = currentAllMembers.find(m => m.id === memberId) || {
           id: memberId,
-          name: memberName || 'Member',
+          name: memberName || (isFreshStaff ? (memberId === 'leader' ? 'Faculty / Staff Member' : 'Guest / Family') : 'Member'),
           isLeader: memberId === 'leader',
-          role: memberId === 'leader' ? 'Team Leader' : 'Teammate',
+          role: memberId === 'leader' ? (isFreshStaff ? 'Faculty / Staff (Primary)' : 'Team Leader') : (isFreshStaff ? 'Guest / Family' : 'Teammate'),
         };
 
         updatedEnteredMembers = {
@@ -237,7 +239,7 @@ export async function POST(req: Request) {
           [memberId]: {
             entered: true,
             name: targetMem.name,
-            role: targetMem.role || (targetMem.isLeader ? 'Team Leader' : 'Teammate'),
+            role: targetMem.role || (targetMem.isLeader ? (isFreshStaff ? 'Faculty / Staff (Primary)' : 'Team Leader') : (isFreshStaff ? 'Guest / Family' : 'Teammate')),
             enteredAt: nowIso,
             enteredBy: operatorName,
           }
@@ -313,7 +315,7 @@ export async function POST(req: Request) {
             updatedEnteredMembers[m.id] = {
               entered: true,
               name: m.name,
-              role: m.role || (m.isLeader ? 'Team Leader' : 'Teammate'),
+              role: m.role || (m.isLeader ? (isFreshStaff ? 'Faculty / Staff (Primary)' : 'Team Leader') : (isFreshStaff ? 'Guest / Family' : 'Teammate')),
               enteredAt: nowIso,
               enteredBy: operatorName,
             };

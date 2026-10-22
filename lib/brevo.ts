@@ -2,7 +2,7 @@
  * Brevo (Sendinblue) Transactional Email Client for Sabrang 2026
  *
  * Sends festival passes, QR registration tickets, and confirmation emails.
- * Powered by unified emailService with automatic Mailjet fallback.
+ * Powered by unified emailService via Brevo REST API.
  */
 
 import { sendTransactionalEmail, sendBrevoProvider, EmailProviderName } from './emailService';
@@ -29,7 +29,7 @@ export interface TicketPassParams {
 }
 
 /**
- * Sends transactional email with automatic Mailjet secondary provider fallback.
+ * Sends transactional email via Brevo.
  */
 export async function sendBrevoEmail(params: SendEmailParams): Promise<{
   success: boolean;

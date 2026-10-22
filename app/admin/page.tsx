@@ -79,8 +79,10 @@ export default function AdminDashboard() {
             const currentEnd = getEndOfTodayIST();
             const allRegs = snap.docs.map(d => d.data());
             const isStaffReg = (reg: any) => reg.isStaff === true || reg.category === 'Faculty / Staff Pass';
-            const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted' && !isStaffReg(reg));
+            const isTeamSabrangReg = (reg: any) => reg.isTeamSabrang === true || reg.isCoreOH === true || reg.category === 'Team Sabrang Pass';
+            const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted' && !isStaffReg(reg) && !isTeamSabrangReg(reg));
             const staffCount = allRegs.filter((reg: any) => !reg.isDeleted && reg.status !== 'deleted' && isStaffReg(reg)).length;
+            const teamSabrangCount = allRegs.filter((reg: any) => !reg.isDeleted && reg.status !== 'deleted' && isTeamSabrangReg(reg)).length;
             
             let totalRev = 0;
             let todayRev = 0;
@@ -107,6 +109,7 @@ export default function AdminDashboard() {
               totalRevenue: totalRev,
               todayRevenue: todayRev,
               staffPassesCount: staffCount,
+              teamSabrangCount: teamSabrangCount,
               loading: false,
             }));
           },
