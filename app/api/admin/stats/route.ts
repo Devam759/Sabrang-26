@@ -16,12 +16,23 @@ export async function GET() {
     let totalEntries = 0;
     let totalRevenue = 0;
     let todayRevenue = 0;
+    let staffPassesCount = 0;
 
     try {
       const regsSnap = await adminDb.collection('registrations').get();
       const allRegs = regsSnap.docs.map(doc => doc.data());
-      const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted');
+      const staffPasses = allRegs.filter((reg: any) => reg.isStaff === true || reg.category === 'Faculty / Staff Pass');
+      const validRegs = allRegs.filter((reg: any) => 
+        reg.name && 
+        reg.name.trim() !== '' && 
+        reg.isTest !== true && 
+        !reg.isDeleted && 
+        reg.status !== 'deleted' &&
+        reg.isStaff !== true &&
+        reg.category !== 'Faculty / Staff Pass'
+      );
       totalRegistrations = validRegs.length;
+      staffPassesCount = staffPasses.length;
 
       validRegs.forEach((reg: any) => {
         const amountNum = parseFloat(reg.receivedAmount || reg.paymentAmount || reg.amount || reg.price || '0') || 0;
@@ -57,6 +68,7 @@ export async function GET() {
       totalEntries,
       totalRevenue,
       todayRevenue,
+      staffPassesCount,
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -74,6 +86,7 @@ export async function GET() {
       totalEntries: 0,
       totalRevenue: 0,
       todayRevenue: 0,
+      staffPassesCount: 0,
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',

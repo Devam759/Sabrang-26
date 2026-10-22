@@ -199,8 +199,13 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
   drawField('Email Address', regInfo.email, 40, 436);
   drawField('Mobile Number', regInfo.phone, 300, 436);
 
-  drawField('Team Name', regInfo.teamName, 40, 403);
-  drawField('Total Members (incl. Leader)', regInfo.isTeam ? regInfo.totalMembers : '1', 300, 403);
+  if (regInfo.isTeam) {
+    drawField('Team Name', regInfo.teamName, 40, 403);
+    drawField('Total Members (incl. Leader)', regInfo.totalMembers, 300, 403);
+  } else {
+    drawField('Pass / Event', data.eventName || data.eventTitle || 'PRO-NITE & Concert (All 3 Days) - JKLU', 40, 403);
+    drawField('Pass Category', data.category || 'General Entry (All 3 Days)', 300, 403);
+  }
 
   // 2. ADDRESS Section
   drawSectionHeader('ADDRESS', 360);
@@ -218,7 +223,7 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
   const amountStr = Number(rawAmount || 0).toFixed(2);
 
   drawField('Amount Paid', `Rs. ${amountStr}`, 40, 255);
-  drawField('Mode of Payment', 'Online Transfer / UPI', 220, 255);
+  drawField('Mode of Payment', data.modeOfPayment || 'Online Transfer / UPI', 220, 255);
   
   page.drawText('TRANSACTION STATUS', { x: 410, y: 255, size: 7.5, color: greyColor });
   page.drawText('Confirmed', { x: 410, y: 242, size: 10.5, color: rgb(0.1, 0.5, 0.2) });
@@ -308,7 +313,7 @@ export async function sendEmail(to: string, name: string, pdfBytes: Uint8Array) 
           <div class="success-badge">Registration Confirmed</div>
           <h2 style="margin-top: 0;">Dear ${name},</h2>
           <p>Congratulations!</p>
-          <p>Your registration for <strong>SABRANG 2026</strong>, the Annual Festival at JK Lakshmipat University, has been successfully completed.</p>
+          <p>Your registration for <strong>SABRANG 2026</strong>, the Annual Cultural Festival of JK Lakshmipat University, has been successfully completed.</p>
           <p>Please find your Registration Receipt attached to this email. This will serve as your entry pass and will be required during the check-in process on campus.</p>
           <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <p style="margin: 0; font-size: 14px; color: #64748b;"><strong>Important:</strong></p>

@@ -522,6 +522,11 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
               Deleted
             </span>
           )}
+          {reg.isStaff && (
+            <span className="inline-flex items-center px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
+              Faculty / Staff
+            </span>
+          )}
           {reg.isTest && (
             <span className="inline-flex items-center px-2 py-0.5 bg-white text-slate-600 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest">
               Test
@@ -651,7 +656,7 @@ export default function Registrations() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewImage]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted' | 'staff'>('all');
   const [instituteFilter, setInstituteFilter] = useState<string>('all');
   const [isDeleting, setIsDeleting] = useState(false);
   const [emailFilter, setEmailFilter] = useState<'all' | 'sent' | 'unsent'>('all');
@@ -939,10 +944,14 @@ export default function Registrations() {
 
     for (const reg of registrations) {
       const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
+      const isStaffPass = reg.isStaff === true || reg.category === 'Faculty / Staff Pass';
+
       if (statusFilter === 'deleted') {
         if (!isRegDeleted) continue;
+      } else if (statusFilter === 'staff') {
+        if (isRegDeleted || !isStaffPass) continue;
       } else {
-        if (isRegDeleted) continue;
+        if (isRegDeleted || isStaffPass) continue;
       }
 
       const raw = getRegistrationInstituteRaw(reg);
@@ -978,12 +987,16 @@ export default function Registrations() {
   const filteredRegistrations = useMemo(() => {
     return registrationsWithSearch.filter((reg) => {
       const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
+      const isStaffPass = reg.isStaff === true || reg.category === 'Faculty / Staff Pass';
 
       // Hide deleted users by default; only show them when statusFilter === 'deleted'
+      // Hide faculty & staff passes by default; only show them when statusFilter === 'staff'
       if (statusFilter === 'deleted') {
         if (!isRegDeleted) return false;
+      } else if (statusFilter === 'staff') {
+        if (isRegDeleted || !isStaffPass) return false;
       } else {
-        if (isRegDeleted) return false;
+        if (isRegDeleted || isStaffPass) return false;
       }
 
       const rawInst = getRegistrationInstituteRaw(reg);
@@ -995,6 +1008,7 @@ export default function Registrations() {
       const matchesStatus = 
         statusFilter === 'all' ||
         statusFilter === 'deleted' ||
+        statusFilter === 'staff' ||
         (statusFilter === 'entered' && reg.hasEntered) ||
         (statusFilter === 'pending' && !reg.hasEntered && reg.status !== 'declined') ||
         (statusFilter === 'declined' && reg.status === 'declined');
@@ -1067,19 +1081,23 @@ export default function Registrations() {
   const paginatedRegistrations = sortedRegistrations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(sortedRegistrations.length / itemsPerPage);
 
-  // Counts for active vs deleted registrations
+  // Counts for active vs deleted vs staff registrations
   const activeRegistrationsCount = useMemo(() => {
-    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted').length;
+    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted' && !r.isStaff && r.category !== 'Faculty / Staff Pass').length;
   }, [registrations]);
 
   const deletedRegistrationsCount = useMemo(() => {
     return registrations.filter(r => r.isDeleted || r.status === 'deleted').length;
   }, [registrations]);
 
-  // Calculate Today's Registrations (IST standardized, active only)
+  const staffRegistrationsCount = useMemo(() => {
+    return registrations.filter(r => !r.isDeleted && r.status !== 'deleted' && (r.isStaff || r.category === 'Faculty / Staff Pass')).length;
+  }, [registrations]);
+
+  // Calculate Today's Registrations (IST standardized, active non-staff only)
   const todaysRegistrationsCount = useMemo(() => {
     return registrations.filter(reg => {
-      return !reg.isDeleted && reg.status !== 'deleted' && isDateInTodayIST(reg.registeredAt);
+      return !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass' && isDateInTodayIST(reg.registeredAt);
     }).length;
   }, [registrations]);
 
@@ -1286,11 +1304,11 @@ export default function Registrations() {
   };
 
   const unsentCount = useMemo(() => {
-    return registrations.filter(reg => !reg.emailSent && !reg.isDeleted && reg.status !== 'deleted').length;
+    return registrations.filter(reg => !reg.emailSent && !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass').length;
   }, [registrations]);
 
   const unsyncedCount = useMemo(() => {
-    return registrations.filter(reg => !reg.sheetSynced).length;
+    return registrations.filter(reg => !reg.sheetSynced && !reg.isDeleted && reg.status !== 'deleted' && !reg.isStaff && reg.category !== 'Faculty / Staff Pass').length;
   }, [registrations]);
 
   const handleSendUnsentEmails = async () => {
@@ -1352,10 +1370,24 @@ export default function Registrations() {
               {loading ? '-' : activeRegistrationsCount.toLocaleString('en-IN')}
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-1.5 sm:mt-3">
-              {filteredRegistrations.length !== activeRegistrationsCount && (
+              {filteredRegistrations.length !== activeRegistrationsCount && statusFilter !== 'staff' && statusFilter !== 'deleted' && (
                 <p className="text-[10px] sm:text-xs font-semibold text-slate-600 bg-white px-2.5 sm:px-3 py-1 border border-slate-200 rounded-lg inline-block">
                   Filtered: {filteredRegistrations.length}
                 </p>
+              )}
+              {staffRegistrationsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter(statusFilter === 'staff' ? 'all' : 'staff')}
+                  className={`text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 border rounded-lg inline-block transition-colors cursor-pointer ${
+                    statusFilter === 'staff'
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border-indigo-200'
+                  }`}
+                  title="Click to view faculty and staff complimentary passes"
+                >
+                  {staffRegistrationsCount} Faculty &amp; Staff Passes
+                </button>
               )}
               {deletedRegistrationsCount > 0 && (
                 <button
@@ -1461,6 +1493,7 @@ export default function Registrations() {
             <option value="entered">Checked-In</option>
             <option value="pending">Pending Check-In</option>
             <option value="declined">Declined / Blocked</option>
+            <option value="staff">Faculty &amp; Staff Passes {staffRegistrationsCount > 0 ? `(${staffRegistrationsCount})` : ''}</option>
             <option value="deleted">Deleted Users {deletedRegistrationsCount > 0 ? `(${deletedRegistrationsCount})` : ''}</option>
           </select>
 

@@ -17,6 +17,7 @@ export default function AdminDashboard() {
     totalEntries: 0,
     totalRevenue: 0,
     todayRevenue: 0,
+    staffPassesCount: 0,
     loading: true
   });
   const [dateKey, setDateKey] = useState(() => getFormattedTodayIST());
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
             totalEntries: data.totalEntries || 0,
             totalRevenue: data.totalRevenue || 0,
             todayRevenue: data.todayRevenue || 0,
+            staffPassesCount: data.staffPassesCount || 0,
             loading: false,
           });
         } else {
@@ -76,7 +78,9 @@ export default function AdminDashboard() {
             const currentStart = getStartOfTodayIST();
             const currentEnd = getEndOfTodayIST();
             const allRegs = snap.docs.map(d => d.data());
-            const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted');
+            const isStaffReg = (reg: any) => reg.isStaff === true || reg.category === 'Faculty / Staff Pass';
+            const validRegs = allRegs.filter((reg: any) => reg.name && reg.name.trim() !== '' && reg.isTest !== true && !reg.isDeleted && reg.status !== 'deleted' && !isStaffReg(reg));
+            const staffCount = allRegs.filter((reg: any) => !reg.isDeleted && reg.status !== 'deleted' && isStaffReg(reg)).length;
             
             let totalRev = 0;
             let todayRev = 0;
@@ -102,6 +106,7 @@ export default function AdminDashboard() {
               totalEntries: checkedInCount,
               totalRevenue: totalRev,
               todayRevenue: todayRev,
+              staffPassesCount: staffCount,
               loading: false,
             }));
           },
@@ -196,9 +201,17 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Total Registrations</span>
             <div className="mt-6 sm:mt-8">
               <span className="text-4xl sm:text-5xl md:text-7xl font-light tracking-tighter text-slate-900 font-space-grotesk">{stats.totalRegistrations.toLocaleString('en-IN')}</span>
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                 <span className="text-[10px] text-slate-500 tracking-widest uppercase">+{stats.todayRegistrations} Today</span>
+                {stats.staffPassesCount > 0 && (
+                  <Link
+                    href="/admin/registrations"
+                    className="ml-auto text-[9px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200 transition-colors uppercase tracking-wider"
+                  >
+                    {stats.staffPassesCount} Faculty Passes
+                  </Link>
+                )}
               </div>
             </div>
           </div>

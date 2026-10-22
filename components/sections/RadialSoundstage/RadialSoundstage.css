@@ -1,51 +1,39 @@
 /* ==========================================================================
-   SABRANG 2026 — PRISMATIC SOUNDSTAGE (HAUTE COUTURE NOCTURNE)
+   SABRANG 2026 — PRISMATIC SOUNDSTAGE (VERTICAL NOCTURNE)
    ========================================================================== */
 
 .radial-soundstage-section {
   position: relative;
   width: 100%;
-  height: 360vh; /* Smooth continuous horizontal runway scroll distance */
   margin-top: 0;
   background: transparent;
   color: #ffffff;
 }
 
-.radial-soundstage-viewport {
-  position: sticky;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: radial-gradient(circle at 50% 50%, #08080c 0%, #020204 100%);
-  contain: paint layout;
-}
-
-/* ── CONTINUOUS HORIZONTAL RUNWAY FILMSTRIP ── */
+/* ── VERTICAL STAGE STREAM ── */
 .radial-runway-track {
   display: flex;
-  width: 300vw;
-  height: 100%;
-  min-height: 0;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  flex-direction: column;
+  width: 100%;
 }
 
 .radial-artist-panel {
-  width: 100vw;
-  height: 100%;
-  flex-shrink: 0;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 6rem 1rem 4rem;
   overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (min-width: 768px) {
+  .radial-artist-panel {
+    padding: 7rem 2rem 5rem;
+  }
 }
 
 .radial-headline-display {
@@ -72,16 +60,7 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Hide scrollbar for gallery filmstrip */
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* ── 120FPS GPU BASS-PULSE KEYFRAME (ZERO REACT RE-RENDERS) ── */
+/* ── 120FPS GPU BASS-PULSE KEYFRAME ── */
 @keyframes radialSubBassPulse {
   0%, 100% {
     transform: scale(1, 1);
@@ -138,6 +117,3 @@
   text-transform: uppercase;
   font-weight: 700;
 }
-
-
-

@@ -129,7 +129,6 @@ export default function RootLayout({
           type="font/ttf"
           crossOrigin="anonymous"
         />
-        <link rel="preload" href="/models/SABRANG_TRANSPARENT_STRIP_PRISM.glb" as="fetch" crossOrigin="anonymous" />
       </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className}`}>
         {process.env.NODE_ENV === "production" && (

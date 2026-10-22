@@ -112,6 +112,7 @@ const breadcrumbSchema = {
 export default function Home() {
   return (
     <>
+      <link rel="preload" href="/models/SABRANG_TRANSPARENT_STRIP_PRISM.glb" as="fetch" crossOrigin="anonymous" />
       <JsonLd data={festivalEventSchema} />
       <JsonLd data={breadcrumbSchema} />
       <HomeClient />
