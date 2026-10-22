@@ -15,7 +15,7 @@ export default function Footer() {
 
   if (isComplianceFooter) {
     return (
-      <footer className="relative z-30 py-3 sm:py-4 border-t border-white/10 bg-black/95 backdrop-blur-md text-white/50 text-xs">
+      <footer className="relative z-30 pt-3 pb-6 sm:py-4 border-t border-white/10 bg-black/95 backdrop-blur-md text-white/50 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
           {/* Left End: Sabrang Logo */}
           <div className="flex items-center justify-between md:justify-start w-full md:w-auto flex-shrink-0">

@@ -108,8 +108,8 @@ export default function HeroSection() {
       {/* HTML OVERLAYS */}
 
       {/* TITLE SPONSOR OVERLAY - logo presents Sabrang 26 */}
-      <div className="hero-sponsor absolute inset-0 flex flex-col items-center justify-center -mt-[25vh] md:-mt-[29vh] pointer-events-none z-10">
-        <div className="hero-anim pointer-events-auto flex flex-col items-center gap-2 md:gap-2.5">
+      <div className="hero-sponsor absolute inset-0 flex flex-col items-center justify-center -mt-[31vh] sm:-mt-[28vh] md:-mt-[29vh] pointer-events-none z-10">
+        <div className="hero-anim pointer-events-auto flex flex-col items-center gap-1.5 sm:gap-2 md:gap-2.5">
           <Link href="/sponsors" className="relative group block" aria-label="JK Paper - Title Sponsor">
             <div className="absolute -inset-1 rounded-lg bg-blue-500/20 blur-md opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
             <Image
@@ -117,26 +117,26 @@ export default function HeroSection() {
               alt="JK Paper - Title Sponsor"
               width={260}
               height={110}
-              className="relative h-10 md:h-14 lg:h-16 w-auto object-contain rounded-md shadow-2xl drop-shadow-[0_0_25px_rgba(0,100,220,0.4)] transition-transform duration-300 group-hover:scale-105"
+              className="relative h-11 sm:h-13 md:h-14 lg:h-16 w-auto object-contain rounded-md shadow-2xl drop-shadow-[0_0_25px_rgba(0,100,220,0.4)] transition-transform duration-300 group-hover:scale-105"
               priority
             />
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-white/50" />
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <span className="h-px w-6 sm:w-10 md:w-16 bg-gradient-to-r from-transparent to-white/50" />
             <span
-              className="text-[10px] md:text-xs font-semibold tracking-[0.35em] uppercase text-white/80"
+              className="text-[9px] sm:text-[10px] md:text-xs font-semibold tracking-[0.3em] sm:tracking-[0.35em] uppercase text-white/80"
               style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif' }}
             >
               presents
             </span>
-            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-white/50" />
+            <span className="h-px w-6 sm:w-10 md:w-16 bg-gradient-to-l from-transparent to-white/50" />
           </div>
         </div>
       </div>
       
       {/* .hero-countdown carries the scroll transform, .hero-anim the entrance
           one -- separate elements so the two timelines don't fight over `y`. */}
-      <div className="hero-countdown absolute inset-0 flex flex-col items-center justify-center mt-[28vh] pointer-events-none z-10">
+      <div className="hero-countdown absolute inset-0 flex flex-col items-center justify-center mt-[27vh] sm:mt-[28vh] pointer-events-none z-10">
         <div className="hero-anim pointer-events-auto">
           <HeroCountdown />
         </div>
@@ -191,16 +191,16 @@ function HeroCountdown() {
   const pad = (num: number) => num.toString().padStart(2, '0')
 
   return (
-    <div className="flex items-center gap-4 sm:gap-6 select-none relative">
+    <div className="flex items-center gap-2 sm:gap-4 md:gap-6 select-none relative px-2">
       {/* Subtle backdrop glow for the entire counter */}
       <div className="absolute inset-0 bg-white/5 blur-2xl rounded-full" />
       
       <TimeUnit value={pad(timeLeft.days)} label="DAYS" />
-      <span className="text-white/30 text-2xl sm:text-4xl font-light mb-5 sm:mb-6">:</span>
+      <span className="text-white/30 text-lg sm:text-2xl md:text-4xl font-light mb-4 sm:mb-5 md:mb-6">:</span>
       <TimeUnit value={pad(timeLeft.hours)} label="HRS" />
-      <span className="text-white/30 text-2xl sm:text-4xl font-light mb-5 sm:mb-6">:</span>
+      <span className="text-white/30 text-lg sm:text-2xl md:text-4xl font-light mb-4 sm:mb-5 md:mb-6">:</span>
       <TimeUnit value={pad(timeLeft.minutes)} label="MINS" />
-      <span className="text-white/30 text-2xl sm:text-4xl font-light mb-5 sm:mb-6">:</span>
+      <span className="text-white/30 text-lg sm:text-2xl md:text-4xl font-light mb-4 sm:mb-5 md:mb-6">:</span>
       <TimeUnit value={pad(timeLeft.seconds)} label="SECS" />
     </div>
   )
@@ -209,10 +209,10 @@ function HeroCountdown() {
 function TimeUnit({ value, label }: { value: string, label: string }) {
   return (
     <div className="flex flex-col items-center relative z-10">
-      <div className="text-white/90 text-3xl sm:text-5xl font-light tracking-widest font-mono tabular-nums min-w-[3rem] sm:min-w-[4rem] text-center drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+      <div className="text-white/90 text-2xl sm:text-4xl md:text-5xl font-light tracking-wider sm:tracking-widest font-mono tabular-nums min-w-[2.4rem] sm:min-w-[3.2rem] md:min-w-[4rem] text-center drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
         {value}
       </div>
-      <span className="text-[0.6rem] sm:text-[0.65rem] text-white/60 tracking-[0.3em] mt-2 font-['FlorasDisplay',serif] uppercase">{label}</span>
+      <span className="text-[0.55rem] sm:text-[0.6rem] md:text-[0.65rem] text-white/60 tracking-[0.22em] sm:tracking-[0.3em] mt-1.5 sm:mt-2 font-['FlorasDisplay',serif] uppercase">{label}</span>
     </div>
   )
 }

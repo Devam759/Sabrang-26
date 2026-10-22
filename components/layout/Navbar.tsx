@@ -154,13 +154,13 @@ export default function Navbar() {
     <>
       <header
         id="main-navbar"
-        className={`fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-between items-center transition-all duration-300 ease-out ${
+        className={`fixed top-0 left-0 right-0 z-50 p-3 sm:p-4 md:p-6 flex justify-between items-center transition-all duration-300 ease-out ${
           isVisible || isOpen
             ? "translate-y-0 opacity-100 pointer-events-none"
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <div className="pointer-events-auto relative flex items-center h-16 md:h-20 w-32 md:w-48">
+        <div className="pointer-events-auto relative flex items-center h-11 sm:h-13 md:h-20 w-28 sm:w-36 md:w-48">
           <div
             className={`absolute left-0 transition-opacity duration-300 ${
               isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -168,7 +168,7 @@ export default function Navbar() {
           >
             <Link
               href="/"
-              className="flex items-center outline-none transition-transform hover:scale-105 active:scale-95 py-1"
+              className="flex items-center outline-none transition-transform hover:scale-105 active:scale-95 py-0.5 sm:py-1"
               aria-label="Sabrang 2026 Home"
             >
               <Image
@@ -177,7 +177,7 @@ export default function Navbar() {
                 width={200}
                 height={80}
                 priority
-                className="h-16 md:h-20 w-auto object-contain drop-shadow-2xl"
+                className="h-10 sm:h-12 md:h-18 lg:h-20 w-auto object-contain drop-shadow-2xl"
               />
             </Link>
           </div>
@@ -194,7 +194,7 @@ export default function Navbar() {
                 <Link
                   href="/register"
                   onClick={() => setIsOpen(false)}
-                  className="block px-5 py-2.5 rounded-full bg-white text-black font-bold text-xs tracking-wide shadow-xl hover:bg-neutral-200 hover:-translate-y-0.5 active:scale-90 active:duration-75 transition-all duration-300 ease-out text-center"
+                  className="block px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white text-black font-bold text-[11px] sm:text-xs tracking-wide shadow-xl hover:bg-neutral-200 hover:-translate-y-0.5 active:scale-90 active:duration-75 transition-all duration-300 ease-out text-center"
                 >
                   Register Now
                 </Link>
