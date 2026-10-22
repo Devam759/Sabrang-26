@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { heroScrollState, HERO_PIN_END, HERO_SCRUB } from '@/components/3d/hero/heroScrollState'
@@ -106,20 +107,10 @@ export default function HeroSection() {
       
       {/* HTML OVERLAYS */}
 
-      {/* SPONSORED BY OVERLAY - shown above the central SABRANG title */}
+      {/* TITLE SPONSOR OVERLAY - logo presents Sabrang 26 */}
       <div className="hero-sponsor absolute inset-0 flex flex-col items-center justify-center -mt-[25vh] md:-mt-[29vh] pointer-events-none z-10">
         <div className="hero-anim pointer-events-auto flex flex-col items-center gap-2 md:gap-2.5">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-white/50" />
-            <span
-              className="text-[10px] md:text-xs font-semibold tracking-[0.35em] uppercase text-white/80"
-              style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif' }}
-            >
-              Sponsored By
-            </span>
-            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-white/50" />
-          </div>
-          <div className="relative group">
+          <Link href="/sponsors" className="relative group block" aria-label="JK Paper - Title Sponsor">
             <div className="absolute -inset-1 rounded-lg bg-blue-500/20 blur-md opacity-75 group-hover:opacity-100 transition duration-500 pointer-events-none" />
             <Image
               src="/images/jk-paper-blue.png"
@@ -129,6 +120,16 @@ export default function HeroSection() {
               className="relative h-10 md:h-14 lg:h-16 w-auto object-contain rounded-md shadow-2xl drop-shadow-[0_0_25px_rgba(0,100,220,0.4)] transition-transform duration-300 group-hover:scale-105"
               priority
             />
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-white/50" />
+            <span
+              className="text-[10px] md:text-xs font-semibold tracking-[0.35em] uppercase text-white/80"
+              style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif' }}
+            >
+              presents
+            </span>
+            <span className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-white/50" />
           </div>
         </div>
       </div>

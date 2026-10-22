@@ -160,9 +160,9 @@ export default function Navbar() {
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <div className="pointer-events-auto relative flex items-center h-16 md:h-20">
+        <div className="pointer-events-auto relative flex items-center h-16 md:h-20 w-32 md:w-48">
           <div
-            className={`navbar-logos flex items-center gap-3 md:gap-4 transition-opacity duration-300 ${
+            className={`absolute left-0 transition-opacity duration-300 ${
               isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
@@ -178,23 +178,6 @@ export default function Navbar() {
                 height={80}
                 priority
                 className="h-16 md:h-20 w-auto object-contain drop-shadow-2xl"
-              />
-            </Link>
-
-            <span className="h-8 md:h-10 w-px bg-white/20" />
-
-            <Link
-              href="/sponsors"
-              className="flex items-center outline-none transition-transform hover:scale-105 active:scale-95 py-1"
-              aria-label="JK Paper - Title Sponsor"
-            >
-              <Image
-                src="/images/jk-paper-blue.png"
-                alt="JK Paper - Title Sponsor"
-                width={200}
-                height={80}
-                priority
-                className="h-16 md:h-20 w-auto object-contain rounded drop-shadow-xl"
               />
             </Link>
           </div>
