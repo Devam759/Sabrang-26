@@ -2277,9 +2277,20 @@ export default function Registrations() {
                     if (Array.isArray(selectedReg.teamMembers)) {
                       membersToRender = selectedReg.teamMembers;
                     } else if (typeof selectedReg.teamMembers === 'object') {
+                      const seenIds = new Set<string>();
+                      const seenNames = new Set<string>();
                       Object.entries(selectedReg.teamMembers).forEach(([group, members]) => {
                         if (Array.isArray(members)) {
-                          membersToRender.push(...members.map((m) => ({ ...m, _group: group })));
+                          members.forEach((m: any) => {
+                            if (!m) return;
+                            const idKey = m.id ? String(m.id).trim().toLowerCase() : '';
+                            const nameKey = (m.name || m.fullName || '').trim().toLowerCase();
+                            if (idKey && seenIds.has(idKey)) return;
+                            if (nameKey && seenNames.has(nameKey)) return;
+                            if (idKey) seenIds.add(idKey);
+                            if (nameKey) seenNames.add(nameKey);
+                            membersToRender.push({ ...m, _group: group });
+                          });
                         }
                       });
                     }
@@ -2302,7 +2313,7 @@ export default function Registrations() {
                             <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">No team members registered.</p>
                           ) : (
                             membersToRender.map((m: any, idx: number) => (
-                              <div key={m.id || idx} className="bg-white/80 border border-slate-100 rounded-xl p-4">
+                              <div key={m.id ? `${m._group || 'm'}_${m.id}_${idx}` : `mem_${idx}`} className="bg-white/80 border border-slate-100 rounded-xl p-4">
                                 <p className="font-bold text-slate-900 mb-3 text-sm">{idx + 1}. {m.name || 'Unknown Name'}</p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
                             {m.email && <p><span className="text-slate-500 font-bold uppercase tracking-widest text-[9px] block mb-1">Email</span> <span className="font-medium text-slate-800 lowercase">{m.email}</span></p>}

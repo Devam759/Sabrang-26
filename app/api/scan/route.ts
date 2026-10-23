@@ -182,6 +182,10 @@ export async function POST(req: Request) {
     const isCheckOutAction = 
       normalizedAction === 'CHECK_OUT' || 
       normalizedAction === 'CHECK_OUT_MEMBER' || 
+      normalizedAction === 'CHECK_OUT_EVENT' || 
+      normalizedAction === 'CHECK_OUT_EVENT_MEMBER' || 
+      normalizedAction === 'CHECK_OUT_EVENT_ALL_MEMBERS' || 
+      normalizedAction === 'CHECK_OUT_ALL_EVENTS' || 
       normalizedAction === 'CHECK_OUT_ALL';
 
     let alreadyEnteredData: any = null;
@@ -189,6 +193,11 @@ export async function POST(req: Request) {
     let memberAlreadyEntered = false;
     let memberAlreadyEnteredInfo: any = null;
     let memberNotEntered = false;
+    let eventAlreadyEntered = false;
+    let eventAlreadyEnteredInfo: any = null;
+    let eventNotEntered = false;
+    let updatedEnteredEvents: Record<string, any> = {};
+    let targetEventResult: any = null;
     let updatedEnteredMembers: Record<string, any> = {};
     let targetMemberResult: any = null;
     let isFullTeamApproved = false;
@@ -262,6 +271,17 @@ export async function POST(req: Request) {
           lastMovement: 'CHECK_OUT',
           lastMovementAt: FieldValue.serverTimestamp(),
         };
+
+        if (freshData.enteredEvents) {
+          const updatedEvts = { ...freshData.enteredEvents };
+          Object.keys(updatedEvts).forEach((k) => {
+            if (updatedEvts[k]?.entered) {
+              updatedEvts[k] = { ...updatedEvts[k], entered: false, checkedOutAt: nowIso, checkedOutBy: operatorName };
+            }
+          });
+          checkoutPayload.enteredEvents = updatedEvts;
+          updatedEnteredEvents = updatedEvts;
+        }
 
         if (isTeam) {
           checkoutPayload.enteredMembers = updatedEnteredMembers;
@@ -426,6 +446,568 @@ export async function POST(req: Request) {
       }
 
       // ====================================================
+      // 3E1. ACTION: CHECK_IN_EVENT (Specific Registered Event)
+      // ====================================================
+      if (normalizedAction === 'CHECK_IN_EVENT' && eventId) {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        if (existingEnteredEvents[eventId]?.entered) {
+          eventAlreadyEntered = true;
+          eventAlreadyEnteredInfo = existingEnteredEvents[eventId];
+          return;
+        }
+
+        updatedEnteredEvents = {
+          ...existingEnteredEvents,
+          [eventId]: {
+            entered: true,
+            eventId,
+            eventTitle: eventTitle || eventId,
+            enteredAt: nowIso,
+            enteredBy: operatorName,
+          }
+        };
+
+        const updatePayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          hasEntered: true,
+          attended: true,
+          checkedOut: false,
+          lastEventEnteredAt: FieldValue.serverTimestamp(),
+          lastEventEnteredBy: operatorName,
+          lastMovement: 'CHECK_IN_EVENT',
+          lastMovementAt: FieldValue.serverTimestamp(),
+          entryEvent: eventTitle || eventId,
+        };
+
+        if (!freshData.hasEntered && !freshData.attended) {
+          updatePayload.enteredAt = FieldValue.serverTimestamp();
+          updatePayload.attendedAt = FieldValue.serverTimestamp();
+          updatePayload.enteredBy = operatorName;
+          updatePayload.checkedInBy = scannerId || 'STAFF';
+        }
+
+        targetEventResult = {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: true,
+          enteredAt: nowIso,
+          enteredBy: operatorName,
+        };
+
+        transaction.update(regRef, updatePayload);
+        return;
+      }
+
+      // ====================================================
+      // 3E2. ACTION: CHECK_OUT_EVENT (Specific Registered Event)
+      // ====================================================
+      if (normalizedAction === 'CHECK_OUT_EVENT' && eventId) {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        if (!existingEnteredEvents[eventId]?.entered) {
+          eventNotEntered = true;
+          return;
+        }
+
+        updatedEnteredEvents = {
+          ...existingEnteredEvents,
+          [eventId]: {
+            ...(existingEnteredEvents[eventId] || {}),
+            entered: false,
+            eventId,
+            eventTitle: eventTitle || eventId,
+            checkedOutAt: nowIso,
+            checkedOutBy: operatorName,
+          }
+        };
+
+        const anyStillEntered = Object.values(updatedEnteredEvents).some((e: any) => e && (e.entered === true || e.entered === 'true'));
+
+        const checkoutPayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          hasEntered: anyStillEntered,
+          checkedOut: !anyStillEntered,
+          lastEventCheckedOutAt: FieldValue.serverTimestamp(),
+          lastEventCheckedOutBy: operatorName,
+          lastMovement: 'CHECK_OUT_EVENT',
+          lastMovementAt: FieldValue.serverTimestamp(),
+        };
+
+        if (!anyStillEntered) {
+          checkoutPayload.checkedOutAt = FieldValue.serverTimestamp();
+          checkoutPayload.checkedOutBy = operatorName;
+        }
+
+        targetEventResult = {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: false,
+          checkedOutAt: nowIso,
+          checkedOutBy: operatorName,
+        };
+
+        transaction.update(regRef, checkoutPayload);
+        return;
+      }
+
+      // ====================================================
+      // 3E3. ACTION: CHECK_IN_ALL_EVENTS
+      // ====================================================
+      if (normalizedAction === 'CHECK_IN_ALL_EVENTS') {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        updatedEnteredEvents = { ...existingEnteredEvents };
+        registeredEventsList.forEach((evKey) => {
+          if (!evKey || evKey === 'General Fest Entry') return;
+          const evId = evKey;
+          const evTitle = evKey;
+          updatedEnteredEvents[evId] = {
+            entered: true,
+            eventId: evId,
+            eventTitle: evTitle,
+            enteredAt: nowIso,
+            enteredBy: operatorName,
+          };
+        });
+
+        const updatePayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          hasEntered: true,
+          attended: true,
+          checkedOut: false,
+          lastMovement: 'CHECK_IN_ALL_EVENTS',
+          lastMovementAt: FieldValue.serverTimestamp(),
+        };
+        if (!freshData.hasEntered && !freshData.attended) {
+          updatePayload.enteredAt = FieldValue.serverTimestamp();
+          updatePayload.attendedAt = FieldValue.serverTimestamp();
+          updatePayload.enteredBy = operatorName;
+          updatePayload.checkedInBy = scannerId || 'STAFF';
+        }
+        transaction.update(regRef, updatePayload);
+        return;
+      }
+
+      // ====================================================
+      // 3E4. ACTION: CHECK_OUT_ALL_EVENTS
+      // ====================================================
+      if (normalizedAction === 'CHECK_OUT_ALL_EVENTS') {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        updatedEnteredEvents = { ...existingEnteredEvents };
+        Object.keys(updatedEnteredEvents).forEach((key) => {
+          if (updatedEnteredEvents[key]?.entered) {
+            updatedEnteredEvents[key] = {
+              ...updatedEnteredEvents[key],
+              entered: false,
+              checkedOutAt: nowIso,
+              checkedOutBy: operatorName,
+            };
+          }
+        });
+
+        transaction.update(regRef, {
+          enteredEvents: updatedEnteredEvents,
+          hasEntered: false,
+          checkedOut: true,
+          checkedOutAt: FieldValue.serverTimestamp(),
+          checkedOutBy: operatorName,
+          lastMovement: 'CHECK_OUT_ALL_EVENTS',
+          lastMovementAt: FieldValue.serverTimestamp(),
+        });
+        return;
+      }
+
+      // ====================================================
+      // 3E5. ACTION: CHECK_IN_EVENT_MEMBER (Specific Member in Specific Event)
+      // ====================================================
+      if (normalizedAction === 'CHECK_IN_EVENT_MEMBER' && eventId && memberId) {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        const currentEvt = existingEnteredEvents[eventId] || {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: false,
+          members: {},
+        };
+        const evtMembers: Record<string, any> = currentEvt.members ? { ...currentEvt.members } : {};
+
+        if (evtMembers[memberId]?.entered) {
+          eventAlreadyEntered = true;
+          eventAlreadyEnteredInfo = evtMembers[memberId];
+          return;
+        }
+
+        const targetMem = currentAllMembers.find(m => m.id === memberId) || {
+          id: memberId,
+          name: memberName || (memberId === 'leader' ? attendeeName : 'Member'),
+          isLeader: memberId === 'leader',
+          role: memberId === 'leader' ? (isFreshStaff ? 'Faculty / Staff (Primary)' : 'Team Leader') : (isFreshStaff ? 'Guest / Family' : 'Teammate'),
+        };
+
+        evtMembers[memberId] = {
+          id: memberId,
+          name: targetMem.name,
+          role: targetMem.role || (targetMem.isLeader ? 'Team Leader' : 'Teammate'),
+          entered: true,
+          enteredAt: nowIso,
+          enteredBy: operatorName,
+          checkedOut: false,
+        };
+
+        const enteredCountForEvent = Object.values(evtMembers).filter((m: any) => m && m.entered).length;
+        const isEventFull = enteredCountForEvent >= totalMembersCount;
+
+        updatedEnteredEvents = {
+          ...existingEnteredEvents,
+          [eventId]: {
+            ...currentEvt,
+            eventId,
+            eventTitle: eventTitle || eventId,
+            entered: true,
+            allEntered: isEventFull,
+            enteredCount: enteredCountForEvent,
+            totalCount: totalMembersCount,
+            enteredAt: currentEvt.enteredAt || nowIso,
+            enteredBy: currentEvt.enteredBy || operatorName,
+            lastMovementAt: nowIso,
+            members: evtMembers,
+          }
+        };
+
+        // Also ensure member is marked inside at venue level
+        updatedEnteredMembers = {
+          ...existingEnteredMembers,
+          [memberId]: {
+            entered: true,
+            name: targetMem.name,
+            role: targetMem.role,
+            enteredAt: nowIso,
+            enteredBy: operatorName,
+          }
+        };
+
+        newEnteredCount = Object.values(updatedEnteredMembers).filter((m: any) => m && m.entered).length;
+        isFullTeamApproved = newEnteredCount >= totalMembersCount;
+
+        targetMemberResult = {
+          id: targetMem.id,
+          name: targetMem.name,
+          role: targetMem.role,
+          entered: true,
+          enteredAt: nowIso,
+          enteredBy: operatorName,
+          eventId,
+          eventTitle: eventTitle || eventId,
+        };
+
+        targetEventResult = {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: true,
+        };
+
+        const updatePayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          totalMembersCount,
+          hasEntered: true,
+          attended: true,
+          checkedOut: false,
+          lastMovement: 'CHECK_IN_EVENT_MEMBER',
+          lastMovementAt: FieldValue.serverTimestamp(),
+          entryEvent: eventTitle || eventId,
+        };
+
+        if (!freshData.hasEntered && !freshData.attended) {
+          updatePayload.enteredAt = FieldValue.serverTimestamp();
+          updatePayload.attendedAt = FieldValue.serverTimestamp();
+          updatePayload.enteredBy = operatorName;
+          updatePayload.checkedInBy = scannerId || 'STAFF';
+        }
+
+        transaction.update(regRef, updatePayload);
+        return;
+      }
+
+      // ====================================================
+      // 3E6. ACTION: CHECK_OUT_EVENT_MEMBER (Specific Member from Specific Event)
+      // ====================================================
+      if (normalizedAction === 'CHECK_OUT_EVENT_MEMBER' && eventId && memberId) {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        const currentEvt = existingEnteredEvents[eventId] || {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: false,
+          members: {},
+        };
+        const evtMembers: Record<string, any> = currentEvt.members ? { ...currentEvt.members } : {};
+
+        if (!evtMembers[memberId]?.entered && !currentEvt.entered) {
+          eventNotEntered = true;
+          return;
+        }
+
+        const targetMem = currentAllMembers.find(m => m.id === memberId) || {
+          id: memberId,
+          name: memberName || (memberId === 'leader' ? attendeeName : 'Member'),
+          role: memberId === 'leader' ? 'Team Leader' : 'Teammate',
+        };
+
+        evtMembers[memberId] = {
+          ...(evtMembers[memberId] || {}),
+          id: memberId,
+          name: targetMem.name,
+          role: targetMem.role || (memberId === 'leader' ? 'Team Leader' : 'Teammate'),
+          entered: false,
+          checkedOut: true,
+          checkedOutAt: nowIso,
+          checkedOutBy: operatorName,
+        };
+
+        const enteredCountForEvent = Object.values(evtMembers).filter((m: any) => m && m.entered).length;
+        const isEventStillEntered = enteredCountForEvent > 0;
+
+        updatedEnteredEvents = {
+          ...existingEnteredEvents,
+          [eventId]: {
+            ...currentEvt,
+            eventId,
+            eventTitle: eventTitle || eventId,
+            entered: isEventStillEntered,
+            allEntered: false,
+            enteredCount: enteredCountForEvent,
+            totalCount: totalMembersCount,
+            checkedOutAt: nowIso,
+            checkedOutBy: operatorName,
+            lastMovementAt: nowIso,
+            members: evtMembers,
+          }
+        };
+
+        // Check if member is still checked into ANY event in updatedEnteredEvents
+        const memberStillInAnyEvent = Object.values(updatedEnteredEvents).some((evt: any) => {
+          return evt?.members?.[memberId]?.entered === true;
+        });
+
+        updatedEnteredMembers = { ...existingEnteredMembers };
+        if (!memberStillInAnyEvent && updatedEnteredMembers[memberId]) {
+          updatedEnteredMembers[memberId] = {
+            ...updatedEnteredMembers[memberId],
+            entered: false,
+            checkedOutAt: nowIso,
+            checkedOutBy: operatorName,
+          };
+        }
+
+        newEnteredCount = Object.values(updatedEnteredMembers).filter((m: any) => m && m.entered).length;
+        const anyEventActive = Object.values(updatedEnteredEvents).some((evt: any) => evt?.entered === true);
+        const overallEntered = newEnteredCount > 0 || anyEventActive;
+
+        targetMemberResult = {
+          id: targetMem.id,
+          name: targetMem.name,
+          role: targetMem.role,
+          entered: false,
+          checkedOutAt: nowIso,
+          checkedOutBy: operatorName,
+          eventId,
+          eventTitle: eventTitle || eventId,
+        };
+
+        targetEventResult = {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: isEventStillEntered,
+        };
+
+        const checkoutPayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          hasEntered: overallEntered,
+          checkedOut: !overallEntered,
+          lastMovement: 'CHECK_OUT_EVENT_MEMBER',
+          lastMovementAt: FieldValue.serverTimestamp(),
+        };
+
+        if (!overallEntered) {
+          checkoutPayload.checkedOutAt = FieldValue.serverTimestamp();
+          checkoutPayload.checkedOutBy = operatorName;
+        }
+
+        transaction.update(regRef, checkoutPayload);
+        return;
+      }
+
+      // ====================================================
+      // 3E7. ACTION: CHECK_IN_EVENT_ALL_MEMBERS (All Members for Specific Event)
+      // ====================================================
+      if (normalizedAction === 'CHECK_IN_EVENT_ALL_MEMBERS' && eventId) {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        const currentEvt = existingEnteredEvents[eventId] || {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: false,
+          members: {},
+        };
+        const evtMembers: Record<string, any> = currentEvt.members ? { ...currentEvt.members } : {};
+
+        currentAllMembers.forEach((m) => {
+          evtMembers[m.id] = {
+            id: m.id,
+            name: m.name,
+            role: m.role || (m.isLeader ? 'Team Leader' : 'Teammate'),
+            entered: true,
+            enteredAt: nowIso,
+            enteredBy: operatorName,
+          };
+        });
+
+        updatedEnteredEvents = {
+          ...existingEnteredEvents,
+          [eventId]: {
+            ...currentEvt,
+            eventId,
+            eventTitle: eventTitle || eventId,
+            entered: true,
+            allEntered: true,
+            enteredCount: totalMembersCount,
+            totalCount: totalMembersCount,
+            enteredAt: currentEvt.enteredAt || nowIso,
+            enteredBy: currentEvt.enteredBy || operatorName,
+            lastMovementAt: nowIso,
+            members: evtMembers,
+          }
+        };
+
+        updatedEnteredMembers = { ...existingEnteredMembers };
+        currentAllMembers.forEach((m) => {
+          updatedEnteredMembers[m.id] = {
+            entered: true,
+            name: m.name,
+            role: m.role || (m.isLeader ? 'Team Leader' : 'Teammate'),
+            enteredAt: nowIso,
+            enteredBy: operatorName,
+          };
+        });
+
+        newEnteredCount = totalMembersCount;
+        isFullTeamApproved = true;
+
+        targetEventResult = {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: true,
+        };
+
+        const updatePayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          totalMembersCount,
+          hasEntered: true,
+          attended: true,
+          checkedOut: false,
+          allEntered: true,
+          lastMovement: 'CHECK_IN_EVENT_ALL_MEMBERS',
+          lastMovementAt: FieldValue.serverTimestamp(),
+          entryEvent: eventTitle || eventId,
+        };
+
+        if (!freshData.hasEntered && !freshData.attended) {
+          updatePayload.enteredAt = FieldValue.serverTimestamp();
+          updatePayload.attendedAt = FieldValue.serverTimestamp();
+          updatePayload.enteredBy = operatorName;
+          updatePayload.checkedInBy = scannerId || 'STAFF';
+        }
+
+        transaction.update(regRef, updatePayload);
+        return;
+      }
+
+      // ====================================================
+      // 3E8. ACTION: CHECK_OUT_EVENT_ALL_MEMBERS (All Members from Specific Event)
+      // ====================================================
+      if (normalizedAction === 'CHECK_OUT_EVENT_ALL_MEMBERS' && eventId) {
+        const existingEnteredEvents: Record<string, any> = freshData.enteredEvents || {};
+        const currentEvt = existingEnteredEvents[eventId] || {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: false,
+          members: {},
+        };
+        const evtMembers: Record<string, any> = currentEvt.members ? { ...currentEvt.members } : {};
+
+        Object.keys(evtMembers).forEach((mKey) => {
+          if (evtMembers[mKey]?.entered) {
+            evtMembers[mKey] = {
+              ...evtMembers[mKey],
+              entered: false,
+              checkedOut: true,
+              checkedOutAt: nowIso,
+              checkedOutBy: operatorName,
+            };
+          }
+        });
+
+        updatedEnteredEvents = {
+          ...existingEnteredEvents,
+          [eventId]: {
+            ...currentEvt,
+            eventId,
+            eventTitle: eventTitle || eventId,
+            entered: false,
+            allEntered: false,
+            enteredCount: 0,
+            checkedOutAt: nowIso,
+            checkedOutBy: operatorName,
+            lastMovementAt: nowIso,
+            members: evtMembers,
+          }
+        };
+
+        // Recalculate which members are still in other events
+        updatedEnteredMembers = { ...existingEnteredMembers };
+        currentAllMembers.forEach((m) => {
+          const stillInAny = Object.values(updatedEnteredEvents).some((evt: any) => evt?.members?.[m.id]?.entered === true);
+          if (!stillInAny && updatedEnteredMembers[m.id]) {
+            updatedEnteredMembers[m.id] = {
+              ...updatedEnteredMembers[m.id],
+              entered: false,
+              checkedOutAt: nowIso,
+              checkedOutBy: operatorName,
+            };
+          }
+        });
+
+        newEnteredCount = Object.values(updatedEnteredMembers).filter((m: any) => m && m.entered).length;
+        const anyEventActive = Object.values(updatedEnteredEvents).some((evt: any) => evt?.entered === true);
+        const overallEntered = newEnteredCount > 0 || anyEventActive;
+
+        targetEventResult = {
+          eventId,
+          eventTitle: eventTitle || eventId,
+          entered: false,
+        };
+
+        const checkoutPayload: Record<string, any> = {
+          enteredEvents: updatedEnteredEvents,
+          enteredMembers: updatedEnteredMembers,
+          enteredCount: newEnteredCount,
+          hasEntered: overallEntered,
+          checkedOut: !overallEntered,
+          lastMovement: 'CHECK_OUT_EVENT_ALL_MEMBERS',
+          lastMovementAt: FieldValue.serverTimestamp(),
+        };
+
+        if (!overallEntered) {
+          checkoutPayload.checkedOutAt = FieldValue.serverTimestamp();
+          checkoutPayload.checkedOutBy = operatorName;
+        }
+
+        transaction.update(regRef, checkoutPayload);
+        return;
+      }
+
+      // ====================================================
       // 3E. ACTION: CHECK_IN / CHECK_IN_ALL (Default / Solo / Team)
       // ====================================================
       if (isCompletelyEntered && (normalizedAction === 'CHECK_IN' || normalizedAction === 'CHECK_IN_ALL')) {
@@ -515,11 +1097,24 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    if (memberNotEntered) {
+    if (eventAlreadyEntered) {
       return NextResponse.json({
         success: false,
-        code: 'MEMBER_NOT_ENTERED',
-        error: `NOT CHECKED IN: This member is not currently checked in.`,
+        code: 'EVENT_ALREADY_ENTERED',
+        error: `ALREADY INSIDE: Attendee has already checked into "${eventTitle || eventId}".`,
+        attendeeName,
+        eventTitle: eventTitle || eventId,
+        originalEntryTime: eventAlreadyEnteredInfo?.enteredAt,
+        scannedBy: eventAlreadyEnteredInfo?.enteredBy,
+      }, { status: 400 });
+    }
+
+    if (eventNotEntered) {
+      return NextResponse.json({
+        success: false,
+        code: 'EVENT_NOT_ENTERED',
+        error: `NOT CHECKED IN: Attendee is not currently checked into "${eventTitle || eventId}".`,
+        attendeeName,
       }, { status: 400 });
     }
 
@@ -546,17 +1141,19 @@ export async function POST(req: Request) {
     // 4. Create Movement Log Record in entryLogs Collection
     const loggedAttendeeName = targetMemberResult?.name || attendeeName;
     const movementType = isCheckOutAction ? 'CHECK_OUT' : 'CHECK_IN';
+    const loggedEventId = targetEventResult?.eventId || eventId || regData.eventId || 'general';
+    const loggedEventTitle = targetEventResult?.eventTitle || eventTitle || ticketEvent;
 
     const entryLogPayload = {
       ticketId: regTicketId,
       registrationId: regId,
-      eventId: eventId || regData.eventId || 'general',
-      eventTitle: eventTitle || ticketEvent,
+      eventId: loggedEventId,
+      eventTitle: loggedEventTitle,
       attendeeName: loggedAttendeeName,
       attendeeEmail,
       attendeeRoll,
-      memberId: targetMemberResult?.id || (isTeam ? 'team' : 'solo'),
-      memberRole: targetMemberResult?.role || (isTeam ? 'Teammate' : 'Participant'),
+      memberId: targetMemberResult?.id || targetEventResult?.eventId || (isTeam ? 'team' : 'solo'),
+      memberRole: targetMemberResult?.role || (targetEventResult ? 'Event Participant' : (isTeam ? 'Teammate' : 'Participant')),
       isTeamMember: Boolean(targetMemberResult && !targetMemberResult.isLeader),
       primaryAttendeeName: attendeeName,
       action: movementType,
@@ -577,7 +1174,7 @@ export async function POST(req: Request) {
       volunteerName: volunteerName || 'Staff Member',
       registrationID: regId,
       attendeeName: loggedAttendeeName,
-      eventTitle: eventTitle || ticketEvent,
+      eventTitle: loggedEventTitle,
       timestamp: FieldValue.serverTimestamp(),
       action: movementType,
       result: isCheckOutAction ? 'checked_out' : 'accepted',
@@ -589,17 +1186,27 @@ export async function POST(req: Request) {
       action: isCheckOutAction ? 'EVENT_EXIT_SCAN' : 'EVENT_ENTRY_SCAN',
       performedBy: volunteerName || scannerId || 'Staff Member',
       targetEntity: `entryLogs/${entryLogRef.id}`,
-      details: `${isCheckOutAction ? 'Checked out' : 'Verified entry for'} ${loggedAttendeeName} (${regTicketId}) at gate`
+      details: `${isCheckOutAction ? 'Checked out' : 'Verified entry for'} ${loggedAttendeeName} (${regTicketId}) for ${loggedEventTitle}`
     });
 
     return NextResponse.json({
       success: true,
       code: isCheckOutAction
-        ? (normalizedAction === 'CHECK_OUT_MEMBER' ? 'MEMBER_CHECKOUT_SUCCESS' : 'CHECKOUT_SUCCESS')
-        : (normalizedAction === 'CHECK_IN_MEMBER' ? 'MEMBER_ENTRY_SUCCESS' : 'ENTRY_SUCCESS'),
+        ? (normalizedAction === 'CHECK_OUT_EVENT_MEMBER' ? 'EVENT_MEMBER_CHECKOUT_SUCCESS' :
+           normalizedAction === 'CHECK_OUT_EVENT_ALL_MEMBERS' ? 'EVENT_ALL_MEMBERS_CHECKOUT_SUCCESS' :
+           normalizedAction === 'CHECK_OUT_MEMBER' ? 'MEMBER_CHECKOUT_SUCCESS' : 
+           normalizedAction === 'CHECK_OUT_EVENT' ? 'EVENT_CHECKOUT_SUCCESS' : 'CHECKOUT_SUCCESS')
+        : (normalizedAction === 'CHECK_IN_EVENT_MEMBER' ? 'EVENT_MEMBER_ENTRY_SUCCESS' :
+           normalizedAction === 'CHECK_IN_EVENT_ALL_MEMBERS' ? 'EVENT_ALL_MEMBERS_ENTRY_SUCCESS' :
+           normalizedAction === 'CHECK_IN_MEMBER' ? 'MEMBER_ENTRY_SUCCESS' : 
+           normalizedAction === 'CHECK_IN_EVENT' ? 'EVENT_ENTRY_SUCCESS' : 'ENTRY_SUCCESS'),
       message: isCheckOutAction
-        ? `CHECKED OUT • ${loggedAttendeeName}`
-        : (normalizedAction === 'CHECK_IN_MEMBER' ? `ENTRY APPROVED • ${loggedAttendeeName}` : 'ENTRY SUCCESSFUL'),
+        ? (targetMemberResult?.eventId ? `CHECKED OUT • ${targetMemberResult.name} (${targetMemberResult.eventTitle})` :
+           targetEventResult ? `CHECKED OUT • ${targetEventResult.eventTitle}` : 
+           `CHECKED OUT • ${loggedAttendeeName}`)
+        : (targetMemberResult?.eventId ? `CHECKED IN • ${targetMemberResult.name} (${targetMemberResult.eventTitle})` :
+           normalizedAction === 'CHECK_IN_MEMBER' ? `ENTRY APPROVED • ${loggedAttendeeName}` : 
+           (targetEventResult ? `CHECKED IN • ${targetEventResult.eventTitle}` : 'ENTRY SUCCESSFUL')),
       movementType,
       hasEntered: !isCheckOutAction,
       attendee: {
@@ -609,11 +1216,13 @@ export async function POST(req: Request) {
         ticketId: regTicketId,
       },
       member: targetMemberResult || undefined,
+      eventEntry: targetEventResult || undefined,
+      enteredEvents: updatedEnteredEvents,
       enteredMembers: updatedEnteredMembers,
       enteredCount: newEnteredCount,
       totalMembersCount,
       allEntered: isFullTeamApproved,
-      event: eventTitle || ticketEvent,
+      event: loggedEventTitle,
       ticketId: regTicketId,
       time: new Date().toISOString(),
       scannedBy: volunteerName || scannerId || 'Staff Member',
