@@ -100,26 +100,6 @@ export async function POST(req: Request) {
             applicableEvents: res.applicableEvents,
           };
         }
-
-        // Dedicated fail-safe support for hsbmedia coupon (final pay price 0, band fee = 0)
-        if (lowerCode === 'hsbmedia') {
-          const { calculateCouponDiscount } = await import('@/lib/couponHelper');
-          const res = calculateCouponDiscount(
-            { code: 'hsbmedia', active: true, discountType: 'fixed', discountValue: 0, amount: 0, applicableEvents: ['ALL'] },
-            originalPrice,
-            eventIdOrTitle,
-            context
-          );
-          return {
-            valid: true,
-            amount: 0,
-            finalPrice: 0,
-            discountAmount: res.discountAmount || originalPrice,
-            discountType: 'fixed' as const,
-            discountValue: 0,
-            applicableEvents: ['ALL'],
-          };
-        }
       } catch (err) {
         console.error("Error fetching coupon:", err);
       }
