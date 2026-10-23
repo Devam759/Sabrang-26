@@ -8,7 +8,7 @@ import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp
 import { db, auth } from '../../../lib/firebase';
 import { SkeletonTable } from '../../../components/admin/SkeletonLoader';
 import { Modal } from '../../../components/admin/Modal';
-import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { X, Maximize2, Loader2, Trash2, RotateCcw, AlertTriangle, LogIn, LogOut, Check } from 'lucide-react';
 import { logAdminAction } from '../../../lib/audit';
 import { OFFICIAL_EVENTS } from '../../../lib/eventPricing';
 import { 
@@ -485,6 +485,9 @@ interface RegistrationTableRowProps {
   onViewDetails: (reg: any) => void;
   onRestore: (reg: any) => void;
   onDelete: (reg: any) => void;
+  onCheckIn: (reg: any) => void;
+  onCheckOut: (reg: any) => void;
+  processingState?: { id: string; action: 'checkin' | 'checkout' } | null;
   isDeleting: boolean;
   canDelete?: boolean;
 }
@@ -495,9 +498,15 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
   onViewDetails,
   onRestore,
   onDelete,
+  onCheckIn,
+  onCheckOut,
+  processingState,
   isDeleting,
   canDelete = true,
 }: RegistrationTableRowProps) {
+  const isThisCheckingIn = processingState?.id === reg.id && processingState?.action === 'checkin';
+  const isThisCheckingOut = processingState?.id === reg.id && processingState?.action === 'checkout';
+  const isAnyProcessing = Boolean(processingState);
   const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
   const rawInst = getRegistrationInstituteRaw(reg);
   const inst = normalizeInstitute(rawInst);
@@ -588,20 +597,89 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
           )}
         </div>
       </td>
-      <td className="p-5">
-        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
-          isRegDeleted
-            ? 'bg-rose-100 text-rose-800 border border-rose-300'
-            : reg.hasEntered 
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-              : (reg.checkedOut
-                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                  : (reg.status === 'declined' 
-                      ? 'bg-rose-50 text-rose-700 border border-rose-200' 
-                      : 'bg-amber-50 text-amber-700 border border-amber-200'))
-        }`}>
-          {isRegDeleted ? 'Deleted' : (reg.hasEntered ? 'Entered' : (reg.checkedOut ? 'Checked Out' : (reg.status === 'declined' ? 'Declined' : 'Pending')))}
-        </span>
+      {/* Check In Column */}
+      <td className="p-5 text-center whitespace-nowrap">
+        {isRegDeleted ? (
+          <button 
+            type="button" 
+            disabled 
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed opacity-50 mx-auto"
+            title="Registration is deleted"
+          >
+            <LogIn size={12} />
+            <span>Check In</span>
+          </button>
+        ) : reg.hasEntered ? (
+          <span 
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs mx-auto"
+            title="Attendee is currently checked in"
+          >
+            <Check size={12} className="stroke-[3]" />
+            <span>Checked In</span>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onCheckIn(reg)}
+            disabled={isAnyProcessing}
+            title={reg.checkedOut ? "Re-admit attendee (Check In)" : "Check In attendee"}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white border border-emerald-700 shadow-xs transition-all cursor-pointer disabled:opacity-40 mx-auto touch-manipulation"
+          >
+            {isThisCheckingIn ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <LogIn size={12} className="stroke-[2.5]" />
+            )}
+            <span>Check In</span>
+          </button>
+        )}
+      </td>
+      {/* Check Out Column */}
+      <td className="p-5 text-center whitespace-nowrap">
+        {isRegDeleted ? (
+          <button 
+            type="button" 
+            disabled 
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed opacity-50 mx-auto"
+            title="Registration is deleted"
+          >
+            <LogOut size={12} />
+            <span>Check Out</span>
+          </button>
+        ) : reg.hasEntered ? (
+          <button
+            type="button"
+            onClick={() => onCheckOut(reg)}
+            disabled={isAnyProcessing}
+            title="Check out attendee (exit venue)"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-600 active:scale-95 text-white border border-amber-600 shadow-xs transition-all cursor-pointer disabled:opacity-40 mx-auto touch-manipulation"
+          >
+            {isThisCheckingOut ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <LogOut size={12} className="stroke-[2.5]" />
+            )}
+            <span>Check Out</span>
+          </button>
+        ) : reg.checkedOut ? (
+          <span 
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 shadow-2xs mx-auto"
+            title="Attendee has already checked out"
+          >
+            <LogOut size={12} />
+            <span>Checked Out</span>
+          </span>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="Attendee has not checked in yet"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed opacity-40 mx-auto"
+          >
+            <LogOut size={12} />
+            <span>Check Out</span>
+          </button>
+        )}
       </td>
       <td className="p-5">
         <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest ${
@@ -703,7 +781,8 @@ export default function Registrations() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewImage]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined' | 'deleted' | 'staff' | 'team_sabrang'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'checked_out' | 'pending' | 'declined' | 'deleted' | 'staff' | 'team_sabrang'>('all');
+  const [processingState, setProcessingState] = useState<{ id: string; action: 'checkin' | 'checkout' } | null>(null);
   const [instituteFilter, setInstituteFilter] = useState<string>('all');
   const [isDeleting, setIsDeleting] = useState(false);
   const [emailFilter, setEmailFilter] = useState<'all' | 'sent' | 'unsent'>('all');
@@ -811,6 +890,234 @@ export default function Registrations() {
       setIsTogglingCheckIn(false);
     }
   };
+
+  const handleCheckIn = useCallback(async (reg: any) => {
+    if (!reg || reg.isDeleted || reg.status === 'deleted' || processingState) return;
+    if (!window.confirm(`Check in attendee "${reg.name}"?`)) return;
+
+    setProcessingState({ id: reg.id, action: 'checkin' });
+    try {
+      await auth.authStateReady();
+      const idToken = auth?.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      const operatorName = auth?.currentUser?.email || auth?.currentUser?.uid || (isScanner ? 'Scanner Desk' : 'Admin Console');
+
+      let apiSuccess = false;
+      let apiErrorMessage = '';
+
+      if (idToken) {
+        try {
+          const res = await fetch('/api/scan', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+              registrationID: reg.id,
+              action: 'CHECK_IN_ALL',
+              scannerId: isScanner ? 'SCANNER_DESK' : 'ADMIN_CONSOLE',
+              volunteerName: operatorName
+            })
+          });
+          const result = await res.json();
+          if (res.ok && result.success) {
+            apiSuccess = true;
+          } else {
+            apiErrorMessage = result.error || result.message || '';
+          }
+        } catch (fetchErr: any) {
+          console.warn('API /api/scan failed, attempting direct Firestore update:', fetchErr);
+        }
+      }
+
+      if (!apiSuccess) {
+        if (apiErrorMessage && apiErrorMessage.includes('already checked in')) {
+          alert(apiErrorMessage);
+          return;
+        }
+
+        const regRef = doc(db, 'registrations', reg.id);
+        await updateDoc(regRef, {
+          hasEntered: true,
+          attended: true,
+          checkedOut: false,
+          enteredAt: serverTimestamp(),
+          enteredBy: operatorName,
+          lastMovement: 'CHECK_IN',
+          lastMovementAt: serverTimestamp(),
+        });
+
+        await addDoc(collection(db, 'entryLogs'), {
+          registrationId: reg.id,
+          ticketId: reg.ticketId || reg.orderId || reg.id,
+          attendeeName: reg.name || '',
+          attendeeRoll: reg.rollNumber || '',
+          attendeeEmail: reg.email || '',
+          eventTitle: Array.isArray(reg.selectedEvents) 
+            ? reg.selectedEvents.join(', ') 
+            : (reg.eventName || reg.eventTitle || 'General Fest Entry'),
+          entryTime: serverTimestamp(),
+          timestamp: serverTimestamp(),
+          action: 'CHECK_IN',
+          movementType: 'CHECK_IN',
+          status: 'ACCEPTED',
+          scannedBy: operatorName,
+          scannerId: isScanner ? 'SCANNER_DESK' : 'ADMIN_CONSOLE',
+        });
+
+        try {
+          await logAdminAction(
+            'MANUAL_CHECKIN',
+            `registrations/${reg.id}`,
+            `${isScanner ? 'Scanner' : 'Admin'} checked in attendee ${reg.name} (${reg.id})`,
+            operatorName
+          );
+        } catch (auditErr) {
+          console.warn('Audit log failed:', auditErr);
+        }
+      }
+
+      setRegistrations(prev => prev.map(r => r.id === reg.id ? {
+        ...r,
+        hasEntered: true,
+        attended: true,
+        checkedOut: false,
+        enteredAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        enteredBy: operatorName,
+        lastMovement: 'CHECK_IN'
+      } : r));
+
+      setSelectedReg((prev: any) => prev && prev.id === reg.id ? {
+        ...prev,
+        hasEntered: true,
+        attended: true,
+        checkedOut: false,
+        enteredAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        enteredBy: operatorName,
+        lastMovement: 'CHECK_IN'
+      } : prev);
+
+    } catch (err: any) {
+      console.error('Check-in error:', err);
+      alert('Failed to check in attendee: ' + (err?.message || err));
+    } finally {
+      setProcessingState(null);
+    }
+  }, [isScanner, processingState]);
+
+  const handleCheckOut = useCallback(async (reg: any) => {
+    if (!reg || reg.isDeleted || reg.status === 'deleted' || processingState) return;
+    if (!window.confirm(`Check out attendee "${reg.name}"?`)) return;
+
+    setProcessingState({ id: reg.id, action: 'checkout' });
+    try {
+      await auth.authStateReady();
+      const idToken = auth?.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      const operatorName = auth?.currentUser?.email || auth?.currentUser?.uid || (isScanner ? 'Scanner Desk' : 'Admin Console');
+
+      let apiSuccess = false;
+      let apiErrorMessage = '';
+
+      if (idToken) {
+        try {
+          const res = await fetch('/api/scan', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+              registrationID: reg.id,
+              action: 'CHECK_OUT_ALL',
+              scannerId: isScanner ? 'SCANNER_DESK' : 'ADMIN_CONSOLE',
+              volunteerName: operatorName
+            })
+          });
+          const result = await res.json();
+          if (res.ok && result.success) {
+            apiSuccess = true;
+          } else {
+            apiErrorMessage = result.error || result.message || '';
+          }
+        } catch (fetchErr: any) {
+          console.warn('API /api/scan failed, attempting direct Firestore update:', fetchErr);
+        }
+      }
+
+      if (!apiSuccess) {
+        if (apiErrorMessage && apiErrorMessage.includes('not currently checked in')) {
+          alert(apiErrorMessage);
+          return;
+        }
+
+        const regRef = doc(db, 'registrations', reg.id);
+        await updateDoc(regRef, {
+          hasEntered: false,
+          allEntered: false,
+          checkedOut: true,
+          checkedOutAt: serverTimestamp(),
+          checkedOutBy: operatorName,
+          lastMovement: 'CHECK_OUT',
+          lastMovementAt: serverTimestamp(),
+        });
+
+        await addDoc(collection(db, 'entryLogs'), {
+          registrationId: reg.id,
+          ticketId: reg.ticketId || reg.orderId || reg.id,
+          attendeeName: reg.name || '',
+          attendeeRoll: reg.rollNumber || '',
+          attendeeEmail: reg.email || '',
+          eventTitle: Array.isArray(reg.selectedEvents) 
+            ? reg.selectedEvents.join(', ') 
+            : (reg.eventName || reg.eventTitle || 'General Fest Entry'),
+          exitTime: serverTimestamp(),
+          timestamp: serverTimestamp(),
+          action: 'CHECK_OUT',
+          movementType: 'CHECK_OUT',
+          status: 'CHECKED_OUT',
+          scannedBy: operatorName,
+          scannerId: isScanner ? 'SCANNER_DESK' : 'ADMIN_CONSOLE',
+        });
+
+        try {
+          await logAdminAction(
+            'MANUAL_CHECKOUT',
+            `registrations/${reg.id}`,
+            `${isScanner ? 'Scanner' : 'Admin'} checked out attendee ${reg.name} (${reg.id})`,
+            operatorName
+          );
+        } catch (auditErr) {
+          console.warn('Audit log failed:', auditErr);
+        }
+      }
+
+      setRegistrations(prev => prev.map(r => r.id === reg.id ? {
+        ...r,
+        hasEntered: false,
+        allEntered: false,
+        checkedOut: true,
+        checkedOutAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        checkedOutBy: operatorName,
+        lastMovement: 'CHECK_OUT'
+      } : r));
+
+      setSelectedReg((prev: any) => prev && prev.id === reg.id ? {
+        ...prev,
+        hasEntered: false,
+        allEntered: false,
+        checkedOut: true,
+        checkedOutAt: { toDate: () => new Date(), seconds: Math.floor(Date.now() / 1000) },
+        checkedOutBy: operatorName,
+        lastMovement: 'CHECK_OUT'
+      } : prev);
+
+    } catch (err: any) {
+      console.error('Check-out error:', err);
+      alert('Failed to check out attendee: ' + (err?.message || err));
+    } finally {
+      setProcessingState(null);
+    }
+  }, [isScanner, processingState]);
 
   const handleViewDetails = useCallback((reg: any) => {
     setSelectedReg(reg);
@@ -1087,7 +1394,8 @@ export default function Registrations() {
         statusFilter === 'staff' ||
         statusFilter === 'team_sabrang' ||
         (statusFilter === 'entered' && reg.hasEntered) ||
-        (statusFilter === 'pending' && !reg.hasEntered && reg.status !== 'declined') ||
+        (statusFilter === 'checked_out' && !reg.hasEntered && reg.checkedOut) ||
+        (statusFilter === 'pending' && !reg.hasEntered && !reg.checkedOut && reg.status !== 'declined') ||
         (statusFilter === 'declined' && reg.status === 'declined');
 
       const matchesEmail = 
@@ -1586,6 +1894,7 @@ export default function Registrations() {
           >
             <option value="all">Status: Active (All)</option>
             <option value="entered">Checked-In</option>
+            <option value="checked_out">Checked-Out</option>
             <option value="pending">Pending Check-In</option>
             <option value="declined">Declined / Blocked</option>
             <option value="staff">Faculty &amp; Staff Passes {staffRegistrationsCount > 0 ? `(${staffRegistrationsCount})` : ''}</option>
@@ -1668,7 +1977,8 @@ export default function Registrations() {
                     Registered {sortField === 'registeredAt' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
                   <th className="p-4">Events</th>
-                  <th className="p-4">Entry Status</th>
+                  <th className="p-4 text-center whitespace-nowrap">Check In</th>
+                  <th className="p-4 text-center whitespace-nowrap">Check Out</th>
                   <th className="p-4">Email Status</th>
                   <th className="p-4 text-right">Action</th>
                 </tr>
@@ -1682,13 +1992,16 @@ export default function Registrations() {
                     onViewDetails={handleViewDetails}
                     onRestore={handleRestoreRegistration}
                     onDelete={handleDeleteRegistration}
+                    onCheckIn={handleCheckIn}
+                    onCheckOut={handleCheckOut}
+                    processingState={processingState}
                     isDeleting={isDeleting}
                     canDelete={!isScanner}
                   />
                 ))}
                 {paginatedRegistrations.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="p-16 text-center text-slate-500 font-bold text-xs uppercase tracking-widest">
+                    <td colSpan={10} className="p-16 text-center text-slate-500 font-bold text-xs uppercase tracking-widest">
                       No matching registration logs found.
                     </td>
                   </tr>
@@ -2155,6 +2468,21 @@ export default function Registrations() {
                     'Check In Attendee'
                   )}
                 </button>
+                {selectedReg.hasEntered && (
+                  <button
+                    type="button"
+                    disabled={Boolean(processingState) || selectedReg.isDeleted || selectedReg.status === 'deleted'}
+                    onClick={() => handleCheckOut(selectedReg)}
+                    className="px-5 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2 shadow-xs disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {processingState?.id === selectedReg.id && processingState?.action === 'checkout' ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <LogOut size={13} />
+                    )}
+                    Check Out Attendee
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled={selectedReg.isDeleted || selectedReg.status === 'deleted'}
