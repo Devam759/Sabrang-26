@@ -306,7 +306,7 @@ export default function CheckoutForm() {
         if (!currentEmail) {
           next["generic_email"] = "@jklu.edu.in";
           changed = true;
-        } else if (!currentEmail.endsWith("@jklu.edu.in")) {
+        } else if (!currentEmail.endsWith("@jklu.edu.in") && !currentEmail.endsWith("@hsb.edu.in")) {
           const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
           next["generic_email"] = pfx ? `${pfx.replace(/\s+/g, "")}@jklu.edu.in` : "@jklu.edu.in";
           changed = true;
@@ -597,12 +597,13 @@ export default function CheckoutForm() {
     if (id === "pronite_jklu") {
       setFormData((prev) => {
         const currentEmail = prev["generic_email"] || "";
+        const domain = currentEmail.endsWith("@hsb.edu.in") ? "@hsb.edu.in" : "@jklu.edu.in";
         const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
         return {
           ...prev,
           generic_institutionSelect: "JK Lakshmipat University",
           generic_institutionName: "JK Lakshmipat University",
-          generic_email: pfx ? `${pfx.replace(/\s+/g, "")}@jklu.edu.in` : "@jklu.edu.in",
+          generic_email: pfx ? `${pfx.replace(/\s+/g, "")}${domain}` : domain,
         };
       });
     }
@@ -1343,11 +1344,17 @@ export default function CheckoutForm() {
           </div>
 
           {(() => {
+            const isProniteJklu = group === "generic" && selectedEvents.includes("pronite_jklu");
             const isJklu =
               getField(group, 'institutionName') === "JK Lakshmipat University" ||
               getField(group, 'institutionSelect') === "JK Lakshmipat University";
             const emailValue = getField(group, 'email');
-            const prefix = emailValue.endsWith("@jklu.edu.in")
+            const selectedDomain = isProniteJklu && emailValue.endsWith("@hsb.edu.in")
+              ? "@hsb.edu.in"
+              : "@jklu.edu.in";
+            const prefix = isProniteJklu && emailValue.endsWith("@hsb.edu.in")
+              ? emailValue.slice(0, -"@hsb.edu.in".length)
+              : emailValue.endsWith("@jklu.edu.in")
               ? emailValue.slice(0, -"@jklu.edu.in".length)
               : emailValue.includes("@")
               ? emailValue.split("@")[0]
@@ -1373,18 +1380,34 @@ export default function CheckoutForm() {
                       onBlur={() => {
                         handleBlur(`${group}_email`);
                         const cleanPrefix = prefix.replace(/@.*$/, '').replace(/\s+/g, '');
-                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}${selectedDomain}` : selectedDomain);
                       }}
                       onChange={(e) => {
                         const cleanPrefix = e.target.value.replace(/@.*$/, '').replace(/\s+/g, '');
-                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}@jklu.edu.in` : "@jklu.edu.in");
+                        updateField(group, 'email', cleanPrefix ? `${cleanPrefix}${selectedDomain}` : selectedDomain);
                       }}
                       className="flex-1 bg-transparent px-4 py-3 text-white placeholder-white/40 focus:outline-none min-w-0"
                       placeholder="username / roll number"
                     />
-                    <span className="px-3.5 py-3 bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 select-none whitespace-nowrap pointer-events-none flex items-center">
-                      @jklu.edu.in
-                    </span>
+                    {isProniteJklu ? (
+                      <select
+                        id={`select_${group}_email_domain`}
+                        value={selectedDomain}
+                        onChange={(e) => {
+                          const newDomain = e.target.value;
+                          const cleanPrefix = prefix.replace(/@.*$/, '').replace(/\s+/g, '');
+                          updateField(group, 'email', cleanPrefix ? `${cleanPrefix}${newDomain}` : newDomain);
+                        }}
+                        className="bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 px-3 py-3 focus:outline-none cursor-pointer hover:bg-white/15 transition-colors [&>option]:bg-[#0d0d12] [&>option]:text-white"
+                      >
+                        <option value="@jklu.edu.in">@jklu.edu.in</option>
+                        <option value="@hsb.edu.in">@hsb.edu.in</option>
+                      </select>
+                    ) : (
+                      <span className="px-3.5 py-3 bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 select-none whitespace-nowrap pointer-events-none flex items-center">
+                        @jklu.edu.in
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <input
