@@ -466,6 +466,9 @@ export interface TeamMemberEntry {
   entered?: boolean;
   enteredAt?: string;
   enteredBy?: string;
+  checkedOut?: boolean;
+  checkedOutAt?: string;
+  checkedOutBy?: string;
 }
 
 /**

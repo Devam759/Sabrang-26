@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '../../../lib/firebase';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Check, X, User, AlertCircle, Mail, Phone, Loader2, Search, Users, CheckCheck, Crown, Clock, ArrowRight } from 'lucide-react';
+import { Check, X, User, AlertCircle, Mail, Phone, Loader2, Search, Users, CheckCheck, Crown, Clock, ArrowRight, LogIn, LogOut, CheckCircle2 } from 'lucide-react';
 import { OFFICIAL_EVENTS, getEventById } from '@/lib/eventPricing';
 import { extractRegistrationInfo, extractAllTeamMembers, isTeamEventRegistration, isStaffRegistration, TeamMemberEntry } from '@/lib/registrationDataHelper';
 
@@ -140,8 +140,9 @@ export default function AdminScannerView() {
   const [scannedData, setScannedData] = useState<any>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'idle', message: string }>({ type: 'idle', message: '' });
   const [cameraError, setCameraError] = useState(false);
-  const [processingAction, setProcessingAction] = useState(false);
+  const [processingAction, setProcessingAction] = useState<string | boolean>(false);
   const [approvingMemberId, setApprovingMemberId] = useState<string | null>(null);
+  const [approvingMemberAction, setApprovingMemberAction] = useState<'checkin' | 'checkout' | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [isFrontCamera, setIsFrontCamera] = useState(false);
   const [cameras, setCameras] = useState<Array<{ id: string, label: string }>>([]);
@@ -493,7 +494,28 @@ export default function AdminScannerView() {
 
     try {
       const regID = decodedText.trim();
-      const regDoc = await getDoc(doc(db, 'registrations', regID));
+      let regDoc = await getDoc(doc(db, 'registrations', regID));
+
+      // Fallback: check query by ticketId, orderId, or rollNumber if not direct doc ID
+      if (!regDoc.exists()) {
+        const qById = query(collection(db, 'registrations'), where('ticketId', '==', regID), limit(1));
+        const snap = await getDocs(qById);
+        if (!snap.empty) {
+          regDoc = snap.docs[0];
+        } else {
+          const qByOrder = query(collection(db, 'registrations'), where('orderId', '==', regID), limit(1));
+          const snapOrder = await getDocs(qByOrder);
+          if (!snapOrder.empty) {
+            regDoc = snapOrder.docs[0];
+          } else {
+            const qByRoll = query(collection(db, 'registrations'), where('rollNumber', '==', regID), limit(1));
+            const snapRoll = await getDocs(qByRoll);
+            if (!snapRoll.empty) {
+              regDoc = snapRoll.docs[0];
+            }
+          }
+        }
+      }
 
       if (!regDoc.exists()) {
         playErrorBeep();
@@ -506,7 +528,7 @@ export default function AdminScannerView() {
       } else {
         playSuccessChime();
         const data = regDoc.data();
-        setScannedData({ ...data, id: regID });
+        setScannedData({ ...data, id: regDoc.id });
       }
     } catch (error) {
       console.error("Scan fetch error:", error);
@@ -520,9 +542,18 @@ export default function AdminScannerView() {
     }
   }
 
-  const handleApproveMember = async (member: TeamMemberEntry) => {
-    if (approvingMemberId || processingAction || !scannedData) return;
-    setApprovingMemberId(member.id);
+  // ----------------------------------------------------
+  // DEDICATED CHECK IN HANDLER (Solo or Team Member)
+  // ----------------------------------------------------
+  const handleCheckIn = async (member?: TeamMemberEntry) => {
+    if (processingAction || approvingMemberId || !scannedData) return;
+    
+    if (member) {
+      setApprovingMemberId(member.id);
+      setApprovingMemberAction('checkin');
+    } else {
+      setProcessingAction('checkin');
+    }
 
     try {
       await auth.authStateReady();
@@ -530,7 +561,6 @@ export default function AdminScannerView() {
       if (!idToken) {
         playErrorBeep();
         setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
-        setApprovingMemberId(null);
         return;
       }
 
@@ -542,9 +572,9 @@ export default function AdminScannerView() {
         },
         body: JSON.stringify({
           registrationID: scannedData.id,
-          action: 'APPROVE_MEMBER',
-          memberId: member.id,
-          memberName: member.name,
+          action: member ? 'CHECK_IN_MEMBER' : 'CHECK_IN',
+          memberId: member?.id,
+          memberName: member?.name,
           eventId: selectedScanEvent === 'all' ? undefined : selectedScanEvent,
           eventTitle: selectedScanEvent === 'all' 
             ? undefined 
@@ -557,38 +587,59 @@ export default function AdminScannerView() {
       const result = await res.json();
       if (res.ok && result.success) {
         playSuccessChime();
-        setScannedData((prev: any) => {
-          if (!prev) return null;
-          const newEnteredMembers = result.enteredMembers || {
-            ...(prev.enteredMembers || {}),
-            [member.id]: {
-              entered: true,
-              name: member.name,
-              role: member.role,
-              enteredAt: new Date().toISOString(),
+        const nowIso = new Date().toISOString();
+        if (member) {
+          setScannedData((prev: any) => {
+            if (!prev) return null;
+            const newEnteredMembers = result.enteredMembers || {
+              ...(prev.enteredMembers || {}),
+              [member.id]: {
+                entered: true,
+                name: member.name,
+                role: member.role,
+                enteredAt: nowIso,
+                enteredBy: adminEmail,
+              }
+            };
+            const count = result.enteredCount ?? Object.values(newEnteredMembers).filter((m: any) => m && m.entered).length;
+            return {
+              ...prev,
+              enteredMembers: newEnteredMembers,
+              enteredCount: count,
+              hasEntered: true,
+              attended: true,
+              allEntered: result.allEntered ?? false,
+            };
+          });
+          setStatus({ 
+            type: 'success', 
+            message: result.message || `CHECKED IN • ${member.name}` 
+          });
+        } else {
+          setScannedData((prev: any) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              enteredMembers: result.enteredMembers || prev.enteredMembers,
+              enteredCount: result.enteredCount ?? prev.enteredCount,
+              hasEntered: true,
+              attended: true,
+              allEntered: result.allEntered ?? true,
+              enteredAt: nowIso,
               enteredBy: adminEmail,
-            }
-          };
-          const count = result.enteredCount ?? Object.values(newEnteredMembers).filter((m: any) => m && m.entered).length;
-          return {
-            ...prev,
-            enteredMembers: newEnteredMembers,
-            enteredCount: count,
-            hasEntered: true,
-            attended: true,
-            allEntered: result.allEntered ?? false,
-          };
-        });
-
-        setStatus({ 
-          type: 'success', 
-          message: result.message || `APPROVED • ${member.name}` 
-        });
+              checkedOut: false,
+            };
+          });
+          setStatus({ 
+            type: 'success', 
+            message: result.message || `CHECKED IN • ${result.attendee?.name || scannedData.name}` 
+          });
+        }
       } else {
         playErrorBeep();
         setStatus({ 
           type: 'error', 
-          message: result.error || result.code || `FAILED TO APPROVE ${member.name}` 
+          message: result.error || result.code || `FAILED TO CHECK IN ${member?.name || scannedData.name}` 
         });
       }
     } catch (err: any) {
@@ -596,6 +647,111 @@ export default function AdminScannerView() {
       setStatus({ type: 'error', message: 'SCANNER NETWORK ERROR' });
     } finally {
       setApprovingMemberId(null);
+      setApprovingMemberAction(null);
+      setProcessingAction(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // DEDICATED CHECK OUT HANDLER (Solo or Team Member)
+  // ----------------------------------------------------
+  const handleCheckOut = async (member?: TeamMemberEntry) => {
+    if (processingAction || approvingMemberId || !scannedData) return;
+
+    if (member) {
+      setApprovingMemberId(member.id);
+      setApprovingMemberAction('checkout');
+    } else {
+      setProcessingAction('checkout');
+    }
+
+    try {
+      await auth.authStateReady();
+      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      if (!idToken) {
+        playErrorBeep();
+        setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
+        return;
+      }
+
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          registrationID: scannedData.id,
+          action: member ? 'CHECK_OUT_MEMBER' : 'CHECK_OUT',
+          memberId: member?.id,
+          memberName: member?.name,
+          scannerId: 'ADMIN',
+          volunteerName: adminEmail
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        playSuccessChime();
+        const nowIso = new Date().toISOString();
+        if (member) {
+          setScannedData((prev: any) => {
+            if (!prev) return null;
+            const newEnteredMembers = result.enteredMembers || {
+              ...(prev.enteredMembers || {}),
+              [member.id]: {
+                ...(prev.enteredMembers?.[member.id] || {}),
+                entered: false,
+                checkedOutAt: nowIso,
+                checkedOutBy: adminEmail,
+              }
+            };
+            const count = result.enteredCount ?? Object.values(newEnteredMembers).filter((m: any) => m && m.entered).length;
+            return {
+              ...prev,
+              enteredMembers: newEnteredMembers,
+              enteredCount: count,
+              hasEntered: count > 0,
+              allEntered: false,
+            };
+          });
+          setStatus({ 
+            type: 'success', 
+            message: result.message || `CHECKED OUT • ${member.name}` 
+          });
+        } else {
+          setScannedData((prev: any) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              enteredMembers: result.enteredMembers || prev.enteredMembers,
+              enteredCount: 0,
+              hasEntered: false,
+              allEntered: false,
+              checkedOut: true,
+              checkedOutAt: nowIso,
+              checkedOutBy: adminEmail,
+            };
+          });
+          setStatus({ 
+            type: 'success', 
+            message: result.message || `CHECKED OUT • ${result.attendee?.name || scannedData.name}` 
+          });
+        }
+      } else {
+        playErrorBeep();
+        setStatus({ 
+          type: 'error', 
+          message: result.error || result.code || `FAILED TO CHECK OUT ${member?.name || scannedData.name}` 
+        });
+      }
+    } catch (err: any) {
+      playErrorBeep();
+      setStatus({ type: 'error', message: 'SCANNER NETWORK ERROR' });
+    } finally {
+      setApprovingMemberId(null);
+      setApprovingMemberAction(null);
+      setProcessingAction(false);
     }
   };
 
@@ -644,7 +800,7 @@ export default function AdminScannerView() {
           };
         });
 
-        setStatus({ type: 'idle', message: `Entry approval undone for ${member.name}` });
+        setStatus({ type: 'idle', message: `Entry status reset for ${member.name}` });
       } else {
         playErrorBeep();
         setStatus({ type: 'error', message: result.error || 'FAILED TO UNDO ENTRY' });
@@ -657,9 +813,9 @@ export default function AdminScannerView() {
     }
   };
 
-  const handleApproveAll = async () => {
+  const handleCheckInAll = async () => {
     if (processingAction || !scannedData) return;
-    setProcessingAction(true);
+    setProcessingAction('checkin_all');
 
     try {
       await auth.authStateReady();
@@ -679,7 +835,7 @@ export default function AdminScannerView() {
         },
         body: JSON.stringify({
           registrationID: scannedData.id,
-          action: 'APPROVE_ALL',
+          action: 'CHECK_IN_ALL',
           eventId: selectedScanEvent === 'all' ? undefined : selectedScanEvent,
           eventTitle: selectedScanEvent === 'all' 
             ? undefined 
@@ -701,17 +857,18 @@ export default function AdminScannerView() {
             hasEntered: true,
             attended: true,
             allEntered: true,
+            checkedOut: false,
           };
         });
         setStatus({ 
           type: 'success', 
-          message: 'ALL TEAM MEMBERS APPROVED FOR ENTRY' 
+          message: 'ALL TEAM MEMBERS CHECKED IN' 
         });
       } else {
         playErrorBeep();
         setStatus({ 
           type: 'error', 
-          message: result.error || result.code || 'FAILED TO APPROVE ALL' 
+          message: result.error || result.code || 'FAILED TO CHECK IN ALL' 
         });
       }
     } catch (e) {
@@ -722,101 +879,116 @@ export default function AdminScannerView() {
     }
   };
 
-  const handleAction = async (approved: boolean) => {
+  const handleCheckOutAll = async () => {
     if (processingAction || !scannedData) return;
-    setProcessingAction(true);
-
-    const isSolo = !isTeamEventRegistration(scannedData) && extractAllTeamMembers(scannedData).length <= 1;
+    setProcessingAction('checkout_all');
 
     try {
-      if (approved) {
-        await auth.authStateReady(); // Ensure Firebase Auth is loaded
-        const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
-        if (!idToken) {
-          playErrorBeep();
-          setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
-          setProcessingAction(false);
-          return;
-        }
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            registrationID: scannedData.id,
-            action: 'APPROVE_ALL',
-            eventId: selectedScanEvent === 'all' ? undefined : selectedScanEvent,
-            eventTitle: selectedScanEvent === 'all' 
-              ? undefined 
-              : (OFFICIAL_EVENTS.find(e => e.id === selectedScanEvent)?.title || (selectedScanEvent === 'visitor' ? 'Visitor Pass' : selectedScanEvent)),
-            scannerId: 'ADMIN',
-            volunteerName: adminEmail
-          })
-        });
+      await auth.authStateReady();
+      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : '';
+      if (!idToken) {
+        playErrorBeep();
+        setStatus({ type: 'error', message: 'SESSION EXPIRED. PLEASE RELOGIN.' });
+        setProcessingAction(false);
+        return;
+      }
 
-        const result = await res.json();
-        if (res.ok && result.success) {
-          playSuccessChime();
-          setScannedData((prev: any) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              enteredMembers: result.enteredMembers || prev.enteredMembers,
-              enteredCount: result.enteredCount ?? prev.enteredCount,
-              hasEntered: true,
-              attended: true,
-              allEntered: true,
-            };
-          });
-          setStatus({ 
-            type: 'success', 
-            message: result.message || `ENTRY SUCCESSFUL • ${result.attendee?.name || scannedData.name}` 
-          });
-        } else {
-          playErrorBeep();
-          setStatus({ 
-            type: 'error', 
-            message: result.error || result.code || 'ENTRY VALIDATION FAILED' 
-          });
-        }
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          registrationID: scannedData.id,
+          action: 'CHECK_OUT_ALL',
+          scannerId: 'ADMIN',
+          volunteerName: adminEmail
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        playSuccessChime();
+        const nowIso = new Date().toISOString();
+        setScannedData((prev: any) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            enteredMembers: result.enteredMembers || prev.enteredMembers,
+            enteredCount: 0,
+            hasEntered: false,
+            allEntered: false,
+            checkedOut: true,
+            checkedOutAt: nowIso,
+          };
+        });
+        setStatus({ 
+          type: 'success', 
+          message: 'ALL TEAM MEMBERS CHECKED OUT' 
+        });
       } else {
         playErrorBeep();
-        await addDoc(collection(db, 'scanLogs'), {
-          scannerId: 'ADMIN',
-          volunteerName: adminEmail,
-          registrationID: scannedData.id,
-          attendeeName: scannedData.name,
-          eventTitle: selectedScanEvent === 'all' 
-            ? 'All Events' 
-            : (OFFICIAL_EVENTS.find(e => e.id === selectedScanEvent)?.title || (selectedScanEvent === 'visitor' ? 'Visitor Pass' : selectedScanEvent)),
-          timestamp: serverTimestamp(),
-          result: 'declined'
+        setStatus({ 
+          type: 'error', 
+          message: result.error || result.code || 'FAILED TO CHECK OUT ALL' 
         });
-
-        try {
-          const { logAdminAction } = await import('../../../lib/audit');
-          await logAdminAction('SCANNER_DECLINE_ADMIN', `registrations/${scannedData.id}`, `Declined entry for attendee ${scannedData.name} via admin scanner console`, adminEmail);
-        } catch (err) {
-          console.error("Failed to log admin scanner decline:", err);
-        }
-
-        setStatus({ type: 'idle', message: 'ENTRY DECLINED' });
       }
     } catch (e) {
       playErrorBeep();
       setStatus({ type: 'error', message: 'ACTION FAILED' });
+    } finally {
+      setProcessingAction(false);
     }
+  };
 
-    if (isSolo || !approved) {
+  const handleDecline = async () => {
+    if (processingAction || !scannedData) return;
+    setProcessingAction('decline');
+
+    try {
+      playErrorBeep();
+      await addDoc(collection(db, 'scanLogs'), {
+        scannerId: 'ADMIN',
+        volunteerName: adminEmail,
+        registrationID: scannedData.id,
+        attendeeName: scannedData.name,
+        eventTitle: selectedScanEvent === 'all' 
+          ? 'All Events' 
+          : (OFFICIAL_EVENTS.find(e => e.id === selectedScanEvent)?.title || (selectedScanEvent === 'visitor' ? 'Visitor Pass' : selectedScanEvent)),
+        timestamp: serverTimestamp(),
+        result: 'declined',
+        action: 'DECLINE'
+      });
+
+      try {
+        const { logAdminAction } = await import('../../../lib/audit');
+        await logAdminAction('SCANNER_DECLINE_ADMIN', `registrations/${scannedData.id}`, `Declined entry for attendee ${scannedData.name} via admin scanner console`, adminEmail);
+      } catch (err) {
+        console.error("Failed to log admin scanner decline:", err);
+      }
+
+      setStatus({ type: 'idle', message: 'ENTRY DECLINED' });
       setTimeout(() => {
         setScannedData(null);
         setStatus({ type: 'idle', message: '' });
         setProcessingAction(false);
-      }, 2000);
-    } else {
+      }, 1500);
+    } catch (e) {
+      playErrorBeep();
+      setStatus({ type: 'error', message: 'FAILED TO DECLINE' });
       setProcessingAction(false);
+    }
+  };
+
+  // Legacy wrappers for backwards compatibility
+  const handleApproveMember = (member: TeamMemberEntry) => handleCheckIn(member);
+  const handleApproveAll = () => handleCheckInAll();
+  const handleAction = async (approved: boolean) => {
+    if (approved) {
+      await handleCheckIn();
+    } else {
+      await handleDecline();
     }
   };
 
@@ -1030,18 +1202,38 @@ export default function AdminScannerView() {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  {isAllEntered ? (
-                    <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
-                      {isStaff ? 'All 4 Inside' : (isTeam ? 'All Inside' : 'Already Inside')}
-                    </div>
-                  ) : isPartialEntered ? (
-                    <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
-                      Partial ({enteredCount}/{totalMembersCount} Inside)
-                    </div>
+                  {isTeam ? (
+                    isAllEntered ? (
+                      <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        {isStaff ? 'All 4 Inside' : 'All Inside'}
+                      </div>
+                    ) : isPartialEntered ? (
+                      <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        Partial ({enteredCount}/{totalMembersCount} Inside)
+                      </div>
+                    ) : (
+                      <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                        {isStaff ? 'Ready for Entry (Admit 4)' : 'Ready for Entry'}
+                      </div>
+                    )
                   ) : (
-                    <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {isStaff ? 'Ready for Entry (Admit 4)' : 'Ready for Entry'}
-                    </div>
+                    scannedData.hasEntered ? (
+                      <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Inside (Checked In)
+                      </div>
+                    ) : (scannedData.checkedOut || scannedData.checkedOutAt) ? (
+                      <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        Outside (Checked Out)
+                      </div>
+                    ) : (
+                      <div className="px-3 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                        Ready for Check-In
+                      </div>
+                    )
                   )}
                   
                   {/* Dismiss Cross Button */}
@@ -1125,42 +1317,66 @@ export default function AdminScannerView() {
                   </div>
                 )}
 
-                {/* Already Checked In Detail Alert */}
-                {isAllEntered && (
-                  <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl flex gap-3 items-start">
-                    <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
-                    <div className="text-xs leading-relaxed">
-                      <p className="font-semibold text-rose-800 text-xs">
-                        {isTeam ? 'All Team Members Already Checked In' : 'Warning: Already Entered'}
+                {/* Currently Inside Detail Banner */}
+                {scannedData.hasEntered && (
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 p-4 rounded-2xl flex gap-3 items-start">
+                    <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed flex-1">
+                      <p className="font-bold text-emerald-800 text-xs">
+                        {isTeam ? 'Team Members Currently Inside' : 'Attendee Currently Inside (Checked In)'}
                       </p>
-                      <p className="text-xs text-rose-700/90 mt-1 font-mono">
+                      <p className="text-xs text-emerald-700/90 mt-1 font-mono">
                         {isTeam 
-                          ? 'All members from this team have been approved for entry.' 
+                          ? `${enteredCount} of ${totalMembersCount} members are currently inside the venue.` 
                           : `Checked in at: ${formatEntryTime(scannedData.enteredAt || scannedData.attendedAt) || 'Earlier'}`}
                       </p>
                       {scannedData.enteredBy && (
-                        <p className="text-[11px] text-red-500/80 font-mono mt-0.5">Operator: {scannedData.enteredBy}</p>
+                        <p className="text-[11px] text-emerald-600/80 font-mono mt-0.5">Scanned by: {scannedData.enteredBy}</p>
                       )}
+                      <p className="text-[11px] text-emerald-700 mt-1">
+                        Tap <strong>Check Out</strong> below when leaving the venue.
+                      </p>
                     </div>
                   </div>
                 )}
 
-                {/* Partial Check-In Notice */}
+                {/* Checked Out Notice (If currently outside after previously checking out) */}
+                {!scannedData.hasEntered && (scannedData.checkedOut || scannedData.checkedOutAt) && (
+                  <div className="bg-amber-50 text-amber-800 border border-amber-200 p-4 rounded-2xl flex gap-3 items-start">
+                    <Clock size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed flex-1">
+                      <p className="font-bold text-amber-800 text-xs">
+                        Attendee Currently Outside (Checked Out)
+                      </p>
+                      <p className="text-xs text-amber-700/90 mt-1 font-mono">
+                        Checked out at: {formatEntryTime(scannedData.checkedOutAt) || 'Earlier'}
+                      </p>
+                      {scannedData.checkedOutBy && (
+                        <p className="text-[11px] text-amber-600/80 font-mono mt-0.5">Checked out by: {scannedData.checkedOutBy}</p>
+                      )}
+                      <p className="text-[11px] text-amber-700 mt-1 font-semibold">
+                        Tap <strong>Re-Check In</strong> below to record entry.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Partial Check-In Notice for Teams */}
                 {isPartialEntered && (
                   <div className="bg-amber-50 text-amber-800 border border-amber-200 p-4 rounded-2xl flex gap-3 items-start">
                     <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
-                    <div className="text-xs leading-relaxed">
+                    <div className="text-xs leading-relaxed flex-1">
                       <p className="font-semibold text-amber-800 text-xs">
                         Partial Team Entry ({enteredCount} of {totalMembersCount} Members Inside)
                       </p>
                       <p className="text-xs text-amber-700/90 mt-1">
-                        Some members have already entered. Approve the remaining members individually below.
+                        Some members are inside. You can check in or check out members individually below.
                       </p>
                     </div>
                   </div>
                 )}
 
-                  {/* TEAM MEMBERS / PASS ENTRIES SEPARATE APPROVAL SECTION */}
+                  {/* TEAM MEMBERS / PASS ENTRIES SEPARATE CHECK-IN / CHECK-OUT SECTION */}
                   {isTeam && allMembers.length > 0 && (
                     <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3.5 mt-2">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
@@ -1170,12 +1386,12 @@ export default function AdminScannerView() {
                           </div>
                           <div>
                             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                              {isStaff ? 'Pass Entries (Admit 4 Persons)' : 'Team Members Entry'}
+                              {isStaff ? 'Pass Entries (Admit 4 Persons)' : 'Team Members Movement'}
                             </h3>
                             <p className="text-[11px] text-slate-500 font-medium">
                               {isStaff 
-                                ? 'Approve entry for faculty/staff member and up to 3 accompanying guests/family' 
-                                : 'Approve each team member individually as they arrive'}
+                                ? 'Check in or check out faculty/staff and accompanying guests' 
+                                : 'Check in or check out each team member individually'}
                             </p>
                           </div>
                         </div>
@@ -1186,7 +1402,7 @@ export default function AdminScannerView() {
                               ? 'bg-amber-100 text-amber-800' 
                               : 'bg-slate-200 text-slate-700'
                         }`}>
-                          {enteredCount} / {totalMembersCount} Approved
+                          {enteredCount} / {totalMembersCount} Inside
                         </span>
                       </div>
 
@@ -1194,7 +1410,8 @@ export default function AdminScannerView() {
                       {allMembers.map((member, idx) => {
                         const isMemberEntered = member.entered === true || enteredMembers[member.id]?.entered === true;
                         const memberEnteredAt = member.enteredAt || enteredMembers[member.id]?.enteredAt;
-                        const isApproving = approvingMemberId === member.id;
+                        const memberLeftAt = member.checkedOutAt || enteredMembers[member.id]?.checkedOutAt;
+                        const isMemberProcessing = approvingMemberId === member.id;
 
                         return (
                           <div
@@ -1239,13 +1456,13 @@ export default function AdminScannerView() {
                               </div>
                             </div>
 
-                            {/* DEDICATED APPROVE BUTTON AFTER EVERY TEAM MEMBER NAME */}
+                            {/* SEPARATE CHECK IN & CHECK OUT BUTTONS FOR EACH TEAM MEMBER */}
                             <div className="shrink-0 flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                               {isMemberEntered ? (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="px-3 py-1.5 bg-emerald-100/90 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-                                    <Check size={13} className="text-emerald-700 stroke-[3]" />
-                                    <span>Entered</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-1.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center gap-1 shadow-2xs">
+                                    <Check size={12} className="text-emerald-700 stroke-[3]" />
+                                    <span>Inside</span>
                                     {memberEnteredAt && (
                                       <span className="text-[10px] text-emerald-700/80 font-mono ml-0.5">
                                         {formatEntryTime(memberEnteredAt)}
@@ -1254,28 +1471,49 @@ export default function AdminScannerView() {
                                   </span>
                                   <button
                                     type="button"
-                                    disabled={isApproving || processingAction}
+                                    disabled={Boolean(approvingMemberId) || Boolean(processingAction)}
+                                    onClick={() => handleCheckOut(member)}
+                                    title="Check Out this member"
+                                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer disabled:opacity-40"
+                                  >
+                                    {isMemberProcessing && approvingMemberAction === 'checkout' ? (
+                                      <Loader2 size={12} className="animate-spin" />
+                                    ) : (
+                                      <LogOut size={12} />
+                                    )}
+                                    <span>Check Out</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={Boolean(approvingMemberId) || Boolean(processingAction)}
                                     onClick={() => handleUndoMember(member)}
-                                    title="Undo Approval"
-                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[10px] transition-colors cursor-pointer font-medium"
+                                    title="Reset status"
+                                    className="p-1 text-slate-400 hover:text-rose-600 rounded text-[10px] transition-colors"
                                   >
                                     Undo
                                   </button>
                                 </div>
                               ) : (
-                                <button
-                                  type="button"
-                                  disabled={isApproving || processingAction || scannedData.isDeleted || scannedData.status === 'deleted'}
-                                  onClick={() => handleApproveMember(member)}
-                                  className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                  {isApproving ? (
-                                    <Loader2 size={13} className="animate-spin" />
-                                  ) : (
-                                    <Check size={13} strokeWidth={3} />
+                                <div className="flex items-center gap-2">
+                                  {memberLeftAt && (
+                                    <span className="text-[10px] text-amber-700 font-mono">
+                                      Left {formatEntryTime(memberLeftAt)}
+                                    </span>
                                   )}
-                                  <span>Approve</span>
-                                </button>
+                                  <button
+                                    type="button"
+                                    disabled={Boolean(approvingMemberId) || Boolean(processingAction) || scannedData.isDeleted || scannedData.status === 'deleted'}
+                                    onClick={() => handleCheckIn(member)}
+                                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                  >
+                                    {isMemberProcessing && approvingMemberAction === 'checkin' ? (
+                                      <Loader2 size={13} className="animate-spin" />
+                                    ) : (
+                                      <LogIn size={13} strokeWidth={2.5} />
+                                    )}
+                                    <span>{memberLeftAt ? 'Re-Check In' : 'Check In'}</span>
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1283,32 +1521,49 @@ export default function AdminScannerView() {
                       })}
                     </div>
 
-                    {/* Approve All Remaining Quick Button */}
-                    {!isAllEntered && unapprovedCount > 1 && (
-                      <button
-                        type="button"
-                        disabled={processingAction || Boolean(approvingMemberId)}
-                        onClick={handleApproveAll}
-                        className="w-full mt-2 py-2.5 px-4 bg-purple-50 hover:bg-purple-100 active:scale-98 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
-                      >
-                        {processingAction ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <CheckCheck size={15} />
-                        )}
-                        <span>Approve All Remaining Members ({unapprovedCount})</span>
-                      </button>
-                    )}
+                    {/* Batch Actions for Team: Check In Remaining & Check Out Inside */}
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                      {!isAllEntered && unapprovedCount > 0 && (
+                        <button
+                          type="button"
+                          disabled={Boolean(processingAction) || Boolean(approvingMemberId)}
+                          onClick={handleCheckInAll}
+                          className="flex-1 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 active:scale-98 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                        >
+                          {processingAction === 'checkin_all' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <LogIn size={14} />
+                          )}
+                          <span>Check In All Remaining ({unapprovedCount})</span>
+                        </button>
+                      )}
+                      {enteredCount > 0 && (
+                        <button
+                          type="button"
+                          disabled={Boolean(processingAction) || Boolean(approvingMemberId)}
+                          onClick={handleCheckOutAll}
+                          className="flex-1 py-2.5 px-4 bg-amber-50 hover:bg-amber-100 active:scale-98 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                        >
+                          {processingAction === 'checkout_all' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <LogOut size={14} />
+                          )}
+                          <span>Check Out All Inside ({enteredCount})</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Action buttons (Decline / Done / Approve) */}
+              {/* Action buttons (Decline / Done / Check In / Check Out) */}
               {isTeam ? (
                 <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-200 shrink-0 relative z-10">
                   <button 
-                    disabled={processingAction}
-                    onClick={() => handleAction(false)}
+                    disabled={Boolean(processingAction)}
+                    onClick={handleDecline}
                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                   >
                     <X size={16} /> Decline Pass
@@ -1322,22 +1577,71 @@ export default function AdminScannerView() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-200 shrink-0 relative z-10">
-                  <button 
-                    disabled={processingAction}
-                    onClick={() => handleAction(false)}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 text-xs font-semibold rounded-xl py-3.5 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                  >
-                    <X size={16} /> Decline
-                  </button>
-                  <button 
-                    disabled={processingAction || isAllEntered || scannedData.isDeleted || scannedData.status === 'deleted'}
-                    onClick={() => handleAction(true)}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl py-3.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 shadow-sm"
-                  >
-                    {processingAction ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                    <span>{isAllEntered ? 'Already Entered' : 'Approve'}</span>
-                  </button>
+                <div className="space-y-3 pt-5 border-t border-slate-200 shrink-0 relative z-10">
+                  {/* SEPARATE CHECK IN AND CHECK OUT BUTTONS */}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {/* CHECK IN BUTTON */}
+                    <button 
+                      type="button"
+                      disabled={Boolean(processingAction) || scannedData.hasEntered || scannedData.isDeleted || scannedData.status === 'deleted'}
+                      onClick={() => handleCheckIn()}
+                      className={`py-3.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
+                        scannedData.hasEntered
+                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                          : 'bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white shadow-emerald-500/20'
+                      }`}
+                    >
+                      {processingAction === 'checkin' ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <LogIn size={16} />
+                      )}
+                      <span>
+                        {scannedData.hasEntered 
+                          ? 'Already Inside' 
+                          : (scannedData.checkedOut || scannedData.checkedOutAt ? 'Re-Check In' : 'Check In')}
+                      </span>
+                    </button>
+
+                    {/* CHECK OUT BUTTON */}
+                    <button 
+                      type="button"
+                      disabled={Boolean(processingAction) || !scannedData.hasEntered || scannedData.isDeleted || scannedData.status === 'deleted'}
+                      onClick={() => handleCheckOut()}
+                      className={`py-3.5 px-4 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
+                        !scannedData.hasEntered
+                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                          : 'bg-amber-600 hover:bg-amber-700 active:scale-98 text-white shadow-amber-500/20'
+                      }`}
+                    >
+                      {processingAction === 'checkout' ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <LogOut size={16} />
+                      )}
+                      <span>Check Out</span>
+                    </button>
+                  </div>
+
+                  {/* SECONDARY ROW: DECLINE PASS & DONE / NEXT TICKET */}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <button 
+                      type="button"
+                      disabled={Boolean(processingAction)}
+                      onClick={handleDecline}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-semibold rounded-xl py-2.5 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                    >
+                      <X size={15} /> Decline
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={dismissDossier}
+                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl py-2.5 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <span>Done / Next Ticket</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

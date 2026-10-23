@@ -594,11 +594,13 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
             ? 'bg-rose-100 text-rose-800 border border-rose-300'
             : reg.hasEntered 
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-              : (reg.status === 'declined' 
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200' 
-                  : 'bg-amber-50 text-amber-700 border border-amber-200')
+              : (reg.checkedOut
+                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                  : (reg.status === 'declined' 
+                      ? 'bg-rose-50 text-rose-700 border border-rose-200' 
+                      : 'bg-amber-50 text-amber-700 border border-amber-200'))
         }`}>
-          {isRegDeleted ? 'Deleted' : (reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending'))}
+          {isRegDeleted ? 'Deleted' : (reg.hasEntered ? 'Entered' : (reg.checkedOut ? 'Checked Out' : (reg.status === 'declined' ? 'Declined' : 'Pending')))}
         </span>
       </td>
       <td className="p-5">

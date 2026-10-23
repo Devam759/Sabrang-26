@@ -18,7 +18,9 @@ import {
   ShieldCheck, 
   Clock, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  LogIn,
+  LogOut
 } from 'lucide-react';
 
 import { OFFICIAL_EVENTS } from '@/lib/eventPricing';
@@ -33,6 +35,9 @@ interface EntryLogItem {
   attendeeEmail?: string;
   attendeeRoll?: string;
   entryTime?: any;
+  exitTime?: any;
+  action?: string;
+  movementType?: string;
   scannedBy?: string;
   scannerId?: string;
   status?: string;
@@ -50,6 +55,7 @@ function parseLogDate(log: any): Date | null {
   if (!log) return null;
 
   const candidates = [
+    log.exitTime,
     log.entryTime,
     log.timestamp,
     log.createdAt,
@@ -97,6 +103,7 @@ export default function EventEntryLogsPage() {
 
   // Filter States
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
+  const [movementFilter, setMovementFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
@@ -208,6 +215,13 @@ export default function EventEntryLogsPage() {
         if (!isMatch) return false;
       }
 
+      // 1B. Movement filter (Check-in vs Check-out)
+      if (movementFilter !== 'all') {
+        const isOut = log.movementType === 'CHECK_OUT' || log.action === 'CHECK_OUT' || log.status === 'CHECKED_OUT';
+        if (movementFilter === 'CHECK_OUT' && !isOut) return false;
+        if (movementFilter === 'CHECK_IN' && isOut) return false;
+      }
+
       // 2. Search Query (matches name, ticketId, regId, rollNumber, email, staff)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -237,12 +251,12 @@ export default function EventEntryLogsPage() {
 
       return true;
     });
-  }, [entryLogs, selectedEvent, searchQuery, filterDateFrom, filterDateTo]);
+  }, [entryLogs, selectedEvent, movementFilter, searchQuery, filterDateFrom, filterDateTo]);
 
   // Reset pagination on filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedEvent, searchQuery, filterDateFrom, filterDateTo]);
+  }, [selectedEvent, movementFilter, searchQuery, filterDateFrom, filterDateTo]);
 
   const paginatedLogs = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -253,10 +267,11 @@ export default function EventEntryLogsPage() {
 
   const exportExcel = async () => {
     if (filteredLogs.length === 0) return alert('No entry logs to export.');
-    const headers = ['S.No', 'Attendee Name', 'Roll Number', 'Email', 'Event', 'Ticket ID', 'Registration ID', 'Entry Time', 'Scanned By'];
+    const headers = ['S.No', 'Attendee Name', 'Roll Number', 'Email', 'Event', 'Ticket ID', 'Registration ID', 'Movement', 'Time', 'Scanned By'];
     const rows = filteredLogs.map((l, index) => {
       const entryDate = parseLogDate(l);
       const timeStr = entryDate ? entryDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
+      const isOut = l.movementType === 'CHECK_OUT' || l.action === 'CHECK_OUT' || l.status === 'CHECKED_OUT';
       return [
         index + 1,
         l.attendeeName || 'N/A',
@@ -265,6 +280,7 @@ export default function EventEntryLogsPage() {
         l.eventTitle || 'General Fest Entry',
         l.ticketId || 'N/A',
         l.registrationId || 'N/A',
+        isOut ? 'Check Out' : 'Check In',
         timeStr,
         l.scannedBy || 'Staff',
       ];
@@ -381,6 +397,19 @@ export default function EventEntryLogsPage() {
           </select>
         </div>
 
+        {/* Movement Filter (Check-In / Check-Out) */}
+        <div className="relative w-full md:w-44 shrink-0">
+          <select
+            value={movementFilter}
+            onChange={(e) => setMovementFilter(e.target.value)}
+            className="block w-full pl-4 pr-10 py-3 bg-white/80 border border-slate-100 rounded-xl text-xs text-slate-900 font-bold focus:outline-none cursor-pointer"
+          >
+            <option value="all">All Movements</option>
+            <option value="CHECK_IN">Check-Ins Only</option>
+            <option value="CHECK_OUT">Check-Outs Only</option>
+          </select>
+        </div>
+
         {/* Date Filter (From & To) */}
         <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
           <div className="relative flex-1 md:flex-initial">
@@ -405,10 +434,11 @@ export default function EventEntryLogsPage() {
         </div>
 
         {/* Clear Filters Button */}
-        {(selectedEvent !== 'all' || searchQuery || filterDateFrom || filterDateTo) && (
+        {(selectedEvent !== 'all' || movementFilter !== 'all' || searchQuery || filterDateFrom || filterDateTo) && (
           <button
             onClick={() => {
               setSelectedEvent('all');
+              setMovementFilter('all');
               setSearchQuery('');
               setFilterDateFrom('');
               setFilterDateTo('');
@@ -431,7 +461,7 @@ export default function EventEntryLogsPage() {
             <div className="bg-white p-4 rounded-full mb-4 border border-slate-200">
                <UserX className="text-slate-500 h-8 w-8" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">No Check-ins Found</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">No Movements Found</h3>
             <p className="text-slate-500 text-xs">Try adjusting your search or filter criteria.</p>
           </div>
         ) : (
@@ -443,7 +473,8 @@ export default function EventEntryLogsPage() {
                   <th className="p-4">Attendee</th>
                   <th className="p-4">Event</th>
                   <th className="p-4">Ticket ID</th>
-                  <th className="p-4">Entry Time</th>
+                  <th className="p-4">Movement</th>
+                  <th className="p-4">Time</th>
                   <th className="p-4 text-right">Scanned By</th>
                 </tr>
               </thead>
@@ -451,6 +482,7 @@ export default function EventEntryLogsPage() {
                 {paginatedLogs.map((log, index) => {
                   const entryDate = parseLogDate(log);
                   const globalIdx = (currentPage - 1) * itemsPerPage + index + 1;
+                  const isCheckOut = log.movementType === 'CHECK_OUT' || log.action === 'CHECK_OUT' || log.status === 'CHECKED_OUT';
                   
                   return (
                     <tr key={log.id} className="hover:bg-slate-50 transition-colors duration-500 ease-out group animate-in fade-in slide-in-from-bottom-2" style={{ animationFillMode: "both", animationDelay: `${index * 50}ms` }}>
@@ -486,7 +518,22 @@ export default function EventEntryLogsPage() {
                         </div>
                       </td>
 
-                      {/* Entry Time */}
+                      {/* Movement Status */}
+                      <td className="p-5">
+                        {isCheckOut ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                            <LogOut size={12} className="text-amber-600" />
+                            <span>Check Out</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <LogIn size={12} className="text-emerald-600" />
+                            <span>Check In</span>
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Time */}
                       <td className="p-5">
                         {entryDate ? (
                           <div className="space-y-1">
