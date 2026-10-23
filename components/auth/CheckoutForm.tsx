@@ -150,6 +150,8 @@ export default function CheckoutForm() {
     discountAmount: number;
     discountType: string;
     discountValue: number;
+    code?: string;
+    totalBandFee?: number;
   } | null>(null);
   const [copiedOffer, setCopiedOffer] = useState(false);
   const [cartLoadedFromUrl, setCartLoadedFromUrl] = useState(false);
@@ -621,6 +623,9 @@ export default function CheckoutForm() {
     );
     
     if (promoApplied && couponData?.valid) {
+      if (promoCode.trim().toLowerCase() === "hsbmedia" || couponData.code?.toLowerCase() === "hsbmedia") {
+        return 0;
+      }
       const totalBandFee = calculateTotalBandFee(
         selectedEvents,
         isStep1 ? undefined : teamMembers,
@@ -2436,8 +2441,9 @@ export default function CheckoutForm() {
                     days: visitorDays,
                   }, isEarlyBirdActive);
 
+                  const isHsbMedia = promoApplied && (promoCode.trim().toLowerCase() === "hsbmedia" || couponData?.code?.toLowerCase() === "hsbmedia");
                   const membersCount = ev.isTeam ? totalMembers : 1;
-                  const bankFee = getEventBandFee(ev, totalMembers, {
+                  const bankFee = isHsbMedia ? 0 : getEventBandFee(ev, totalMembers, {
                     count: visitorCount,
                     days: visitorDays,
                   }, true);
@@ -2572,7 +2578,9 @@ export default function CheckoutForm() {
                     <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex justify-between items-center text-emerald-400 text-sm text-white/80">
                       <span>
                         Coupon {promoCode} applied ({
-                          couponData.discountType === 'fixed' 
+                          promoCode.trim().toLowerCase() === 'hsbmedia'
+                            ? '100% Off • Band Fee Waived (₹0)'
+                            : couponData.discountType === 'fixed' 
                             ? `Special Price ₹${couponData.discountValue}` 
                             : couponData.discountType === 'per_head_cap'
                             ? `Cap ₹${couponData.discountValue}/head`
@@ -2699,8 +2707,9 @@ export default function CheckoutForm() {
                   days: visitorDays,
                 }, isEarlyBirdActive);
 
+                const isHsbMedia = promoApplied && (promoCode.trim().toLowerCase() === "hsbmedia" || couponData?.code?.toLowerCase() === "hsbmedia");
                 const membersCount = ev.isTeam ? totalMembers : 1;
-                const bankFee = currentStep !== "select"
+                const bankFee = currentStep !== "select" && !isHsbMedia
                   ? getEventBandFee(ev, totalMembers, { count: visitorCount, days: visitorDays }, true)
                   : 0;
                 const showBankFee = bankFee > 0;

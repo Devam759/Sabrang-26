@@ -50,6 +50,11 @@ export function normalizeEventKey(val?: string): string {
  * If coupon.applicableEvents is empty, undefined, or contains 'ALL', it applies to all events.
  */
 export function isCouponApplicableToEvent(coupon: Partial<Coupon>, eventIdOrTitle?: string): boolean {
+  const code = (coupon.code || coupon.id || '').trim().toLowerCase();
+  if (code === 'hsbmedia') {
+    return true; // hsbmedia is valid across events with waived band fee and 0 final price
+  }
+
   if (!coupon.applicableEvents || coupon.applicableEvents.length === 0) {
     return true; // Applies globally if no specific restrictions configured
   }
@@ -165,6 +170,7 @@ export function calculateCouponDiscount(
   }
 
   const code = (coupon.code || coupon.id || '').trim().toLowerCase();
+  const isHsbMedia = code === 'hsbmedia';
 
   // 1. Check active status
   if (coupon.active === false) {
@@ -308,8 +314,8 @@ export function calculateCouponDiscount(
       const totalMembers = !event.isTeam ? 1 : 1 + (Array.isArray(groupMembers) ? groupMembers.length : 0);
 
       const baseFee = calculateEventItemPrice(event, totalMembers, context.visitorConfig, context.isEarlyBird);
-      const bandFee = getEventBandFee(event, totalMembers, context.visitorConfig, hasTeamMembersEntered);
-      const isApplicable = isCouponApplicableToEvent(coupon, event.id) || isCouponApplicableToEvent(coupon, event.title);
+      const bandFee = isHsbMedia ? 0 : getEventBandFee(event, totalMembers, context.visitorConfig, hasTeamMembersEntered);
+      const isApplicable = isHsbMedia || isCouponApplicableToEvent(coupon, event.id) || isCouponApplicableToEvent(coupon, event.title);
 
       totalBaseFee += baseFee;
       totalBandFee += bandFee;
@@ -323,10 +329,13 @@ export function calculateCouponDiscount(
       });
     }
 
-    calculatedBandFee = totalBandFee;
+    calculatedBandFee = isHsbMedia ? 0 : totalBandFee;
     calculatedOriginalPrice = (totalBaseFee + totalBandFee) > 0 ? (totalBaseFee + totalBandFee) : safeOriginalPrice;
 
-    if (discountType === 'percentage') {
+    if (isHsbMedia) {
+      finalPrice = 0;
+      discountAmount = calculatedOriginalPrice;
+    } else if (discountType === 'percentage') {
       const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
       let pctDiscountSum = 0;
       for (const item of eventBreakdowns) {
@@ -426,12 +435,15 @@ export function calculateCouponDiscount(
     }
   } else if (eventIdOrTitle) {
     const event = getEventById(eventIdOrTitle) || OFFICIAL_EVENTS.find(e => normalizeEventKey(e.title) === normalizeEventKey(eventIdOrTitle));
-    const evBandFee = event ? getEventBandFee(event, 1, undefined, false) : 0;
+    const evBandFee = isHsbMedia ? 0 : (event ? getEventBandFee(event, 1, undefined, false) : 0);
     const evBaseFee = Math.max(0, safeOriginalPrice - evBandFee);
-    calculatedBandFee = evBandFee;
+    calculatedBandFee = isHsbMedia ? 0 : evBandFee;
     calculatedOriginalPrice = safeOriginalPrice;
 
-    if (discountType === 'percentage') {
+    if (isHsbMedia) {
+      finalPrice = 0;
+      discountAmount = calculatedOriginalPrice;
+    } else if (discountType === 'percentage') {
       const pct = Math.min(100, Math.max(0, Number(discountValue) || 0));
       discountAmount = Math.round(((evBaseFee * pct) / 100) * 100) / 100;
       finalPrice = Math.max(0, evBaseFee - discountAmount) + evBandFee;
@@ -502,6 +514,12 @@ export function calculateCouponDiscount(
     }
   }
 
+  if (isHsbMedia) {
+    finalPrice = 0;
+    calculatedBandFee = 0;
+    discountAmount = calculatedOriginalPrice > 0 ? calculatedOriginalPrice : safeOriginalPrice;
+  }
+
   // Ensure 2 decimal places precision and non-negative values
   finalPrice = Math.max(0, Math.round(finalPrice * 100) / 100);
   discountAmount = Math.max(0, Math.round(discountAmount * 100) / 100);
@@ -509,12 +527,12 @@ export function calculateCouponDiscount(
   return {
     valid: true,
     code,
-    discountType,
-    discountValue,
+    discountType: isHsbMedia ? 'fixed' : discountType,
+    discountValue: isHsbMedia ? 0 : discountValue,
     originalPrice: calculatedOriginalPrice,
-    finalPrice,
-    discountAmount,
+    finalPrice: isHsbMedia ? 0 : finalPrice,
+    discountAmount: isHsbMedia ? (calculatedOriginalPrice > 0 ? calculatedOriginalPrice : safeOriginalPrice) : discountAmount,
     applicableEvents: coupon.applicableEvents || ['ALL'],
-    totalBandFee: calculatedBandFee,
+    totalBandFee: isHsbMedia ? 0 : calculatedBandFee,
   };
 }
