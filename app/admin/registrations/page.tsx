@@ -155,25 +155,39 @@ const getEventTitles = (reg: any): { full: string; short: string; list: string[]
 
 /**
  * Robustly extract a valid image URL for ID card from string, object, or fallbacks.
+ * Routes Cloudinary id-cards through Firebase Storage endpoint.
  */
 const extractIdCardUrl = (val: any): string | null => {
   if (!val) return null;
+  let rawUrl: string | null = null;
   if (typeof val === 'string') {
     const trimmed = val.trim();
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/') || trimmed.startsWith('data:image/')) {
-      return trimmed;
+      rawUrl = trimmed;
     }
-    return null;
-  }
-  if (typeof val === 'object') {
+  } else if (typeof val === 'object') {
     if (typeof val.url === 'string' && (val.url.startsWith('http') || val.url.startsWith('/'))) {
-      return val.url.trim();
-    }
-    if (typeof val.secure_url === 'string' && (val.secure_url.startsWith('http') || val.secure_url.startsWith('/'))) {
-      return val.secure_url.trim();
+      rawUrl = val.url.trim();
+    } else if (typeof val.secure_url === 'string' && (val.secure_url.startsWith('http') || val.secure_url.startsWith('/'))) {
+      rawUrl = val.secure_url.trim();
     }
   }
-  return null;
+  if (!rawUrl) return null;
+
+  // If already a Firebase Storage URL, local upload, or data URI, return as-is
+  if (rawUrl.includes('firebasestorage.googleapis.com') || rawUrl.startsWith('/api/id-card') || rawUrl.startsWith('data:image/')) {
+    return rawUrl;
+  }
+
+  // If it's a Cloudinary ID card URL, route through Firebase Storage resolver
+  if (rawUrl.includes('cloudinary.com') && rawUrl.includes('id-cards')) {
+    const filename = rawUrl.split('?')[0].split('/').pop();
+    if (filename) {
+      return `/api/id-card?file=${encodeURIComponent(filename)}&url=${encodeURIComponent(rawUrl)}`;
+    }
+  }
+
+  return rawUrl;
 };
 
 /**

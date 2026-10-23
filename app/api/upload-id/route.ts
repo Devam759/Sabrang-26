@@ -26,7 +26,39 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-    // 1. Try uploading to Cloudinary first (Permanent CDN storage, works in production & localhost)
+    // 1. Try uploading to Firebase Admin Storage first (Primary storage in id-cards/)
+    if (adminStorage) {
+      try {
+        const bucketName = 
+          process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 
+          process.env.FIREBASE_STORAGE_BUCKET || 
+          'sabrang-26.firebasestorage.app';
+        
+        const bucket = adminStorage.bucket(bucketName);
+        const folder = 'id-cards';
+        const fileRef = bucket.file(`${folder}/${uniqueFileName}`);
+        const downloadToken = crypto.randomUUID();
+
+        await fileRef.save(buffer, {
+          metadata: { 
+            contentType: file.type || 'image/jpeg',
+            metadata: {
+              firebaseStorageDownloadTokens: downloadToken
+            }
+          },
+        });
+
+        const encodedPath = encodeURIComponent(`${folder}/${uniqueFileName}`);
+        const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
+        
+        console.log(`[Upload-ID] Successfully uploaded ID card to Firebase Storage: ${url}`);
+        return NextResponse.json({ url, name: file.name });
+      } catch (storageError: any) {
+        console.warn("Firebase Admin Storage upload encountered an issue, trying fallbacks:", storageError.message);
+      }
+    }
+
+    // 2. Cloudinary fallback
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -58,45 +90,15 @@ export async function POST(request: Request) {
           const cloudinaryData = await cloudinaryRes.json();
           const secureUrl = cloudinaryData.secure_url || cloudinaryData.url;
           if (secureUrl) {
-            console.log(`[Upload-ID] Successfully uploaded ID card to Cloudinary: ${secureUrl}`);
+            console.log(`[Upload-ID] Uploaded ID card to Cloudinary fallback: ${secureUrl}`);
             return NextResponse.json({ url: secureUrl, name: file.name });
           }
         } else {
           const errText = await cloudinaryRes.text();
-          console.warn("[Upload-ID] Cloudinary returned non-ok status:", cloudinaryRes.status, errText);
+          console.warn("[Upload-ID] Cloudinary fallback returned non-ok status:", cloudinaryRes.status, errText);
         }
       } catch (cloudErr: any) {
-        console.warn("[Upload-ID] Cloudinary upload encountered an issue, trying fallbacks:", cloudErr.message);
-      }
-    }
-
-    // 2. Try uploading to Firebase Admin Storage fallback
-    if (adminStorage) {
-      try {
-        const bucketName = 
-          process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 
-          process.env.FIREBASE_STORAGE_BUCKET || 
-          'sabrang-26.firebasestorage.app';
-        
-        const bucket = adminStorage.bucket(bucketName);
-        const fileRef = bucket.file(`idCards/${uniqueFileName}`);
-        const downloadToken = crypto.randomUUID();
-
-        await fileRef.save(buffer, {
-          metadata: { 
-            contentType: file.type || 'image/png',
-            metadata: {
-              firebaseStorageDownloadTokens: downloadToken
-            }
-          },
-        });
-
-        const encodedPath = encodeURIComponent(`idCards/${uniqueFileName}`);
-        const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
-        
-        return NextResponse.json({ url, name: file.name });
-      } catch (storageError: any) {
-        console.warn("Firebase Admin Storage upload encountered an issue, falling back to local storage:", storageError.message);
+        console.warn("[Upload-ID] Cloudinary fallback encountered an issue:", cloudErr.message);
       }
     }
 
