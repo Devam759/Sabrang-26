@@ -1842,13 +1842,6 @@ export default function Registrations() {
               <span>Send Unsent ({unsentCount})</span>
             </button>
           )}
-          <button 
-            onClick={exportExcel}
-            disabled={loading || registrations.length === 0}
-            className="group inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all cursor-pointer shadow-xs disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <CustomDownloadIcon size={14} className="text-slate-700 group-hover:text-slate-900 transition-colors" /> <span>Export Excel</span>
-          </button>
         </div>
       </div>
 
