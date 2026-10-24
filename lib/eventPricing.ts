@@ -307,25 +307,6 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   // --- Non-Flagship - Other Events ---
 
   {
-    id: "faceoff_hiphop",
-    title: "Faceoff (Hip Hop)",
-    subtitle: "Street Dance Face Off - Hip Hop (Solo)",
-    category: "Non-Flagship - Other Events",
-    minTeam: 1,
-    maxTeam: 1,
-    baseIncludedMembers: 1,
-    basePrice: 499,
-    extraMemberFee: 0,
-    isTeam: false,
-    type: "generic",
-    pricingLabel: "₹499 per head",
-    prizes: {
-      winnerCash: 6000,
-      totalCash: 6000,
-      remarks: "Hip Hop Solo Dance Battle (Winner takes all)",
-    },
-  },
-  {
     id: "faceoff_rep_your_style",
     title: "Faceoff (Rep your Style)",
     subtitle: "Street Dance Face Off - Rep your Style (Solo)",

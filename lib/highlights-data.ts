@@ -173,26 +173,6 @@ export const galleryItems: GalleryItem[] = [
     ],
   },
   {
-    id: 16,
-    eventId: "faceoff_hiphop",
-    image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791747465/Face_Off.png",
-    title: "Faceoff (Hip Hop)",
-    category: "Non-Flagship - Other Events",
-    venue: "Campus",
-    year: 2026,
-    alt: "Faceoff (Hip Hop) at Sabrang 2026",
-    description: "Street Dance Face Off - Hip Hop (Solo) | Prize: ₹6,000 (Winner takes all)",
-    minTeam: 1,
-    maxTeam: 1,
-    winnerCash: "6,000",
-    totalCash: 6000,
-    prizesRemarks: "Hip Hop Solo Dance Battle; ₹6,000 winner cash prize",
-    coordinators: [
-      { name: "Akshat Bisht", phone: "9509693736" },
-      { name: "Anubha Sharma", phone: "9829820425" },
-    ],
-  },
-  {
     id: 19,
     eventId: "faceoff_rep_your_style",
     image: "https://res.cloudinary.com/eftrvjpx/image/upload/f_auto,q_auto/v1791747465/Face_Off.png",
@@ -495,8 +475,6 @@ export const ALL_COORDINATOR_DIRECTORY: CoordinatorDirectoryEntry[] = [
   { category: "Flagship Events", eventName: "Grand Inaugural Ceremony", name: "Stage & Protocol Manager (TBA)", phone: "To be announced" },
 
   // Non-Flagship Events
-  { category: "Non-Flagship Events", eventName: "Faceoff (Hip Hop)", name: "Akshat Bisht", phone: "9509693736" },
-  { category: "Non-Flagship Events", eventName: "Faceoff (Hip Hop)", name: "Anubha Sharma", phone: "9829820425" },
   { category: "Non-Flagship Events", eventName: "Faceoff (Rep your Style)", name: "Akshat Bisht", phone: "9509693736" },
   { category: "Non-Flagship Events", eventName: "Faceoff (Rep your Style)", name: "Anubha Sharma", phone: "9829820425" },
   { category: "Non-Flagship Events", eventName: "Dumb Show", name: "Aditya Vyas", phone: "8955637102" },
