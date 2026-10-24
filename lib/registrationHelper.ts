@@ -585,13 +585,13 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
   }
 
   // Robust resolution of primary idCard from formData top level or team members
-  let resolvedIdCard = typeof formData.idCard === 'string' && formData.idCard.trim() ? formData.idCard.trim() : null;
+  let resolvedIdCard = typeof formData.idCard === 'string' && formData.idCard.trim() ? formData.idCard.trim().replace(/&amp;/g, '&') : null;
   if (!resolvedIdCard && formData.teamMembers && typeof formData.teamMembers === 'object') {
     for (const group of Object.keys(formData.teamMembers)) {
       const members = Array.isArray(formData.teamMembers[group]) ? formData.teamMembers[group] : [];
       for (const m of members) {
         if (m && typeof m.idCard === 'string' && m.idCard.trim()) {
-          resolvedIdCard = m.idCard.trim();
+          resolvedIdCard = m.idCard.trim().replace(/&amp;/g, '&');
           break;
         }
       }
@@ -606,7 +606,8 @@ export async function finalizeRegistration(formData: any, paymentId: string, ord
       if (Array.isArray(cleanedTeamMembers[group])) {
         cleanedTeamMembers[group] = cleanedTeamMembers[group].map((m: any) => {
           if (!m) return m;
-          const cardVal = typeof m.idCard === 'string' && m.idCard.trim() ? m.idCard.trim() : (m.idCard?.url || null);
+          const rawCard = typeof m.idCard === 'string' && m.idCard.trim() ? m.idCard.trim() : (m.idCard?.url || null);
+          const cardVal = typeof rawCard === 'string' ? rawCard.replace(/&amp;/g, '&') : rawCard;
           return {
             ...m,
             idCard: cardVal,

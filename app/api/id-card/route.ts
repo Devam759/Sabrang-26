@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const fileParam = searchParams.get('file');
-    const urlParam = searchParams.get('url');
+    const rawUrlParam = searchParams.get('url');
+    const urlParam = rawUrlParam ? rawUrlParam.replace(/&amp;/g, '&') : null;
 
     let filename = '';
     if (fileParam) {

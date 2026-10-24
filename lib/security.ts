@@ -54,10 +54,14 @@ export function isRateLimited(ip: string, limit: number = 5, windowMs: number = 
  */
 export function sanitizeInput(val: any): any {
   if (typeof val === 'string') {
+    const text = val.trim();
+    // Do not escape HTML entities on URLs, data URIs, or file paths to preserve query parameters (&token=, etc.)
+    if (/^(https?:\/\/|\/|data:image\/)/i.test(text)) {
+      return text;
+    }
     // Step 1: strip HTML/XML tags by removing everything between < and >
     let result = '';
     let inTag = false;
-    const text = val.trim();
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       if (char === '<') {
@@ -94,7 +98,20 @@ export function sanitizeObject(obj: any): any {
   const sanitized: any = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      sanitized[key] = sanitizeObject(obj[key]);
+      const lowerKey = key.toLowerCase();
+      // Preserve ID card links and image URLs without HTML escaping &amp;
+      if (
+        (lowerKey.includes('card') || lowerKey.includes('url') || lowerKey.includes('image') || lowerKey.includes('photo')) &&
+        typeof obj[key] === 'string'
+      ) {
+        let clean = obj[key].trim();
+        while (clean.includes('&amp;')) {
+          clean = clean.replace(/&amp;/g, '&');
+        }
+        sanitized[key] = clean;
+      } else {
+        sanitized[key] = sanitizeObject(obj[key]);
+      }
     }
   }
   return sanitized;

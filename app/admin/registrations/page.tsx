@@ -174,6 +174,11 @@ const extractIdCardUrl = (val: any): string | null => {
   }
   if (!rawUrl) return null;
 
+  // Unescape any HTML entities (e.g. &amp; -> &) so query parameters like &token= remain valid
+  while (rawUrl.includes('&amp;')) {
+    rawUrl = rawUrl.replace(/&amp;/g, '&');
+  }
+
   // If already a Firebase Storage URL, local upload, or data URI, return as-is
   if (rawUrl.includes('firebasestorage.googleapis.com') || rawUrl.startsWith('/api/id-card') || rawUrl.startsWith('data:image/')) {
     return rawUrl;
