@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Download, FileText, Trophy, Users, ChevronRight, Phone, Gamepad2 } from "lucide-react";
 import { GalleryItem } from "@/lib/highlights-data";
+import { isEventRegistrationClosed, getEventDay } from "@/lib/eventPricing";
 
 /**
  * Full-screen event detail overlay - poster on the left, info on the right.
@@ -91,9 +92,23 @@ export default function PosterDetailModal({
         {/* Info panel */}
         <div className="flex flex-col justify-between py-1 md:py-2 flex-1">
           <div>
-            {/* Subtle category indicator */}
-            <div className="text-[11px] font-mono tracking-[0.2em] text-slate-400 uppercase mb-2">
-              {item.category}
+            {/* Subtle category indicator and Day/Status badge */}
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div className="text-[11px] font-mono tracking-[0.2em] text-slate-400 uppercase">
+                {item.category}
+              </div>
+              <div className="flex items-center gap-2">
+                {item.eventId && isEventRegistrationClosed(item.eventId) && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.3)]">
+                    Registration Closed
+                  </span>
+                )}
+                {item.eventId && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-white/5 text-white/60 border border-white/10">
+                    Day {getEventDay(item.eventId)}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Title & subtitle */}
@@ -232,6 +247,10 @@ export default function PosterDetailModal({
             ) : item.eventId === "inaugural" ? (
               <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-500/20 border border-purple-400/40 text-purple-200 text-xs font-black uppercase tracking-wider">
                 <span>Festival Showcase &bull; Open Entry</span>
+              </span>
+            ) : item.eventId && isEventRegistrationClosed(item.eventId) ? (
+              <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-black uppercase tracking-wider cursor-not-allowed select-none">
+                <span>REGISTRATION CLOSED</span>
               </span>
             ) : (
               <Link

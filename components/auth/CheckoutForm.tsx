@@ -20,6 +20,8 @@ import {
   FESTIVAL_DAYS,
   VisitorPassConfig,
   calculateVisitorPassFee,
+  isEventRegistrationClosed,
+  getEventDay,
 } from "@/lib/eventPricing";
 import RegistrationCoordinatorsDropdown from "@/components/auth/RegistrationCoordinatorsDropdown";
 
@@ -61,7 +63,7 @@ export default function CheckoutForm() {
   const [teamMembers, setTeamMembers] = useState<Record<string, TeamMember[]>>({});
 
   // Visitor Pass Multi-Day and Multi-Person state
-  const [visitorDays, setVisitorDays] = useState<string[]>(["day1"]);
+  const [visitorDays, setVisitorDays] = useState<string[]>(["day3"]);
   const [visitorCount, setVisitorCount] = useState<number>(1);
   
   // ID Cards
@@ -266,7 +268,7 @@ export default function CheckoutForm() {
     const eventParam = params.get("event") || params.get("events") || params.get("cart");
     if (eventParam) {
       const ids = eventParam.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-      const validIds = ids.filter((id) => EVENTS.some((e) => e.id.toLowerCase() === id));
+      const validIds = ids.filter((id) => EVENTS.some((e) => e.id.toLowerCase() === id) && !isEventRegistrationClosed(id));
       if (validIds.length > 0) {
         setSelectedEvents((prev) => Array.from(new Set([...prev, ...validIds])));
         setCartLoadedFromUrl(true);
@@ -325,6 +327,12 @@ export default function CheckoutForm() {
 
     if (selectedEvents.length === 0) {
       setPaymentError("Please select at least one event or pass.");
+      return;
+    }
+
+    const hasClosedEvents = selectedEvents.some((id) => isEventRegistrationClosed(id));
+    if (hasClosedEvents) {
+      setPaymentError("Registration for Day 1 and Day 2 events is closed.");
       return;
     }
 
@@ -512,6 +520,11 @@ export default function CheckoutForm() {
           setFormErrorMessage("Please select at least one event or pass to continue.");
           return;
         }
+        const hasClosedEvents = selectedEvents.some((id) => isEventRegistrationClosed(id));
+        if (hasClosedEvents) {
+          setFormErrorMessage("Registration for Day 1 and Day 2 events is closed. Please remove them to proceed.");
+          return;
+        }
         setFormErrorMessage(null);
         const activeGroups = getActiveGroups();
         const nextTeam = { ...teamMembers };
@@ -587,6 +600,10 @@ export default function CheckoutForm() {
   };
 
   const toggleEvent = (id: string) => {
+    if (isEventRegistrationClosed(id)) {
+      return;
+    }
+
     setSelectedEvents((prev) => {
       let next = prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id];
       if (id === "pronite_jklu" && next.includes("pronite_jklu")) {
@@ -791,6 +808,7 @@ export default function CheckoutForm() {
   };
 
   const toggleVisitorDay = (dayId: string) => {
+    if (dayId === "day1" || dayId === "day2") return;
     setVisitorDays((prev) => {
       if (prev.includes(dayId)) {
         if (prev.length <= 1) return prev; // keep at least 1 day selected
@@ -801,11 +819,7 @@ export default function CheckoutForm() {
   };
 
   const toggleAllVisitorDays = () => {
-    if (visitorDays.length === FESTIVAL_DAYS.length) {
-      setVisitorDays(["day1"]);
-    } else {
-      setVisitorDays(FESTIVAL_DAYS.map((d) => d.id));
-    }
+    setVisitorDays(["day3"]);
   };
 
   const sanitizePhone = (phone: string) => {
@@ -2107,22 +2121,36 @@ export default function CheckoutForm() {
                       <div className="space-y-3">
                         {categoryEvents.map((event) => {
                           const isSelected = selectedEvents.includes(event.id);
+                          const isClosed = isEventRegistrationClosed(event.id);
+                          const eventDay = getEventDay(event.id);
 
                           return (
                             <div
                               key={event.id}
-                              onClick={() => toggleEvent(event.id)}
-                              className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                                isSelected
-                                  ? "bg-[#0b1726] border-cyan-400/80 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
-                                  : "bg-[#0d0d10] border-white/10 hover:border-white/20 hover:bg-[#131317]"
+                              onClick={isClosed ? undefined : () => toggleEvent(event.id)}
+                              className={`p-4 rounded-2xl border transition-all ${
+                                isClosed
+                                  ? "bg-[#0d0d10]/50 border-white/5 opacity-65 cursor-not-allowed select-none"
+                                  : isSelected
+                                  ? "bg-[#0b1726] border-cyan-400/80 shadow-[0_0_20px_rgba(6,182,212,0.2)] cursor-pointer"
+                                  : "bg-[#0d0d10] border-white/10 hover:border-white/20 hover:bg-[#131317] cursor-pointer"
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <h5 className="font-black text-base uppercase tracking-wider text-white mb-1.5">
-                                    {event.title}
-                                  </h5>
+                                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                    <h5 className={`font-black text-base uppercase tracking-wider ${isClosed ? "text-white/60" : "text-white"}`}>
+                                      {event.title}
+                                    </h5>
+                                    {isClosed ? (
+                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                        Registration Closed
+                                      </span>
+                                    ) : null}
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-white/5 text-white/50 border border-white/10">
+                                      Day {eventDay}
+                                    </span>
+                                  </div>
                                   {event.subtitle && (
                                     <p className="text-xs text-white/60 mb-2 font-sans">
                                       {event.subtitle}
@@ -2191,15 +2219,21 @@ export default function CheckoutForm() {
                                   </div>
                                 </div>
 
-                                <div
-                                  className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ml-4 ${
-                                    isSelected
-                                      ? "bg-cyan-400 border-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.7)]"
-                                      : "border-white/20 bg-transparent"
-                                  }`}
-                                >
-                                  {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
-                                </div>
+                                {isClosed ? (
+                                  <div className="px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[10px] font-black text-rose-300 uppercase tracking-wider shrink-0 ml-4 select-none">
+                                    Closed
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ml-4 ${
+                                      isSelected
+                                        ? "bg-cyan-400 border-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.7)]"
+                                        : "border-white/20 bg-transparent"
+                                    }`}
+                                  >
+                                    {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Interactive Inline Visitor Configuration (Days & Quantity) */}
@@ -2222,31 +2256,35 @@ export default function CheckoutForm() {
                                         <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                                         Select Festival Days
                                       </span>
-                                      <button
-                                        type="button"
-                                        onClick={toggleAllVisitorDays}
-                                        className="text-[11px] font-sans text-cyan-400 hover:underline cursor-pointer"
-                                      >
-                                        {visitorDays.length === FESTIVAL_DAYS.length ? "Reset to Day 1" : "Select All 3 Days"}
-                                      </button>
+                                      <span className="text-[11px] font-sans text-white/50">
+                                        Day 1 &amp; Day 2 Ended • Day 3 Active
+                                      </span>
                                     </div>
 
                                     <div className="grid grid-cols-3 gap-2">
                                       {FESTIVAL_DAYS.map((day) => {
+                                        const isEnded = day.id === "day1" || day.id === "day2";
                                         const isDaySelected = visitorDays.includes(day.id);
                                         return (
                                           <button
                                             key={day.id}
                                             type="button"
+                                            disabled={isEnded}
                                             onClick={() => toggleVisitorDay(day.id)}
-                                            className={`py-2 px-3 rounded-xl border text-xs font-medium flex flex-col items-center justify-center transition-all cursor-pointer ${
-                                              isDaySelected
-                                                ? "bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]"
-                                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white"
+                                            className={`py-2 px-3 rounded-xl border text-xs font-medium flex flex-col items-center justify-center transition-all ${
+                                              isEnded
+                                                ? "bg-white/[0.02] border-white/5 text-white/30 cursor-not-allowed opacity-60"
+                                                : isDaySelected
+                                                ? "bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)] cursor-pointer"
+                                                : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white cursor-pointer"
                                             }`}
                                           >
                                             <span className="font-bold">{day.label}</span>
-                                            <span className="text-[10px] font-sans text-cyan-300">{day.date}</span>
+                                            {isEnded ? (
+                                              <span className="text-[10px] font-sans text-rose-400/80 font-bold">Ended</span>
+                                            ) : (
+                                              <span className="text-[10px] font-sans text-cyan-300">{day.date}</span>
+                                            )}
                                           </button>
                                         );
                                       })}

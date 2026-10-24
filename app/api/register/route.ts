@@ -8,7 +8,7 @@ import { validateRegistrationNumber } from '@/lib/utils';
 import { logSystemError } from '@/lib/errorAlertService';
 
 import { isRateLimited, sanitizeObject, isProd, cashfreeAppId, cashfreeSecretKey, formatPhoneNumber } from '@/lib/security';
-import { calculateTotalRegistrationFee } from '@/lib/eventPricing';
+import { calculateTotalRegistrationFee, isEventRegistrationClosed } from '@/lib/eventPricing';
 
 // Initialize Cashfree
 const cashfree = new Cashfree(
@@ -197,6 +197,20 @@ export async function POST(req: Request) {
           ? data.selectedEvents
           : (data.eventId ? [data.eventId] : []);
 
+        // Reject any Day 1 and Day 2 events whose registration has closed
+        const closedEvent = eventList.find((id: string) => isEventRegistrationClosed(id));
+        if (closedEvent) {
+          return NextResponse.json({ error: 'Registration for Day 1 and Day 2 events is closed.' }, { status: 400 });
+        }
+
+        // For visitor passes, ensure only active festival days (Day 3) are allowed
+        if (eventList.includes('visitor') && data.visitorConfig?.days) {
+          const vDays: string[] = data.visitorConfig.days;
+          const hasOnlyClosedDays = vDays.length > 0 && vDays.every((d) => d === 'day1' || d === 'day2');
+          if (hasOnlyClosedDays) {
+            return NextResponse.json({ error: 'Visitor pass registration for Day 1 and Day 2 has ended. Only Day 3 passes are available.' }, { status: 400 });
+          }
+        }
         
       // Fetch Early Bird Settings
       const settingsRef = adminDb.collection('settings').doc('earlyBird');

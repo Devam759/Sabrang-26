@@ -18,6 +18,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, FileText, Users, ArrowRight, Gamepad2 } from "lucide-react";
 import { galleryItems, findGalleryItem, type GalleryItem } from "@/lib/highlights-data";
+import { isEventRegistrationClosed } from "@/lib/eventPricing";
 import { createWheelGesture } from "@/lib/gestureStepper";
 import PosterDetailModal from "./PosterDetailModal";
 import EventsFilterDropdown from "./EventsFilterDropdown";
@@ -75,11 +76,16 @@ function ArchivePlate({ item, index, onSelect }: { item: GalleryItem; index: num
 
       {failed && <div className="aspect-[3/4] w-full" />}
 
-      {/* Subtle top badge for category */}
-      <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
+      {/* Subtle top badge for category and closed status */}
+      <div className="absolute top-2.5 left-2.5 right-2.5 z-10 pointer-events-none flex items-center justify-between gap-1">
         <span className="text-[9px] font-mono font-medium uppercase tracking-wider px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-slate-300 border border-white/10">
           {item.category.split("-")[0]?.trim()}
         </span>
+        {item.eventId && isEventRegistrationClosed(item.eventId) && (
+          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/80 backdrop-blur-md text-white border border-rose-400/40 shadow-sm">
+            Closed
+          </span>
+        )}
       </div>
 
       <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent p-3.5 sm:p-4 flex flex-col gap-1.5 z-10">

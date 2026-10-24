@@ -26,6 +26,8 @@ export interface SabrangEvent {
   type: "generic" | "bgmi" | "valorant" | "freefire" | "visitor";
   pricingLabel: string;
   earlyBirdPricingLabel?: string;
+  day?: 1 | 2 | 3;
+  isRegistrationClosed?: boolean;
   prizes: {
     winnerCash?: number | string;
     runnerUpCash?: number | string;
@@ -314,11 +316,11 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
     minTeam: 1,
     maxTeam: 1,
     baseIncludedMembers: 1,
-    basePrice: 499,
+    basePrice: 299,
     extraMemberFee: 0,
     isTeam: false,
     type: "generic",
-    pricingLabel: "₹499 per head",
+    pricingLabel: "₹299 per head",
     prizes: {
       winnerCash: 6000,
       totalCash: 6000,
@@ -474,9 +476,61 @@ const RAW_EVENTS: Omit<SabrangEvent, 'price'>[] = [
   }
 ];
 
+export const EVENT_SCHEDULE_DAYS: Record<string, 1 | 2 | 3> = {
+  panache: 1,
+  persona: 1,
+  echoes_of_noor: 1,
+  dumb_show: 1,
+  bgmi: 1,
+  freefire: 1,
+  valorant: 1,
+  real_cricket: 1,
+  sync: 2,
+  bandjam: 2,
+  step_up: 2,
+  courtroom: 2,
+  bidding: 2,
+  anime_quiz: 2,
+  faceoff_rep_your_style: 3,
+  versevaad: 3,
+  vaad_vivaad: 3,
+  visitor: 3,
+  pronite_outsider: 3,
+  pronite_jklu: 3,
+};
+
+export const CLOSED_EVENT_IDS = new Set<string>([
+  "panache",
+  "persona",
+  "echoes_of_noor",
+  "dumb_show",
+  "bgmi",
+  "freefire",
+  "valorant",
+  "real_cricket",
+  "sync",
+  "bandjam",
+  "step_up",
+  "courtroom",
+  "bidding",
+  "anime_quiz",
+]);
+
+export function isEventRegistrationClosed(eventId: string): boolean {
+  if (!eventId) return false;
+  return CLOSED_EVENT_IDS.has(eventId.toLowerCase().trim());
+}
+
+export function getEventDay(eventId: string): 1 | 2 | 3 {
+  if (!eventId) return 3;
+  return EVENT_SCHEDULE_DAYS[eventId.toLowerCase().trim()] || 3;
+}
+
 export const OFFICIAL_EVENTS: SabrangEvent[] = RAW_EVENTS.map((e) => ({
   ...e,
   price: e.basePrice,
+  day: EVENT_SCHEDULE_DAYS[e.id] || 3,
+  isRegistrationClosed: CLOSED_EVENT_IDS.has(e.id),
 }));
 
 export const EVENT_BY_ID: Record<string, SabrangEvent> = Object.fromEntries(
@@ -488,9 +542,9 @@ export function getEventById(id: string): SabrangEvent | undefined {
 }
 
 export const FESTIVAL_DAYS = [
-  { id: "day1", label: "Day 1", date: "Oct 23" },
-  { id: "day2", label: "Day 2", date: "Oct 24" },
-  { id: "day3", label: "Day 3", date: "Oct 25" },
+  { id: "day1", label: "Day 1", date: "Oct 23", ended: true },
+  { id: "day2", label: "Day 2", date: "Oct 24", ended: true },
+  { id: "day3", label: "Day 3", date: "Oct 25", ended: false },
 ] as const;
 
 export type FestivalDayId = (typeof FESTIVAL_DAYS)[number]["id"];
