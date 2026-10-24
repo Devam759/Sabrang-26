@@ -529,7 +529,7 @@ const RegistrationTableRow = React.memo(function RegistrationTableRow({
   const isRegDeleted = reg.isDeleted === true || reg.status === 'deleted';
   const rawInst = getRegistrationInstituteRaw(reg);
   const inst = normalizeInstitute(rawInst);
-  const isJKLU = inst === 'JK Lakshmipat University' || (inst && inst.includes('JKLU'));
+  const isJKLU = inst === 'JK Lakshmipat University' || (inst && inst.includes('JKLU')) || inst === 'HSB';
   const eventTitles = getEventTitles(reg);
 
   return (
@@ -1364,8 +1364,8 @@ export default function Registrations() {
     }));
 
     entries.sort((a, b) => {
-      if (a.key.includes('Lakshmipat') || a.key.includes('JKLU')) return -1;
-      if (b.key.includes('Lakshmipat') || b.key.includes('JKLU')) return 1;
+      if (a.key.includes('Lakshmipat') || a.key.includes('JKLU') || a.key === 'HSB') return -1;
+      if (b.key.includes('Lakshmipat') || b.key.includes('JKLU') || b.key === 'HSB') return 1;
       if (b.count !== a.count) return b.count - a.count;
       return a.label.localeCompare(b.label);
     });

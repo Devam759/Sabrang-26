@@ -159,6 +159,15 @@ export default function SchedulePage() {
             "Competitive gaming sessions held across designated IM & IET rooms.",
         },
         {
+          time: "12:00 PM",
+          timing: "12:00 PM - 5:00 PM",
+          event: "BBW",
+          venue: "IET Amphitheater",
+          category: "Competition",
+          description:
+            "A competitive event that combines teamwork, strategy and quick decision-making in an engaging format.",
+        },
+        {
           time: "1:00 PM",
           timing: "1:00 PM - 3:00 PM",
           event: "Anime Quiz",

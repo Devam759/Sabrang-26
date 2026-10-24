@@ -416,6 +416,8 @@ export function normalizeInstitute(raw: string | null | undefined): string {
     return 'JK Lakshmipat University';
   }
 
+  if (compact === 'hsb') return 'HSB';
+
   // 2. Known external universities & colleges
   if (compact.includes('poornima')) return 'Poornima University';
   if (compact.includes('xavier')) return "St. Xavier's College";

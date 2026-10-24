@@ -294,15 +294,18 @@ export default function CheckoutForm() {
       setFormData((prev) => {
         let changed = false;
         const next = { ...prev };
-        if (next["generic_institutionSelect"] !== "JK Lakshmipat University") {
-          next["generic_institutionSelect"] = "JK Lakshmipat University";
-          changed = true;
-        }
-        if (next["generic_institutionName"] !== "JK Lakshmipat University") {
-          next["generic_institutionName"] = "JK Lakshmipat University";
-          changed = true;
-        }
         const currentEmail = next["generic_email"] || "";
+        const isHsb = currentEmail.endsWith("@hsb.edu.in");
+        const defaultUni = isHsb ? "HSB" : "JK Lakshmipat University";
+
+        if (next["generic_institutionSelect"] !== defaultUni) {
+          next["generic_institutionSelect"] = defaultUni;
+          changed = true;
+        }
+        if (next["generic_institutionName"] !== defaultUni) {
+          next["generic_institutionName"] = defaultUni;
+          changed = true;
+        }
         if (!currentEmail) {
           next["generic_email"] = "@jklu.edu.in";
           changed = true;
@@ -597,12 +600,14 @@ export default function CheckoutForm() {
     if (id === "pronite_jklu") {
       setFormData((prev) => {
         const currentEmail = prev["generic_email"] || "";
-        const domain = currentEmail.endsWith("@hsb.edu.in") ? "@hsb.edu.in" : "@jklu.edu.in";
+        const isHsb = currentEmail.endsWith("@hsb.edu.in");
+        const domain = isHsb ? "@hsb.edu.in" : "@jklu.edu.in";
+        const uni = isHsb ? "HSB" : "JK Lakshmipat University";
         const pfx = currentEmail.includes("@") ? currentEmail.split("@")[0] : currentEmail;
         return {
           ...prev,
-          generic_institutionSelect: "JK Lakshmipat University",
-          generic_institutionName: "JK Lakshmipat University",
+          generic_institutionSelect: uni,
+          generic_institutionName: uni,
           generic_email: pfx ? `${pfx.replace(/\s+/g, "")}${domain}` : domain,
         };
       });
@@ -835,7 +840,8 @@ export default function CheckoutForm() {
       group === "generic" &&
       selectedEvents.includes("pronite_jklu") &&
       (field === "institutionName" || field === "institutionSelect") &&
-      value !== "JK Lakshmipat University"
+      value !== "JK Lakshmipat University" &&
+      value !== "HSB"
     ) {
       return; // Locked and irreplaceable
     }
@@ -851,7 +857,11 @@ export default function CheckoutForm() {
       selectedEvents.includes("pronite_jklu") &&
       (field === "institutionName" || field === "institutionSelect")
     ) {
-      return "JK Lakshmipat University";
+      const email = formData["generic_email"] || "";
+      if (email.endsWith("@hsb.edu.in")) {
+        return "HSB";
+      }
+      return formData[`${group}_${field}`] || "JK Lakshmipat University";
     }
     return formData[`${group}_${field}`] || "";
   };
@@ -1179,7 +1189,7 @@ export default function CheckoutForm() {
                 <span>{showTeamFields ? "Team Leader Institution Name" : group === 'visitor' ? "Primary Attendee Institution" : "Institution Name"} <span className="text-violet-400">*</span></span>
                 {group === "generic" && selectedEvents.includes("pronite_jklu") && (
                   <span className="text-[10px] text-violet-300 font-mono font-semibold uppercase tracking-wider bg-violet-500/15 px-2 py-0.5 rounded border border-violet-500/30">
-                    JKLU Exclusive
+                    {getField(group, 'institutionName') === "HSB" || getField(group, 'email').endsWith("@hsb.edu.in") ? "HSB Exclusive" : "JKLU Exclusive"}
                   </span>
                 )}
               </label>
@@ -1188,7 +1198,7 @@ export default function CheckoutForm() {
                 <input
                   id={`select_${group}_institutionName`}
                   type="text"
-                  value="JK Lakshmipat University"
+                  value={getField(group, 'institutionName') || (getField(group, 'email').endsWith("@hsb.edu.in") ? "HSB" : "JK Lakshmipat University")}
                   readOnly
                   disabled
                   className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-4 py-3 text-white/90 cursor-not-allowed select-none focus:outline-none"
@@ -1345,10 +1355,13 @@ export default function CheckoutForm() {
 
           {(() => {
             const isProniteJklu = group === "generic" && selectedEvents.includes("pronite_jklu");
-            const isJklu =
-              getField(group, 'institutionName') === "JK Lakshmipat University" ||
-              getField(group, 'institutionSelect') === "JK Lakshmipat University";
             const emailValue = getField(group, 'email');
+            const isJklu =
+              isProniteJklu ||
+              getField(group, 'institutionName') === "JK Lakshmipat University" ||
+              getField(group, 'institutionSelect') === "JK Lakshmipat University" ||
+              getField(group, 'institutionName') === "HSB" ||
+              getField(group, 'institutionSelect') === "HSB";
             const selectedDomain = isProniteJklu && emailValue.endsWith("@hsb.edu.in")
               ? "@hsb.edu.in"
               : "@jklu.edu.in";
@@ -1396,7 +1409,14 @@ export default function CheckoutForm() {
                         onChange={(e) => {
                           const newDomain = e.target.value;
                           const cleanPrefix = prefix.replace(/@.*$/, '').replace(/\s+/g, '');
-                          updateField(group, 'email', cleanPrefix ? `${cleanPrefix}${newDomain}` : newDomain);
+                          const newEmail = cleanPrefix ? `${cleanPrefix}${newDomain}` : newDomain;
+                          const newUni = newDomain === "@hsb.edu.in" ? "HSB" : "JK Lakshmipat University";
+                          setFormData((prev) => ({
+                            ...prev,
+                            [`${group}_email`]: newEmail,
+                            [`${group}_institutionSelect`]: newUni,
+                            [`${group}_institutionName`]: newUni,
+                          }));
                         }}
                         className="bg-white/10 text-violet-300 font-medium text-sm border-l border-white/10 px-3 py-3 focus:outline-none cursor-pointer hover:bg-white/15 transition-colors [&>option]:bg-[#0d0d12] [&>option]:text-white"
                       >

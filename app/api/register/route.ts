@@ -221,9 +221,11 @@ export async function POST(req: Request) {
         }
 
         if (eventList.includes("pronite_jklu")) {
-          data.institutionName = "JK Lakshmipat University";
-          if (data.generic_institutionName) data.generic_institutionName = "JK Lakshmipat University";
-          if (data.generic_institutionSelect) data.generic_institutionSelect = "JK Lakshmipat University";
+          const userEmail = (data.email || data.generic_email || '').toLowerCase().trim();
+          const uni = userEmail.endsWith("@hsb.edu.in") ? "HSB" : "JK Lakshmipat University";
+          data.institutionName = uni;
+          if (data.generic_institutionName !== undefined) data.generic_institutionName = uni;
+          if (data.generic_institutionSelect !== undefined) data.generic_institutionSelect = uni;
         }
 
         console.log("Saving pending registration for order ID:", orderId);
