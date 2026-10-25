@@ -482,7 +482,7 @@ export const EVENT_SCHEDULE_DAYS: Record<string, 1 | 2 | 3> = {
   echoes_of_noor: 1,
   dumb_show: 1,
   bgmi: 1,
-  freefire: 1,
+  freefire: 3,
   valorant: 1,
   real_cricket: 1,
   sync: 2,
