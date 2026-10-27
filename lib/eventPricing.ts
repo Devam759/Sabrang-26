@@ -510,7 +510,6 @@ export const CLOSED_EVENT_IDS = new Set<string>([
   "bandjam",
   "step_up",
   "courtroom",
-  "bidding",
   "anime_quiz",
 ]);
 
