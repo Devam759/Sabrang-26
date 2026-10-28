@@ -188,8 +188,8 @@ export default function UnlockExperience({
         </div>
 
         {/* Small box */}
-        <div className="mt-16 md:mt-24 mb-12 text-white px-4 py-1.5 font-black text-sm md:text-base tracking-[0.2em] uppercase relative z-30">
-          LIMITED PASSES · OCT 23-25 · JKLU
+        <div className="mt-16 md:mt-24 mb-12 text-rose-300 px-5 py-2 font-black text-xs md:text-sm tracking-[0.2em] uppercase relative z-30 bg-rose-500/20 border border-rose-500/40 rounded-full shadow-[0_0_15px_rgba(244,63,94,0.25)]">
+          REGISTRATIONS CLOSED · SABRANG 2026
         </div>
 
         {/* Ticket Stub Pass Button (Pointer Events Auto to allow clicking) */}
@@ -232,10 +232,10 @@ export default function UnlockExperience({
             {/* Main Label */}
             <div className="flex items-baseline">
               <span
-                className="font-black text-xl sm:text-2xl tracking-[0.14em] uppercase text-white group-hover:text-purple-100 transition-colors leading-none whitespace-nowrap"
+                className="font-black text-lg sm:text-xl tracking-[0.12em] uppercase text-rose-300 group-hover:text-rose-200 transition-colors leading-none whitespace-nowrap"
                 style={{ fontFamily: "'FlorasDisplay', sans-serif" }}
               >
-                CLAIM SPOT
+                REGISTRATION CLOSED
               </span>
             </div>
           </div>

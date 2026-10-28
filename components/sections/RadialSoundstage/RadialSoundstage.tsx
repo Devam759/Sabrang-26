@@ -152,7 +152,7 @@ export default function RadialSoundstage() {
                       href="/register"
                       className="group radial-cta-btn inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-['FlorasDisplay',serif] font-bold bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-[0_0_28px_rgba(255,255,255,0.3)] tracking-widest"
                     >
-                      RESERVE PASS
+                      REGISTRATIONS CLOSED
                       <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </Link>
 

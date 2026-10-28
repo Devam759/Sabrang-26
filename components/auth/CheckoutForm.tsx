@@ -331,8 +331,8 @@ export default function CheckoutForm() {
     }
 
     const hasClosedEvents = selectedEvents.some((id) => isEventRegistrationClosed(id));
-    if (hasClosedEvents) {
-      setPaymentError("Registration for Day 1 and Day 2 events is closed.");
+    if (hasClosedEvents || selectedEvents.length > 0) {
+      setPaymentError("Registration for all events is officially closed.");
       return;
     }
 
@@ -521,8 +521,8 @@ export default function CheckoutForm() {
           return;
         }
         const hasClosedEvents = selectedEvents.some((id) => isEventRegistrationClosed(id));
-        if (hasClosedEvents) {
-          setFormErrorMessage("Registration for Day 1 and Day 2 events is closed. Please remove them to proceed.");
+        if (hasClosedEvents || selectedEvents.length > 0) {
+          setFormErrorMessage("Registration for all events is officially closed.");
           return;
         }
         setFormErrorMessage(null);
@@ -2031,6 +2031,20 @@ export default function CheckoutForm() {
           {/* STEP 1: SELECT EVENTS */}
           <div style={{ display: currentStep === "select" ? "block" : "none" }}>
             <div className="space-y-6">
+              {/* Registration Closed Notice Banner */}
+              <div className="bg-rose-950/40 border border-rose-500/40 rounded-2xl p-4 sm:p-5 flex items-start sm:items-center gap-3.5 shadow-[0_0_24px_rgba(244,63,94,0.15)]">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-rose-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-rose-300 text-sm uppercase tracking-wider">
+                    Registrations Officially Closed
+                  </h4>
+                  <p className="text-xs text-rose-200/70 mt-0.5 font-sans">
+                    Online registrations for all Sabrang 2026 events and passes are now closed. Thank you for your overwhelming support!
+                  </p>
+                </div>
+              </div>
               {/* Cart Loaded banner */}
               {cartLoadedFromUrl && selectedEvents.length > 0 && (
                 <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl px-4 py-3 text-xs text-emerald-300 flex items-center gap-2">
@@ -2256,14 +2270,14 @@ export default function CheckoutForm() {
                                         <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                                         Select Festival Days
                                       </span>
-                                      <span className="text-[11px] font-sans text-white/50">
-                                        Day 1 &amp; Day 2 Ended • Day 3 Active
+                                      <span className="text-[11px] font-sans text-rose-400/80 font-bold">
+                                        All Festival Days Ended • Registration Closed
                                       </span>
                                     </div>
 
                                     <div className="grid grid-cols-3 gap-2">
                                       {FESTIVAL_DAYS.map((day) => {
-                                        const isEnded = day.id === "day1" || day.id === "day2";
+                                        const isEnded = true;
                                         const isDaySelected = visitorDays.includes(day.id);
                                         return (
                                           <button
@@ -2731,10 +2745,16 @@ export default function CheckoutForm() {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={currentStep === "select" ? selectedEvents.length === 0 : isProcessingPayment}
-                className="px-8 py-2.5 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl transition-all flex items-center gap-2 font-bold text-black text-xs shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
+                disabled={currentStep === "select" ? true : isProcessingPayment}
+                className={`px-8 py-2.5 rounded-xl transition-all flex items-center gap-2 font-bold text-xs ${
+                  currentStep === "select"
+                    ? "bg-rose-500/15 border border-rose-500/30 text-rose-300 cursor-not-allowed opacity-80"
+                    : "bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed text-black shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer"
+                }`}
               >
-                {isProcessingPayment ? (
+                {currentStep === "select" ? (
+                  <span>Registration Closed</span>
+                ) : isProcessingPayment ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Connecting...</span>
@@ -2836,12 +2856,10 @@ export default function CheckoutForm() {
           {currentStep === "select" && (
             <button
               type="button"
-              onClick={handleNext}
-              disabled={selectedEvents.length === 0}
-              className="w-full py-3.5 px-6 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed text-black font-extrabold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-all cursor-pointer"
+              disabled
+              className="w-full py-3.5 px-6 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-extrabold text-sm flex items-center justify-center gap-2 cursor-not-allowed select-none"
             >
-              <span>Continue</span>
-              <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+              <span>Registration Closed</span>
             </button>
           )}
 

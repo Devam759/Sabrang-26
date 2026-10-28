@@ -77,7 +77,7 @@ export default function HomeClient() {
         className="register-now-btn group fixed bottom-5 right-3.5 sm:bottom-8 sm:right-6 md:right-10 z-[45] flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/25 hover:border-white/40 backdrop-blur-md px-3.5 py-1.5 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full text-white text-[9px] sm:text-[10px] md:text-[11px] font-['FlorasDisplay',serif] font-bold tracking-widest uppercase shadow-[0_0_24px_rgba(255,255,255,0.08)] hover:shadow-[0_0_36px_rgba(255,255,255,0.18)] transition-all duration-300"
         style={{ willChange: 'opacity, transform' }}
       >
-        REGISTER NOW
+        REGISTRATIONS CLOSED
         <svg
           className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-0.5 transition-transform duration-200"
           viewBox="0 0 12 12"

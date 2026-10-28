@@ -505,17 +505,26 @@ export const CLOSED_EVENT_IDS = new Set<string>([
   "echoes_of_noor",
   "dumb_show",
   "bgmi",
+  "freefire",
   "valorant",
+  "real_cricket",
   "sync",
   "bandjam",
   "step_up",
   "courtroom",
+  "bidding",
   "anime_quiz",
+  "faceoff_rep_your_style",
+  "versevaad",
+  "vaad_vivaad",
+  "visitor",
+  "pronite_outsider",
+  "pronite_jklu",
+  ...RAW_EVENTS.map((e) => e.id),
 ]);
 
-export function isEventRegistrationClosed(eventId: string): boolean {
-  if (!eventId) return false;
-  return CLOSED_EVENT_IDS.has(eventId.toLowerCase().trim());
+export function isEventRegistrationClosed(_eventId?: string): boolean {
+  return true;
 }
 
 export function getEventDay(eventId: string): 1 | 2 | 3 {
@@ -527,7 +536,7 @@ export const OFFICIAL_EVENTS: SabrangEvent[] = RAW_EVENTS.map((e) => ({
   ...e,
   price: e.basePrice,
   day: EVENT_SCHEDULE_DAYS[e.id] || 3,
-  isRegistrationClosed: CLOSED_EVENT_IDS.has(e.id),
+  isRegistrationClosed: true,
 }));
 
 export const EVENT_BY_ID: Record<string, SabrangEvent> = Object.fromEntries(
@@ -541,7 +550,7 @@ export function getEventById(id: string): SabrangEvent | undefined {
 export const FESTIVAL_DAYS = [
   { id: "day1", label: "Day 1", date: "Oct 23", ended: true },
   { id: "day2", label: "Day 2", date: "Oct 24", ended: true },
-  { id: "day3", label: "Day 3", date: "Oct 25", ended: false },
+  { id: "day3", label: "Day 3", date: "Oct 25", ended: true },
 ] as const;
 
 export type FestivalDayId = (typeof FESTIVAL_DAYS)[number]["id"];
